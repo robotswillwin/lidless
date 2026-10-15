@@ -16,7 +16,7 @@ The full build plan, with the reasoning, image AI pricing and risks: https://cla
 | Milestone | Status |
 | --- | --- |
 | M0 Setup: repository, tooling, renderer drawing sprites, quality tiers | Done |
-| M1 Vertical slice: tap to walk, camera, hotspots, view switch, one Ink conversation, saving | Next |
+| M1 Vertical slice: tap to walk, hotspots, view switch unlocked by the fixer, Ink conversations, saving | Done, on one screen; the scrolling camera comes with a wider street |
 | M2 Pipeline v1: clean, derive maps, pack, preview, one image AI connected | |
 | M3 First real art through the pipeline | |
 | M4 Turn-based encounters | |

@@ -9,9 +9,11 @@
     "build": "tsc --noEmit && vite build",
     "check": "tsc --noEmit",
     "preview": "vite preview",
-    "shot": "node scripts/shot.mjs"
+    "shot": "node scripts/shot.mjs",
+    "play": "node scripts/play.mjs"
   },
   "devDependencies": {
+    "puppeteer-core": "25.12.0",
     "typescript": "6.0.3",
     "vite": "8.3.1"
   },

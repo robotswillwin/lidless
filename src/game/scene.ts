@@ -21,20 +21,32 @@ export class SceneRunner {
   private beacons = new Float32Array(128);
   private steam = new Float32Array(16);
   private godrays = new Float32Array(16);
+  private smokeSlot: number;
 
-  constructor(readonly scene: LoadedScene) {
+  /** Sprites named in `dynamic` are left out; the game draws them itself (the hero). */
+  constructor(readonly scene: LoadedScene, private dynamic = new Set<string>()) {
     const d = scene.def;
+    this.smokeSlot = d.steam.findIndex((e) => e.kind === 'smoke');
     d.beacons.slice(0, 32).forEach((b, i) => this.beacons.set([b.x, b.y, b.phase, 1], i * 4));
     d.steam.slice(0, 4).forEach((e, i) => this.steam.set([e.x, e.y, e.height, e.kind === 'smoke' ? -e.width : e.width], i * 4));
   }
 
-  frame(t: number, v: ViewState, cam: [number, number]): Frame {
+  sprite(name: string) {
+    const s = this.scene.sprites.find((x) => x.def.name === name);
+    if (!s) throw new Error(`no sprite called ${name}`);
+    return s;
+  }
+
+  /** `actors` are drawn after the scene's sprites; `smoke` moves the scene's smoke emitter (the hero's cigarette). */
+  frame(t: number, v: ViewState, cam: [number, number], actors: DrawSprite[] = [], smoke?: [number, number]): Frame {
     const d = this.scene.def;
-    const sprites: DrawSprite[] = this.scene.sprites.map((sprite) => ({
+    if (smoke && this.smokeSlot >= 0) this.steam.set(smoke, this.smokeSlot * 4);
+    const sprites: DrawSprite[] = this.scene.sprites.filter((s) => !this.dynamic.has(s.def.name)).map((sprite) => ({
       sprite,
       x: Math.round(sprite.def.x - cam[0] * sprite.def.parallax),
       y: Math.round(sprite.def.y - cam[1] * sprite.def.parallax),
     }));
+    sprites.push(...actors);
     let nCars = 0;
     const tr = d.traffic;
     if (tr) {

@@ -1,0 +1,32 @@
+// Level data: where you can walk, where the hero starts, and the things you can look at or talk to.
+
+/** Text that can differ between Concierge view and raw view. */
+export type ViewText = string | { concierge: string; raw: string };
+
+export interface Hotspot {
+  id: string;
+  name: ViewText;
+  /** x, y, w, h in level pixels. */
+  rect: [number, number, number, number];
+  /** Where the hero walks to before interacting; look-only hotspots far away can leave it out. */
+  stand?: number;
+  /** Which way the hero faces when she gets there. */
+  face?: 1 | -1;
+  look?: ViewText;
+  /** Ink knot to run. */
+  talk?: string;
+}
+
+export interface LevelDef {
+  walk: { y: number; x0: number; x1: number };
+  hero: { sprite: string; x: number; anchor: [number, number]; smoke: [number, number]; speed: number };
+  hotspots: Hotspot[];
+}
+
+export const pick = (t: ViewText, raw: boolean): string => (typeof t === 'string' ? t : raw ? t.raw : t.concierge);
+
+export async function loadLevel(base: string): Promise<LevelDef> {
+  const res = await fetch(`${base}/level.json`);
+  if (!res.ok) throw new Error(`could not load ${base}/level.json (${res.status})`);
+  return res.json() as Promise<LevelDef>;
+}

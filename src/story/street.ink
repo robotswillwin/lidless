@@ -1,0 +1,70 @@
+// The street outside the radio shop.
+// Lines tagged #fixer are spoken by the fixer, #concierge by the Concierge; untagged lines are narration.
+
+VAR has_raw = false
+VAR favours_owed = 0
+VAR raw_view = false
+
+-> END
+
+=== fixer ===
+{ has_raw: -> after }
+{ fixer > 1: He looks up this time. | The fixer doesn't look up from the soldering iron. }
+"Shop's closed. Unless you're here about a radio." #fixer
+- (talk)
+* [I'm not here about a radio.]
+    "No. Nobody is, anymore." #fixer
+    He sets the iron down and turns on his stool, slowly, like his back has opinions.
+    -> offer
+* [What's wrong with all these radios?]
+    "Nothing. They work fine. It's the stations that went quiet." #fixer
+    -> talk
+* [Leave him to it.]
+    -> END
+
+= offer
+"You've got that look. Like you're trying to see past it." #fixer
+He taps his own visor. The casing is pried open, the wiring re-soldered by hand, a red light where a green one used to be.
+"I can open yours. You'd see what's actually out there. The Concierge won't know, as long as you don't stare." #fixer
+- (ask)
+* [What does it cost?]
+    "A favour. I'll tell you which one when I need it." #fixer
+    -> ask
+* [What will I see?]
+    "Less than you'd like. More than you'll forget." #fixer
+    -> ask
+* [Do it.]
+    -> install
+* [Not tonight.]
+    "The offer stands. The street isn't getting any prettier." #fixer
+    -> END
+
+= install
+He works fast, with tools that are older than you. A click behind your eye, a cold thread of something, then nothing.
+"Done. Press it when you want to see. Don't keep it on too long. They notice people who stare." #fixer
+~ has_raw = true
+~ favours_owed = favours_owed + 1
+-> END
+
+= after
+"Seen enough yet?" #fixer
+- (loop)
++ [Who are the people on the walkway?]
+    "What people?" #fixer
+    He almost smiles.
+    -> loop
++ [You said I owe you a favour.]
+    "You do. When I need it, you'll know." #fixer
+    -> loop
++ [Never mind.]
+    -> END
+
+=== kiosk ===
+{ raw_view: In your opened eye the screen is dark, but the voice still comes, from everywhere at once. }
+"Good evening, guest. Dinner is served." #concierge
+* [Ask what's for dinner.]
+    "Everything you need, and nothing you don't. Please rest your wrist in the cradle." #concierge
+    -> END
+* [Walk on.]
+    "Of course. Enjoy your evening, guest." #concierge
+    -> END

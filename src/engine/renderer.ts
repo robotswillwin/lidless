@@ -30,6 +30,8 @@ export interface DrawSprite {
   /** Top-left corner on screen, in native pixels, after camera and parallax. */
   x: number;
   y: number;
+  /** Mirror horizontally (a character facing the other way). */
+  flip?: boolean;
 }
 
 export interface Frame {
@@ -158,6 +160,7 @@ export class Renderer {
       if (d.x > NW || d.y > NH || d.x + def.w < 0 || d.y + def.h < 0) continue;
       MAP_ORDER.forEach(([m, u], i) => this.bind(sp, u, s.tex[m], i));
       gl.uniform4f(sp.u.uRect, d.x, d.y, def.w, def.h);
+      gl.uniform1f(sp.u.uFlip, d.flip ? 1 : 0);
       gl.uniform1f(sp.u.uHasMeta, s.hasMeta ? 1 : 0);
       gl.uniform4f(sp.u.uConst, def.occluder ?? 0, def.depth, def.reflectivity ?? 0, def.object ?? 0);
       gl.drawArrays(gl.TRIANGLES, 0, 6);

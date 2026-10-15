@@ -35,10 +35,11 @@ export const SPRITE_VS = `#version 300 es
 in vec2 aPos;
 uniform vec4 uRect;     // x, y, w, h in screen pixels, top-left origin
 uniform vec2 uScreen;
+uniform float uFlip;     // 1 mirrors the sprite horizontally
 out vec2 vUv;
 void main() {
   vec2 p = uRect.xy + aPos * uRect.zw;
-  vUv = aPos;
+  vUv = vec2(uFlip > 0.5 ? 1.0 - aPos.x : aPos.x, aPos.y);
   gl_Position = vec4(p.x / uScreen.x * 2.0 - 1.0, 1.0 - p.y / uScreen.y * 2.0, 0.0, 1.0);
 }`;
 
@@ -47,6 +48,7 @@ precision highp float;
 in vec2 vUv;
 uniform sampler2D tAlbR, tAlbC, tNrm, tMat, tMeta, tGlowR, tGlowC;
 uniform float uView;       // 0 raw, 1 Concierge
+uniform float uFlip;
 uniform vec4 uConst;       // fallbacks when a sprite has no meta map: occluder, depth, reflectivity, object id
 uniform float uHasMeta;
 layout(location = 0) out vec4 o0;
@@ -65,6 +67,7 @@ void main() {
     grpR = floor(meta.b / 16.0); grpC = mod(meta.b, 16.0);
   }
   vec3 n = texture(tNrm, vUv).rgb * 2.0 - 1.0;
+  if (uFlip > 0.5) n.x = -n.x;
   if (uView > 0.5 && arm > 0.5) n = normalize(mix(n, vec3(0.0, 0.0, 1.0), 0.85));
   vec3 m = texture(tMat, vUv).rgb;
   vec3 gR = texture(tGlowR, vUv).rgb, gC = texture(tGlowC, vUv).rgb;

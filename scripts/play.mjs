@@ -1,0 +1,84 @@
+// A scripted playthrough in headless Chrome, with a screenshot after each step. No server needed.
+// Usage: npm run play   (builds first; screenshots land in shots/play-*.png)
+
+import { execFileSync } from 'node:child_process';
+import { mkdirSync } from 'node:fs';
+import { resolve } from 'node:path';
+import puppeteer from 'puppeteer-core';
+
+const root = resolve(import.meta.dirname, '..');
+const chrome = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+execFileSync('npx', ['vite', 'build', '--logLevel', 'warn'], { cwd: root, stdio: 'inherit' });
+mkdirSync(resolve(root, 'shots'), { recursive: true });
+
+const browser = await puppeteer.launch({
+  executablePath: chrome,
+  headless: true,
+  args: ['--allow-file-access-from-files', '--hide-scrollbars', `--user-data-dir=${resolve(root, 'node_modules/.cache/play-chrome')}`],
+  defaultViewport: { width: 960, height: 540 },
+});
+const page = await browser.newPage();
+const errors = [];
+page.on('pageerror', (e) => errors.push(String(e)));
+page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
+const url = 'file://' + resolve(root, 'dist/index.html');
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+let n = 0;
+const shot = async (name) => {
+  const file = resolve(root, 'shots', `play-${String(++n).padStart(2, '0')}-${name}.png`);
+  await page.screenshot({ path: file });
+  console.log(file.split('/').pop());
+};
+const text = (sel) => page.$eval(sel, (e) => (e.hidden ? '' : e.textContent ?? '')).catch(() => '');
+const ready = () => page.waitForFunction(() => document.documentElement.dataset.ready === '1' || document.documentElement.dataset.err, { timeout: 15000 });
+
+await page.goto(`${url}?new`);
+await ready();
+await shot('start');
+
+// look at something far away: the face in the sky (no walking)
+await page.mouse.click(740, 120);
+await wait(300);
+console.log('caption:', await text('.caption'));
+await shot('look-sky');
+
+// walk to the fixer and talk
+await page.mouse.click(246, 380);
+await page.waitForSelector('.dialogue:not([hidden])', { timeout: 10000 });
+await wait(200);
+await shot('fixer-opens');
+const choose = async (label) => {
+  const buttons = await page.$$('.dialogue .choice');
+  for (const b of buttons) if ((await b.evaluate((e) => e.textContent ?? '')).includes(label)) return b.click();
+  throw new Error(`no choice "${label}"`);
+};
+await choose("I'm not here about a radio.");
+await wait(200);
+await shot('fixer-offer');
+await choose('What will I see?');
+await wait(150);
+await choose('Do it.');
+await wait(200);
+await shot('fixer-installs');
+await choose('Close');
+await wait(300);
+console.log('caption:', await text('.caption'), '| button hidden:', await page.$eval('#view', (e) => e.hidden));
+await shot('unlocked');
+
+// switch to raw view and look at the woman at the dock
+await page.keyboard.press('e');
+await wait(600);
+await page.mouse.click(770, 430);
+await wait(4000);
+console.log('caption:', await text('.caption'));
+await shot('raw-dock');
+
+// reload: the save should keep the mod, the view and the position
+await page.goto(url);
+await ready();
+await wait(300);
+console.log('after reload, button hidden:', await page.$eval('#view', (e) => e.hidden), '| label:', await text('#view-label'));
+await shot('reloaded');
+
+console.log(errors.length ? `errors:\n${errors.join('\n')}` : 'no errors');
+await browser.close();
