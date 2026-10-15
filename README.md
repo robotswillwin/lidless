@@ -27,6 +27,7 @@ Other commands:
 - `npm run build` type-checks and builds to `dist/`.
 - `npm run shot -- "t=3" "t=3&view=raw"` builds and saves screenshots to `shots/` with headless Chrome. No server needed.
 - `npm run play` builds and plays a scripted run (look, talk to the fixer, switch view, reload) with a screenshot per step.
+- `npm run perf` builds and reports the frame rate per quality tier, up to a 4K canvas.
 - `node tools/styleframe/export.mjs` regenerates the test scene in `public/assets/styleframe` from the hand-coded style frame.
 
 Address options: `new`, `view=raw` (skips the mod), `q=low|medium|high`, `t=<seconds>` to freeze time, `debug`.

@@ -10,7 +10,8 @@
     "check": "tsc --noEmit",
     "preview": "vite preview",
     "shot": "node scripts/shot.mjs",
-    "play": "node scripts/play.mjs"
+    "play": "node scripts/play.mjs",
+    "perf": "vite build --logLevel warn && node scripts/perf.mjs"
   },
   "devDependencies": {
     "puppeteer-core": "25.12.0",
