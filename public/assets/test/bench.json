@@ -3,5 +3,6 @@
     "erased-test",
     "ghost-test",
     "hero-test"
-  ]
+  ],
+  "latest": "hero-test"
 }

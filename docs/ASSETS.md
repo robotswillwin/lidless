@@ -64,8 +64,8 @@ Without a `meta.png`, the sprite uses `occluder`, `depth`, `reflectivity` and `o
 ## Light language
 
 Every asset follows it, and the pipeline will check it. These are the Concierge view's colours. In raw view the
-engine turns main lighting a sterile pale white and the air a sickly sepia, so lights and glow maps are authored in
-Concierge colours. A machine's own light keeps its colour in raw view: give the light `"machine": 1` in `scene.json`,
+engine makes every surface cold, turns main lighting a sterile pale white and puts a poisonous yellow-green fog in the
+air, so lights and glow maps are authored in Concierge colours, and raw albedo needs no tint of its own. A machine's own light keeps its colour in raw view: give the light `"machine": 1` in `scene.json`,
 and its glow the machine flag in `meta.png`.
 
 - **Amber** is human and home: bulbs, valves, an ember, bread. Lit in both views; pale white in raw view.

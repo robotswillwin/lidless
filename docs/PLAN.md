@@ -13,8 +13,8 @@ The full build plan, with the reasoning, image AI pricing and risks: https://cla
 
 ## The two views
 
-- **Concierge view** is what everyone sees: cool and sexy, sleek and full of neon. Most of the city's colour and allure is AR, including many of the neon signs on the buildings.
-- **Raw view** is the real world: poisonous, cheap and post-Soviet. Main lighting is a pale, sterile white, and the air between the lights is a sickly, poisonous sepia. Only machines keep their colour: a monitor, an indicator, the kiosk's eye. The engine does all this, so assets author their lights in Concierge colours and mark machine lights.
+- **Concierge view** is what everyone sees: cool and sexy, sleek and full of neon. Most of the city's colour and allure is AR, including many of the neon signs on the buildings. It never rains in it: the streets are dry, with glossy, calm puddles.
+- **Raw view** is the real world: poisonous, cheap and post-Soviet. Every thing in it is cold, and main lighting is a pale, sterile white. The only warm colour is in the air: a poisonous yellow-green fog, thicker with distance, in the haze around lights, the steam and the light shafts. It rains. Only machines keep their colour: a monitor, an indicator, the kiosk's eye. The engine does all this, so assets author their lights in Concierge colours and mark machine lights.
 - **Everything in Concierge view looks real.** The only way to tell what is real is the biohack. A real person can look the same in both views, or different (augmented). A generated person exists only in Concierge view, so raw view shows nothing there: no body, no shadow, no reflection. Some real people exist only in raw view, because the Concierge edits them out.
 
 How assets and levels express it: `exists` in a recipe (see [ASSETS.md](ASSETS.md)), and `only` on a hotspot, so a generated person cannot be clicked in raw view.
@@ -25,6 +25,14 @@ How assets and levels express it: `exists` in a recipe (see [ASSETS.md](ASSETS.m
 - The other, healthy eye is not for seeing. Its signal goes through the visor's processor, which feeds it to the Concierge as raw data. A built-in safeguard makes sure no one ever sees the real world directly.
 - Without that feed, the Concierge estimates each person's frames from other people's live data and its stored data.
 - The fixer's mod cannot be digital, because the Concierge would notice. It is a biohack: a device that switches off the visual nerve of the augmented eye and, at the same time, routes the healthy eye past the processor. Raw view is that eye's own signal.
+
+## Being watched, and going rogue
+
+- **Early in the game** the player has to think about what they do, what they look at and what they say, because the Concierge may detect malicious plans.
+- **Later biohacks** manipulate the local side of the devices. One has a local AI device simulate the player staying put, during sleep or nutrition. Those windows are when the player can go rogue.
+- **Systems this needs:**
+  - the Concierge's attention, fed by actions, gaze and dialogue choices;
+  - time windows tied to the daily routine, when a decoy can cover for the player.
 
 ## Milestones
 

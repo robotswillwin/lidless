@@ -118,6 +118,7 @@ async function updateBenchList(scene, name) {
   const list = existsSync(file) ? JSON.parse(await readFile(file, 'utf8')) : { assets: [] };
   if (!list.assets.includes(name)) list.assets.push(name);
   list.assets.sort();
+  list.latest = name; // the bench opens the asset built last
   await writeFile(file, JSON.stringify(list, null, 2) + '\n');
 }
 

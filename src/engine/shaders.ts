@@ -16,9 +16,10 @@ out vec4 o;
 vec2 P() { return vec2(gl_FragCoord.x, uRes.y - gl_FragCoord.y); }
 vec4 T(sampler2D t, vec2 p) { return texture(t, vec2(p.x, uRes.y - p.y) / uRes); }
 float lum(vec3 c) { return dot(c, vec3(0.2126, 0.7152, 0.0722)); }
-// raw view: real light is a pale, sterile white, and the air it travels through is a poisonous, sickly sepia.
+// raw view: things are cold and lit a sterile white; only the poisonous air between them is yellow-green.
 // A machine's own light (a monitor, an indicator, the kiosk's eye) keeps its colour.
-const vec3 RAW_LIGHT = vec3(0.96, 1.0, 1.05);
+const vec3 RAW_LIGHT = vec3(0.92, 0.98, 1.06);
+const vec3 RAW_COLD = vec3(0.84, 0.95, 1.12);
 const vec3 RAW_AIR = vec3(0.93, 0.93, 0.42);
 // the colour tint at the brightness of c
 vec3 tone(vec3 c, vec3 tint) { return lum(c) * tint / lum(tint); }
@@ -120,11 +121,13 @@ void main() {
   float hv = floor(g0.a * 255.0 + 0.5), occ = mod(hv, 2.0), hz = floor(hv / 2.0) / 127.0 * 22.0;
   vec2 nxy = g1.xy * 2.0 - 1.0; vec3 Nn = vec3(nxy, sqrt(max(0.0, 1.0 - dot(nxy, nxy))));
   float specS = g1.z, shin = mix(6.0, 120.0, g1.w), dep = g3.r, obj = floor(g3.b * 63.0 + 0.5);
-  vec3 alb = lin(g0.rgb);
-  float occB = T(tAO, p).r, ao = (occ > 0.5 ? 1.0 - 0.25 * occB : 1.0 - 0.8 * occB) * z.b;
   float raw = 1.0 - uView;
+  // raw view: every surface goes cold; what colour is left lives in the air
+  vec3 alb = lin(g0.rgb);
+  alb = mix(alb, tone(alb, RAW_COLD), raw * 0.8);
+  float occB = T(tAO, p).r, ao = (occ > 0.5 ? 1.0 - 0.25 * occB : 1.0 - 0.8 * occB) * z.b;
   vec3 ambIn = vec3(0.1, 0.066, 0.046), ambOut = vec3(0.045, 0.055, 0.1);
-  vec3 amb = mix(ambIn, tone(ambIn, RAW_LIGHT), raw) * z.r + mix(ambOut, tone(ambOut, RAW_AIR), raw) * z.g;
+  vec3 amb = mix(ambIn, tone(ambIn, RAW_LIGHT), raw) * z.r + mix(ambOut, tone(ambOut, RAW_COLD), raw) * z.g;
   vec3 col = alb * amb * mix(0.4, 1.0, ao) * (0.85 - 0.3 * Nn.y), spc = vec3(0.0), haze = vec3(0.0);
   for (int i = 0; i < ${MAX_LIGHTS}; i++) {
     if (i >= uNL) break;
@@ -154,7 +157,7 @@ void main() {
   vec3 outc = col + spc + haze * mix(0.06, 0.16, z.g);
   float ge = floor(g2.a * 31.0 + 0.5), machE = step(15.5, ge);
   vec3 em = lin(g2.rgb * 2.0);
-  outc += mix(em, tone(em, RAW_LIGHT), raw * 0.9 * (1.0 - machE)) * uGI[int(mod(ge, 16.0))];
+  outc += mix(em, tone(em, RAW_LIGHT), raw * (1.0 - machE)) * uGI[int(mod(ge, 16.0))];
   if (dep < 0.4 && uView > 0.5) {
     for (int k = 0; k < 16; k++) { if (k >= uNC) break; vec4 c = uCars[k]; vec2 r = p - (c.xy - uCam); float al = r.x * c.z;
       if (abs(r.y) < 1.2) { if (al > -c.w && al < 0.0) outc += vec3(2.2, 0.25, 0.2) * pow(1.0 + al / c.w, 2.0) * 0.6; if (al >= 0.0 && al < 4.0) outc += al < 2.0 ? vec3(4.0, 4.2, 4.6) : vec3(0.08, 0.08, 0.1); } }
@@ -185,15 +188,21 @@ void main() {
   float dep = g3.r, refl = g3.g, GY = uMirror - uCam.y;
   float dk = uDof * (dep < 0.15 ? 0.4 : dep < 0.5 ? 0.85 : dep < 0.8 ? 0.45 : 0.0);
   if (dk > 0.0) { vec4 b = texture(tDof, gl_FragCoord.xy / uRes); if (b.a > 0.02) c = mix(c, b.rgb / b.a, dk * smoothstep(0.02, 0.3, b.a)); }
+  float raw = 1.0 - uView;
   if (refl > 0.02) {
     float puddle = step(0.7, refl);
-    float rip = sin(p.y * 0.85 + uTime * 5.0 + w.x * 0.04) * mix(0.5, 1.6, puddle) + (vn(w * 0.08 + uTime) - 0.5) * 2.0 * puddle;
+    // rain stirs the puddles in the real world; the Concierge's streets are wet glass
+    float rip = (sin(p.y * 0.85 + uTime * 5.0 + w.x * 0.04) * mix(0.5, 1.6, puddle) + (vn(w * 0.08 + uTime) - 0.5) * 2.0 * puddle) * mix(0.25, 1.0, raw);
     vec2 q = vec2(p.x + rip, 2.0 * GY - p.y);
     vec3 r = (T(tA, q).rgb * 2.0 + T(tA, q + vec2(0.0, 2.0)).rgb + T(tA, q - vec2(0.0, 2.0)).rgb + (T(tA, q + vec2(0.0, 5.0)).rgb + T(tA, q - vec2(0.0, 5.0)).rgb) * 0.6 + T(tA, q - vec2(0.0, 9.0)).rgb * 0.4) / 5.6;
     float k = mix(0.42, 0.88, puddle) * (0.75 + 0.25 * smoothstep(GY, uRes.y, p.y));
     c = c * (1.0 - k * 0.5) + r * k;
   }
-  float raw = 1.0 - uView;
+  // raw view: the poisonous air between the eye and everything it sees, thicker with distance and outdoors
+  if (raw > 0.0) {
+    float fd = dep < 0.15 ? 0.55 : dep < 0.5 ? 0.38 : dep < 0.8 ? 0.22 : 0.08;
+    c = mix(c, tone(vec3(0.045), RAW_AIR), raw * fd * mix(0.35, 1.0, z.g * (1.0 - z.r)));
+  }
   vec3 near = (T(tA, p + vec2(6.0, 0.0)).rgb + T(tA, p - vec2(6.0, 0.0)).rgb + T(tA, p + vec2(0.0, 6.0)).rgb + T(tA, p - vec2(0.0, 6.0)).rgb) * 0.25;
   for (int s = 0; s < 4; s++) {
     vec4 e = uSteam[s]; if (e.z <= 0.0) continue; vec2 r = p - (e.xy - uCam); float up = -r.y; if (up < -4.0 || up > e.z) continue;
@@ -203,14 +212,15 @@ void main() {
     vec3 vapour = mix(vec3(0.025, 0.025, 0.03), vec3(0.16, 0.16, 0.18), smoke);
     c += (mix(near, tone(near, RAW_AIR), raw * 0.6) * 1.4 + mix(vapour, tone(vapour, RAW_AIR) * 1.2, raw)) * d * mix(0.9, 1.3, smoke);
   }
-  float outside = z.g * (1.0 - z.r);
+  // rain falls only in the real world: the Concierge keeps its streets dry
+  float outside = z.g * (1.0 - z.r) * raw;
   if (outside > 0.05) {
     float rn = rainL(p, uTime, 2.0, 55.0, 6.0, 0.33) * 0.55 + rainL(p + 37.0, uTime, 4.0, 95.0, 5.0, 0.22);
     vec3 tint = normalize(near + 1e-4) * 0.9;
-    c += rn * outside * (mix(vec3(0.012, 0.014, 0.02), tone(vec3(0.012, 0.014, 0.02), RAW_AIR), raw) + tint * lum(near) * 2.6);
+    c += rn * outside * (tone(vec3(0.012, 0.014, 0.02), RAW_AIR) + tint * lum(near) * 2.6);
     if (p.y > GY + 2.0) { vec2 cell = floor(w / vec2(18.0, 6.0)); float ph = fract(uTime * (0.7 + hash(cell)) + hash(cell + 3.0)); float rr = length((w - (cell + 0.5) * vec2(18.0, 6.0)) * vec2(1.0, 3.0)); c += vec3(0.18, 0.2, 0.24) * smoothstep(1.4, 0.0, abs(rr - ph * 9.0)) * (1.0 - ph) * step(0.55, hash(cell + 9.0)) * (0.4 + lum(near)); }
   }
-  if (uDrips.z > 0.0 && w.y < uDrips.w && w.x > uDrips.x && w.x < uDrips.y && z.r > 0.5) {
+  if (uDrips.z > 0.0 && raw > 0.5 && w.y < uDrips.w && w.x > uDrips.x && w.x < uDrips.y && z.r > 0.5) {
     float dx = mod(w.x, 37.0), id = floor(w.x / 37.0), ph = fract(uTime * (0.45 + hash(vec2(id, 1.0)) * 0.5) + hash(vec2(id, 2.0)));
     float yy = uDrips.z + ph * ph * (uDrips.w - uDrips.z);
     if (abs(dx - 18.0) < 0.8 && abs(w.y - yy) < 2.5) c += vec3(0.5, 0.42, 0.35) * (0.4 + lum(near) * 2.0);
@@ -280,14 +290,11 @@ void main() {
   c += bl + texture(tStreak, uv).rgb * vec3(0.5, 0.68, 1.0) * 0.5 * uStreaks + b1 * mix(vec3(0.22, 0.06, 0.02), tone(vec3(0.22, 0.06, 0.02), RAW_AIR), raw);
   c = aces(c * 1.32);
   float l = lum(c);
-  // Concierge view: cool shadows, warm highlights. Raw view: shadows go sepia, highlights stay pale white
-  c = mix(c, c * mix(vec3(0.84, 0.95, 1.12), vec3(1.08, 1.0, 0.7), raw) + mix(vec3(0.0, 0.005, 0.012), vec3(0.012, 0.01, 0.0), raw), (1.0 - smoothstep(0.0, 0.45, l)) * 0.7);
+  // Concierge view: cool shadows, warm highlights. Raw view: a neutral grade, its cold things and yellow-green air are already in the image
+  c = mix(c, c * mix(vec3(0.84, 0.95, 1.12), vec3(1.0), raw) + vec3(0.0, 0.005, 0.012) * uView, (1.0 - smoothstep(0.0, 0.45, l)) * 0.7);
   c = mix(c, c * mix(vec3(1.07, 1.0, 0.9), vec3(0.97, 1.0, 1.04), raw), smoothstep(0.45, 1.0, l) * 0.4);
   l = lum(c);
-  c = mix(vec3(l), c, mix(0.72, 1.05, smoothstep(0.45, 0.95, l)));
-  // raw view: away from the lamps everything sinks into the yellow air, most of all outside
-  float air = raw * mix(0.5, 1.0, z.g * (1.0 - z.r)) * (1.0 - smoothstep(0.45, 0.95, l));
-  c = mix(c, tone(c, RAW_AIR) * 0.92, air * 0.6);
+  c = mix(vec3(l), c, mix(mix(0.72, 0.95, raw), 1.05, smoothstep(0.45, 0.95, l)));
   c *= 1.0 - 0.36 * pow(r2, 1.3);
   if (nerve > 0.0) c = mix(c, vec3(lum(c)), 0.5 * nerve) * (1.0 - nerve * (0.55 + 0.4 * smoothstep(0.1, 0.9, r2)));
   c = pow(max(c, 0.0), vec3(1.0 / 2.2));

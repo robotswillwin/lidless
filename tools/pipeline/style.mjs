@@ -11,7 +11,7 @@ export const HOUSE_STYLE = [
 const RAW_WORLD = [
   'This is the raw, unedited world: poisonous, cheap and post-Soviet.',
   'Concrete panel blocks, cheap plastic, corrugated metal, rust, peeling paint, stained tiles, worn and patched clothes.',
-  'Drab, faded colours: concrete grey, nicotine yellow, rust brown, sickly green. The only bright colours are on machines: indicator lights, old screens.',
+  'Cold, drab, faded colours: concrete grey, steel and slate blue-grey, dirty white tile. Nothing warm. The only bright colours are on machines: indicator lights, old screens.',
 ].join(' ');
 const CONCIERGE_WORLD = 'cool and sexy: sleek, glossy, expensive and seductive, with cyan, violet and magenta neon accents. It must look completely real and physical, never like a hologram or a projection.';
 

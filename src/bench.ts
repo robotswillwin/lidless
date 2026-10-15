@@ -203,9 +203,9 @@ async function loadList(prefer?: string): Promise<void> {
     showInfo(false);
     throw new Error(`Nothing built for "${scene}" yet. Build an asset with: npm run asset -- build art/${scene}/<name>.json`);
   }
-  const names = ((await res.json()) as { assets: string[] }).assets;
+  const list = (await res.json()) as { assets: string[]; latest?: string }, names = list.assets;
   assetSel.replaceChildren(...names.map((n) => new Option(n, n)));
-  const want = [prefer, asset?.def.name, params.get('asset')].find((n) => n && names.includes(n)) ?? names[0];
+  const want = [prefer, asset?.def.name, params.get('asset'), list.latest].find((n) => n && names.includes(n)) ?? names[0];
   if (want) await selectAsset(want, false);
 }
 

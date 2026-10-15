@@ -1,5 +1,5 @@
 {
-  "note": "The house palette, from the style frame. Ramps run dark to light. The pipeline can pull generated art toward it. 'smog' is the raw world's poisonous air and nicotine-stained surfaces.",
+  "note": "The house palette, from the style frame. Ramps run dark to light. The pipeline can pull generated art toward it. 'steel' is the raw world's cold, drab surfaces; its yellow-green air is added by the engine, not painted.",
   "ramps": {
     "amber": [
       "#0d0806",
@@ -71,17 +71,18 @@
       "#c48a62",
       "#8a5a40"
     ],
-    "smog": [
-      "#0e0e09",
-      "#1c1b12",
-      "#2c2a1b",
-      "#3f3c25",
-      "#55512f",
-      "#6d6839",
-      "#878044",
-      "#a39a54",
-      "#bfb46a",
-      "#d8cd88"
+    "steel": [
+      "#0b0d10",
+      "#15191e",
+      "#20262d",
+      "#2c343d",
+      "#3a434e",
+      "#4a5460",
+      "#5c6773",
+      "#727d88",
+      "#8a949e",
+      "#a6aeb6",
+      "#c7cdd2"
     ]
   }
 }
