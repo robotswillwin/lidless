@@ -3,10 +3,17 @@
 export const HOUSE_STYLE = [
   'High-resolution pixel art for a 2D adventure game, painterly and detailed, with clean pixel clusters.',
   'Adult noir mood in a rain-soaked future city. Realistic proportions, a clear readable silhouette.',
-  'Muted, grounded colours with small accents. Amber is human-made light; cyan and violet belong to the city AI; red is illegal.',
   'Even, soft, frontal lighting with no cast shadows, no rim light and no glow halos: the game lights the sprite itself.',
   'Transparent background. The whole subject in frame with a little space around it, nothing cut off, no ground, no text, no border.',
 ].join(' ');
+
+/** The two worlds: what is really there, and what the Concierge shows everyone. Its world must look just as real. */
+const RAW_WORLD = [
+  'This is the raw, unedited world: poisonous, cheap and post-Soviet.',
+  'Concrete panel blocks, cheap plastic, corrugated metal, rust, peeling paint, stained tiles, worn and patched clothes.',
+  'Drab, faded colours: concrete grey, nicotine yellow, rust brown, sickly green. The only bright colours are on machines: indicator lights, old screens.',
+].join(' ');
+const CONCIERGE_WORLD = 'cool and sexy: sleek, glossy, expensive and seductive, with cyan, violet and magenta neon accents. It must look completely real and physical, never like a hologram or a projection.';
 
 const KIND_NOTES = {
   character: 'One full-length figure standing, seen from the side in a three-quarter view facing right, feet at the bottom of the frame.',
@@ -17,16 +24,16 @@ const KIND_NOTES = {
 
 export function generationPrompt(r) {
   const world = r.exists === 'concierge'
-    ? 'This does not exist: the city AI made it up and shows it in everyone\'s eye. Immaculate, flattering and a little too perfect, with cyan and violet accents, yet as solid and believable as a real person.'
-    : 'This is the raw, unedited world: real materials, wear and dirt.';
+    ? `This does not exist: the city AI made it up and shows it in everyone's eye. Its world is ${CONCIERGE_WORLD}`
+    : RAW_WORLD;
   return `${HOUSE_STYLE} ${KIND_NOTES[r.kind]} ${world} Subject: ${r.prompt}`;
 }
 
 export function conciergePrompt(r) {
   return [
-    'Edit this image into the city AI\'s dressed-up view of the same subject.',
+    'Edit this image into the city AI\'s augmented view of the same subject.',
     'Keep the pose, the framing and the outline exactly the same, aligned pixel for pixel; change only surfaces, colours and details.',
-    'In this view everything is immaculate, flattering and a little too perfect, with cyan and violet accents.',
+    `The augmented world is ${CONCIERGE_WORLD}`,
     `Change: ${r.concierge}`,
     'Keep the transparent background and the even frontal lighting.',
   ].join(' ');

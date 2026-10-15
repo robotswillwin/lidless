@@ -16,9 +16,10 @@ out vec4 o;
 vec2 P() { return vec2(gl_FragCoord.x, uRes.y - gl_FragCoord.y); }
 vec4 T(sampler2D t, vec2 p) { return texture(t, vec2(p.x, uRes.y - p.y) / uRes); }
 float lum(vec3 c) { return dot(c, vec3(0.2126, 0.7152, 0.0722)); }
-// raw view: real light is a pale, sterile white, and the air it travels through is a poisonous sepia
+// raw view: real light is a pale, sterile white, and the air it travels through is a poisonous, sickly sepia.
+// A machine's own light (a monitor, an indicator, the kiosk's eye) keeps its colour.
 const vec3 RAW_LIGHT = vec3(0.96, 1.0, 1.05);
-const vec3 RAW_AIR = vec3(1.0, 0.86, 0.46);
+const vec3 RAW_AIR = vec3(0.93, 0.93, 0.42);
 // the colour tint at the brightness of c
 vec3 tone(vec3 c, vec3 tint) { return lum(c) * tint / lum(tint); }
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -65,22 +66,22 @@ void main() {
   vec4 a = uView > 0.5 ? aC : aR;
   if (a.a < 0.5) discard;
   vec3 meta = floor(texture(tMeta, vUv).rgb * 255.0 + 0.5);
-  float occ = uConst.x, arm = 0.0, dep = uConst.y, refl = uConst.z, obj = uConst.w, grpR = 0.0, grpC = 0.0;
+  // the Concierge's additions are lit exactly like the real world: nothing in its view may look projected
+  float occ = uConst.x, dep = uConst.y, refl = uConst.z, obj = uConst.w, grpR = 0.0, grpC = 0.0, mach = 0.0;
   if (uHasMeta > 0.5) {
-    occ = step(127.5, meta.r); arm = step(63.5, mod(meta.r, 128.0)); obj = mod(meta.r, 64.0);
-    dep = floor(meta.g / 64.0); refl = floor(mod(meta.g, 64.0) / 16.0);
+    occ = step(127.5, meta.r); obj = mod(meta.r, 64.0);
+    dep = floor(meta.g / 64.0); refl = floor(mod(meta.g, 64.0) / 16.0); mach = mod(meta.g, 2.0);
     grpR = floor(meta.b / 16.0); grpC = mod(meta.b, 16.0);
   }
   vec3 n = texture(tNrm, vUv).rgb * 2.0 - 1.0;
   if (uFlip > 0.5) n.x = -n.x;
-  if (uView > 0.5 && arm > 0.5) n = normalize(mix(n, vec3(0.0, 0.0, 1.0), 0.85));
   vec3 m = texture(tMat, vUv).rgb;
   vec3 gR = texture(tGlowR, vUv).rgb, gC = texture(tGlowC, vUv).rgb;
   vec3 g = uView > 0.5 ? gC : gR;
   float grp = (uView > 0.5 && grpC > 0.5 && dot(abs(gC - gR), vec3(1.0)) > 0.004) ? grpC : grpR;
   o0 = vec4(a.rgb, (floor(m.b * 127.0 + 0.5) * 2.0 + occ) / 255.0);
   o1 = vec4(n.xy * 0.5 + 0.5, m.r, m.g);
-  o2 = vec4(g, grp / 15.0);
+  o2 = vec4(g, (grp + 16.0 * mach) / 31.0);
   o3 = vec4(dep / 3.0, refl / 2.0, obj / 63.0, 1.0);
 }`;
 
@@ -128,7 +129,8 @@ void main() {
   for (int i = 0; i < ${MAX_LIGHTS}; i++) {
     if (i >= uNL) break;
     vec4 LP = uLP[i], LC = uLC[i], LK = uLK[i], LG = uLG[i];
-    float gi = uGI[int(LG.x + 0.5)] * (LG.y > 0.5 ? uView : 1.0);
+    float arL = mod(LG.y, 2.0), machL = step(1.5, LG.y);
+    float gi = uGI[int(LG.x + 0.5)] * (arL > 0.5 ? uView : 1.0);
     if (gi < 0.002) continue;
     float zh = LC.w < 0.5 ? 1.0 : LC.w < 1.5 ? z.r : LC.w < 2.5 ? z.g : LC.w < 3.5 ? facadeW(w) : z.g;
     float zw = zh * (LC.w > 1.5 && LC.w < 2.5 ? mix(0.08, 1.0, step(0.9, dep)) : 1.0);
@@ -140,7 +142,7 @@ void main() {
     if (cone < 0.002) continue;
     float ex = floor(LK.w * 0.5 + 0.01), keep = (ex > 0.5 && abs(obj - ex) < 0.5) ? 0.0 : 1.0;
     float sh = (uShadows > 0.5 && mod(LK.w, 2.0) > 0.5) ? shadowMarch(p, lp, occ) : 1.0;
-    vec3 lc = LG.y > 0.5 ? LC.rgb : mix(LC.rgb, tone(LC.rgb, RAW_LIGHT), raw);
+    vec3 lc = arL + machL > 0.5 ? LC.rgb : mix(LC.rgb, tone(LC.rgb, RAW_LIGHT), raw);
     vec3 Lv = normalize(vec3(d2, LP.z - hz));
     float diff = max((dot(Nn, Lv) + LG.z) / (1.0 + LG.z), 0.0);
     vec3 li = lc * gi * att * cone * sh * zw * keep;
@@ -150,8 +152,9 @@ void main() {
     haze += mix(lc, tone(lc, RAW_AIR), raw) * gi * pow(att, LK.z > -1.5 ? 2.0 : 3.0) * cone * LG.w * zh;
   }
   vec3 outc = col + spc + haze * mix(0.06, 0.16, z.g);
+  float ge = floor(g2.a * 31.0 + 0.5), machE = step(15.5, ge);
   vec3 em = lin(g2.rgb * 2.0);
-  outc += mix(em, tone(em, RAW_LIGHT), raw * 0.9) * uGI[int(g2.a * 15.0 + 0.5)];
+  outc += mix(em, tone(em, RAW_LIGHT), raw * 0.9 * (1.0 - machE)) * uGI[int(mod(ge, 16.0))];
   if (dep < 0.4 && uView > 0.5) {
     for (int k = 0; k < 16; k++) { if (k >= uNC) break; vec4 c = uCars[k]; vec2 r = p - (c.xy - uCam); float al = r.x * c.z;
       if (abs(r.y) < 1.2) { if (al > -c.w && al < 0.0) outc += vec3(2.2, 0.25, 0.2) * pow(1.0 + al / c.w, 2.0) * 0.6; if (al >= 0.0 && al < 4.0) outc += al < 2.0 ? vec3(4.0, 4.2, 4.6) : vec3(0.08, 0.08, 0.1); } }
@@ -253,12 +256,16 @@ vec3 sharpT(vec2 p) { float s = max(1.0, uOut.x / uRes.x); vec2 q = floor(p) + 0
 vec3 aces(vec3 x) { return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0); }
 void main() {
   vec2 p = vec2(gl_FragCoord.x, uOut.y - gl_FragCoord.y) * (uRes / uOut);
-  if (uGlitch > 0.0) { float row = floor(p.y / 3.0); if (hash(vec2(row, floor(uTime * 30.0))) < 0.25 * uGlitch) p.x += (hash(vec2(row, 7.0)) - 0.5) * 50.0 * uGlitch; }
+  float raw = 1.0 - uView;
+  // back to Concierge view: its frames resync, a digital glitch
+  if (uGlitch > 0.0 && uView > 0.5) { float row = floor(p.y / 3.0); if (hash(vec2(row, floor(uTime * 30.0))) < 0.25 * uGlitch) p.x += (hash(vec2(row, 7.0)) - 0.5) * 50.0 * uGlitch; }
+  // into raw view: the biohack shuts the augmented eye's nerve, and the healthy eye's own signal swims in, doubled at first
+  float nerve = uView > 0.5 ? 0.0 : smoothstep(0.0, 1.0, uGlitch);
   vec2 ctr = p - uRes * 0.5; float r2 = dot(ctr, ctr) / dot(uRes * 0.5, uRes * 0.5);
   vec2 ca = ctr / length(uRes * 0.5) * 1.2 * r2;
   vec3 c = vec3(sharpT(p + ca).r, sharpT(p).g, sharpT(p - ca).b);
+  if (nerve > 0.0) c = mix(c, sharpT(p + vec2(12.0, -2.0) * nerve), 0.45 * nerve);
   vec2 uv = vec2(p.x, uRes.y - p.y) / uRes;
-  float raw = 1.0 - uView;
   vec3 b1 = texture(tBloom1, uv).rgb, b2 = texture(tBloom2, uv).rgb;
   // the wide halo and the light shafts are light caught in the air
   vec3 bl = b1 * 0.55 + mix(b2, tone(b2, RAW_AIR), raw * 0.7) * 0.45;
@@ -282,6 +289,7 @@ void main() {
   float air = raw * mix(0.5, 1.0, z.g * (1.0 - z.r)) * (1.0 - smoothstep(0.45, 0.95, l));
   c = mix(c, tone(c, RAW_AIR) * 0.92, air * 0.6);
   c *= 1.0 - 0.36 * pow(r2, 1.3);
+  if (nerve > 0.0) c = mix(c, vec3(lum(c)), 0.5 * nerve) * (1.0 - nerve * (0.55 + 0.4 * smoothstep(0.1, 0.9, r2)));
   c = pow(max(c, 0.0), vec3(1.0 / 2.2));
   c = mix(c, c * c * (3.0 - 2.0 * c), 0.15);
   c += (hash(p + fract(uTime) * 91.0) - 0.5) * mix(0.05, 0.018, sqrt(l));

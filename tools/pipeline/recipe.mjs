@@ -6,16 +6,12 @@ import { basename, dirname, join, resolve } from 'node:path';
 
 export const ROOT = resolve(import.meta.dirname, '../..');
 
-/**
- * Defaults per kind of asset: generation size, in-game height, how round the volume is, shadows, depth.
- * flatAR lights the Concierge-only parts flat, like a projection. People never get it: in Concierge view nothing
- * may give away who is real, augmented or generated. Only raw view tells.
- */
+/** Defaults per kind of asset: generation size, in-game height, how round the volume is, shadows, depth. */
 export const KINDS = {
-  character: { size: '1024x1536', height: 240, round: 14, rh: 0.22, detail: 0.1, occluder: true, depth: 3, material: 'cloth', flatAR: false },
-  prop: { size: '1024x1024', height: 120, round: 5, rh: 0.4, detail: 0.12, occluder: true, depth: 3, material: 'metal', flatAR: true },
-  background: { size: '1536x1024', height: 540, round: 0, rh: 0, detail: 0.15, occluder: false, depth: 1, material: 'stone', flatAR: true },
-  portrait: { size: '1024x1024', height: 360, round: 0, rh: 0, detail: 0.1, occluder: false, depth: 3, material: 'skin', flatAR: false },
+  character: { size: '1024x1536', height: 240, round: 14, rh: 0.22, detail: 0.1, occluder: true, depth: 3, material: 'cloth' },
+  prop: { size: '1024x1024', height: 120, round: 5, rh: 0.4, detail: 0.12, occluder: true, depth: 3, material: 'metal' },
+  background: { size: '1536x1024', height: 540, round: 0, rh: 0, detail: 0.15, occluder: false, depth: 1, material: 'stone' },
+  portrait: { size: '1024x1024', height: 360, round: 0, rh: 0, detail: 0.1, occluder: false, depth: 3, material: 'skin' },
 };
 
 /** Which views a thing exists in: real, made up by the Concierge, or real but edited out by it. */
@@ -29,12 +25,12 @@ export const PRESENCE = ['both', 'concierge', 'raw'];
  * @property {string} prompt              what to draw: in the raw world, or as the Concierge shows it when it is generated
  * @property {'both'|'concierge'|'raw'} [exists]  both: real (default); concierge: generated, gone in raw view; raw: edited out of Concierge view
  * @property {string} [concierge]         how the Concierge dresses a real thing up; leave out if it looks the same in both views
- * @property {boolean} [flatAR]           light the Concierge-only parts flat, like a projection (default by kind)
  * @property {number} [height]            in-game height in pixels
  * @property {[number, number]} [position]  level x of its centre and y of its base
  * @property {number} [depth]  @property {number} [parallax]  @property {boolean} [occluder]  @property {number} [reflectivity]
  * @property {number} [object]  @property {string} [material]
- * @property {{ raw?: 'auto'|'none', concierge?: 'auto'|'none', groupRaw?: number, groupConcierge?: number }} [glow]
+ * @property {{ raw?: 'auto'|'none', concierge?: 'auto'|'none', groupRaw?: number, groupConcierge?: number, machine?: boolean }} [glow]
+ *   machine: a machine's own light (a screen, an indicator) keeps its colour in raw view; other glow turns sterile white
  * @property {number} [palette]           0 to 1: how strongly to pull colours toward the house palette
  */
 
@@ -58,7 +54,7 @@ export function recipeTemplate(name, scene, kind) {
     height: KINDS[kind].height,
     position: [480, 464],
     material: KINDS[kind].material,
-    glow: { raw: 'none', concierge: 'auto' },
+    glow: { raw: 'none', concierge: 'auto', machine: false },
     palette: 0.35,
   };
 }

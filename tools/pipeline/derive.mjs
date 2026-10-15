@@ -73,18 +73,18 @@ export function materialMap(img, H, material) {
   return out;
 }
 
-/** Whether a pixel looks different in the Concierge view (its normals then flatten in that view). */
+/** Whether a pixel looks different in the Concierge view. Information for tools: the renderer lights both views alike. */
 function differs(raw, conc, i) {
   if ((raw.d[i + 3] > 127) !== (conc.d[i + 3] > 127)) return true;
   return Math.abs(raw.d[i] - conc.d[i]) + Math.abs(raw.d[i + 1] - conc.d[i + 1]) + Math.abs(raw.d[i + 2] - conc.d[i + 2]) > 36;
 }
 
-/** Packed per-pixel flags: shadow-casting, view difference, object id, depth, reflectivity and light groups. */
-export function metaMap(raw, conc, { occluder = true, object = 0, depth = 3, reflectivity = 0, groupRaw = 0, groupConcierge = 0 } = {}) {
+/** Packed per-pixel flags: shadow-casting, view difference, object id, depth, reflectivity, machine glow and light groups. */
+export function metaMap(raw, conc, { occluder = true, object = 0, depth = 3, reflectivity = 0, groupRaw = 0, groupConcierge = 0, machine = false } = {}) {
   const out = blank(raw.w, raw.h, [0, 0, 0, 255]);
   for (let i = 0; i < out.d.length; i += 4) {
     out.d[i] = (occluder ? 128 : 0) + (conc && differs(raw, conc, i) ? 64 : 0) + Math.min(63, object);
-    out.d[i + 1] = Math.min(3, depth) * 64 + Math.min(2, reflectivity) * 16;
+    out.d[i + 1] = Math.min(3, depth) * 64 + Math.min(2, reflectivity) * 16 + (machine ? 1 : 0);
     out.d[i + 2] = Math.min(15, groupRaw) * 16 + Math.min(15, groupConcierge);
   }
   return out;

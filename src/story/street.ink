@@ -24,8 +24,8 @@ VAR raw_view = false
 
 = offer
 "You've got that look. Like you're trying to see past it." #fixer
-He taps his own visor. The casing is pried open, the wiring re-soldered by hand, a red light where a green one used to be.
-"I can open yours. You'd see what's actually out there. The Concierge won't know, as long as you don't stare." #fixer
+He taps his temple, just below the visor. A thin scar, and under the skin a bump the size of a grain of rice.
+"I can open yours. Not the visor. You. You'd see what's actually out there. The Concierge won't know, as long as you don't stare." #fixer
 - (ask)
 * [What does it cost?]
     "A favour. I'll tell you which one when I need it." #fixer
@@ -40,8 +40,8 @@ He taps his own visor. The casing is pried open, the wiring re-soldered by hand,
     -> END
 
 = install
-He works fast, with tools that are older than you. A click behind your eye, a cold thread of something, then nothing.
-"Done. Press it when you want to see. Don't keep it on too long. They notice people who stare." #fixer
+He works fast, with tools older than you: no cable, no code. A needle at your temple, a cold thread sliding along the nerve, then nothing.
+"Done. It's not in the chip, it's in you, so there's nothing for them to find. Press it when you want to see. Don't keep it on too long. They notice people who stare." #fixer
 ~ has_raw = true
 ~ favours_owed = favours_owed + 1
 -> END

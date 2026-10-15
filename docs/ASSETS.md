@@ -18,8 +18,8 @@ Every sprite can look different in each view, as long as both are drawn on the s
 | Exists only in Concierge view: generated (the umbrella crowd) | fully transparent | the image |
 | Exists only in raw view: edited out by the Concierge | the image | fully transparent |
 
-Raw view is the only way to tell real people from generated or augmented ones, so nothing in Concierge view may
-give it away. A figure that is not in a view leaves no trace there: no shadow, no reflection. The pipeline does this
+Raw view is the only way to tell real people and things from generated or augmented ones: everything in Concierge
+view looks real, and the renderer lights the Concierge's additions exactly like the real world. A figure that is not in a view leaves no trace there: no shadow, no reflection. The pipeline does this
 from the recipe's `exists`: `both` (real, the default), `concierge` (generated) or `raw` (edited out). It writes the
 transparent albedo, and it records the value in `sprite.json` for tools.
 
@@ -42,8 +42,8 @@ All maps share the sprite's canvas size. Pixels with alpha below 50% are not dra
 
 `meta.png`, packed so it survives PNG and browser decoding without an alpha channel:
 
-- **R**: 128 if the pixel casts shadows, +64 if its Concierge colour differs, + an object id 0–63 (a light can skip its own object). The +64 flattens the pixel's normals in Concierge view, so the Concierge's additions look projected. The pipeline sets it for props and backgrounds only (`flatAR`), never for people, because it would give them away.
-- **G**: depth layer × 64 (0 sky, 1 far, 2 middle, 3 near) + reflectivity × 16 (0 dry, 1 wet, 2 puddle).
+- **R**: 128 if the pixel casts shadows, +64 if its Concierge colour differs (information for tools; it does not change the lighting), + an object id 0–63 (a light can skip its own object).
+- **G**: depth layer × 64 (0 sky, 1 far, 2 middle, 3 near) + reflectivity × 16 (0 dry, 1 wet, 2 puddle) + 1 if its glow is a machine's own light, which keeps its colour in raw view (the recipe's `glow.machine`).
 - **B**: light group in raw view × 16 + light group in Concierge view. Groups animate glow and lights: 0 steady, 1 monitor flicker, 2 valves, 3 fire, 4 the machine's eye, 5 neon flicker, 6 hologram, 7 screen, 8 string lights.
 
 Without a `meta.png`, the sprite uses `occluder`, `depth`, `reflectivity` and `object` from `sprite.json`.
@@ -64,11 +64,12 @@ Without a `meta.png`, the sprite uses `occluder`, `depth`, `reflectivity` and `o
 ## Light language
 
 Every asset follows it, and the pipeline will check it. These are the Concierge view's colours. In raw view the
-engine turns every real light pale white and the air a poisonous sepia, so lights and glow maps are authored in
-Concierge colours.
+engine turns main lighting a sterile pale white and the air a sickly sepia, so lights and glow maps are authored in
+Concierge colours. A machine's own light keeps its colour in raw view: give the light `"machine": 1` in `scene.json`,
+and its glow the machine flag in `meta.png`.
 
 - **Amber** is human and home: bulbs, valves, an ember, bread. Lit in both views; pale white in raw view.
-- **Cyan and violet** are the Concierge: its signs, its eye, the crowd it paints. Concierge view only.
+- **Cyan and violet** are the Concierge: its signs, its eye, the crowd it paints. Concierge view only. Many neon signs on the buildings are its too.
 - **Red** is human-made and illegal: the bar, the black market, hacked hardware. Lit in both views; pale white in raw view.
 
 ## Scenes

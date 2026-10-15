@@ -150,10 +150,9 @@ async function buildOne(file) {
   await writePNG(join(out, 'albedo.raw.png'), raw);
   await writePNG(join(out, 'normal.png'), normalMap(H, w, h), { rgb: true });
   await writePNG(join(out, 'material.png'), materialMap(shape, H, r.material ?? spec.material), { rgb: true });
-  const flat = exists === 'both' && (r.flatAR ?? spec.flatAR);
-  await writePNG(join(out, 'meta.png'), metaMap(raw, flat ? conc : null, {
+  await writePNG(join(out, 'meta.png'), metaMap(raw, exists === 'both' ? conc : null, {
     occluder: r.occluder ?? spec.occluder, object: r.object ?? 0, depth: r.depth ?? spec.depth, reflectivity: r.reflectivity ?? 0,
-    groupRaw: glow.groupRaw ?? 0, groupConcierge: glow.groupConcierge ?? 0,
+    groupRaw: glow.groupRaw ?? 0, groupConcierge: glow.groupConcierge ?? 0, machine: !!glow.machine,
   }), { rgb: true });
   const glowRaw = glow.raw === 'auto' && glowRawSrc ? glowAuto(glowRawSrc) : null;
   if (glowRaw) { await writePNG(join(out, 'glow.raw.png'), glowRaw, { rgb: true }); maps.push('glow.raw'); }

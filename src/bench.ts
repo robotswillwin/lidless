@@ -5,7 +5,7 @@ import './style.css';
 import { loadScene, loadSprite, spriteDefaults, type LightDef, type MapName, type Sprite, type SpriteDef } from './engine/assets';
 import { solidTexture, textureFromImage } from './engine/gl';
 import { fitCanvas, NH, NW, QUALITY, Renderer, type DrawSprite, type Frame, type Tier } from './engine/renderer';
-import { lightGroups, SceneRunner } from './game/scene';
+import { lightGroups, SceneRunner, switchFade } from './game/scene';
 
 /** The walk line of the style frame street: feet stand here. */
 const GROUND = 464;
@@ -238,7 +238,7 @@ function draw(): void {
   } else {
     const rig = RIGS[lightSel.value] ?? RIGS.lamp;
     f = {
-      t, view, glitch: Math.max(0, 1 - sinceSwitch / 0.45), cam: [0, 0], level: [NW, NH], zone: rig.zone,
+      t, view, glitch: switchFade(view, sinceSwitch), cam: [0, 0], level: [NW, NH], zone: rig.zone,
       sprites: [...plain, actor], lights: rig.lights, gi: lightGroups(t),
       cars: still.cars, nCars: 0, beacons: still.beacons, nBeacons: 0, steam: still.steam, godrays: still.godrays,
       drips: [0, 0, 0, 0], mirror: GROUND,

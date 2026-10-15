@@ -193,7 +193,7 @@ export class Renderer {
       LP.set([l.x, l.y, l.z, l.r], i * 4);
       LC.set([l.c[0] * l.i, l.c[1] * l.i, l.c[2] * l.i, l.zone], i * 4);
       LK.set([...(l.cone ?? [0, 0, -2]), (l.shadow ? 1 : 0) + 2 * (l.ex ?? 0)], i * 4);
-      LG.set([l.g ?? 0, l.ar ? 1 : 0, l.wrap ?? 0.3, l.haze ?? 0], i * 4);
+      LG.set([l.g ?? 0, (l.ar ? 1 : 0) + (l.machine ? 2 : 0), l.wrap ?? 0.3, l.haze ?? 0], i * 4);
     });
     this.pass(this.prog.light, t.fa, (pr) => {
       t.gbuf.tex.forEach((tx, i) => this.bind(pr, `tG${i}`, tx, i));

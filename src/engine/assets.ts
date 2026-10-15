@@ -45,6 +45,8 @@ export interface LightDef {
   g?: number;
   /** Exists only in Concierge view. */
   ar?: number;
+  /** A machine's own light (a monitor, an indicator, the kiosk's eye): keeps its colour in raw view, where main lighting goes sterile white. */
+  machine?: number;
   /** Object id this light does not light (its own housing). */
   ex?: number;
 }

@@ -1,6 +1,8 @@
 const insideD = (x, y) => y >= 228 ? (x < 262 ? 0.55 : Math.max(0, 0.55 - (x - 262) / 30)) * Math.max(0, 1 - (y - 228) / 16) : y < 52 ? 0 : x <= 256 ? 1 : x < 268 ? (268 - x) / 12 : y > 212 ? Math.max(0, 1 - (x - 268) / 70) * 0.7 : 0;
 const outsideD = (x, y) => (y < 52 || y >= 228 || x >= 276) ? 1 : x >= 262 ? 0.9 : y > 205 ? Math.max(0.05, 1 - (262 - x) / 60) * 0.55 : Math.max(0.02, 1 - (262 - x) / 26) * 0.35;
 /* groups: 0 static, 1 crt, 2 tubes, 3 fire, 4 eye, 5 neon sign, 6 hologram, 7 screen, 8 string lights, 9 offline marker */
+/* machines keep their colour in raw view; everything else there is lit sterile white */
+const MACHINE = new Set([1, 2, 3, 4, 7, 9]);
 function sceneLights() {
   const L = (o) => Object.assign({ z: 30, zone: 0, i: 1, wrap: 0.3, haze: 0 }, o);
   return [
@@ -11,17 +13,17 @@ function sceneLights() {
     L({ x: 330, y: 270, z: 16, r: 150, c: [1.0, 0.6, 0.22], i: 0.8, zone: 1 }),
     L({ x: 240, y: 150, z: 18, r: 300, c: [1.0, 0.62, 0.3], i: 0.5, zone: 1, g: 8 }),
     L({ x: 482, y: 160, z: 16, r: 90, c: [1.0, 0.65, 0.25], i: 0.8, zone: 1 }),
-    L({ x: 292, y: 322, z: 22, r: 160, c: [0.3, 1.0, 0.55], i: 1.2, zone: 1, g: 1 }),
-    L({ x: 390, y: 340, z: 14, r: 96, c: [1.0, 0.45, 0.15], i: 1.4, zone: 1, g: 2 }),
-    L({ x: 504, y: 408, z: 10, r: 70, c: [0.5, 0.6, 1.0], i: 0.9, zone: 1, g: 3 }),
+    L({ x: 292, y: 322, z: 22, r: 160, c: [0.3, 1.0, 0.55], i: 1.2, zone: 1, g: 1, machine: 1 }),
+    L({ x: 390, y: 340, z: 14, r: 96, c: [1.0, 0.45, 0.15], i: 1.4, zone: 1, g: 2, machine: 1 }),
+    L({ x: 504, y: 408, z: 10, r: 70, c: [0.5, 0.6, 1.0], i: 0.9, zone: 1, g: 3, machine: 1 }),
     L({ x: 160, y: 14, z: 30, r: 170, c: [1.0, 0.72, 0.42], i: 1.5, zone: 3, cone: [0.15, 0.99, 0.1] }),
     L({ x: 388, y: 14, z: 30, r: 170, c: [1.0, 0.72, 0.42], i: 1.5, zone: 3, cone: [0.15, 0.99, 0.1] }),
     L({ x: 720, y: 470, z: 90, r: 460, c: [0.35, 0.22, 0.6], i: 0.5, zone: 2 }),
     L({ x: 636, y: 234, z: 34, r: 380, c: [0.85, 0.97, 1.0], i: 2.6, zone: 2, cone: [0, 1, 0.3], shadow: 1, haze: 0.45 }),
     L({ x: 882, y: 404, z: 12, r: 100, c: [0.4, 0.8, 1.0], i: 0.7, zone: 2, g: 6, ar: 1 }),
     L({ x: 932, y: 446, z: 8, r: 90, c: [1.0, 0.6, 0.25], i: 1.0, zone: 2 }),
-    L({ x: 796, y: 316, z: 34, r: 360, c: [0.55, 0.95, 1.0], i: 2.4, zone: 2, g: 4, shadow: 1, haze: 0.12, ex: 1 }),
-    L({ x: 796, y: 420, z: 12, r: 80, c: [0.4, 0.85, 1.0], i: 0.8, zone: 2, g: 4, ex: 1 }),
+    L({ x: 796, y: 316, z: 34, r: 360, c: [0.55, 0.95, 1.0], i: 2.4, zone: 2, g: 4, shadow: 1, haze: 0.12, ex: 1, machine: 1 }),
+    L({ x: 796, y: 420, z: 12, r: 80, c: [0.4, 0.85, 1.0], i: 0.8, zone: 2, g: 4, ex: 1, machine: 1 }),
     L({ x: 796, y: 376, z: 10, r: 110, c: [1.0, 0.25, 0.6], i: 1.0, zone: 2, g: 7, ar: 1 }),
     L({ x: 930, y: 172, z: 26, r: 400, c: [1.0, 0.16, 0.1], i: 2.0, zone: 2, g: 5, haze: 0.3 }),
     L({ x: 708, y: 130, z: 70, r: 500, c: [0.3, 0.75, 1.0], i: 0.9, zone: 4, g: 6, ar: 1, haze: 0.4 }),
@@ -52,7 +54,7 @@ function encodeGroup() {
     let nx = -(H(x + 1, y) - H(x - 1, y)) * 5, ny = -(H(x, y + 1) - H(x, y - 1)) * 5, nz = 1; const L = Math.hypot(nx, ny, nz); nx /= L; ny /= L; nz /= L;
     const n = img.normal.data; n[t] = b8(nx * 0.5 + 0.5); n[t + 1] = b8(ny * 0.5 + 0.5); n[t + 2] = b8(nz * 0.5 + 0.5); n[t + 3] = 255;
     const m = img.material.data; m[t] = b8(G.spec[p]); m[t + 1] = b8(G.shin[p]); m[t + 2] = b8(G.hgt[p]); m[t + 3] = 255;
-    const me = img.meta.data; me[t] = (G.occ[p] ? 128 : 0) + (ar ? 64 : 0) + Math.min(63, G.obj[p]); me[t + 1] = Math.min(3, G.dep[p]) * 64 + Math.min(2, G.refl[p]) * 16; me[t + 2] = Math.min(15, G.ehg[p]) * 16 + Math.min(15, G.eag[p]); me[t + 3] = 255;
+    const me = img.meta.data; me[t] = (G.occ[p] ? 128 : 0) + (ar ? 64 : 0) + Math.min(63, G.obj[p]); me[t + 1] = Math.min(3, G.dep[p]) * 64 + Math.min(2, G.refl[p]) * 16 + (MACHINE.has(G.ehg[p]) ? 1 : 0); me[t + 2] = Math.min(15, G.ehg[p]) * 16 + Math.min(15, G.eag[p]); me[t + 3] = 255;
     const gr = img['glow.raw'].data, gc = img['glow.concierge'].data, off = G.ehg[p] === 9 ? 0 : 1;
     for (let k = 0; k < 3; k++) { gr[t + k] = b8(G.eh[q + k] / 2); gc[t + k] = b8((G.eh[q + k] * off + G.ea[q + k]) / 2); }
     gr[t + 3] = gc[t + 3] = 255;

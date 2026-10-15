@@ -16,6 +16,12 @@ export function lightGroups(t: number): number[] {
   return [1, 0.85 + 0.15 * s(t * 31) * s(t * 7), 0.85 + 0.15 * s(t * 2.1), 0.7 + 0.3 * s(t * 9) * s(t * 3.7 + 1), 0.9 + 0.1 * s(t * 1.3), flick, 0.9 + 0.1 * s(t * 2), 0.92 + 0.08 * s(t * 5), 0.9 + 0.1 * s(t * 0.7), 1, 1, 1, 1, 1, 1, 1];
 }
 
+/**
+ * How far into a view switch, from 1 just after it down to 0. Into raw view the biohack shuts a nerve, which takes
+ * longer than the Concierge resyncing its frames on the way back.
+ */
+export const switchFade = (view: number, since: number): number => Math.max(0, 1 - since / (view < 0.5 ? 0.9 : 0.45));
+
 export class SceneRunner {
   private cars = new Float32Array(64);
   private beacons = new Float32Array(128);
@@ -64,7 +70,7 @@ export class SceneRunner {
     return {
       t,
       view: v.view,
-      glitch: Math.max(0, 1 - v.sinceSwitch / 0.45),
+      glitch: switchFade(v.view, v.sinceSwitch),
       cam,
       level: d.size,
       zone: this.scene.zone,
