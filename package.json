@@ -1,0 +1,21 @@
+{
+  "name": "lidless",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Lidless: a narrative adventure in a world run by a polite AI. Web first; iOS, Android and desktop from the same build.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "check": "tsc --noEmit",
+    "preview": "vite preview",
+    "shot": "node scripts/shot.mjs"
+  },
+  "devDependencies": {
+    "typescript": "6.0.3",
+    "vite": "8.3.1"
+  },
+  "dependencies": {
+    "inkjs": "2.4.0"
+  }
+}

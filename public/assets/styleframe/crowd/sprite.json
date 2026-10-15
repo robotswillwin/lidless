@@ -1,0 +1,18 @@
+{
+  "name": "crowd",
+  "x": 616,
+  "y": 264,
+  "w": 271,
+  "h": 94,
+  "maps": [
+    "albedo.concierge",
+    "albedo.raw",
+    "glow.concierge",
+    "glow.raw",
+    "material",
+    "meta",
+    "normal"
+  ],
+  "depth": 2,
+  "parallax": 0.8
+}

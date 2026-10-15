@@ -1,0 +1,26 @@
+:root {
+  --bg: #000;
+  --cyan: #8ff0ea;
+  --amber: #f0b25a;
+  --pill: rgba(8, 8, 14, 0.78);
+  --ui: "Jost", "Futura", "Avenir Next", "Segoe UI", sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; background: var(--bg); }
+.stage { position: fixed; inset: 0; display: grid; place-items: center; container-type: size; }
+/* the frame keeps 16:9 and fills the screen on one axis */
+#game { display: block; width: min(100cqw, 177.78cqh); height: min(56.25cqw, 100cqh); }
+.view {
+  position: absolute; right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom));
+  display: inline-flex; align-items: center; gap: 10px; padding: 10px 14px; border: 0; border-radius: 4px;
+  background: var(--pill); color: var(--cyan); font: 400 13px/1 var(--ui); letter-spacing: .2em; text-transform: uppercase; cursor: pointer;
+  box-shadow: 0 0 0 1px rgba(143, 240, 234, .55), 0 0 22px rgba(143, 240, 234, .2);
+}
+.view .dot { width: 10px; aspect-ratio: 1; background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+.view[aria-pressed="false"] { color: var(--amber); box-shadow: 0 0 0 1px rgba(240, 178, 90, .55), 0 0 22px rgba(240, 178, 90, .18); }
+.view[aria-pressed="false"] .dot { background: var(--amber); box-shadow: 0 0 8px var(--amber); }
+.view:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.stats { position: absolute; left: 16px; top: 12px; margin: 0; font: 12px/1.4 ui-monospace, Menlo, monospace; color: #9ab; }
+.error { position: absolute; inset: auto 16px 16px 16px; margin: 0; padding: 12px 14px; background: #200; color: #fbb; font: 14px/1.4 var(--ui); }
+@media (prefers-reduced-motion: reduce) { .view { transition: none; } }
