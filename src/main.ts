@@ -2,9 +2,9 @@
 
 import './style.css';
 import { loadScene } from './engine/assets';
-import { NH, NW, QUALITY, Renderer, type Tier } from './engine/renderer';
+import { fitCanvas, NH, NW, QUALITY, Renderer, type Tier } from './engine/renderer';
 import { Dialogue } from './game/dialogue';
-import { loadLevel, pick, type Hotspot } from './game/level';
+import { inView, loadLevel, pick, type Hotspot } from './game/level';
 import { clearSave, loadSave, writeSave } from './game/save';
 import { SceneRunner, type ViewState } from './game/scene';
 import { UI } from './game/ui';
@@ -23,17 +23,6 @@ function pickTier(): Tier {
   const q = params.get('q');
   if (q === 'low' || q === 'medium' || q === 'high') return q;
   return matchMedia('(pointer: coarse)').matches ? 'medium' : 'high';
-}
-
-/** Match the canvas to the device pixels it covers, so the sharp upscale has real pixels to work with. */
-function fitCanvas(): void {
-  const dpr = Math.min(window.devicePixelRatio || 1, 3);
-  const w = Math.max(NW, Math.min(3840, Math.round(canvas.clientWidth * dpr)));
-  const h = Math.round((w * NH) / NW);
-  if (canvas.width !== w || canvas.height !== h) {
-    canvas.width = w;
-    canvas.height = h;
-  }
 }
 
 /** Pointer position in level pixels. */
@@ -107,14 +96,14 @@ async function boot(): Promise<void> {
   // pointer: hover names, click or tap to walk or to use
   canvas.addEventListener('pointermove', (e) => {
     if (e.pointerType !== 'mouse' || ui.dialogueOpen) return ui.showHover(null);
-    const [x, y] = toLevel(e, cam), h = world.hotspotAt(x, y);
+    const [x, y] = toLevel(e, cam), h = world.hotspotAt(x, y, state.view < 0.5);
     canvas.style.cursor = h ? 'pointer' : 'default';
     ui.showHover(h ? pick(h.name, state.view < 0.5) : null, e.clientX, e.clientY);
   });
   canvas.addEventListener('pointerleave', () => ui.showHover(null));
   canvas.addEventListener('pointerdown', (e) => {
     if (ui.dialogueOpen) return;
-    const [x, y] = toLevel(e, cam), h = world.hotspotAt(x, y);
+    const [x, y] = toLevel(e, cam), h = world.hotspotAt(x, y, state.view < 0.5);
     if (!h) return world.walkTo(x);
     if (h.stand === undefined) return interact(h);
     world.walkTo(h.stand, h);
@@ -148,13 +137,14 @@ async function boot(): Promise<void> {
     lastT = t;
     const wasMoving = world.moving;
     const arrived = ui.dialogueOpen ? null : world.update(dt);
-    if (arrived) interact(arrived);
+    // the view may have changed on the way: a generated person is not there to talk to in raw view
+    if (arrived && inView(arrived, state.view < 0.5)) interact(arrived);
     if (wasMoving && !world.moving) persist();
     state.sinceSwitch = reduceMotion ? 10 : t - switchedAt;
     const flip = world.facing < 0, [ax, ay] = level.hero.anchor, w = heroSprite.def.w;
     const hx = Math.round(world.heroX - cam[0] - (flip ? w - ax : ax)), hy = Math.round(level.walk.y - cam[1] - ay + world.bob);
     const smoke: [number, number] = [world.heroX + level.hero.smoke[0] * world.facing, level.walk.y + level.hero.smoke[1] + world.bob];
-    fitCanvas();
+    fitCanvas(canvas);
     renderer.render(runner.frame(t, state, cam, [{ sprite: heroSprite, x: hx, y: hy, flip }], smoke));
     frames++;
     const now = performance.now();

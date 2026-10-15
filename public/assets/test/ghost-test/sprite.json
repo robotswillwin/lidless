@@ -1,0 +1,25 @@
+{
+  "name": "ghost-test",
+  "x": 550,
+  "y": 224,
+  "w": 100,
+  "h": 240,
+  "maps": [
+    "albedo.concierge",
+    "albedo.raw",
+    "glow.concierge",
+    "material",
+    "meta",
+    "normal"
+  ],
+  "depth": 3,
+  "parallax": 1,
+  "occluder": 1,
+  "reflectivity": 0,
+  "object": 0,
+  "anchor": [
+    50,
+    240
+  ],
+  "exists": "concierge"
+}

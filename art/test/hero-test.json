@@ -1,0 +1,17 @@
+{
+  "name": "hero-test",
+  "scene": "test",
+  "kind": "character",
+  "prompt": "Test: the style-frame hero, a woman in a long red leather coat, re-imported through the pipeline.",
+  "height": 240,
+  "position": [
+    480,
+    464
+  ],
+  "material": "leather",
+  "glow": {
+    "raw": "auto",
+    "concierge": "auto"
+  },
+  "palette": 0.35
+}

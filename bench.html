@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="icon" href="data:,">
+  <title>Lidless asset bench</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&display=swap">
+</head>
+<body class="bench">
+  <main class="stage">
+    <canvas id="game" width="960" height="540" aria-label="The selected asset, lit in the game engine."></canvas>
+    <form class="panel" id="panel" aria-label="Bench controls">
+      <label>Scene <input id="scene" name="scene" value="test" spellcheck="false"></label>
+      <label>Asset <select id="asset" name="asset"></select></label>
+      <label>Backdrop <select id="backdrop" name="backdrop"><option value="plain">Plain wall</option><option value="street">Style frame street</option></select></label>
+      <label>Light <select id="light" name="light"><option value="lamp">Street lamp</option><option value="door">Shop door</option><option value="neon">Neon rims</option><option value="studio">Studio</option></select></label>
+      <label>Position <input id="x" name="x" type="range" min="40" max="920" value="480"></label>
+      <div class="row"><label class="check"><input id="flip" type="checkbox"> Face left</label><label class="check"><input id="walk" type="checkbox"> Walk</label></div>
+      <button id="view" class="view" type="button" aria-pressed="true"><span class="dot" aria-hidden="true"></span><span id="view-label">Concierge view</span></button>
+      <p id="info" class="info"></p>
+    </form>
+    <div class="maps" id="maps" aria-label="The asset's maps"></div>
+    <p id="error" class="error" hidden></p>
+  </main>
+  <script type="module" src="./src/bench.ts"></script>
+</body>
+</html>

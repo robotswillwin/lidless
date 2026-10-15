@@ -4,3 +4,4 @@ dist-shot/
 .DS_Store
 *.local
 shots/
+art/**/candidates/

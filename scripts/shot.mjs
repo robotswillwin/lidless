@@ -1,6 +1,7 @@
 // Build the game and take screenshots in headless Chrome, without a server.
-// Usage: npm run shot -- "view=raw" "q=low&t=3"   (each argument is a query string; default: Concierge view)
-// Screenshots land in shots/<query>.png. Loads dist/ from file://, so Chrome runs with file access enabled.
+// Usage: npm run shot -- "view=raw" "q=low&t=3" "bench.html?view=raw"
+// Each argument is a query string for the game, or a page plus its query. Default: the game in Concierge view.
+// Screenshots land in shots/<page>_<query>.png. Loads dist/ from file://, so Chrome runs with file access enabled.
 
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, statSync } from 'node:fs';
@@ -13,16 +14,19 @@ const profile = resolve(root, 'node_modules/.cache/shot-chrome');
 
 execFileSync('npx', ['vite', 'build', '--logLevel', 'warn'], { cwd: root, stdio: 'inherit' });
 mkdirSync(resolve(root, 'shots'), { recursive: true });
-const page = 'file://' + resolve(root, 'dist/index.html');
+const target = (arg) => {
+  const [file, q] = /\.html/.test(arg) ? arg.split('?') : ['index.html', arg];
+  return { url: `file://${resolve(root, 'dist', file)}?${q ?? ''}`, name: `${file === 'index.html' ? '' : file.replace('.html', '_')}${(q ?? '').replace(/[^a-z0-9]+/gi, '_')}` || 'default' };
+};
 const flags = ['--headless=new', '--hide-scrollbars', '--allow-file-access-from-files', `--user-data-dir=${profile}`, '--window-size=960,540', '--virtual-time-budget=8000'];
 
 for (const q of queries) {
-  const name = q.replace(/[^a-z0-9]+/gi, '_') || 'default';
+  const { url, name } = target(q);
   const out = resolve(root, 'shots', `${name}.png`);
-  execFileSync(chrome, [...flags, `--screenshot=${out}`, `${page}?${q}`], { stdio: 'ignore' });
+  execFileSync(chrome, [...flags, `--screenshot=${out}`, url], { stdio: 'ignore' });
   console.log(`${name}.png`, existsSync(out) ? `${(statSync(out).size / 1024).toFixed(0)} KB` : 'missing');
 }
-const dom = execFileSync(chrome, ['--headless=new', '--allow-file-access-from-files', `--user-data-dir=${profile}`, '--virtual-time-budget=8000', '--dump-dom', `${page}?${queries[0]}`], { encoding: 'utf8', maxBuffer: 64 << 20 });
+const dom = execFileSync(chrome, ['--headless=new', '--allow-file-access-from-files', `--user-data-dir=${profile}`, '--virtual-time-budget=8000', '--dump-dom', target(queries[0]).url], { encoding: 'utf8', maxBuffer: 64 << 20 });
 const err = /data-err="([^"]*)"/.exec(dom);
 const ready = /data-ready="1"/.test(dom);
 console.log(err ? `error: ${err[1]}` : ready ? 'ready' : 'not ready (no error reported)');

@@ -61,3 +61,21 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 }
 .choice:hover, .choice:focus-visible { background: rgba(240, 178, 90, .16); outline: none; }
 .choice .key { color: var(--amber); font: 500 12px/1 var(--ui); min-width: 1ch; }
+
+/* asset bench */
+.bench .panel {
+  position: absolute; left: 12px; top: 12px; display: grid; gap: 8px; width: 230px; padding: 12px; margin: 0;
+  background: var(--panel); color: var(--ink); font: 400 13px/1.3 var(--ui); border-radius: 4px;
+}
+.bench .panel label { display: grid; gap: 3px; color: var(--muted); font-size: 12px; letter-spacing: .04em; }
+.bench .panel input, .bench .panel select { font: 400 13px/1.2 var(--ui); padding: 4px 6px; background: #14141c; color: var(--ink); border: 1px solid #2a2a36; border-radius: 3px; }
+.bench .panel input[type="range"] { padding: 0; }
+.bench .panel .row { display: flex; gap: 16px; }
+.bench .panel label.check { display: flex; align-items: center; gap: 6px; color: var(--ink); }
+.bench .panel select:disabled { opacity: .45; }
+.bench .panel .view { position: static; justify-content: center; }
+.bench .info { margin: 0; color: var(--muted); font-size: 12px; white-space: pre-line; }
+.bench .maps { position: absolute; right: 12px; top: 12px; display: grid; gap: 6px; max-height: calc(100% - 24px); overflow: auto; }
+.bench .maps figure { margin: 0; padding: 6px; background: var(--panel); border-radius: 4px; display: grid; gap: 4px; }
+.bench .maps img { image-rendering: pixelated; height: 120px; width: auto; background: repeating-conic-gradient(#222 0 25%, #2c2c2c 0 50%) 0 0 / 12px 12px; }
+.bench .maps figcaption { font: 400 11px/1 var(--ui); color: var(--muted); letter-spacing: .06em; }

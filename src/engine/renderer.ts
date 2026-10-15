@@ -25,6 +25,17 @@ export const QUALITY: Record<Tier, Quality> = {
   high: { tier: 'high', maxLights: S.MAX_LIGHTS, shadows: true, ao: true, dof: true, streaks: true, godrays: true },
 };
 
+/** Match the canvas to the device pixels it covers, so the sharp upscale has real pixels to work with. */
+export function fitCanvas(canvas: HTMLCanvasElement): void {
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  const w = Math.max(NW, Math.min(3840, Math.round(canvas.clientWidth * dpr)));
+  const h = Math.round((w * NH) / NW);
+  if (canvas.width !== w || canvas.height !== h) {
+    canvas.width = w;
+    canvas.height = h;
+  }
+}
+
 export interface DrawSprite {
   sprite: Sprite;
   /** Top-left corner on screen, in native pixels, after camera and parallax. */
@@ -210,7 +221,7 @@ export class Renderer {
     this.pass(this.prog.comp, t.fb, (pr) => {
       this.bind(pr, 'tA', t.fa.tex[0], 0); this.bind(pr, 'tG3', t.gbuf.tex[3], 1); this.bind(pr, 'tDof', t.d1.tex[0], 2);
       this.zoneUniforms(pr, f, 3);
-      gl.uniform1f(pr.u.uTime, f.t); gl.uniform1f(pr.u.uDof, q.dof ? 1 : 0);
+      gl.uniform1f(pr.u.uTime, f.t); gl.uniform1f(pr.u.uDof, q.dof ? 1 : 0); gl.uniform1f(pr.u.uView, f.view);
       gl.uniform4fv(pr.u.uSteam, f.steam); gl.uniform4f(pr.u.uDrips, ...f.drips); gl.uniform1f(pr.u.uMirror, f.mirror);
     });
 

@@ -15,6 +15,13 @@ export interface SpriteDef {
   depth: number;
   /** How fast the layer moves with the camera: 1 moves with the street, 0 stays put. */
   parallax: number;
+  /** Feet or base point inside the sprite, for characters placed by their position. */
+  anchor?: [number, number];
+  /**
+   * Which views it is in: both (real), concierge (generated, made up by the Concierge) or raw (real, but the
+   * Concierge edits it out). The albedo of a view it is not in is transparent, so this is information for tools.
+   */
+  exists?: 'both' | 'concierge' | 'raw';
   /** Used when the sprite has no meta map. */
   occluder?: number;
   reflectivity?: number;
@@ -91,7 +98,7 @@ async function loadJSON<T>(url: string): Promise<T> {
 }
 
 /** Fallbacks for maps an asset leaves out: flat normal, a dull material, no glow. */
-function defaults(gl: GL) {
+export function spriteDefaults(gl: GL) {
   return {
     normal: solidTexture(gl, [128, 128, 255, 255]),
     material: solidTexture(gl, [10, 64, 128, 255]),
@@ -100,9 +107,11 @@ function defaults(gl: GL) {
   };
 }
 
-export async function loadSprite(gl: GL, base: string, name: string, fallback: ReturnType<typeof defaults>): Promise<Sprite> {
-  const def = await loadJSON<SpriteDef>(`${base}/${name}/sprite.json`);
-  const imgs = await Promise.all(def.maps.map(async (m) => [m, await loadImage(`${base}/${name}/${m}.png`)] as const));
+/** `bust` is added to every URL to skip the browser cache when an asset was just rebuilt. */
+export async function loadSprite(gl: GL, base: string, name: string, fallback: ReturnType<typeof spriteDefaults>, bust = ''): Promise<Sprite> {
+  const q = bust ? `?v=${bust}` : '';
+  const def = await loadJSON<SpriteDef>(`${base}/${name}/sprite.json${q}`);
+  const imgs = await Promise.all(def.maps.map(async (m) => [m, await loadImage(`${base}/${name}/${m}.png${q}`)] as const));
   const got = new Map<MapName, WebGLTexture>(imgs.map(([m, img]) => [m, textureFromImage(gl, img)]));
   const albR = got.get('albedo.raw');
   if (!albR) throw new Error(`${name} has no albedo.raw map`);
@@ -124,7 +133,7 @@ export async function loadSprite(gl: GL, base: string, name: string, fallback: R
 
 export async function loadScene(gl: GL, base: string): Promise<LoadedScene> {
   const def = await loadJSON<SceneDef>(`${base}/scene.json`);
-  const fallback = defaults(gl);
+  const fallback = spriteDefaults(gl);
   const [sprites, zoneImg] = await Promise.all([
     Promise.all(def.sprites.map((n) => loadSprite(gl, base, n, fallback))),
     loadImage(`${base}/${def.zone}`),

@@ -16,6 +16,11 @@ out vec4 o;
 vec2 P() { return vec2(gl_FragCoord.x, uRes.y - gl_FragCoord.y); }
 vec4 T(sampler2D t, vec2 p) { return texture(t, vec2(p.x, uRes.y - p.y) / uRes); }
 float lum(vec3 c) { return dot(c, vec3(0.2126, 0.7152, 0.0722)); }
+// raw view: real light is a pale, sterile white, and the air it travels through is a poisonous sepia
+const vec3 RAW_LIGHT = vec3(0.96, 1.0, 1.05);
+const vec3 RAW_AIR = vec3(1.0, 0.86, 0.46);
+// the colour tint at the brightness of c
+vec3 tone(vec3 c, vec3 tint) { return lum(c) * tint / lum(tint); }
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float vn(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y); }
 float fbm(vec2 p) { float s = 0.0, a = 0.5; for (int i = 0; i < 4; i++) { s += a * vn(p); p *= 2.03; a *= 0.5; } return s / 0.9375; }
@@ -116,7 +121,9 @@ void main() {
   float specS = g1.z, shin = mix(6.0, 120.0, g1.w), dep = g3.r, obj = floor(g3.b * 63.0 + 0.5);
   vec3 alb = lin(g0.rgb);
   float occB = T(tAO, p).r, ao = (occ > 0.5 ? 1.0 - 0.25 * occB : 1.0 - 0.8 * occB) * z.b;
-  vec3 amb = vec3(0.1, 0.066, 0.046) * z.r + vec3(0.045, 0.055, 0.1) * z.g;
+  float raw = 1.0 - uView;
+  vec3 ambIn = vec3(0.1, 0.066, 0.046), ambOut = vec3(0.045, 0.055, 0.1);
+  vec3 amb = mix(ambIn, tone(ambIn, RAW_LIGHT), raw) * z.r + mix(ambOut, tone(ambOut, RAW_AIR), raw) * z.g;
   vec3 col = alb * amb * mix(0.4, 1.0, ao) * (0.85 - 0.3 * Nn.y), spc = vec3(0.0), haze = vec3(0.0);
   for (int i = 0; i < ${MAX_LIGHTS}; i++) {
     if (i >= uNL) break;
@@ -133,21 +140,24 @@ void main() {
     if (cone < 0.002) continue;
     float ex = floor(LK.w * 0.5 + 0.01), keep = (ex > 0.5 && abs(obj - ex) < 0.5) ? 0.0 : 1.0;
     float sh = (uShadows > 0.5 && mod(LK.w, 2.0) > 0.5) ? shadowMarch(p, lp, occ) : 1.0;
+    vec3 lc = LG.y > 0.5 ? LC.rgb : mix(LC.rgb, tone(LC.rgb, RAW_LIGHT), raw);
     vec3 Lv = normalize(vec3(d2, LP.z - hz));
     float diff = max((dot(Nn, Lv) + LG.z) / (1.0 + LG.z), 0.0);
-    vec3 li = LC.rgb * gi * att * cone * sh * zw * keep;
+    vec3 li = lc * gi * att * cone * sh * zw * keep;
     col += alb * li * diff;
     vec3 H = normalize(Lv + vec3(0.0, 0.0, 1.0));
     spc += li * specS * pow(max(dot(Nn, H), 0.0), shin) * 2.0;
-    haze += LC.rgb * gi * pow(att, LK.z > -1.5 ? 2.0 : 3.0) * cone * LG.w * zh;
+    haze += mix(lc, tone(lc, RAW_AIR), raw) * gi * pow(att, LK.z > -1.5 ? 2.0 : 3.0) * cone * LG.w * zh;
   }
   vec3 outc = col + spc + haze * mix(0.06, 0.16, z.g);
-  outc += lin(g2.rgb * 2.0) * uGI[int(g2.a * 15.0 + 0.5)];
+  vec3 em = lin(g2.rgb * 2.0);
+  outc += mix(em, tone(em, RAW_LIGHT), raw * 0.9) * uGI[int(g2.a * 15.0 + 0.5)];
   if (dep < 0.4 && uView > 0.5) {
     for (int k = 0; k < 16; k++) { if (k >= uNC) break; vec4 c = uCars[k]; vec2 r = p - (c.xy - uCam); float al = r.x * c.z;
       if (abs(r.y) < 1.2) { if (al > -c.w && al < 0.0) outc += vec3(2.2, 0.25, 0.2) * pow(1.0 + al / c.w, 2.0) * 0.6; if (al >= 0.0 && al < 4.0) outc += al < 2.0 ? vec3(4.0, 4.2, 4.6) : vec3(0.08, 0.08, 0.1); } }
   }
-  for (int k = 0; k < 32; k++) { if (k >= uNB) break; vec4 b = uBeac[k]; if (sin(uTime * 2.4 + b.z) > 0.4) { float d = length(p - (b.xy - uCam)); outc += vec3(5.0, 0.6, 0.5) * smoothstep(2.0, 0.5, d) + vec3(0.6, 0.05, 0.05) * smoothstep(14.0, 0.0, d) * 0.4; } }
+  vec3 bc = mix(vec3(5.0, 0.6, 0.5), tone(vec3(5.0, 0.6, 0.5), RAW_LIGHT), raw), bh = mix(vec3(0.6, 0.05, 0.05), tone(vec3(0.6, 0.05, 0.05), RAW_AIR), raw);
+  for (int k = 0; k < 32; k++) { if (k >= uNB) break; vec4 b = uBeac[k]; if (sin(uTime * 2.4 + b.z) > 0.4) { float d = length(p - (b.xy - uCam)); outc += bc * smoothstep(2.0, 0.5, d) + bh * smoothstep(14.0, 0.0, d) * 0.4; } }
   o = vec4(outc, 1.0);
 }`;
 
@@ -155,7 +165,7 @@ void main() {
 
 export const COMP_FS = HEAD + ZONE + `
 uniform sampler2D tA, tG3, tDof;
-uniform float uTime, uDof;
+uniform float uTime, uDof, uView;
 uniform vec4 uSteam[4];
 uniform vec4 uDrips;      // world x0, x1, top, bottom of the drip curtain; z <= 0 turns it off
 uniform float uMirror;    // world y of the reflection line
@@ -180,19 +190,21 @@ void main() {
     float k = mix(0.42, 0.88, puddle) * (0.75 + 0.25 * smoothstep(GY, uRes.y, p.y));
     c = c * (1.0 - k * 0.5) + r * k;
   }
+  float raw = 1.0 - uView;
   vec3 near = (T(tA, p + vec2(6.0, 0.0)).rgb + T(tA, p - vec2(6.0, 0.0)).rgb + T(tA, p + vec2(0.0, 6.0)).rgb + T(tA, p - vec2(0.0, 6.0)).rgb) * 0.25;
   for (int s = 0; s < 4; s++) {
     vec4 e = uSteam[s]; if (e.z <= 0.0) continue; vec2 r = p - (e.xy - uCam); float up = -r.y; if (up < -4.0 || up > e.z) continue;
     float smoke = step(e.w, 0.0), k = up / e.z, sway = sin(k * 5.0 + uTime * 0.8) * 8.0 * k, wdt = abs(e.w) * (0.35 + k * (1.0 + 2.0 * smoke));
     float n = fbm(vec2((r.x - sway) * 0.05, (r.y + uTime * 26.0) * 0.045));
     float d = smoothstep(wdt, wdt * 0.2, abs(r.x - sway)) * smoothstep(0.75, 0.25, k * n) * n * (1.0 - k);
-    c += (near * 1.4 + mix(vec3(0.025, 0.025, 0.03), vec3(0.16, 0.16, 0.18), smoke)) * d * mix(0.9, 1.3, smoke);
+    vec3 vapour = mix(vec3(0.025, 0.025, 0.03), vec3(0.16, 0.16, 0.18), smoke);
+    c += (mix(near, tone(near, RAW_AIR), raw * 0.6) * 1.4 + mix(vapour, tone(vapour, RAW_AIR) * 1.2, raw)) * d * mix(0.9, 1.3, smoke);
   }
   float outside = z.g * (1.0 - z.r);
   if (outside > 0.05) {
     float rn = rainL(p, uTime, 2.0, 55.0, 6.0, 0.33) * 0.55 + rainL(p + 37.0, uTime, 4.0, 95.0, 5.0, 0.22);
     vec3 tint = normalize(near + 1e-4) * 0.9;
-    c += rn * outside * (vec3(0.012, 0.014, 0.02) + tint * lum(near) * 2.6);
+    c += rn * outside * (mix(vec3(0.012, 0.014, 0.02), tone(vec3(0.012, 0.014, 0.02), RAW_AIR), raw) + tint * lum(near) * 2.6);
     if (p.y > GY + 2.0) { vec2 cell = floor(w / vec2(18.0, 6.0)); float ph = fract(uTime * (0.7 + hash(cell)) + hash(cell + 3.0)); float rr = length((w - (cell + 0.5) * vec2(18.0, 6.0)) * vec2(1.0, 3.0)); c += vec3(0.18, 0.2, 0.24) * smoothstep(1.4, 0.0, abs(rr - ph * 9.0)) * (1.0 - ph) * step(0.55, hash(cell + 9.0)) * (0.4 + lum(near)); }
   }
   if (uDrips.z > 0.0 && w.y < uDrips.w && w.x > uDrips.x && w.x < uDrips.y && z.r > 0.5) {
@@ -246,24 +258,29 @@ void main() {
   vec2 ca = ctr / length(uRes * 0.5) * 1.2 * r2;
   vec3 c = vec3(sharpT(p + ca).r, sharpT(p).g, sharpT(p - ca).b);
   vec2 uv = vec2(p.x, uRes.y - p.y) / uRes;
-  vec3 bl = texture(tBloom1, uv).rgb * 0.55 + texture(tBloom2, uv).rgb * 0.45;
+  float raw = 1.0 - uView;
+  vec3 b1 = texture(tBloom1, uv).rgb, b2 = texture(tBloom2, uv).rgb;
+  // the wide halo and the light shafts are light caught in the air
+  vec3 bl = b1 * 0.55 + mix(b2, tone(b2, RAW_AIR), raw * 0.7) * 0.45;
   vec4 z = Z(p); float jit = hash(floor(p) * 0.37);
   for (int s = 0; s < 4; s++) {
     vec4 g = uGR[s]; if (g.z <= 0.0) continue;
     float zw = g.w < 1.5 ? z.r : z.g; if (zw < 0.05) continue;
     vec2 dv = (g.xy - uCam - p) / 24.0, q = p + dv * jit; float dec = 1.0; vec3 acc = vec3(0.0);
     for (int k = 0; k < 24; k++) { q += dv; acc += texture(tBloom1, vec2(q.x, uRes.y - q.y) / uRes).rgb * dec; dec *= 0.92; }
-    bl += acc * g.z * zw / 24.0;
+    bl += mix(acc, tone(acc, RAW_AIR), raw) * g.z * zw / 24.0;
   }
-  c += bl + texture(tStreak, uv).rgb * vec3(0.5, 0.68, 1.0) * 0.5 * uStreaks + texture(tBloom1, uv).rgb * vec3(0.22, 0.06, 0.02);
+  c += bl + texture(tStreak, uv).rgb * vec3(0.5, 0.68, 1.0) * 0.5 * uStreaks + b1 * mix(vec3(0.22, 0.06, 0.02), tone(vec3(0.22, 0.06, 0.02), RAW_AIR), raw);
   c = aces(c * 1.32);
   float l = lum(c);
-  c = mix(c, c * vec3(0.84, 0.95, 1.12) + vec3(0.0, 0.005, 0.012), (1.0 - smoothstep(0.0, 0.45, l)) * 0.7);
-  c = mix(c, c * vec3(1.07, 1.0, 0.9), smoothstep(0.45, 1.0, l) * 0.4);
+  // Concierge view: cool shadows, warm highlights. Raw view: shadows go sepia, highlights stay pale white
+  c = mix(c, c * mix(vec3(0.84, 0.95, 1.12), vec3(1.08, 1.0, 0.7), raw) + mix(vec3(0.0, 0.005, 0.012), vec3(0.012, 0.01, 0.0), raw), (1.0 - smoothstep(0.0, 0.45, l)) * 0.7);
+  c = mix(c, c * mix(vec3(1.07, 1.0, 0.9), vec3(0.97, 1.0, 1.04), raw), smoothstep(0.45, 1.0, l) * 0.4);
   l = lum(c);
   c = mix(vec3(l), c, mix(0.72, 1.05, smoothstep(0.45, 0.95, l)));
-  float cold = (1.0 - uView) * z.g * (1.0 - z.r);
-  c = mix(c, vec3(lum(c)) * vec3(0.84, 0.95, 1.1) * 0.9, cold * 0.6);
+  // raw view: away from the lamps everything sinks into the yellow air, most of all outside
+  float air = raw * mix(0.5, 1.0, z.g * (1.0 - z.r)) * (1.0 - smoothstep(0.45, 0.95, l));
+  c = mix(c, tone(c, RAW_AIR) * 0.92, air * 0.6);
   c *= 1.0 - 0.36 * pow(r2, 1.3);
   c = pow(max(c, 0.0), vec3(1.0 / 2.2));
   c = mix(c, c * c * (3.0 - 2.0 * c), 0.15);

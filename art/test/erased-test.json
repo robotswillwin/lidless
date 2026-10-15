@@ -1,0 +1,12 @@
+{
+  "name": "erased-test",
+  "scene": "test",
+  "kind": "character",
+  "exists": "raw",
+  "prompt": "Pipeline test: a real figure the Concierge edits out. Only in raw view.",
+  "height": 240,
+  "position": [360, 464],
+  "material": "leather",
+  "glow": { "raw": "none" },
+  "palette": 0.35
+}

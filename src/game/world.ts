@@ -1,6 +1,6 @@
 // The hero on the walk line: walking to a point or a hotspot, keyboard walking, picking hotspots.
 
-import type { Hotspot, LevelDef } from './level';
+import { inView, type Hotspot, type LevelDef } from './level';
 
 export class World {
   heroX: number;
@@ -68,9 +68,10 @@ export class World {
     return this.moving && Math.floor(this.walkT * 4.4) % 2 === 1 ? -1 : 0;
   }
 
-  hotspotAt(x: number, y: number): Hotspot | null {
+  hotspotAt(x: number, y: number, raw: boolean): Hotspot | null {
     const hs = this.level.hotspots;
     for (let i = hs.length - 1; i >= 0; i--) {
+      if (!inView(hs[i], raw)) continue;
       const [rx, ry, rw, rh] = hs[i].rect;
       if (x >= rx && x < rx + rw && y >= ry && y < ry + rh) return hs[i];
     }

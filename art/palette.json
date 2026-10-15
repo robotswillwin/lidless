@@ -1,0 +1,75 @@
+{
+  "note": "The house palette, from the style frame. Ramps run dark to light. The pipeline can pull generated art toward it.",
+  "ramps": {
+    "amber": [
+      "#0d0806",
+      "#1c110c",
+      "#2e1b12",
+      "#452717",
+      "#63361c",
+      "#8a4a22",
+      "#b0642a",
+      "#d48a3a",
+      "#f0b25a",
+      "#ffd88a",
+      "#fff1c8"
+    ],
+    "cold": [
+      "#05070d",
+      "#0a0f1d",
+      "#111a31",
+      "#1a2846",
+      "#243b5e",
+      "#2e5478",
+      "#3c7090",
+      "#4f94a8",
+      "#6cc4c8",
+      "#a6f0ea",
+      "#e2fffa"
+    ],
+    "neon": [
+      "#2a0b26",
+      "#4c1340",
+      "#7c1b5a",
+      "#b62a78",
+      "#ea4596",
+      "#ff7cbe",
+      "#ffc4e2"
+    ],
+    "violet": [
+      "#160f2c",
+      "#241a46",
+      "#382a66",
+      "#523e90"
+    ],
+    "neutral": [
+      "#08080a",
+      "#141317",
+      "#24222a",
+      "#36333a",
+      "#4c4850",
+      "#6a6468",
+      "#8e8682",
+      "#b9ada2"
+    ],
+    "red": [
+      "#1f0708",
+      "#4a0f12",
+      "#7a1a1c",
+      "#a8282a",
+      "#d84a3e",
+      "#ff7a62",
+      "#ffc0b0"
+    ],
+    "green": [
+      "#0b2a1c",
+      "#15603a",
+      "#3fbf6a",
+      "#a8ffbe"
+    ],
+    "skin": [
+      "#c48a62",
+      "#8a5a40"
+    ]
+  }
+}
