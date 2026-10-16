@@ -288,12 +288,16 @@ lightSel.addEventListener('change', () => { showInfo(false); persist(); });
 for (const input of [xIn, flipIn, walkIn]) input.addEventListener('input', persist);
 el<HTMLFormElement>('panel').addEventListener('submit', (e) => e.preventDefault());
 
-// E switches view, F turns the asset around, W walks it, Q cycles quality, arrows nudge it
+// E switches view, F turns the asset around, W walks it, Q cycles quality, arrows nudge it. The letters work wherever
+// the focus is, except while typing in the scene field; the arrows still move a focused slider or list.
 document.addEventListener('keydown', (e) => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
-  const tgt = e.target;
-  if ((tgt instanceof HTMLInputElement && tgt.type !== 'checkbox') || tgt instanceof HTMLSelectElement) return;
-  const k = e.key.toLowerCase();
+  const tgt = e.target, k = e.key.toLowerCase();
+  if (tgt instanceof HTMLInputElement && tgt.type === 'text') return;
+  const control = (tgt instanceof HTMLInputElement && tgt.type === 'range') || tgt instanceof HTMLSelectElement;
+  if (control && k.startsWith('arrow')) return;
+  // a focused list would also jump to an entry starting with the letter
+  if (tgt instanceof HTMLSelectElement && 'efwq'.includes(k)) e.preventDefault();
   if (k === 'e') toggleView();
   else if (k === 'f') flipIn.checked = !flipIn.checked;
   else if (k === 'w') walkIn.checked = !walkIn.checked;
