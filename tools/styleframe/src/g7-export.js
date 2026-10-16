@@ -67,8 +67,8 @@ function encodeGroup() {
 function exportAll() {
   const groups = [
     ['sky-city', () => { drawCity(); drawMidground(); }],
-    // the fixer is part of the street now: he sits behind the shop window's glass
-    ['street', () => { drawRoom(); drawProps(); drawFixer(); drawFront(); drawGround(); drawKiosk(); drawStreet(); }],
+    // no characters in the set: the fixer works inside the shop, which is a scene of its own
+    ['street', () => { drawRoom(); drawProps(); drawFront(); drawGround(); drawKiosk(); drawStreet(); }],
     ['crowd', () => drawCrowd()], ['docked', () => drawDocked()], ['hero', () => drawHero()],
   ];
   const out = { groups: {} }; let inn = null;

@@ -46,7 +46,7 @@ await shot('look-sky');
 await page.mouse.click(480, 300);
 await wait(2500);
 await shot('shop');
-await page.mouse.click(455, 360);
+await page.mouse.click(585, 400);
 await page.waitForSelector('.dialogue:not([hidden])', { timeout: 10000 });
 await wait(200);
 await shot('fixer-opens');
@@ -69,7 +69,7 @@ console.log('caption:', await text('.caption'), '| button hidden:', await page.$
 await shot('unlocked');
 
 // back out to the street, switch to raw view and look at the woman at the dock
-await page.mouse.click(92, 300);
+await page.mouse.click(940, 380);
 await wait(2500);
 await page.keyboard.press('e');
 await wait(600);

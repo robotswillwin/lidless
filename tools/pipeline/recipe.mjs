@@ -41,6 +41,7 @@ export const PRESENCE = ['both', 'concierge', 'raw'];
  * @property {object} [rig]               cut into parts at these joints and baked into animation frames (see rig.mjs)
  * @property {'pixel'|'paint'} [look]     ask for pixel art, or a painting that the build pixelates
  * @property {boolean} [interior]        a background that is a room rather than a street
+ * @property {boolean} [relics]          old devices that stay retro in the Concierge's view, as they looked when new
  */
 
 /** @returns {Promise<Recipe & { file: string, dir: string, spec: typeof KINDS.character }>} */

@@ -21,14 +21,21 @@ const RAW_WORLD = [
   'Hardly any text: old signs have peeled away or faded almost to nothing, and what little lettering survives is faint, in Russian or an invented script.',
   'Cold, drab, faded colours: concrete grey, steel and slate blue-grey, dirty white tile. Nothing warm. The only bright colours are small lights on machines: indicators, old screens.',
 ].join(' ');
+const CONCIERGE_ELECTRONICS = 'Electronics that people use look futuristic: smooth white shells and blue light.';
+/**
+ * Old analog devices are relics: nothing in them reports to the Concierge, so it shows them as they looked when new.
+ * A recipe with "relics" keeps them retro in its view, and the raw world shows what decades of patching made of them.
+ */
+const CONCIERGE_RELICS = 'Old devices here are relics, and the city AI shows them as they looked when new: lovingly restored retro electronics in polished walnut, cream bakelite and brass, with warm glowing dials. Not white shells, and no blue light.';
 const CONCIERGE_WORLD = [
   'cool and glamorous: sleek, glossy, expensive and stylish, with cyan, violet and magenta neon accents.',
   'People are clean, healthy, fit and good-looking, in stylish, well-fitted clothes.',
-  'Electronics that people use look futuristic: smooth white shells and blue light.',
+  CONCIERGE_ELECTRONICS,
   'Everyone wears a partial helmet that covers one whole eye: here a smooth, seamless white shell with a soft blue light.',
   'Signs and screens are in English, with some Chinese and Japanese, like an international city.',
   'It must look completely real and physical, never like a hologram or a projection.',
 ].join(' ');
+const conciergeWorld = (r) => (r.relics ? CONCIERGE_WORLD.replace(CONCIERGE_ELECTRONICS, CONCIERGE_RELICS) : CONCIERGE_WORLD);
 
 /** What to draw and how to frame it. The game lights everything itself, so the art is lit flat. */
 const KIND_NOTES = {
@@ -46,10 +53,14 @@ const RIG_POSE = 'A neutral standing pose for animation: arms hanging relaxed an
 
 export function generationPrompt(r, look = r.look ?? 'pixel') {
   const world = r.exists === 'concierge'
-    ? `This does not exist: the city AI made it up and shows it in everyone's eye. Its world is ${CONCIERGE_WORLD}`
+    ? `This does not exist: the city AI made it up and shows it in everyone's eye. Its world is ${conciergeWorld(r)}`
     : RAW_WORLD;
   return `${look ? `${LOOKS[look]} ` : ''}${HOUSE_STYLE} ${r.kind === 'background' && r.interior ? INTERIOR_NOTE : KIND_NOTES[r.kind]}${r.rig ? ` ${RIG_POSE}` : ''} ${world} Subject: ${r.prompt}`;
 }
+
+/** Put in front of the prompt when a layout image goes first: it sets the composition, the references the rendering. */
+export const LAYOUT_NOTE = 'The first attached image is the layout to follow: keep its composition and every object in its place, shape and size, but paint it over completely, with far more detail, in the style and world described below. Where it is only a blur, continue the scene naturally.';
+export const LAYOUT_REFERENCES_NOTE = 'The other attached images are style references for this game: match their rendering, palette, contrast, mood and level of detail, but not their layout.';
 
 /** Put in front of the prompt when reference images go with it. */
 export const REFERENCE_NOTE = 'The attached images are style references for this game: match their rendering, palette, contrast, mood and level of detail, and keep any character from them that matches the description. Do not copy their layout or lighting: draw only what is described below.';
@@ -58,10 +69,20 @@ export function conciergePrompt(r) {
   return [
     'Edit this image into the city AI\'s augmented view of the same subject.',
     'Keep the pose, the framing and the outline exactly the same, aligned pixel for pixel; change only surfaces, colours and details.',
-    `The augmented world is ${CONCIERGE_WORLD}`,
+    `The augmented world is ${conciergeWorld(r)}`,
     `Change: ${r.concierge}`,
     r.kind === 'background'
       ? 'Keep the full frame, the layout and the flat, even lighting; only neon signs and screens may glow.'
       : 'Keep the transparent background and the even frontal lighting.',
+  ].join(' ');
+}
+
+/** Re-dress the picked image of one view: the same picture, every outline in place, its surfaces changed as asked. */
+export function redressPrompt(r, view, change) {
+  return [
+    'Edit this image. Keep the layout, the framing and every outline exactly the same, aligned pixel for pixel, and every object where it is; change only surfaces, materials, wear, colours and details.',
+    view === 'concierge' ? `It shows the city AI's augmented view, whose world is ${conciergeWorld(r)}` : RAW_WORLD,
+    `Change: ${change}`,
+    r.kind === 'background' ? 'Keep the full frame and the flat, even lighting; only neon signs and screens may glow.' : 'Keep the transparent background and the even frontal lighting.',
   ].join(' ');
 }

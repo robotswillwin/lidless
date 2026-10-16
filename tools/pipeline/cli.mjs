@@ -13,7 +13,7 @@ import { KINDS, ROOT, loadRecipe, recipeTemplate } from './recipe.mjs';
 import { conciergePartsPrompt, cut as cutParts, otherSidePrompt, PARTS as PARTS_NAMES, partsPrompt, pointOf, pose as posePartsRig, SHEET, template as partsTemplate, walkAngles } from './parts.mjs';
 import { animatePrompt, guide, poses } from './poses.mjs';
 import { bake, plant, shrink, WORK } from './rig.mjs';
-import { conciergePrompt, generationPrompt, LOOKS, REFERENCE_NOTE } from './style.mjs';
+import { conciergePrompt, generationPrompt, LAYOUT_NOTE, LAYOUT_REFERENCES_NOTE, LOOKS, redressPrompt, REFERENCE_NOTE } from './style.mjs';
 
 try { process.loadEnvFile(resolve(ROOT, '.env.local')); } catch { /* no .env.local: fine until an API call needs the key */ }
 
@@ -21,12 +21,17 @@ const HELP = `Asset pipeline: generate art with an image AI, clean it and turn i
 
   npm run asset -- new <scene>/<name> [--kind character|prop|background|portrait]
       Write a recipe to art/<scene>/<name>.json to fill in.
-  npm run asset -- generate <recipe> [--n 4] [--quality low|medium|high] [--look pixel|paint] [--ref a.png,b.png] [--tag name] [--dry]
+  npm run asset -- generate <recipe> [--n 4] [--quality low|medium|high] [--look pixel|paint] [--ref a.png,b.png] [--layout guide.png] [--tag name] [--dry]
       Generate candidates with GPT Image 2.5 into art/<scene>/<name>/candidates/: raw-view images, or Concierge
       images for something generated. Style references (the recipe's "references", or --ref) go along with the
-      prompt; without any, Flare draws from the prompt alone. --tag adds a word to the candidates' file names.
+      prompt; without any, Flare draws from the prompt alone. --layout gives a rough picture whose composition the
+      candidates keep: a sketch, or a scene seen elsewhere in the game. --tag adds a word to the candidates' file names.
   npm run asset -- variant <recipe> [--n 2] [--quality medium] [--tag name] [--dry]
       Edit the picked raw image into Concierge-view candidates (GPT Image 2.5 Sunburst).
+  npm run asset -- redress <recipe> --prompt "what to change" [--view raw|concierge] [--n 2] [--quality medium] [--dry]
+      Edit the picked image of one view into new candidates of the same view: the same layout, every outline in
+      place, with surfaces, wear and details changed as the prompt says. Pick one, and remake the other view if the
+      outlines must still match it.
   npm run asset -- sheet <recipe>
       Lay all candidates side by side at game size, finished as the build would, to choose between them.
   npm run asset -- animate <recipe> [--anim walk] [--view raw|concierge] [--quality low|medium] [--dry]
@@ -118,16 +123,18 @@ async function cmdNew([target], opt) {
 async function cmdGenerate([file], opt) {
   const r = await loadRecipe(file), size = r.size ?? r.spec.size, n = Number(opt.n ?? 4), quality = opt.quality ?? 'medium';
   const refs = (typeof opt.ref === 'string' ? opt.ref.split(',') : r.references ?? []).map((f) => resolve(ROOT, f.trim()));
-  for (const f of refs) if (!existsSync(f)) throw new Error(`no reference image at ${rel(f)}`);
+  const layout = typeof opt.layout === 'string' ? resolve(ROOT, opt.layout) : null;
+  for (const f of [...refs, ...(layout ? [layout] : [])]) if (!existsSync(f)) throw new Error(`no image at ${rel(f)}`);
   // references set the rendering themselves, unless a look is asked for on the command line
   const look = typeof opt.look === 'string' ? opt.look : refs.length ? null : r.look ?? 'pixel';
   if (look && !LOOKS[look]) throw new Error(`look must be one of ${Object.keys(LOOKS).join(', ')}`);
-  const prompt = (refs.length ? `${REFERENCE_NOTE} ` : '') + generationPrompt(r, look), as = r.exists === 'concierge' ? 'concierge' : 'raw';
-  console.log(`${r.name}: ${n} × ${size}, ${quality} quality, ${look ?? 'reference'} look, ${as} view${refs.length ? `, ${refs.length} reference${refs.length > 1 ? 's' : ''}` : ''}`);
+  const notes = layout ? `${LAYOUT_NOTE} ${refs.length ? `${LAYOUT_REFERENCES_NOTE} ` : ''}` : refs.length ? `${REFERENCE_NOTE} ` : '';
+  const prompt = notes + generationPrompt(r, look), as = r.exists === 'concierge' ? 'concierge' : 'raw';
+  console.log(`${r.name}: ${n} × ${size}, ${quality} quality, ${look ?? 'reference'} look, ${as} view${layout ? `, laid out like ${rel(layout)}` : ''}${refs.length ? `, ${refs.length} reference${refs.length > 1 ? 's' : ''}` : ''}`);
   if (opt.dry) return console.log(`\n${prompt}`);
-  // with references it goes through the edit endpoint, which takes images; Sunburst follows them most closely
-  const background = r.spec.transparent ? 'transparent' : 'opaque';
-  const res = refs.length ? await edit({ prompt, images: await loadReferences(refs), size, quality, n, background }) : await generate({ prompt, size, quality, n, background });
+  // with images it goes through the edit endpoint, which takes them; Sunburst follows them most closely. The layout goes first
+  const background = r.spec.transparent ? 'transparent' : 'opaque', images = [...(layout ? [layout] : []), ...refs];
+  const res = images.length ? await edit({ prompt, images: await loadReferences(images), size, quality, n, background }) : await generate({ prompt, size, quality, n, background });
   await saveCandidates(r, as, res, opt.tag);
 }
 
@@ -141,6 +148,17 @@ async function cmdVariant([file], opt) {
   console.log(`${r.name}: ${n} Concierge variants of ${rel(src)}, ${size}`);
   if (opt.dry) return console.log(`\n${prompt}`);
   await saveCandidates(r, 'concierge', await edit({ prompt, images: [src], size, quality, n, background: r.spec.transparent ? 'transparent' : 'opaque' }), opt.tag);
+}
+
+async function cmdRedress([file], opt) {
+  const r = await loadRecipe(file), view = opt.view ?? (r.exists === 'concierge' ? 'concierge' : 'raw'), src = join(r.dir, `${view}.png`);
+  if (typeof opt.prompt !== 'string') throw new Error('usage: redress <recipe> --prompt "what to change" [--view raw|concierge]');
+  if (!existsSync(src)) throw new Error(`pick or import a ${view} image first (${rel(src)})`);
+  const prompt = redressPrompt(r, view, opt.prompt), meta = await sharp(src).metadata(), n = Number(opt.n ?? 2), quality = opt.quality ?? 'medium';
+  const size = `${Math.round(meta.width / 16) * 16}x${Math.round(meta.height / 16) * 16}`;
+  console.log(`${r.name}: ${n} re-dressed ${view} candidates of ${rel(src)}, ${size}`);
+  if (opt.dry) return console.log(`\n${prompt}`);
+  await saveCandidates(r, view, await edit({ prompt, images: [src], size, quality, n, background: r.spec.transparent ? 'transparent' : 'opaque' }), opt.tag ?? 'redress');
 }
 
 async function cmdPick([file, cand]) {
@@ -636,6 +654,6 @@ async function cmdTouch([file], opt) {
 }
 
 const [cmd, ...rest] = process.argv.slice(2), { pos, opt } = parse(rest);
-const run = { new: cmdNew, generate: cmdGenerate, variant: cmdVariant, pick: cmdPick, import: cmdImport, sheet: cmdSheet, touch: cmdTouch, erase: cmdErase, animate: cmdAnimate, parts: cmdParts, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
+const run = { new: cmdNew, generate: cmdGenerate, variant: cmdVariant, redress: cmdRedress, pick: cmdPick, import: cmdImport, sheet: cmdSheet, touch: cmdTouch, erase: cmdErase, animate: cmdAnimate, parts: cmdParts, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
 if (!run) console.log(HELP);
 else run(pos, opt).catch((e) => { console.error(`error: ${e.message}`); process.exit(1); });
