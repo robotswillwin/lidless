@@ -112,3 +112,67 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .look-editing[data-view="concierge"] { color: var(--cyan); }
 .look-editing:empty { display: none; }
 .bench .maps figcaption { font: 400 11px/1 var(--ui); color: var(--muted); letter-spacing: .06em; }
+
+/* scene editor */
+.editor { overflow: hidden; color: var(--ink); font: 400 13px/1.35 var(--ui); }
+.ed-bar { position: fixed; inset: 0 0 auto 0; height: 44px; display: flex; align-items: center; gap: 6px; padding: 0 10px; background: #0d0d14; border-bottom: 1px solid #23232e; z-index: 3; }
+.ed-bar button, .ed-play, .ed-bar select { font: 400 12px/1 var(--ui); padding: 7px 9px; background: #1a1a24; color: var(--ink); border: 1px solid #30303e; border-radius: 3px; cursor: pointer; text-decoration: none; }
+.ed-bar button:hover, .ed-play:hover, .ed-bar button:focus-visible { background: #262634; outline: none; }
+.ed-scene { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
+.ed-sep { width: 1px; height: 22px; background: #2a2a36; margin: 0 4px; }
+.ed-grow { flex: 1; }
+.ed-status { color: var(--muted); font-size: 12px; margin-right: 4px; }
+.ed-view[aria-pressed="true"] { color: var(--cyan); border-color: rgba(143, 240, 234, .5); }
+.ed-view[aria-pressed="false"] { color: var(--amber); border-color: rgba(240, 178, 90, .5); }
+.ed-save { color: #0d0d14 !important; background: var(--cyan) !important; border-color: var(--cyan) !important; }
+.ed-main { position: fixed; inset: 44px 0 0 0; display: grid; grid-template-columns: 1fr 330px; }
+.ed-stage { position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 12px; min-width: 0; background: #000; }
+.ed-frame { position: relative; width: min(100%, calc((100vh - 130px) * 16 / 9)); aspect-ratio: 16 / 9; }
+/* the game page sizes its canvas to the screen; here it fills its frame, under the overlay */
+.editor #game { display: block; width: 100%; height: 100%; }
+.ed-overlay { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; }
+.ed-scroll { width: min(100%, calc((100vh - 130px) * 16 / 9)); accent-color: var(--cyan); }
+.ed-help { margin: 0; color: var(--muted); font-size: 11px; }
+.ed-side { position: relative; z-index: 1; overflow: auto; padding: 12px 14px 40px; background: #0d0d14; border-left: 1px solid #23232e; }
+.ed-heading h2 { margin: 6px 0 2px; font: 500 13px/1.3 var(--ui); letter-spacing: .08em; text-transform: uppercase; color: var(--amber); }
+.ed-heading p { margin: 0 0 8px; color: var(--muted); font-size: 12px; }
+.ed-field { display: grid; grid-template-columns: 1fr 120px; align-items: center; gap: 8px; margin: 5px 0; color: var(--muted); font-size: 12px; }
+.ed-field.wide { grid-template-columns: 1fr; gap: 3px; }
+.ed-field.check { grid-template-columns: 1fr auto; }
+.ed-field input, .ed-field select, .ed-field textarea { font: 400 12px/1.3 var(--ui); padding: 4px 6px; background: #15151e; color: var(--ink); border: 1px solid #2c2c3a; border-radius: 3px; min-width: 0; }
+.ed-field textarea { resize: vertical; }
+.ed-field input[type="color"] { padding: 1px; height: 24px; }
+.ed-buttons { display: flex; gap: 6px; flex-wrap: wrap; margin: 12px 0 4px; }
+.ed-buttons button, .ed-list button { font: 400 12px/1 var(--ui); padding: 7px 9px; background: #1a1a24; color: var(--ink); border: 1px solid #30303e; border-radius: 3px; cursor: pointer; text-align: left; }
+.ed-buttons .danger { color: #ff9a9a; border-color: #5a2a2a; }
+.ed-list { display: grid; gap: 4px; margin: 4px 0 8px; }
+/* the overlay: what can be selected on the scene */
+.ed-overlay * { vector-effect: non-scaling-stroke; }
+.ed-overlay .zone { fill: rgba(240, 178, 90, .06); stroke: #f0b25a; stroke-dasharray: 6 4; cursor: move; }
+.ed-overlay .zone-outside { fill: rgba(120, 170, 255, .06); stroke: #78aaff; }
+.ed-overlay .hot { fill: rgba(143, 240, 234, .05); stroke: rgba(143, 240, 234, .7); cursor: move; }
+.ed-overlay .hot.exit { fill: rgba(240, 178, 90, .08); stroke: #f0b25a; }
+.ed-overlay .sel { stroke-width: 2.5; fill-opacity: 1; }
+.ed-overlay .hot.sel { fill: rgba(143, 240, 234, .14); }
+.ed-overlay .stand { fill: rgba(143, 240, 234, .8); }
+.ed-overlay .stand.exit { fill: #f0b25a; }
+.ed-overlay .walk { stroke: #ffffff; stroke-width: 2; stroke-dasharray: 2 4; cursor: ns-resize; }
+.ed-overlay .walk-end { fill: #fff; stroke: #000; cursor: ew-resize; }
+.ed-overlay .mirror { stroke: rgba(120, 170, 255, .7); stroke-dasharray: 10 6; stroke-width: 1.5; cursor: ns-resize; }
+.ed-overlay .handle { fill: #fff; stroke: #000; cursor: nwse-resize; }
+.ed-overlay .spawn { cursor: ew-resize; }
+.ed-overlay .spawn line { stroke: #b6ff9a; stroke-width: 2; }
+.ed-overlay .spawn path { fill: #b6ff9a; }
+.ed-overlay .spawn text { fill: #b6ff9a; font: 500 11px var(--ui); paint-order: stroke; stroke: #000; stroke-width: 3; }
+.ed-overlay .spawn .hit { fill: transparent; }
+.ed-overlay .spawn.sel line { stroke-width: 3; }
+.ed-overlay .light { cursor: move; }
+.ed-overlay .light .ring { fill: rgba(0, 0, 0, .35); stroke: #fff; stroke-width: 1.5; }
+.ed-overlay .light.ar .ring { stroke: var(--cyan); stroke-dasharray: 3 2; }
+.ed-overlay .light.sel .ring { stroke-width: 3; }
+.ed-overlay .reach { fill: none; stroke: rgba(255, 255, 255, .35); stroke-dasharray: 4 6; }
+.ed-overlay .cone { fill: rgba(255, 255, 255, .06); stroke: rgba(255, 255, 255, .45); }
+.ed-overlay .lux { cursor: ew-resize; }
+.ed-overlay .lux path { fill: var(--amber); stroke: #000; }
+.ed-overlay .layer-box { fill: none; stroke: #ff6ad5; stroke-width: 2; stroke-dasharray: 8 4; cursor: move; }
+.editor .look { top: 12px; right: 12px; }

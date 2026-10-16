@@ -226,6 +226,14 @@ async function boot(): Promise<void> {
     if (!stats.hidden) stats.textContent = `${renderer.quality.tier} · ${fps.toFixed(0)} fps · ${canvas.width}×${canvas.height}`;
   };
 
+  // on the dev server: a scene saved in the scene editor comes back in at once, with her where she stands
+  import.meta.hot?.on('lidless:asset', (data: { files: string[] }) => {
+    const id = scene.file.id;
+    if (!data.files.includes(`scenes/${id}/scene.json`) || travelling) return;
+    scenes.delete(id);
+    void enter(id, { x: world.heroX, facing: world.facing }).catch((err: unknown) => ui.showCaption(`The scene did not load: ${err instanceof Error ? err.message : String(err)}`));
+  });
+
   stats.hidden = !params.has('debug');
   syncView();
   draw();

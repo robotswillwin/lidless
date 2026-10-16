@@ -1,4 +1,4 @@
-import { writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { defineConfig, type Plugin } from 'vite';
 import { Compiler } from 'inkjs/full';
 
@@ -73,13 +73,44 @@ function lookSave(): Plugin {
   };
 }
 
+/** On the dev server, the scene editor's Save writes public/assets/scenes/<id>/scene.json and lists a new scene in world.json. */
+function sceneSave(): Plugin {
+  return {
+    name: 'lidless-scene-save',
+    configureServer(server) {
+      server.middlewares.use('/__scene', (req, res) => {
+        const id = new URL(req.url ?? '', 'http://x').searchParams.get('id') ?? '';
+        if (req.method !== 'POST' || !/^[a-z0-9][a-z0-9-]{0,39}$/.test(id)) { res.statusCode = 400; res.end('POST a scene to /__scene?id=<id>, the id in lower case letters, digits and dashes'); return; }
+        let body = '';
+        req.on('data', (chunk: Buffer) => { body += chunk; if (body.length > 4_000_000) req.destroy(); });
+        req.on('end', async () => {
+          try {
+            const scene = JSON.parse(body) as Record<string, unknown>;
+            if (scene.id !== id || !Array.isArray(scene.layers) || !Array.isArray(scene.lights) || !Array.isArray(scene.hotspots)) throw new Error('that is not a scene file');
+            const assets = `${server.config.publicDir}/assets`;
+            await mkdir(`${assets}/scenes/${id}`, { recursive: true });
+            await writeFile(`${assets}/scenes/${id}/scene.json`, JSON.stringify(scene, null, 1) + '\n');
+            const world = JSON.parse(await readFile(`${assets}/world.json`, 'utf8')) as { scenes: string[] };
+            if (!world.scenes.includes(id)) { world.scenes.push(id); await writeFile(`${assets}/world.json`, JSON.stringify(world, null, 2) + '\n'); }
+            res.statusCode = 200;
+            res.end('saved');
+          } catch (err) {
+            res.statusCode = 400;
+            res.end(err instanceof Error ? err.message : String(err));
+          }
+        });
+      });
+    },
+  };
+}
+
 // Relative base so the same build runs from a subpath, from file:// in tests, and inside Capacitor and Tauri.
 export default defineConfig({
   base: './',
-  plugins: [ink(), assetWatch(), lookSave()],
+  plugins: [ink(), assetWatch(), lookSave(), sceneSave()],
   build: {
     target: 'es2022',
     assetsInlineLimit: 0,
-    rolldownOptions: { input: { main: 'index.html', bench: 'bench.html' } },
+    rolldownOptions: { input: { main: 'index.html', bench: 'bench.html', editor: 'editor.html' } },
   },
 });

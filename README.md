@@ -36,7 +36,35 @@ Other commands:
 - `npm run perf` builds and reports the frame rate per quality tier, up to a 4K canvas.
 - `node tools/styleframe/export.mjs` regenerates the test scene in `public/assets/styleframe` from the hand-coded style frame.
 
-Address options: `new`, `view=raw` (skips the mod), `q=low|medium|high`, `t=<seconds>` to freeze time, `debug`.
+Address options: `new`, `view=raw` (skips the mod), `q=low|medium|high`, `t=<seconds>` to freeze time, `debug`,
+`scene=<id>&spawn=<place>` to start in any scene.
+
+## Scenes and the scene editor
+
+The world is `public/assets/world.json`: its scenes, where the game starts and who the hero is. Each scene is
+`public/assets/scenes/<id>/scene.json`:
+
+- its layers, which are built assets, placed;
+- its lights;
+- its kind: exteriors are outside and rainy in raw view, interiors inside;
+- its areas of the other kind, such as a shop's inside seen from the street;
+- the walk line and the places to arrive at (spawns);
+- its hotspots.
+
+A hotspot with `go` is an exit to another scene. Over an end of the walk line, walking into it leaves too.
+
+**The scene editor**, `/editor.html` on the dev server, shows a scene rendered as in the game, and Lux to judge the
+light on.
+
+- **Moving:** drag lights, hotspots, exits, spawns, areas, the walk line and the reflection line; arrows nudge the
+  selection.
+- **Editing:** the selected item's settings in the side panel.
+- **Lights:** colour, strength, reach, height, cone, haze, shadows, flicker, whether they are behind, among or in
+  front of the characters, Concierge view only, and machine lights.
+- **Adding:** new scenes from a built background, and layers from any built asset.
+- **Keys:** E switches view, L opens the look panel, Cmd+Z undoes, Cmd+S saves.
+
+Save writes the scene file, and an open game tab reloads the scene at once.
 
 ## Making assets
 

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>Lidless scene editor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&display=swap">
+</head>
+<body class="editor">
+  <header class="ed-bar">
+    <label class="ed-scene">Scene <select id="scene"></select></label>
+    <button id="new-scene" type="button" title="A new scene from a built background">New scene</button>
+    <span class="ed-sep"></span>
+    <button data-add="light" type="button" title="Add a light in the middle of the view">+ Light</button>
+    <button data-add="hotspot" type="button">+ Hotspot</button>
+    <button data-add="exit" type="button" title="A hotspot that leads to another scene">+ Exit</button>
+    <button data-add="spawn" type="button" title="A place to arrive at">+ Spawn</button>
+    <button data-add="zone" type="button" title="An area of the other kind: inside in a street, outside in a room">+ Area</button>
+    <button data-add="layer" type="button" title="Another built asset in the scene">+ Layer</button>
+    <span class="ed-sep"></span>
+    <button id="view" class="ed-view" type="button" aria-pressed="true" title="Switch view (E)">Concierge view</button>
+    <button id="look" type="button" title="The look panel (L)">Look</button>
+    <span class="ed-grow"></span>
+    <span id="status" class="ed-status"></span>
+    <button id="undo" type="button" title="Undo (Cmd+Z)">Undo</button>
+    <a id="play" class="ed-play" target="_blank" rel="noopener" title="Play from this scene in a new tab">Play</a>
+    <button id="save" class="ed-save" type="button" title="Save the scene file (Cmd+S)">Save</button>
+  </header>
+  <main class="ed-main">
+    <div class="ed-stage" id="stage">
+      <div class="ed-frame" id="frame">
+        <canvas id="game" width="960" height="540" aria-label="The scene, rendered as in the game"></canvas>
+        <svg id="overlay" class="ed-overlay" viewBox="0 0 960 540" aria-label="Lights, hotspots and places in the scene"></svg>
+      </div>
+      <input id="scroll" class="ed-scroll" type="range" min="0" max="0" value="0" aria-label="Scroll the scene" hidden>
+      <p class="ed-help">Click to select, drag to move; drag a corner to resize. Delete removes. E view, L look, Cmd+Z undo, Cmd+S save.</p>
+    </div>
+    <aside class="ed-side" id="side" aria-label="Selected item"></aside>
+  </main>
+  <p id="error" class="error" hidden></p>
+  <script type="module" src="./src/editor.ts"></script>
+</body>
+</html>

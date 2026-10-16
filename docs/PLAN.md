@@ -41,6 +41,6 @@ How assets and levels express it: `exists` in a recipe (see [ASSETS.md](ASSETS.m
 | M0 Setup: repository, tooling, renderer drawing sprites, quality tiers | Done |
 | M1 Vertical slice: tap to walk, hotspots, view switch unlocked by the fixer, Ink conversations, saving | Done, on one screen; the scrolling camera comes with a wider street |
 | M2 Pipeline v1: clean, derive maps, pack, preview, one image AI connected | Done. The live API is untested until there is a key in `.env.local` |
-| M3 First real art through the pipeline | In progress. The hero walks: the image model draws her in each frame to a posed mannequin. Standing characters get idle loops from touch-ups. Next: the radio-shop street generated, wider, with a scrolling camera |
+| M3 First real art through the pipeline | In progress. Lux (the hero) walks both ways from AI-drawn parts. Scenes connect through doors and street ends, a camera scrolls wide scenes, and a scene editor places lights, hotspots and exits. Next: Lux's home (interior), the radio repair's shop front and interior |
 | M4 Turn-based encounters | |
 | M5 Mobile builds and touch controls | |

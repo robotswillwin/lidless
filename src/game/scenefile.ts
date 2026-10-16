@@ -87,7 +87,7 @@ export const loadSceneFile = (assets: string, id: string) => getJSON<SceneFile>(
  * The zone map, from the scene's kind and its areas of the other kind: r inside, g outside, b static shade. Drawn at a
  * quarter of the scene's size; the renderer's filtering softens the edges between areas.
  */
-function zoneTexture(gl: GL, file: SceneFile): WebGLTexture {
+export function zoneTexture(gl: GL, file: SceneFile): WebGLTexture {
   const S = 4, w = Math.max(1, Math.ceil(file.size[0] / S)), h = Math.max(1, Math.ceil(file.size[1] / S));
   const cv = document.createElement('canvas');
   cv.width = w;
