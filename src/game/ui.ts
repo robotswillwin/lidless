@@ -2,7 +2,9 @@
 
 import type { Line } from './dialogue';
 
-const SPEAKER_NAME: Record<string, string> = { fixer: 'The fixer', concierge: 'The Concierge' };
+/** Names shown over a speaker's lines. A speaker tag not listed here shows as itself: woman_in_red as "Woman in red". */
+const SPEAKER_NAME: Record<string, string> = { lux: 'Lux', fixer: 'The fixer', concierge: 'The Concierge' };
+const speakerName = (id: string) => SPEAKER_NAME[id] ?? id.charAt(0).toUpperCase() + id.slice(1).replace(/_/g, ' ');
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, parent: HTMLElement): HTMLElementTagNameMap[K] {
   const e = document.createElement(tag);
@@ -73,8 +75,10 @@ export class UI {
     if (said) el('p', 'line said', this.linesEl).textContent = said;
     let last = '';
     for (const l of lines) {
-      const p = el('p', `line ${l.speaker}`, this.linesEl);
-      if (l.speaker !== 'narration' && l.speaker !== last) el('span', 'who', p).textContent = SPEAKER_NAME[l.speaker];
+      // the speaker goes in an attribute, not a class, so a tag can never collide with the panel's own classes
+      const p = el('p', 'line', this.linesEl);
+      p.dataset.speaker = l.speaker;
+      if (l.speaker !== 'narration' && l.speaker !== last) el('span', 'who', p).textContent = speakerName(l.speaker);
       p.append(document.createTextNode(l.text));
       last = l.speaker;
     }

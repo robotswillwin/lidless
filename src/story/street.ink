@@ -1,11 +1,4 @@
-// The street outside the radio shop.
-// Lines tagged #fixer are spoken by the fixer, #concierge by the Concierge; untagged lines are narration.
-
-VAR has_raw = false
-VAR favours_owed = 0
-VAR raw_view = false
-
--> END
+// The main street, outside the radio shop. Included by main.ink, which declares the variables.
 
 === fixer ===
 { has_raw: -> after }

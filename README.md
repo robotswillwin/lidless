@@ -102,7 +102,7 @@ itself whenever `build` runs.
 
 - `src/engine`: WebGL helpers, shaders, renderer, asset loading.
 - `src/game`: scenes, the walking hero, hotspots, conversations, saving.
-- `src/story`: dialogue in Ink, compiled at build time.
+- `src/story`: dialogue in Ink, compiled at build time. `main.ink` declares the variables and includes one file per scene; a tag on a line names its speaker (`#lux`, `#fixer`, `#concierge`), and untagged lines are narration.
 - `public/assets`: game assets in the format described in [docs/ASSETS.md](docs/ASSETS.md).
 - `art`: recipes and the chosen source images for the pipeline (generated candidates are not committed).
 - `tools/pipeline`: the asset pipeline. `tools/styleframe`: the hand-coded style frame that produced the first test assets.

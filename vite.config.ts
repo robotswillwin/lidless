@@ -1,15 +1,36 @@
+import { readFileSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { dirname, resolve } from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
-import { Compiler } from 'inkjs/full';
+import { Compiler, CompilerOptions } from 'inkjs/full';
 
-/** Compile .ink dialogue to JSON at build time, so the game ships only the small Ink runtime. */
+/**
+ * Compile .ink dialogue to JSON at build time, so the game ships only the small Ink runtime. A story can INCLUDE other
+ * .ink files, by paths relative to it; on the dev server, changing one of them reloads the story that includes it.
+ */
 function ink(): Plugin {
+  const includedBy = new Map<string, Set<string>>();
   return {
     name: 'lidless-ink',
+    configureServer(server) {
+      server.watcher.on('change', (file) => {
+        for (const story of includedBy.get(file) ?? []) for (const mod of server.moduleGraph.getModulesByFile(story) ?? []) void server.reloadModule(mod);
+      });
+    },
     transform(source, id) {
       if (!id.endsWith('.ink')) return null;
-      const compiler = new Compiler(source);
+      const dir = dirname(id), included: string[] = [];
+      const fileHandler = {
+        ResolveInkFilename: (name: string) => resolve(dir, name),
+        LoadInkFileContents: (file: string) => { included.push(file); return readFileSync(file, 'utf-8'); },
+      };
+      const compiler = new Compiler(source, new CompilerOptions(id, [], false, null, fileHandler));
       const story = compiler.Compile();
+      for (const file of included) {
+        this.addWatchFile(file);
+        if (!includedBy.has(file)) includedBy.set(file, new Set());
+        includedBy.get(file)!.add(id);
+      }
       if (compiler.errors.length) this.error(`${id}\n${compiler.errors.join('\n')}`);
       for (const w of compiler.warnings) this.warn(`${id}: ${w}`);
       return { code: `export default ${JSON.stringify(story.ToJson())};`, map: null };

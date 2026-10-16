@@ -82,7 +82,7 @@ async function boot(): Promise<void> {
   const look = createLookPanel(renderer, projectLook, stage, { view: () => (state.view < 0.5 ? 'raw' : 'concierge') });
   const t0 = performance.now(), fixedT = params.has('t') ? Number(params.get('t')) : null;
   const clock = () => fixedT ?? (performance.now() - t0) / 1000;
-  let switchedAt = -10, lastT = clock(), frames = 0, fpsAt = performance.now(), fps = 0, talking: string | null = null;
+  let switchedAt = -10, lastT = clock(), frames = 0, fpsAt = performance.now(), fps = 0, lockedBeforeTalk = false;
 
   const persist = () => writeSave({ v: 1, scene: scene.file.id, heroX: Math.round(world.heroX), facing: world.facing, view: state.view, ink: dialogue.save() });
 
@@ -128,18 +128,19 @@ async function boot(): Promise<void> {
   // conversations
   const endTalk = () => {
     ui.closeDialogue();
-    const unlocked = talking === 'fixer' && canSwitch() && viewBtn.hidden;
-    talking = null;
+    // the conversation that unlocks the view switch, whichever it is, says how to use it
+    const unlocked = lockedBeforeTalk && canSwitch();
+    lockedBeforeTalk = false;
     syncView();
     persist();
     if (unlocked) {
-      ui.showCaption('Something behind your eye is new. Press E, or the button, to see the street as it is.');
+      ui.showCaption('Something behind your eye is new. Press E, or the button, to see what is really there.');
       switchedAt = clock();
     }
   };
   ui.onChoose = (i) => {
     const said = dialogue.choices[i];
-    const lines = dialogue.choose(i);
+    const lines = dialogue.choose(i, state.view < 0.5);
     if (!lines.length && !dialogue.choices.length) return endTalk();
     ui.showDialogue(lines, dialogue.choices, said);
   };
@@ -149,7 +150,7 @@ async function boot(): Promise<void> {
     if (h.go) return void travel(h.go);
     const raw = state.view < 0.5;
     if (h.talk) {
-      talking = h.talk;
+      lockedBeforeTalk = !canSwitch();
       ui.showDialogue(dialogue.start(h.talk, raw), dialogue.choices);
     } else if (h.look) ui.showCaption(pick(h.look, raw));
   };

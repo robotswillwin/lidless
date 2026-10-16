@@ -1,13 +1,15 @@
 // Runs the Ink story: knots per conversation, tags for who is speaking.
 
 import { Story } from 'inkjs';
-import storyJson from '../story/street.ink';
+import storyJson from '../story/main.ink';
 
-export type Speaker = 'narration' | 'fixer' | 'concierge';
+/** A speaker tag on a line names who says it: a lowercase id such as lux, fixer or concierge. */
+const SPEAKER_TAG = /^[a-z][a-z0-9_]*$/;
 
 export interface Line {
   text: string;
-  speaker: Speaker;
+  /** The line's speaker tag, or "narration" for a line without one. */
+  speaker: string;
 }
 
 export class Dialogue {
@@ -30,7 +32,9 @@ export class Dialogue {
     return this.lines();
   }
 
-  choose(i: number): Line[] {
+  /** The view can switch during a conversation, so the lines after a choice see the view on screen now. */
+  choose(i: number, rawView: boolean): Line[] {
+    this.story.variablesState['raw_view'] = rawView;
     this.story.ChooseChoiceIndex(i);
     return this.lines();
   }
@@ -40,8 +44,8 @@ export class Dialogue {
     while (this.story.canContinue) {
       const text = (this.story.Continue() ?? '').trim();
       if (!text) continue;
-      const tags = this.story.currentTags ?? [];
-      out.push({ text, speaker: tags.includes('fixer') ? 'fixer' : tags.includes('concierge') ? 'concierge' : 'narration' });
+      const tags = (this.story.currentTags ?? []).map((t) => t.trim());
+      out.push({ text, speaker: tags.find((t) => SPEAKER_TAG.test(t)) ?? 'narration' });
     }
     return out;
   }
