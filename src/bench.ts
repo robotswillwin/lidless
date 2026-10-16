@@ -87,29 +87,29 @@ const outside = solidTexture(gl, [0, 255, 255, 255]), neutral = solidTexture(gl,
 const RIGS: Record<string, Rig> = {
   // a street lamp overhead and a little warm bounce from below
   lamp: { zone: outside, lights: [
-    { x: 560, y: 150, z: 40, r: 440, c: [0.8, 0.93, 1], i: 2.6, zone: 0, cone: [-0.25, 0.97, 0.45], haze: 0.45, shadow: 1, wrap: 0.3 },
-    { x: 300, y: 430, z: 30, r: 260, c: [1, 0.6, 0.3], i: 0.5, zone: 0 },
+    { x: 560, y: 150, z: 40, r: 440, c: [0.8, 0.93, 1], i: 2.6, zone: 0, cone: [-0.25, 0.97, 0.45], haze: 0.45, shadow: 1, wrap: 0.3, layer: 1 },
+    { x: 300, y: 430, z: 30, r: 260, c: [1, 0.6, 0.3], i: 0.5, zone: 0, layer: 1 },
   ] },
   // three sterile lamps along the street, as a real level would have, and a dim sky
   lamps: { zone: outside, lights: [
     ...[170, 500, 830].map((x): LightDef => ({ x, y: 140, z: 40, r: 380, c: [0.8, 0.93, 1], i: 2.1, zone: 0, cone: [0, 1, 0.4], haze: 0.35, shadow: 1 })),
-    { x: 480, y: 40, z: 200, r: 800, c: [0.5, 0.6, 0.8], i: 0.35, zone: 0 },
+    { x: 480, y: 40, z: 200, r: 800, c: [0.5, 0.6, 0.8], i: 0.35, zone: 0, layer: 1 },
   ] },
   // warm light spilling from a shop door on the left, under a dim sky
   door: { zone: outside, lights: [
-    { x: 250, y: 330, z: 60, r: 380, c: [1, 0.62, 0.3], i: 2.4, zone: 0, haze: 0.2, shadow: 1 },
-    { x: 700, y: 40, z: 200, r: 700, c: [0.4, 0.5, 0.8], i: 0.4, zone: 0 },
+    { x: 250, y: 330, z: 60, r: 380, c: [1, 0.62, 0.3], i: 2.4, zone: 0, haze: 0.2, shadow: 1, layer: 1 },
+    { x: 700, y: 40, z: 200, r: 700, c: [0.4, 0.5, 0.8], i: 0.4, zone: 0, layer: 1 },
   ] },
   // the Concierge's neon on both sides; only a dim sky remains in raw view
   neon: { zone: outside, lights: [
-    { x: 640, y: 300, z: 10, r: 260, c: [1, 0.22, 0.62], i: 2.2, zone: 0, haze: 0.3, ar: 1 },
-    { x: 320, y: 300, z: 10, r: 260, c: [0.25, 0.9, 1], i: 2, zone: 0, haze: 0.3, ar: 1 },
-    { x: 480, y: 60, z: 160, r: 600, c: [0.55, 0.65, 0.85], i: 0.55, zone: 0 },
+    { x: 640, y: 300, z: 10, r: 260, c: [1, 0.22, 0.62], i: 2.2, zone: 0, haze: 0.3, ar: 1, layer: 1 },
+    { x: 320, y: 300, z: 10, r: 260, c: [0.25, 0.9, 1], i: 2, zone: 0, haze: 0.3, ar: 1, layer: 1 },
+    { x: 480, y: 60, z: 160, r: 600, c: [0.55, 0.65, 0.85], i: 0.55, zone: 0, layer: 1 },
   ] },
   // even, neutral light with no ambient or rain: for judging the colours and maps themselves
   studio: { zone: neutral, lights: [
-    { x: 330, y: 120, z: 260, r: 1000, c: [1, 0.97, 0.92], i: 1.7, zone: 0, wrap: 0.5 },
-    { x: 700, y: 300, z: 200, r: 900, c: [0.85, 0.9, 1], i: 0.6, zone: 0, wrap: 0.5 },
+    { x: 330, y: 120, z: 260, r: 1000, c: [1, 0.97, 0.92], i: 1.7, zone: 0, wrap: 0.5, layer: 1 },
+    { x: 700, y: 300, z: 200, r: 900, c: [0.85, 0.9, 1], i: 0.6, zone: 0, wrap: 0.5, layer: 1 },
   ] },
 };
 

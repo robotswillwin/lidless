@@ -5,7 +5,7 @@ import { existsSync } from 'node:fs';
 import { copyFile, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { basename, join, relative, resolve } from 'node:path';
 import sharp from 'sharp';
-import { cleanEdges, contentBox, fitColours, fitToHeight, hardenAlpha, isOpaque, overlay, paletteFit, pixelate, removeFlatBackground, silhouetteMatch, unionBox } from './clean.mjs';
+import { cleanEdges, contentBox, fillHoles, fitColours, fitToHeight, hardenAlpha, isOpaque, overlay, paletteFit, pixelate, removeFlatBackground, silhouetteMatch, unionBox } from './clean.mjs';
 import { glowAuto, heightMap, materialMap, metaMap, normalMap } from './derive.mjs';
 import { blank, readRGBA, writePNG } from './image.mjs';
 import { edit, generate } from './openai.mjs';
@@ -306,7 +306,8 @@ async function writeAnimated(r, raws, concs, { anchorX, anims }) {
   const spec = r.spec, exists = r.exists ?? 'both', hexes = await palette(), strength = r.palette ?? 0.35, G = 2, n = (raws ?? concs).length;
   const px = r.pixel === false ? null : { ...spec.pixel, ...(r.pixel ?? {}) };
   for (const fs of [raws, concs]) if (fs) {
-    for (let k = 0; k < n; k++) fs[k] = paletteFit(fs[k], hexes, strength);
+    // small seams where cut-out parts meet would let the set behind show through
+    for (let k = 0; k < n; k++) { fillHoles(fs[k]); fs[k] = paletteFit(fs[k], hexes, strength); }
     // the colours are fitted to all frames together: a face seen only from one side keeps its skin tones
     const together = { w: fs[0].w, h: fs[0].h * n, d: new Uint8ClampedArray(fs[0].d.length * n) };
     fs.forEach((f, k) => together.d.set(f.d, k * f.d.length));

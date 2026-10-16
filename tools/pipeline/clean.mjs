@@ -192,6 +192,40 @@ export function cleanEdges(img, [x0, y0, x1, y1], key, { near = 190, iterations 
   return img;
 }
 
+/**
+ * Close small holes: transparent pixels enclosed by the subject, in groups of at most `max` pixels (a seam where two
+ * cut-out parts meet), take the colour of their neighbours. Larger enclosed gaps, such as between an arm and the body,
+ * are kept.
+ */
+export function fillHoles(img, max = 24) {
+  const { w, h, d } = img, seen = new Uint8Array(w * h), clear = (p) => d[p * 4 + 3] < 128;
+  const flood = (start) => { const out = [start], stack = [start]; seen[start] = 1; while (stack.length) { const p = stack.pop(), x = p % w, y = (p / w) | 0;
+    for (const q of [x > 0 ? p - 1 : -1, x < w - 1 ? p + 1 : -1, y > 0 ? p - w : -1, y < h - 1 ? p + w : -1]) if (q >= 0 && !seen[q] && clear(q)) { seen[q] = 1; stack.push(q); out.push(q); } } return out; };
+  for (let x = 0; x < w; x++) for (const y of [0, h - 1]) if (!seen[y * w + x] && clear(y * w + x)) flood(y * w + x);
+  for (let y = 0; y < h; y++) for (const x of [0, w - 1]) if (!seen[y * w + x] && clear(y * w + x)) flood(y * w + x);
+  let filled = 0;
+  for (let p = 0; p < w * h; p++) {
+    if (seen[p] || !clear(p)) continue;
+    const hole = flood(p);
+    if (hole.length > max) continue;
+    // fill from the edge of the hole inwards, each pixel from its opaque neighbours
+    let left = hole;
+    while (left.length) {
+      const next = [];
+      for (const q of left) {
+        const x = q % w, y = (q / w) | 0;
+        let r = 0, g = 0, b = 0, n = 0;
+        for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const xx = x + dx, yy = y + dy; if ((dx || dy) && xx >= 0 && yy >= 0 && xx < w && yy < h && !clear(yy * w + xx)) { const i = (yy * w + xx) * 4; r += d[i]; g += d[i + 1]; b += d[i + 2]; n++; } }
+        if (n) d.set([r / n, g / n, b / n, 255], q * 4); else next.push(q);
+      }
+      if (next.length === left.length) break;
+      left = next;
+    }
+    filled += hole.length;
+  }
+  return filled;
+}
+
 /** One image with the shape of both views: the raw pixels, and the Concierge pixels where raw is empty. */
 export function overlay(raw, conc) {
   const out = { w: raw.w, h: raw.h, d: new Uint8ClampedArray(raw.d) };

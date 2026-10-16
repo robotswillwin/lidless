@@ -107,6 +107,7 @@ uniform vec4 uLP[${MAX_LIGHTS}], uLC[${MAX_LIGHTS}], uLK[${MAX_LIGHTS}], uLG[${M
 uniform int uNL;
 uniform float uGI[16], uView, uTime, uShadows;
 uniform vec4 uLookL;      // the look: lights, ambient, haze, glowing surfaces
+uniform float uFill;      // the look: how much of a light behind a character reaches the side we see
 uniform float uGround;    // world y of the ground line
 uniform vec4 uCars[16]; uniform int uNC;
 uniform vec4 uBeac[32]; uniform int uNB;
@@ -155,12 +156,15 @@ void main() {
     float ex = floor(LK.w * 0.5 + 0.01), keep = (ex > 0.5 && abs(obj - ex) < 0.5) ? 0.0 : 1.0;
     float sh = (uShadows > 0.5 && mod(LK.w, 2.0) > 0.5) ? shadowMarch(p, lp, occ) : 1.0;
     vec3 lc = arL + machL > 0.5 ? LC.rgb : mix(LC.rgb, tone(LC.rgb, RAW_LIGHT), raw);
-    // a light behind a character shines at it from behind: it only catches the character's edges, as a rim
-    float lz = layer < 0.5 ? mix(LP.z - hz, -0.6 * abs(LP.z - hz) - 4.0, actor) : LP.z - hz;
-    vec3 Lv = normalize(vec3(d2, lz));
+    // a light behind a character shines at it from behind: it catches the edges as a rim, and a little of it, bounced
+    // off the room around, reaches the side we see as a soft fill, the same everywhere nearby: no hot spot
+    float back = layer < 0.5 ? actor : 0.0;
+    vec3 Lf = normalize(vec3(d2, LP.z - hz)), Lb = normalize(vec3(d2, -0.6 * abs(LP.z - hz) - 4.0));
+    vec3 Lv = back > 0.5 ? Lb : Lf;
     float diff = max((dot(Nn, Lv) + LG.z) / (1.0 + LG.z), 0.0);
     vec3 li = lc * gi * att * cone * sh * zw * keep * uLookL.x;
     col += alb * li * diff;
+    if (back > 0.0) col += alb * lc * gi * min(att, 0.3) * cone * zw * keep * uLookL.x * back * uFill * (0.6 + 0.4 * max(dot(Nn, Lf), 0.0));
     vec3 H = normalize(Lv + vec3(0.0, 0.0, 1.0));
     spc += li * specS * pow(max(dot(Nn, H), 0.0), shin) * 2.0;
     // its glow in the air: hidden behind a character when the light is behind it, mostly hidden among them
@@ -313,8 +317,8 @@ void main() {
   vec3 b1 = texture(tBloom1, uv).rgb, b2 = texture(tBloom2, uv).rgb;
   // a character in front of the set hides the light behind it: the shafts and the wide halo are light caught in the air
   // behind them, and the lens glow only wraps a little over their edges (air: 1 for the set, small for a character)
-  float air = T(tG3, ps > 1.0 ? (floor(p / ps) + 0.5) * ps : p).a, lens = mix(1.0, air, 0.45);
-  vec3 bl = (b1 * lens * 0.55 + mix(b2, tone(b2, RAW_AIR), raw * 0.7) * mix(1.0, air, 0.85) * 0.45) * uLookB.x;
+  float air = T(tG3, ps > 1.0 ? (floor(p / ps) + 0.5) * ps : p).a, lens = mix(1.0, air, 0.9);
+  vec3 bl = (b1 * lens * 0.55 + mix(b2, tone(b2, RAW_AIR), raw * 0.7) * air * 0.45) * uLookB.x;
   vec4 z = Z(p); float jit = hash(floor(p) * 0.37);
   for (int s = 0; s < 4; s++) {
     vec4 g = uGR[s]; if (g.z <= 0.0) continue;

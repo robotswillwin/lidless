@@ -181,7 +181,7 @@ export class Renderer {
       const fr = def.frames, k = fr ? Math.max(0, Math.min(fr.count - 1, d.frame ?? 0)) : 0, tw = fr ? fr.count * def.w + (fr.count - 1) * fr.gutter : def.w;
       gl.uniform2f(sp.u.uUV, (k * (def.w + (fr?.gutter ?? 0))) / tw, def.w / tw);
       gl.uniform1f(sp.u.uHasMeta, s.hasMeta ? 1 : 0);
-      gl.uniform1f(sp.u.uHaze, def.haze ?? (def.kind === 'character' ? 0.1 : 1));
+      gl.uniform1f(sp.u.uHaze, def.haze ?? (def.kind === 'character' ? 0.05 : 1));
       gl.uniform4f(sp.u.uConst, def.occluder ?? 0, def.depth, def.reflectivity ?? 0, def.object ?? 0);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
     }
@@ -202,8 +202,8 @@ export class Renderer {
       LP.set([l.x, l.y, l.z, l.r], i * 4);
       LC.set([l.c[0] * l.i, l.c[1] * l.i, l.c[2] * l.i, l.zone], i * 4);
       LK.set([...(l.cone ?? [0, 0, -2]), (l.shadow ? 1 : 0) + 2 * (l.ex ?? 0)], i * 4);
-      // layer against the characters: inside and facade lights are behind them, the rest among them, unless the light says
-      const layer = l.layer ?? (l.zone === 1 || l.zone === 3 ? 0 : 1);
+      // layer against the characters: set lights are behind them unless the light says it hangs among them or in front
+      const layer = l.layer ?? 0;
       LG.set([l.g ?? 0, (l.ar ? 1 : 0) + (l.machine ? 2 : 0) + 4 * layer, l.wrap ?? 0.3, l.haze ?? 0], i * 4);
     });
     this.pass(this.prog.light, t.fa, (pr) => {
@@ -220,6 +220,7 @@ export class Renderer {
       const k = this.look;
       gl.uniform4f(pr.u.uLookL, k.lights, k.ambient, k.haze, k.glow);
       gl.uniform1f(pr.u.uGround, f.mirror);
+      gl.uniform1f(pr.u.uFill, k.charFill);
     });
 
     // depth of field: background-only blur at half resolution

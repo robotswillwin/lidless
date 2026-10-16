@@ -16,6 +16,8 @@ export interface Look {
   ambient: number;
   haze: number;
   glow: number;
+  /** How much of a light behind a character reaches the side we see, bounced off the surroundings. */
+  charFill: number;
   bloom: number;
   shafts: number;
   streaks: number;
@@ -36,7 +38,7 @@ export interface Look {
 
 export const LOOK_DEFAULTS: Look = {
   pixelSize: 1, pixelShape: 0, shapeAmount: 0.5, colorLevels: 0, dither: 0.5,
-  lights: 1, ambient: 1, haze: 1, glow: 1, bloom: 1, shafts: 1, streaks: 1, rawFog: 1,
+  lights: 1, ambient: 1, haze: 1, glow: 1, charFill: 1, bloom: 1, shafts: 1, streaks: 1, rawFog: 1,
   exposure: 0, contrast: 1, saturation: 1, temperature: 0, tint: 0,
   vignette: 1, grain: 1, aberration: 1,
 };
@@ -62,6 +64,7 @@ export const LOOK_CONTROLS: LookControl[] = [
   { key: 'ambient', label: 'Ambient', group: 'Light', min: 0, max: 4, step: 0.05 },
   { key: 'haze', label: 'Haze around lights', group: 'Light', min: 0, max: 4, step: 0.05 },
   { key: 'glow', label: 'Glowing surfaces', group: 'Light', min: 0, max: 3, step: 0.05 },
+  { key: 'charFill', label: 'Fill on characters', group: 'Light', min: 0, max: 2, step: 0.05 },
   { key: 'bloom', label: 'Bloom', group: 'Light', min: 0, max: 3, step: 0.05 },
   { key: 'shafts', label: 'Light shafts', group: 'Light', min: 0, max: 4, step: 0.05 },
   { key: 'streaks', label: 'Lens streaks', group: 'Light', min: 0, max: 4, step: 0.05 },
