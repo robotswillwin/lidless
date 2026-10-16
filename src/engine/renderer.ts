@@ -224,7 +224,7 @@ export class Renderer {
       gl.uniform4fv(pr.u.uBeac, f.beacons); gl.uniform1i(pr.u.uNB, f.nBeacons);
       gl.uniform4f(pr.u.uLookL, k.lights, k.ambient, k.haze, k.glow);
       gl.uniform1f(pr.u.uGround, f.mirror);
-      gl.uniform1f(pr.u.uFill, k.charFill); gl.uniform1f(pr.u.uRim, k.charRim);
+      gl.uniform1f(pr.u.uFill, k.charFill); gl.uniform1f(pr.u.uRim, k.charRim); gl.uniform1f(pr.u.uRawColour, k.rawColour);
     });
 
     // depth of field: background-only blur at half resolution

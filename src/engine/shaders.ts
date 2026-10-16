@@ -113,6 +113,7 @@ uniform vec4 uLookL;      // the look: lights, ambient, haze, glowing surfaces
 uniform float uFill;      // the look: how much of a light behind a character reaches the side we see
 uniform float uRim;       // the look: how strongly a light behind a character catches its edges
 uniform float uGround;    // world y of the ground line
+uniform float uRawColour; // the look: how much of a surface's own colour raw view keeps, 0 a cold grey to 1 all of it
 uniform vec4 uCars[16]; uniform int uNC;
 uniform vec4 uBeac[32]; uniform int uNB;
 float facadeW(vec2 w) { return w.y < 104.0 ? 1.0 : w.y > 424.0 ? 0.7 : w.x > 524.0 ? 0.5 : 0.18; }
@@ -135,9 +136,9 @@ void main() {
   vec2 nxy = g1.xy * 2.0 - 1.0; vec3 Nn = vec3(nxy, sqrt(max(0.0, 1.0 - dot(nxy, nxy))));
   float specS = g1.z, shin = mix(6.0, 120.0, g1.w), dep = g3.r, obj = floor(g3.b * 63.0 + 0.5);
   float raw = 1.0 - uView;
-  // raw view: every surface goes cold; what colour is left lives in the air
+  // raw view: every surface goes cold and muted; the strongest colour left lives in the air
   vec3 alb = lin(g0.rgb);
-  alb = mix(alb, tone(alb, RAW_COLD), raw * 0.8);
+  alb = mix(alb, tone(alb, RAW_COLD), raw * (1.0 - uRawColour));
   float occB = T(tAO, p).r, ao = (occ > 0.5 ? 1.0 - 0.25 * occB : 1.0 - 0.8 * occB) * z.b;
   vec3 ambIn = vec3(0.1, 0.066, 0.046), ambOut = vec3(0.045, 0.055, 0.1);
   vec3 amb = (mix(ambIn, tone(ambIn, RAW_LIGHT), raw) * z.r + mix(ambOut, tone(ambOut, RAW_COLD), raw) * z.g) * uLookL.y;

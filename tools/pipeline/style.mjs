@@ -19,7 +19,7 @@ const RAW_WORLD = [
   'Electronics that people use are grey and steampunk-like: dull grey metal casings, exposed valves, tubes, gauges, cables and rivets, patched together. No brass.',
   'Everyone wears a partial helmet that covers one whole eye: here a heavy, grey, steampunk-like device of riveted metal plates, a round lens and small tubes.',
   'Hardly any text: old signs have peeled away or faded almost to nothing, and what little lettering survives is faint, in Russian or an invented script.',
-  'Cold, drab, faded colours: concrete grey, steel and slate blue-grey, dirty white tile. Nothing warm. The only bright colours are small lights on machines: indicators, old screens.',
+  'Muted, faded colours that lean cold: concrete grey, slate blue-grey, dirty white tile, rust, and peeling paint in washed-out greens, browns and reds. Nothing bright or saturated, except small lights on machines: indicators, old screens.',
 ].join(' ');
 const CONCIERGE_ELECTRONICS = 'Electronics that people use look futuristic: smooth white shells and blue light.';
 /**

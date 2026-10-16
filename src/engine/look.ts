@@ -22,6 +22,8 @@ export interface Look {
   streaks: number;
   /** The poisonous fog of raw view. */
   rawFog: number;
+  /** How much of a surface's own colour raw view keeps: 0 a cold grey, 1 all of it. Muted by default. */
+  rawColour: number;
   /** How much of a light behind a character reaches the side we see, bounced off the surroundings. */
   charFill: number;
   /** How strongly a light behind a character catches its edges. */
@@ -43,7 +45,7 @@ export interface Look {
 
 export const LOOK_DEFAULTS: Look = {
   pixelSize: 1, pixelShape: 0, shapeAmount: 0.5, colorLevels: 0, dither: 0.5,
-  lights: 1, ambient: 1, haze: 1, glow: 1, bloom: 1, shafts: 1, streaks: 1, rawFog: 1,
+  lights: 1, ambient: 1, haze: 1, glow: 1, bloom: 1, shafts: 1, streaks: 1, rawFog: 1, rawColour: 0.5,
   charFill: 1, charRim: 1, charGlow: 0.05,
   exposure: 0, contrast: 1, saturation: 1, temperature: 0, tint: 0,
   vignette: 1, grain: 1, aberration: 1,
@@ -88,6 +90,7 @@ export const LOOK_CONTROLS: LookControl[] = [
   { key: 'charFill', label: 'Fill from lights behind', group: 'Characters', min: 0, max: 2, step: 0.05 },
   { key: 'charRim', label: 'Rim from lights behind', group: 'Characters', min: 0, max: 3, step: 0.05 },
   { key: 'charGlow', label: 'Glow showing over them', group: 'Characters', min: 0, max: 1, step: 0.01 },
+  { key: 'rawColour', label: 'Raw view colour', group: 'Colour', min: 0, max: 1, step: 0.05 },
   { key: 'exposure', label: 'Exposure', group: 'Colour', min: -2, max: 2, step: 0.05 },
   { key: 'contrast', label: 'Contrast', group: 'Colour', min: 0.5, max: 1.8, step: 0.02 },
   { key: 'saturation', label: 'Saturation', group: 'Colour', min: 0, max: 2, step: 0.02 },
