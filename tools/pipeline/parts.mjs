@@ -49,6 +49,14 @@ export const partsPrompt = [
   'Transparent background, no text, no labels, no guide shapes.',
 ].join(' ');
 
+/** The other side: the right-facing sheet redrawn as seen from the character's left, every part where it was. */
+export const otherSidePrompt = [
+  'This is a cut-out animation parts sheet of a character, every part seen from her right side, facing right.',
+  'Redraw every part as seen from her other side, facing left: the same character, clothes and colours, each part turned around to face the other way and showing what is on that side, such as how her hair, visor and coat look from the left.',
+  'Keep every part in the same place on the sheet and at the same size, separate and complete, in the same style and even lighting.',
+  'Transparent background, no text.',
+].join(' ');
+
 /** Concierge parts: the raw sheet edited, so every part keeps its place and shape. */
 export const conciergePartsPrompt = (description) => [
   'Edit this cut-out animation parts sheet into the same character\'s augmented look. Keep every part exactly where it is,',
@@ -127,13 +135,14 @@ function jointsOf(img, name) {
  * Cut a sheet into its parts, each with its joints. `fix` overrides joints where the shape misleads (a hood on the
  * torso, a bun on the head), as fractions of the part's width and height, so one setting serves both views.
  */
-export function cut(sheet, at = null, fix = {}) {
+export function cut(sheet, at = null, fix = {}, mirrored = false) {
   const found = blobs(sheet, at), parts = {};
   for (const [name, { pixels, box: [x0, y0, bw, bh] }] of Object.entries(found)) {
     const img = blank(bw, bh);
     for (const p of pixels) { const x = p % sheet.w, y = (p / sheet.w) | 0; img.d.set(sheet.d.subarray(p * 4, p * 4 + 4), ((y - y0) * bw + (x - x0)) * 4); }
     const joints = jointsOf(img, name);
-    for (const [j, [fx, fy]] of Object.entries(fix[name] ?? {})) joints[j] = [Math.round(fx * bw), Math.round(fy * bh)];
+    // a left-facing part has its fixes mirrored
+    for (const [j, [fx, fy]] of Object.entries(fix[name] ?? {})) joints[j] = [Math.round((mirrored ? 1 - fx : fx) * bw), Math.round(fy * bh)];
     parts[name] = { img, box: [x0, y0, bw, bh], joints };
   }
   return parts;

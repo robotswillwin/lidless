@@ -3,7 +3,7 @@
 import './style.css';
 import { loadScene, loadSprite, spriteDefaults } from './engine/assets';
 import { fitCanvas, NH, NW, QUALITY, Renderer, type Tier } from './engine/renderer';
-import { frameFor } from './game/anim';
+import { frameFor, hasLeft } from './game/anim';
 import { Dialogue } from './game/dialogue';
 import { inView, loadLevel, pick, type Hotspot } from './game/level';
 import { clearSave, loadSave, writeSave } from './game/save';
@@ -148,12 +148,13 @@ async function boot(): Promise<void> {
     if (arrived && inView(arrived, state.view < 0.5)) interact(arrived);
     if (wasMoving && !world.moving) persist();
     state.sinceSwitch = reduceMotion ? 10 : t - switchedAt;
-    const flip = world.facing < 0, [ax, ay] = heroAnchor, w = heroSprite.def.w, bob = heroBob(), hs = level.hero.smoke;
+    // facing left: the sprite's own left-facing frames, or its right-facing ones mirrored
+    const flip = world.facing < 0 && !hasLeft(heroSprite.def), [ax, ay] = heroAnchor, w = heroSprite.def.w, bob = heroBob(), hs = level.hero.smoke;
     const hx = Math.round(world.heroX - cam[0] - (flip ? w - ax : ax)), hy = Math.round(level.walk.y - cam[1] - ay + bob);
     // the scene's smoke emitter follows her cigarette, or goes off screen when she has none
     const smoke: [number, number] = hs ? [world.heroX + hs[0] * world.facing, level.walk.y + hs[1] + bob] : [-1000, -1000];
     fitCanvas(canvas);
-    renderer.render(runner.frame(t, state, cam, [{ sprite: heroSprite, x: hx, y: hy, flip, frame: frameFor(heroSprite.def, world.moving, world.walked, t) }], smoke));
+    renderer.render(runner.frame(t, state, cam, [{ sprite: heroSprite, x: hx, y: hy, flip, frame: frameFor(heroSprite.def, world.moving, world.walked, t, world.facing) }], smoke));
     frames++;
     const now = performance.now();
     if (now - fpsAt > 500) { fps = (frames * 1000) / (now - fpsAt); frames = 0; fpsAt = now; }

@@ -3,8 +3,8 @@
   "scene": "cast",
   "kind": "character",
   "exists": "both",
-  "prompt": "The hero: a woman in her late twenties who runs errands nobody asks about. Thin and pale, tired eyes, dark hair pulled back in a messy bun. Like everyone, she wears a partial helmet: a cheap visor of scratched plastic and metal over her left eye and temple. A long, cheap raincoat in faded grey-maroon, open and hanging loose, over a worn black top and leggings, scuffed boots to the knee.",
-  "concierge": "The Concierge's version of her, a striking cyberpunk look: an asymmetric undercut, one side shaved, long hair swept over the other side in neon green fading to purple. Bold make-up with dark lips and sharp eyeliner, the visor sleek and glossy with a cyan glow. A cropped black top, fitted high-waisted black trousers, a long glossy red coat with thin neon trims, chunky black platform boots. Confident, glamorous and attractive. Same pose.",
+  "prompt": "The hero: a woman in her late twenties who runs errands nobody asks about. Thin and pale, tired eyes, dark hair pulled back in a messy bun. Like everyone, she wears a partial helmet over her left eye: a heavy, grey, steampunk-like device of riveted metal plates and a round lens, covering the whole eye and her temple. A long, cheap raincoat in faded grey-maroon, open and hanging loose, over a worn black top and leggings, scuffed boots to the knee.",
+  "concierge": "The Concierge's version of her, a striking cyberpunk look: an asymmetric undercut, one side shaved, long hair swept over the other side in neon green fading to purple. Bold make-up with dark lips and sharp eyeliner, the partial helmet over her left eye a smooth, seamless white shell with a soft blue light, covering the whole eye. A cropped black top, fitted high-waisted black trousers, a long glossy red coat with thin neon trims, chunky black platform boots. Confident, glamorous and attractive. Same pose.",
   "height": 240,
   "position": [
     480,
@@ -148,6 +148,11 @@
           0.92
         ]
       }
-    }
+    },
+    "left": {
+      "raw": "Seen from her left side, her eye device covers her whole left eye and temple: a heavy, grey, steampunk-like partial helmet of riveted metal plates, a round lens and small tubes.",
+      "concierge": "Seen from her left side: her long green-to-purple hair falls over this side of her head, and her eye device covers her whole left eye: a smooth, seamless white shell with a soft blue light."
+    },
+    "right": "Seen from her right side, her right eye is uncovered; her eye device is on her left eye, out of sight, with only its strap over her hair."
   }
 }

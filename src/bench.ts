@@ -5,7 +5,7 @@ import './style.css';
 import { loadScene, loadSprite, spriteDefaults, type LightDef, type MapName, type Sprite, type SpriteDef } from './engine/assets';
 import { solidTexture, textureFromImage } from './engine/gl';
 import { fitCanvas, NH, NW, QUALITY, Renderer, type DrawSprite, type Frame, type Tier } from './engine/renderer';
-import { frameFor } from './game/anim';
+import { frameFor, hasLeft } from './game/anim';
 import { lightGroups, SceneRunner, switchFade } from './game/scene';
 
 /** The walk line of the style frame street: feet stand here. */
@@ -248,9 +248,11 @@ function draw(): void {
   fitCanvas(canvas);
   if (!asset) return;
   const t = clock(), d = asset.def, [ax] = d.anchor ?? [d.w / 2, d.h];
-  const [cx, flip] = walkIn.checked ? walkAt(t) : [Number(xIn.value), flipIn.checked];
-  // walking, the frames follow the distance covered (90 px a second), as they do in the game
-  const actor: DrawSprite = { sprite: asset, x: Math.round(cx - (flip ? d.w - ax : ax)), y: d.y, flip, frame: frameFor(d, walkIn.checked, t * 90, t) };
+  const [cx, facingLeft] = walkIn.checked ? walkAt(t) : [Number(xIn.value), flipIn.checked];
+  // walking, the frames follow the distance covered (90 px a second), as they do in the game; facing left uses the
+  // sprite's left-facing frames when it has them, else its right-facing ones mirrored
+  const flip = facingLeft && !hasLeft(d);
+  const actor: DrawSprite = { sprite: asset, x: Math.round(cx - (flip ? d.w - ax : ax)), y: d.y, flip, frame: frameFor(d, walkIn.checked, t * 90, t, facingLeft ? -1 : 1) };
   const sinceSwitch = reduceMotion ? 10 : t - switchedAt;
   let f: Frame;
   if (backdropSel.value === 'street' && street) {

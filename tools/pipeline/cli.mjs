@@ -10,7 +10,7 @@ import { glowAuto, heightMap, materialMap, metaMap, normalMap } from './derive.m
 import { blank, readRGBA, writePNG } from './image.mjs';
 import { edit, generate } from './openai.mjs';
 import { KINDS, ROOT, loadRecipe, recipeTemplate } from './recipe.mjs';
-import { conciergePartsPrompt, cut as cutParts, PARTS as PARTS_NAMES, partsPrompt, pointOf, pose as posePartsRig, SHEET, template as partsTemplate, walkAngles } from './parts.mjs';
+import { conciergePartsPrompt, cut as cutParts, otherSidePrompt, PARTS as PARTS_NAMES, partsPrompt, pointOf, pose as posePartsRig, SHEET, template as partsTemplate, walkAngles } from './parts.mjs';
 import { animatePrompt, guide, poses } from './poses.mjs';
 import { bake, plant, shrink, WORK } from './rig.mjs';
 import { conciergePrompt, generationPrompt, LOOKS, REFERENCE_NOTE } from './style.mjs';
@@ -260,22 +260,31 @@ async function assembleOne(r) {
     const files = (await readdir(d)).filter((f) => f.startsWith(`${view}-`) && f.endsWith('.png')).sort();
     return Promise.all(files.map((f) => readRGBA(join(d, f))));
   };
-  const views = {};
+  // runs in this order, each where it exists: standing and walking facing right, then the same facing left
+  const RUNS = ['idle', 'walk', 'idleLeft', 'walkLeft'], views = {};
   for (const v of ['raw', 'concierge']) {
-    const idle = await load('idle', v), walk = await load('walk', v);
-    if (idle.length || walk.length) views[v] = { idle, walk };
+    const runs = {};
+    for (const run of RUNS) runs[run] = await load(run, v);
+    if (RUNS.some((run) => runs[run].length)) views[v] = runs;
   }
   if (!views.raw && !views.concierge) throw new Error(`${r.name}: no frames in ${rel(dir)} yet; make them with: npm run asset -- animate ${rel(r.file)}`);
   const [a, b] = [views.raw, views.concierge].filter(Boolean);
-  if (b && (a.idle.length !== b.idle.length || a.walk.length !== b.walk.length)) throw new Error(`${r.name}: the raw and Concierge views have different frames; animate both the same way`);
-  const all = [views.raw, views.concierge].filter(Boolean).flatMap((v) => [...v.idle, ...v.walk]);
+  if (b && RUNS.some((run) => a[run].length !== b[run].length)) throw new Error(`${r.name}: the raw and Concierge views have different frames; make both the same way`);
+  const all = [views.raw, views.concierge].filter(Boolean).flatMap((v) => RUNS.flatMap((run) => v[run]));
   const box = all.map((img) => contentBox(img)).reduce(unionBox), scale = height / box.h;
-  const frames = async (v) => v && Promise.all([...v.idle, ...v.walk].map(async (img) => plant([hardenAlpha(await fitToHeight(img, box, height))])[0]));
+  const frames = async (v) => v && Promise.all(RUNS.flatMap((run) => v[run]).map(async (img) => plant([hardenAlpha(await fitToHeight(img, box, height))])[0]));
   const stride = existsSync(join(dir, 'walk', 'stride.json')) ? JSON.parse(await readFile(join(dir, 'walk', 'stride.json'), 'utf8')).stride * scale : 0;
-  const idle = a.idle.length, walk = a.walk.length, anims = {};
-  if (idle) anims.idle = { from: 0, count: idle };
-  if (walk) anims.walk = { from: idle, count: walk, stride: Math.round(stride) };
-  const anchorX = r.pose?.joints?.pelvis ? Math.round((r.pose.joints.pelvis[0] - box.x) * scale) : null;
+  const anims = {};
+  let from = 0;
+  for (const run of RUNS) {
+    const count = a[run].length;
+    if (!count) continue;
+    anims[run] = run.startsWith('walk') ? { from, count, stride: Math.round(stride) } : { from, count };
+    from += count;
+  }
+  // the anchor: the rig's hip if the frames were baked from parts, else the posed pelvis
+  const origin = existsSync(join(dir, 'origin.json')) ? JSON.parse(await readFile(join(dir, 'origin.json'), 'utf8')).x : r.pose?.joints?.pelvis?.[0];
+  const anchorX = origin != null ? Math.round((origin - box.x) * scale) : null;
   // timing from the recipe: a loop's frames per second, and the order to play them in, repeats making a frame hold
   for (const [k, extra] of Object.entries(r.anims ?? {})) if (anims[k]) Object.assign(anims[k], extra);
   await writeAnimated(r, await frames(views.raw), await frames(views.concierge), { anchorX, anims });
@@ -402,7 +411,9 @@ async function cmdAnimate([file], opt) {
 }
 
 async function cmdParts([file], opt) {
-  const r = await loadRecipe(file), view = opt.view ?? 'raw', quality = opt.quality ?? 'low', dir = join(r.dir, 'parts');
+  const r = await loadRecipe(file), look = opt.view ?? 'raw', quality = opt.quality ?? 'low', dir = join(r.dir, 'parts');
+  // --side left: the character seen from the other side; its parts live under raw-left and concierge-left
+  const left = opt.side === 'left', view = left ? `${look}-left` : look;
   await mkdir(join(dir, view), { recursive: true });
   const tpl = await partsTemplate();
   await writeFile(join(dir, 'template.png'), tpl);
@@ -414,18 +425,22 @@ async function cmdParts([file], opt) {
   let res = { images: [], cost: 0 };
   // --recut cuts the sheet already drawn again, without drawing a new one
   if (opt.recut && existsSync(sheetFile)) res.images.push(await readFile(sheetFile));
-  else if (view === 'raw') {
+  else if (left && look === 'raw') {
+    const right = join(dir, 'raw-sheet.png');
+    if (!existsSync(right)) throw new Error('make the right-facing raw parts first: the left ones are redrawn from them');
+    res = await edit({ prompt: `${otherSidePrompt} ${r.parts?.left?.raw ?? ''}`, images: [right], size: `${SHEET.w}x${SHEET.h}`, quality, n: 1, background: 'transparent' });
+  } else if (view === 'raw') {
     const from = join(r.dir, r.parts?.from ?? 'raw.png');
     if (!existsSync(from)) throw new Error(`no image to draw the parts from at ${rel(from)}`);
     res = await edit({ prompt: partsPrompt, images: [{ name: 'character.png', ...(await small(await readFile(from))) }, { name: 'template.png', ...(await small(tpl)) }], size: `${SHEET.w}x${SHEET.h}`, quality, n: 1, background: 'transparent' });
   } else {
-    const rawSheet = join(dir, 'raw-sheet.png');
+    const rawSheet = join(dir, left ? 'raw-left-sheet.png' : 'raw-sheet.png');
     if (!existsSync(rawSheet)) throw new Error('make the raw parts first: they are edited into the Concierge ones');
     if (!r.concierge) throw new Error(`${r.name} has no "concierge" description`);
-    res = await edit({ prompt: conciergePartsPrompt(r.concierge), images: [rawSheet], size: `${SHEET.w}x${SHEET.h}`, quality, n: 1, background: 'transparent' });
+    res = await edit({ prompt: `${conciergePartsPrompt(r.concierge)} ${left ? r.parts?.left?.concierge ?? '' : ''}`, images: [rawSheet], size: `${SHEET.w}x${SHEET.h}`, quality, n: 1, background: 'transparent' });
   }
   await writeFile(sheetFile, res.images[0]);
-  const parts = cutParts(await readRGBA(sheetFile), r.parts?.at ?? null, r.parts?.joints ?? {});
+  const parts = cutParts(await readRGBA(sheetFile), r.parts?.at ?? null, r.parts?.joints ?? {}, left);
   for (const [name, p] of Object.entries(parts)) await writePNG(join(dir, view, `${name}.png`), p.img);
   const jfile = join(dir, 'parts.json'), all = existsSync(jfile) ? JSON.parse(await readFile(jfile, 'utf8')) : {};
   all[view] = Object.fromEntries(Object.entries(parts).map(([n, p]) => [n, { size: [p.img.w, p.img.h], joints: p.joints }]));
@@ -441,23 +456,34 @@ async function cmdParts([file], opt) {
  */
 async function bakeParts(r, dir) {
   const all = JSON.parse(await readFile(join(dir, 'parts.json'), 'utf8')), W = 1600, H = 2000, origin = [800, 900];
-  const views = ['raw', 'concierge'].filter((v) => existsSync(join(dir, v, 'torso.png')));
+  const mirror = (img) => { const out = blank(img.w, img.h); for (let y = 0; y < img.h; y++) for (let x = 0; x < img.w; x++) out.d.set(img.d.subarray((y * img.w + x) * 4, (y * img.w + x) * 4 + 4), (y * img.w + (img.w - 1 - x)) * 4); return out; };
   let stride = 0;
-  for (const v of views) {
-    const parts = {};
-    for (const [name, info] of Object.entries(all[v])) parts[name] = { img: await readRGBA(join(dir, v, `${name}.png`)), joints: info.joints };
+  const done = [];
+  for (const side of ['', '-left']) for (const look of ['raw', 'concierge']) {
+    const v = look + side;
+    if (!existsSync(join(dir, v, 'torso.png'))) continue;
+    // a left-facing set is mirrored to face right, walked like the right one, and mirrored back
+    const left = side === '-left', parts = {};
+    for (const [name, info] of Object.entries(all[v])) {
+      const img = await readRGBA(join(dir, v, `${name}.png`));
+      parts[name] = left ? { img: mirror(img), joints: Object.fromEntries(Object.entries(info.joints).map(([j, [x, y]]) => [j, [img.w - 1 - x, y]])) } : { img, joints: info.joints };
+    }
     const foot = [parts.shin.img.w * 0.55, parts.shin.img.h * 0.97];
-    if (v === 'raw' || !stride) stride = 2 * (pointOf(parts, walkAngles(0), 'legLower', foot, { origin })[0] - pointOf(parts, walkAngles(4), 'legLower', foot, { origin })[0]);
+    if (v === 'raw') stride = 2 * (pointOf(parts, walkAngles(0), 'legLower', foot, { origin })[0] - pointOf(parts, walkAngles(4), 'legLower', foot, { origin })[0]);
     const write = async (anim, k, angles) => {
-      const d = join(r.dir, 'anims', anim);
+      const d = join(r.dir, 'anims', anim + (left ? 'Left' : ''));
       await mkdir(d, { recursive: true });
-      await writePNG(join(d, `${v}-${String(k).padStart(2, '0')}.png`), plant([posePartsRig(parts, angles, { w: W, h: H, origin })])[0]);
+      const f = plant([posePartsRig(parts, angles, { w: W, h: H, origin })])[0];
+      await writePNG(join(d, `${look}-${String(k).padStart(2, '0')}.png`), left ? mirror(f) : f);
     };
     await write('idle', 0, {});
     for (let k = 0; k < 8; k++) await write('walk', k, walkAngles(k));
+    done.push(v);
   }
   await writeFile(join(r.dir, 'anims', 'walk', 'stride.json'), JSON.stringify({ stride }) + '\n');
-  console.log(`${r.name}: a standing frame and 8 walk frames for ${views.join(' and ')} → ${rel(join(r.dir, 'anims'))}, stride ${stride.toFixed(0)} px`);
+  // where the hip is in every frame, both ways round: the sprite's anchor
+  await writeFile(join(r.dir, 'anims', 'origin.json'), JSON.stringify({ x: origin[0] }) + '\n');
+  console.log(`${r.name}: a standing frame and 8 walk frames for ${done.join(', ')} → ${rel(join(r.dir, 'anims'))}, stride ${stride.toFixed(0)} px`);
 }
 
 /** The parts assembled and walked through the standard cycle, as an animated GIF beside the sheets, for checking. */
@@ -490,7 +516,8 @@ async function previewParts(r, dir) {
 }
 
 async function cmdTouch([file], opt) {
-  const r = await loadRecipe(file), view = opt.view ?? (r.exists === 'concierge' ? 'concierge' : 'raw'), src = join(r.dir, `${view}.png`);
+  // --file touches any image of the asset (a parts sheet, say) instead of the picked one, and rebuilds nothing
+  const r = await loadRecipe(file), view = opt.view ?? (r.exists === 'concierge' ? 'concierge' : 'raw'), src = typeof opt.file === 'string' ? join(r.dir, opt.file) : join(r.dir, `${view}.png`);
   const box = String(opt.box ?? '').split(',').map(Number);
   if (box.length !== 4 || box.some((v) => !Number.isFinite(v)) || typeof opt.prompt !== 'string') throw new Error('usage: touch <recipe> --box x,y,w,h --prompt "what to change" [--view raw|concierge]');
   if (!existsSync(src)) throw new Error(`no ${view} image at ${rel(src)}`);
@@ -498,16 +525,23 @@ async function cmdTouch([file], opt) {
   const bw = Math.min(img.w - bx, Math.round(box[2])), bh = Math.min(img.h - by, Math.round(box[3]));
   const win = editWindow(img.w, img.h, bx, by, bw, bh), quality = opt.quality ?? 'medium';
   console.log(`${r.name}: touching ${bw}×${bh} at ${bx},${by} in the ${view} image, sending ${win.width}×${win.height} at ${quality} quality`);
-  const prompt = `Change only the transparent area of the mask: ${opt.prompt}. Everything else stays exactly as it is; match the style, colours, lighting and detail around it.`;
+  const prompt = `Change only the transparent area of the mask: ${opt.prompt}. Everything else stays exactly as it is; match the style, colours, lighting and detail around it.${r.spec.transparent ? ' Keep the flat, plain background colour around the subject exactly as it is.' : ''}`;
   if (opt.dry) return console.log(`\n${prompt}`);
-  // the window, and a mask that is transparent over the box
-  const piece = await sharp(src).extract(win).png().toBuffer();
+  // the window, and a mask that is transparent over the box. Cut-out art goes on a key colour (--key, default green):
+  // the model keeps it as the background, and it is keyed out again afterwards
+  const key = r.spec.transparent ? (typeof opt.key === 'string' ? opt.key : '#00ff00') : null;
+  const piece = await (key ? sharp(src).extract(win).flatten({ background: key }) : sharp(src).extract(win)).png().toBuffer();
   const m = Buffer.alloc(win.width * win.height * 4, 255);
   for (let y = by - win.top; y < by - win.top + bh; y++) for (let x = bx - win.left; x < bx - win.left + bw; x++) m[(y * win.width + x) * 4 + 3] = 0;
   const mask = await sharp(m, { raw: { width: win.width, height: win.height, channels: 4 } }).png().toBuffer();
   const res = await edit({ prompt, images: [{ name: 'piece.png', data: piece }], mask, size: `${win.width}x${win.height}`, quality, n: 1, background: r.spec.transparent ? 'transparent' : 'opaque' });
   if (!res.images.length) throw new Error('the API returned no image');
   const { data } = await sharp(res.images[0]).resize(win.width, win.height, { fit: 'fill' }).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  // cut-out art stays cut out: the key colour, and anything near it, becomes transparent again
+  if (key) {
+    const k = parseInt(key.slice(1), 16), kr = k >> 16, kg = (k >> 8) & 255, kb = k & 255;
+    for (let i = 0; i < data.length; i += 4) if (Math.hypot(data[i] - kr, data[i + 1] - kg, data[i + 2] - kb) < 110) data[i + 3] = 0;
+  }
   // only the box comes back, blended over its last 6 pixels so no seam shows
   const out = { w: img.w, h: img.h, d: new Uint8ClampedArray(img.d) }, feather = 6;
   for (let y = by; y < by + bh; y++) for (let x = bx; x < bx + bw; x++) {
@@ -525,11 +559,11 @@ async function cmdTouch([file], opt) {
   }
   const dir = join(r.dir, 'candidates');
   await mkdir(dir, { recursive: true });
-  const keep = join(dir, (await nextName(dir, `${view}-before-touch`))());
+  const keep = join(dir, (await nextName(dir, `${basename(src, '.png')}-before-touch`))());
   await copyFile(src, keep);
   await writePNG(src, out);
   console.log(`  ${rel(src)} (the old one is ${rel(keep)})\n${spent}`);
-  await buildOne(file);
+  if (typeof opt.file !== 'string') await buildOne(file);
 }
 
 const [cmd, ...rest] = process.argv.slice(2), { pos, opt } = parse(rest);
