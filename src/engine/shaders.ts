@@ -59,6 +59,7 @@ uniform float uView;       // 0 raw, 1 Concierge
 uniform float uFlip;
 uniform vec4 uConst;       // fallbacks when a sprite has no meta map: occluder, depth, reflectivity, object id
 uniform float uHasMeta;
+uniform float uHaze;       // how much of the glowing air around lights lies in front of it: 1 for the set, less for people in front
 layout(location = 0) out vec4 o0;
 layout(location = 1) out vec4 o1;
 layout(location = 2) out vec4 o2;
@@ -84,7 +85,7 @@ void main() {
   o0 = vec4(a.rgb, (floor(m.b * 127.0 + 0.5) * 2.0 + occ) / 255.0);
   o1 = vec4(n.xy * 0.5 + 0.5, m.r, m.g);
   o2 = vec4(g, (grp + 16.0 * mach) / 31.0);
-  o3 = vec4(dep / 3.0, refl / 2.0, obj / 63.0, 1.0);
+  o3 = vec4(dep / 3.0, refl / 2.0, obj / 63.0, uHaze);
 }`;
 
 /* ---------- ambient occlusion: occluders, downsampled, then blurred with the shared blur ---------- */
@@ -155,7 +156,8 @@ void main() {
     spc += li * specS * pow(max(dot(Nn, H), 0.0), shin) * 2.0;
     haze += mix(lc, tone(lc, RAW_AIR), raw) * gi * pow(att, LK.z > -1.5 ? 2.0 : 3.0) * cone * LG.w * zh;
   }
-  vec3 outc = col + spc + haze * mix(0.06, 0.16, z.g);
+  // the glowing air around lights: a person in front of it gets only the part between them and the eye (g3.a)
+  vec3 outc = col + spc + haze * mix(0.06, 0.16, z.g) * g3.a;
   float ge = floor(g2.a * 31.0 + 0.5), machE = step(15.5, ge);
   vec3 em = lin(g2.rgb * 2.0);
   outc += mix(em, tone(em, RAW_LIGHT), raw * (1.0 - machE)) * uGI[int(mod(ge, 16.0))];

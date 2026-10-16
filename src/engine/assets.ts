@@ -24,6 +24,12 @@ export interface SpriteDef {
   exists?: 'both' | 'concierge' | 'raw';
   /** What the pipeline built it as: character, prop, background or portrait. */
   kind?: string;
+  /**
+   * How much of the glowing air around lights lies in front of it, 0 to 1. The set behind gets all of it; a person
+   * walking in front gets less, or the haze of a lamp behind them shows across them as if they were see-through.
+   * Default: 0.3 for characters, 1 for everything else.
+   */
+  haze?: number;
   /** Animation frames side by side in every map, a transparent gutter between them; w and h are one frame. */
   frames?: { count: number; gutter: number };
   /**
