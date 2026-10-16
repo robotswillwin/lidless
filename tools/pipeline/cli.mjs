@@ -25,7 +25,11 @@ const HELP = `Asset pipeline: generate art with an image AI, clean it and turn i
   npm run asset -- variant <recipe> [--n 2] [--quality medium] [--tag name] [--dry]
       Edit the picked raw image into Concierge-view candidates (GPT Image 2.5 Sunburst).
   npm run asset -- sheet <recipe>
-      Lay all candidates side by side at game size, to choose between them.
+      Lay all candidates side by side at game size, finished as the build would, to choose between them.
+  npm run asset -- touch <recipe> --box x,y,w,h --prompt "what to change" [--view raw|concierge] [--quality low|medium] [--dry]
+      Change one area of the picked image with GPT Image 2.5 Sunburst, then rebuild. The box is in the picked
+      image's pixels. Only a window around it is sent, and only the box is pasted back; the old image is kept
+      in candidates/.
   npm run asset -- pick <recipe> <candidate>
       Use a candidate, e.g. raw-03 or concierge-01.
   npm run asset -- import <recipe> <image> [--as raw|concierge]
@@ -61,6 +65,18 @@ async function nextName(dir, prefix, tag) {
 
 const palette = async () => Object.values(JSON.parse(await readFile(resolve(ROOT, 'art/palette.json'), 'utf8')).ramps).flat();
 
+/** The pixel finish for a recipe: its kind's default, changed or switched off by the recipe. */
+const finishFor = (r) => (img) => {
+  const px = r.pixel === false ? null : { ...r.spec.pixel, ...(r.pixel ?? {}) };
+  return px?.colors ? pixelate(img, px) : img;
+};
+
+/** Style references shrunk to 1024 pixels on their long side: plenty to show a style, at a fraction of the input tokens. */
+const loadReferences = (paths) => Promise.all(paths.map(async (p) => ({
+  name: basename(p).replace(/\.\w+$/, '.png'),
+  data: await sharp(p).resize(1024, 1024, { fit: 'inside', withoutEnlargement: true }).png().toBuffer(),
+})));
+
 async function saveCandidates(r, prefix, { images, usage, cost }, tag) {
   const dir = join(r.dir, 'candidates');
   await mkdir(dir, { recursive: true });
@@ -95,7 +111,7 @@ async function cmdGenerate([file], opt) {
   if (opt.dry) return console.log(`\n${prompt}`);
   // with references it goes through the edit endpoint, which takes images; Sunburst follows them most closely
   const background = r.spec.transparent ? 'transparent' : 'opaque';
-  const res = refs.length ? await edit({ prompt, images: refs, size, quality, n, background }) : await generate({ prompt, size, quality, n, background });
+  const res = refs.length ? await edit({ prompt, images: await loadReferences(refs), size, quality, n, background }) : await generate({ prompt, size, quality, n, background });
   await saveCandidates(r, as, res, opt.tag);
 }
 
@@ -155,7 +171,7 @@ async function buildOne(file) {
   const first = raw ?? conc, height = r.height ?? spec.height, strength = r.palette ?? 0.35;
   const box = spec.transparent ? [raw, conc].filter(Boolean).map((img) => contentBox(img)).reduce(unionBox) : { x: 0, y: 0, w: first.w, h: first.h };
   const hexes = await palette();
-  const finish = (img) => (r.pixel?.colors ? pixelate(img, r.pixel) : img);
+  const finish = finishFor(r);
   if (raw) raw = finish(paletteFit(hardenAlpha(await fitToHeight(raw, box, height)), hexes, strength));
   if (conc) conc = finish(paletteFit(hardenAlpha(await fitToHeight(conc, box, height)), hexes, strength));
 
@@ -208,7 +224,7 @@ async function cmdSheet([file]) {
     const img = await readRGBA(join(dir, f));
     if (r.spec.transparent && isOpaque(img)) removeFlatBackground(img);
     const box = r.spec.transparent ? contentBox(img) : { x: 0, y: 0, w: img.w, h: img.h };
-    const s = paletteFit(hardenAlpha(await fitToHeight(img, box, height)), hexes, r.palette ?? 0.35);
+    const s = finishFor(r)(paletteFit(hardenAlpha(await fitToHeight(img, box, height)), hexes, r.palette ?? 0.35));
     const png = await sharp(Buffer.from(s.d.buffer, s.d.byteOffset, s.d.length), { raw: { width: s.w, height: s.h, channels: 4 } }).resize(s.w * scale, s.h * scale, { kernel: 'nearest' }).png().toBuffer();
     tiles.push({ name: f.slice(0, -4), png, w: Math.max(s.w * scale, 150), sw: s.w * scale, h: s.h * scale });
   }
@@ -224,7 +240,56 @@ async function cmdSheet([file]) {
   console.log(`${r.name}: ${tiles.length} candidates at twice game size → ${rel(out)}`);
 }
 
+/**
+ * The part of the image sent for a touch-up: the box with room around it, in multiples of 16, at least the API's
+ * minimum of 655,360 pixels, no wider than 3:1, and inside the image.
+ */
+function editWindow(W, H, bx, by, bw, bh) {
+  const up16 = (v) => Math.ceil(v / 16) * 16, MIN = 655360;
+  let w = up16(bw + 128), h = up16(bh + 128);
+  while (w * h < MIN && (w < W || h < H)) { if ((w / h < 1.6 || h >= H) && w < W) w += 16; else h += 16; }
+  if (w > 3 * h) h = up16(w / 3);
+  if (h > 3 * w) w = up16(h / 3);
+  w = Math.min(w, W - (W % 16)); h = Math.min(h, H - (H % 16));
+  return { left: Math.max(0, Math.min(W - w, Math.round(bx + bw / 2 - w / 2))), top: Math.max(0, Math.min(H - h, Math.round(by + bh / 2 - h / 2))), width: w, height: h };
+}
+
+async function cmdTouch([file], opt) {
+  const r = await loadRecipe(file), view = opt.view ?? (r.exists === 'concierge' ? 'concierge' : 'raw'), src = join(r.dir, `${view}.png`);
+  const box = String(opt.box ?? '').split(',').map(Number);
+  if (box.length !== 4 || box.some((v) => !Number.isFinite(v)) || typeof opt.prompt !== 'string') throw new Error('usage: touch <recipe> --box x,y,w,h --prompt "what to change" [--view raw|concierge]');
+  if (!existsSync(src)) throw new Error(`no ${view} image at ${rel(src)}`);
+  const img = await readRGBA(src), [bx, by] = [Math.max(0, Math.round(box[0])), Math.max(0, Math.round(box[1]))];
+  const bw = Math.min(img.w - bx, Math.round(box[2])), bh = Math.min(img.h - by, Math.round(box[3]));
+  const win = editWindow(img.w, img.h, bx, by, bw, bh), quality = opt.quality ?? 'medium';
+  console.log(`${r.name}: touching ${bw}×${bh} at ${bx},${by} in the ${view} image, sending ${win.width}×${win.height} at ${quality} quality`);
+  const prompt = `Change only the transparent area of the mask: ${opt.prompt}. Everything else stays exactly as it is; match the style, colours, lighting and detail around it.`;
+  if (opt.dry) return console.log(`\n${prompt}`);
+  // the window, and a mask that is transparent over the box
+  const piece = await sharp(src).extract(win).png().toBuffer();
+  const m = Buffer.alloc(win.width * win.height * 4, 255);
+  for (let y = by - win.top; y < by - win.top + bh; y++) for (let x = bx - win.left; x < bx - win.left + bw; x++) m[(y * win.width + x) * 4 + 3] = 0;
+  const mask = await sharp(m, { raw: { width: win.width, height: win.height, channels: 4 } }).png().toBuffer();
+  const res = await edit({ prompt, images: [{ name: 'piece.png', data: piece }], mask, size: `${win.width}x${win.height}`, quality, n: 1, background: r.spec.transparent ? 'transparent' : 'opaque' });
+  if (!res.images.length) throw new Error('the API returned no image');
+  const { data } = await sharp(res.images[0]).resize(win.width, win.height, { fit: 'fill' }).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  // only the box comes back, blended over its last 6 pixels so no seam shows
+  const out = { w: img.w, h: img.h, d: new Uint8ClampedArray(img.d) }, feather = 6;
+  for (let y = by; y < by + bh; y++) for (let x = bx; x < bx + bw; x++) {
+    const k = Math.min(1, (Math.min(x - bx, bx + bw - 1 - x, y - by, by + bh - 1 - y) + 1) / feather), i = (y * img.w + x) * 4, j = ((y - win.top) * win.width + (x - win.left)) * 4;
+    for (let c = 0; c < 4; c++) out.d[i + c] = img.d[i + c] * (1 - k) + data[j + c] * k;
+  }
+  const dir = join(r.dir, 'candidates');
+  await mkdir(dir, { recursive: true });
+  const keep = join(dir, (await nextName(dir, `${view}-before-touch`))());
+  await copyFile(src, keep);
+  await writePNG(src, out);
+  console.log(`  ${rel(src)} (the old one is ${rel(keep)})`);
+  console.log(res.cost == null ? 'Cost: not reported by the API.' : `Cost: $${res.cost.toFixed(4)} (${res.usage.output_tokens ?? '?'} image tokens out, ${res.usage.input_tokens ?? '?'} tokens in)`);
+  await buildOne(file);
+}
+
 const [cmd, ...rest] = process.argv.slice(2), { pos, opt } = parse(rest);
-const run = { new: cmdNew, generate: cmdGenerate, variant: cmdVariant, pick: cmdPick, import: cmdImport, sheet: cmdSheet, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
+const run = { new: cmdNew, generate: cmdGenerate, variant: cmdVariant, pick: cmdPick, import: cmdImport, sheet: cmdSheet, touch: cmdTouch, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
 if (!run) console.log(HELP);
 else run(pos, opt).catch((e) => { console.error(`error: ${e.message}`); process.exit(1); });

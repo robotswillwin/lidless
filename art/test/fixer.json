@@ -19,9 +19,5 @@
   "palette": 0.35,
   "references": [
     "art/reference/Rainy Neon Cyberpunk Concept Sheet.png"
-  ],
-  "pixel": {
-    "colors": 32,
-    "cleanup": true
-  }
+  ]
 }

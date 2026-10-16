@@ -20,5 +20,6 @@
     50,
     240
   ],
-  "exists": "both"
+  "exists": "both",
+  "kind": "character"
 }

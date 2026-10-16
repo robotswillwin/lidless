@@ -38,8 +38,12 @@ export function generate({ prompt, size, quality = 'medium', n = 1, background =
   });
 }
 
-/** Edit: the first image is the one being changed, the rest are references. Returns the same as generate. */
-export async function edit({ prompt, images, size, quality = 'medium', n = 1, background = 'transparent', model = MODELS.edit }) {
+/**
+ * Edit: the first image is the one being changed, the rest are references. Images are file paths or { name, data }
+ * buffers. A mask (a PNG, transparent where the image may change) limits the change to that area.
+ * Returns the same as generate.
+ */
+export async function edit({ prompt, images, mask, size, quality = 'medium', n = 1, background = 'transparent', model = MODELS.edit }) {
   const form = new FormData();
   form.append('model', model);
   form.append('prompt', prompt);
@@ -48,6 +52,10 @@ export async function edit({ prompt, images, size, quality = 'medium', n = 1, ba
   form.append('n', String(n));
   form.append('background', background);
   form.append('output_format', 'png');
-  for (const path of images) form.append('image[]', new Blob([await readFile(path)], { type: path.endsWith('.png') ? 'image/png' : 'image/jpeg' }), basename(path));
+  for (const img of images) {
+    const { name, data } = typeof img === 'string' ? { name: basename(img), data: await readFile(img) } : img;
+    form.append('image[]', new Blob([data], { type: name.endsWith('.png') ? 'image/png' : 'image/jpeg' }), name);
+  }
+  if (mask) form.append('mask', new Blob([mask], { type: 'image/png' }), 'mask.png');
   return call('edits', { method: 'POST', body: form });
 }

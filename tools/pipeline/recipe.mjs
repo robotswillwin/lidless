@@ -7,15 +7,15 @@ import { basename, dirname, join, resolve } from 'node:path';
 export const ROOT = resolve(import.meta.dirname, '../..');
 
 /**
- * Defaults per kind of asset: generation size, in-game height, how round the volume is, shadows, depth, and whether
- * it is cut out on a transparent background. A background fills the frame: 2048x1088 shrinks to 1016x540, a little
- * wider than the 960x540 screen.
+ * Defaults per kind of asset: generation size, in-game height, how round the volume is, shadows, depth, whether it is
+ * cut out on a transparent background, and the pixel finish (how many flat colours each view is reduced to).
+ * A background fills the frame: 2048x1088 shrinks to 1016x540, a little wider than the 960x540 screen.
  */
 export const KINDS = {
-  character: { size: '1024x1536', height: 240, round: 14, rh: 0.22, detail: 0.1, occluder: true, depth: 3, material: 'cloth', transparent: true },
-  prop: { size: '1024x1024', height: 120, round: 5, rh: 0.4, detail: 0.12, occluder: true, depth: 3, material: 'metal', transparent: true },
-  background: { size: '2048x1088', height: 540, round: 0, rh: 0, detail: 0.15, occluder: false, depth: 1, material: 'stone', transparent: false },
-  portrait: { size: '1024x1024', height: 360, round: 0, rh: 0, detail: 0.1, occluder: false, depth: 3, material: 'skin', transparent: true },
+  character: { size: '1024x1536', height: 240, round: 14, rh: 0.22, detail: 0.1, occluder: true, depth: 3, material: 'cloth', transparent: true, pixel: { colors: 32 } },
+  prop: { size: '1024x1024', height: 120, round: 5, rh: 0.4, detail: 0.12, occluder: true, depth: 3, material: 'metal', transparent: true, pixel: { colors: 32 } },
+  background: { size: '2048x1088', height: 540, round: 0, rh: 0, detail: 0.15, occluder: false, depth: 1, material: 'stone', transparent: false, pixel: { colors: 64 } },
+  portrait: { size: '1024x1024', height: 360, round: 0, rh: 0, detail: 0.1, occluder: false, depth: 3, material: 'skin', transparent: true, pixel: { colors: 48 } },
 };
 
 /** Which views a thing exists in: real, made up by the Concierge, or real but edited out by it. */
@@ -37,7 +37,7 @@ export const PRESENCE = ['both', 'concierge', 'raw'];
  *   machine: a machine's own light (a screen, an indicator) keeps its colour in raw view; other glow turns sterile white
  * @property {number} [palette]           0 to 1: how strongly to pull colours toward the house palette
  * @property {string[]} [references]      images sent along as style references, relative to the project folder
- * @property {{ colors: number, cleanup?: boolean }} [pixel]  pixel-art finish: flat colours per view, lone pixels cleared
+ * @property {{ colors?: number, cleanup?: boolean } | false} [pixel]  pixel-art finish (default by kind), or false for none
  * @property {'pixel'|'paint'} [look]     ask for pixel art, or a painting that the build pixelates
  */
 
