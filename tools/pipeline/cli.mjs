@@ -425,7 +425,7 @@ async function cmdParts([file], opt) {
     res = await edit({ prompt: conciergePartsPrompt(r.concierge), images: [rawSheet], size: `${SHEET.w}x${SHEET.h}`, quality, n: 1, background: 'transparent' });
   }
   await writeFile(sheetFile, res.images[0]);
-  const parts = cutParts(await readRGBA(sheetFile), r.parts?.at ?? null);
+  const parts = cutParts(await readRGBA(sheetFile), r.parts?.at ?? null, r.parts?.joints ?? {});
   for (const [name, p] of Object.entries(parts)) await writePNG(join(dir, view, `${name}.png`), p.img);
   const jfile = join(dir, 'parts.json'), all = existsSync(jfile) ? JSON.parse(await readFile(jfile, 'utf8')) : {};
   all[view] = Object.fromEntries(Object.entries(parts).map(([n, p]) => [n, { size: [p.img.w, p.img.h], joints: p.joints }]));

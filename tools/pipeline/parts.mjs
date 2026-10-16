@@ -123,13 +123,18 @@ function jointsOf(img, name) {
   }));
 }
 
-/** Cut a sheet into its parts, each with its joints. */
-export function cut(sheet, at = null) {
+/**
+ * Cut a sheet into its parts, each with its joints. `fix` overrides joints where the shape misleads (a hood on the
+ * torso, a bun on the head), as fractions of the part's width and height, so one setting serves both views.
+ */
+export function cut(sheet, at = null, fix = {}) {
   const found = blobs(sheet, at), parts = {};
   for (const [name, { pixels, box: [x0, y0, bw, bh] }] of Object.entries(found)) {
     const img = blank(bw, bh);
     for (const p of pixels) { const x = p % sheet.w, y = (p / sheet.w) | 0; img.d.set(sheet.d.subarray(p * 4, p * 4 + 4), ((y - y0) * bw + (x - x0)) * 4); }
-    parts[name] = { img, box: [x0, y0, bw, bh], joints: jointsOf(img, name) };
+    const joints = jointsOf(img, name);
+    for (const [j, [fx, fy]] of Object.entries(fix[name] ?? {})) joints[j] = [Math.round(fx * bw), Math.round(fy * bh)];
+    parts[name] = { img, box: [x0, y0, bw, bh], joints };
   }
   return parts;
 }
@@ -141,7 +146,8 @@ export function cut(sheet, at = null) {
 export function walkAngles(k) {
   const f = (k + 4) % 8;
   return {
-    torso: WALK.lean, head: -WALK.lean, coat: -4 + 2 * Math.cos((4 * Math.PI * k) / 8),
+    // the coat trails a little behind, swinging out with each step
+    torso: WALK.lean, head: -WALK.lean, coat: -7 + 3 * Math.cos((4 * Math.PI * k) / 8),
     legUpper: WALK.thigh[k], legLower: WALK.knee[k], legFarUpper: WALK.thigh[f], legFarLower: WALK.knee[f],
     armUpper: WALK.arm[k], armLower: WALK.elbow[k], armFarUpper: WALK.arm[f], armFarLower: WALK.elbow[f],
   };
@@ -155,13 +161,14 @@ const invert = (m) => { const det = m[0] * m[3] - m[2] * m[1]; return [m[3] / de
 
 /**
  * The rig: each part turns on its first joint, which sits on a joint of its parent. Far limbs are the near ones again,
- * a little behind and darker. Back to front.
+ * a little behind and darker. Back to front: an open coat hangs behind both legs, and the jacket covers their tops.
  */
 const RIG = [
   ['armFarUpper', 'upperArm', 'torso', 'shoulder', 'shoulder', true], ['armFarLower', 'forearm', 'armFarUpper', 'elbow', 'elbow', true],
+  ['coat', 'coat', 'torso', 'hip', 'waist', false],
   ['legFarUpper', 'thigh', 'torso', 'hip', 'hip', true], ['legFarLower', 'shin', 'legFarUpper', 'knee', 'knee', true],
-  ['coat', 'coat', 'torso', 'hip', 'waist', false], ['torso', 'torso', null, null, 'hip', false], ['head', 'head', 'torso', 'neck', 'neck', false],
   ['legUpper', 'thigh', 'torso', 'hip', 'hip', false], ['legLower', 'shin', 'legUpper', 'knee', 'knee', false],
+  ['torso', 'torso', null, null, 'hip', false], ['head', 'head', 'torso', 'neck', 'neck', false],
   ['armUpper', 'upperArm', 'torso', 'shoulder', 'shoulder', false], ['armLower', 'forearm', 'armUpper', 'elbow', 'elbow', false],
 ];
 
