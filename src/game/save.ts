@@ -2,6 +2,8 @@
 
 export interface SaveData {
   v: 1;
+  /** The scene she is in; old saves have none and start where the world starts. */
+  scene?: string;
   heroX: number;
   facing: 1 | -1;
   view: number;

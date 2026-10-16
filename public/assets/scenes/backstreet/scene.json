@@ -1,0 +1,254 @@
+{
+ "id": "backstreet",
+ "name": "Backstreet",
+ "kind": "exterior",
+ "size": [
+  1016,
+  540
+ ],
+ "layers": [
+  {
+   "asset": "test/backstreet",
+   "x": 0,
+   "y": 0
+  }
+ ],
+ "lights": [
+  {
+   "x": 522,
+   "y": 188,
+   "z": 30,
+   "r": 300,
+   "c": [
+    0.85,
+    0.95,
+    1.0
+   ],
+   "i": 2.2,
+   "zone": 0,
+   "cone": [
+    0,
+    1,
+    0.25
+   ],
+   "haze": 0.45,
+   "shadow": 1,
+   "layer": 1
+  },
+  {
+   "x": 200,
+   "y": 330,
+   "z": 22,
+   "r": 320,
+   "c": [
+    0.4,
+    0.85,
+    1.0
+   ],
+   "i": 1.6,
+   "zone": 0,
+   "haze": 0.25,
+   "ar": 1
+  },
+  {
+   "x": 800,
+   "y": 262,
+   "z": 22,
+   "r": 230,
+   "c": [
+    0.45,
+    0.7,
+    1.0
+   ],
+   "i": 1.2,
+   "zone": 0,
+   "haze": 0.2,
+   "ar": 1
+  },
+  {
+   "x": 330,
+   "y": 60,
+   "z": 30,
+   "r": 220,
+   "c": [
+    1.0,
+    0.75,
+    0.45
+   ],
+   "i": 0.9,
+   "zone": 0,
+   "ar": 1
+  },
+  {
+   "x": 930,
+   "y": 232,
+   "z": 30,
+   "r": 220,
+   "c": [
+    1.0,
+    0.75,
+    0.45
+   ],
+   "i": 0.9,
+   "zone": 0,
+   "ar": 1
+  },
+  {
+   "x": 834,
+   "y": 214,
+   "z": 6,
+   "r": 70,
+   "c": [
+    1.0,
+    0.5,
+    0.2
+   ],
+   "i": 0.8,
+   "zone": 0,
+   "machine": 1
+  },
+  {
+   "x": 80,
+   "y": 60,
+   "z": 120,
+   "r": 500,
+   "c": [
+    0.55,
+    0.62,
+    0.8
+   ],
+   "i": 0.7,
+   "zone": 0,
+   "layer": 1
+  },
+  {
+   "x": 700,
+   "y": 520,
+   "z": 80,
+   "r": 420,
+   "c": [
+    0.35,
+    0.45,
+    0.7
+   ],
+   "i": 0.35,
+   "zone": 0,
+   "layer": 1
+  },
+  {
+   "x": 1010,
+   "y": 100,
+   "z": 70,
+   "r": 620,
+   "c": [
+    0.85,
+    0.95,
+    1.0
+   ],
+   "i": 1.6,
+   "zone": 0,
+   "cone": [
+    -0.55,
+    0.83,
+    0.2
+   ],
+   "haze": 0.25,
+   "shadow": 1,
+   "layer": 1
+  }
+ ],
+ "walk": {
+  "y": 466,
+  "x0": 30,
+  "x1": 990
+ },
+ "mirror": 458,
+ "spawns": {
+  "from-street": {
+   "x": 960,
+   "facing": -1
+  },
+  "door": {
+   "x": 525,
+   "facing": 1
+  }
+ },
+ "hotspots": [
+  {
+   "id": "store",
+   "name": {
+    "concierge": "Concierge Store 24",
+    "raw": "Shuttered kiosk"
+   },
+   "rect": [
+    20,
+    195,
+    360,
+    245
+   ],
+   "stand": 200,
+   "look": {
+    "concierge": "Coffee, drinks, snacks, essentials. A cleaner, brighter you, it promises.",
+    "raw": "Rusted shutters, a smiley sprayed across them. Whatever it sold, it stopped."
+   }
+  },
+  {
+   "id": "entrance",
+   "name": "Entrance 3",
+   "rect": [
+    465,
+    205,
+    120,
+    235
+   ],
+   "stand": 525,
+   "face": 1,
+   "look": {
+    "concierge": "Your building. The door glows a soft welcome.",
+    "raw": "Your building. The door has been forced and bolted so many times it no longer closes straight."
+   }
+  },
+  {
+   "id": "box",
+   "name": {
+    "concierge": "Concierge City panel",
+    "raw": "Fuse box"
+   },
+   "rect": [
+    740,
+    195,
+    125,
+    135
+   ],
+   "stand": 800,
+   "look": {
+    "concierge": "A Brighter Tomorrow, Together.",
+    "raw": "Gauges and patched cables. Somebody keeps this running by hand."
+   }
+  },
+  {
+   "id": "to-street",
+   "name": "To the main street",
+   "rect": [
+    976,
+    300,
+    40,
+    170
+   ],
+   "stand": 990,
+   "go": {
+    "scene": "street",
+    "spawn": "from-backstreet"
+   }
+  }
+ ],
+ "steam": [
+  {
+   "x": 300,
+   "y": 470,
+   "height": 90,
+   "width": 10,
+   "kind": "steam"
+  }
+ ]
+}

@@ -1,14 +1,15 @@
-// Lidless: boot, input, the frame loop, conversations, the view switch and saving.
+// Lidless: boot, scenes and the ways between them, input, the frame loop, conversations, the view switch and saving.
 
 import './style.css';
-import { loadScene, loadSprite, spriteDefaults } from './engine/assets';
+import { loadSprite, spriteDefaults } from './engine/assets';
 import { loadProjectLook } from './engine/look';
 import { fitCanvas, NH, NW, QUALITY, Renderer, type Tier } from './engine/renderer';
 import { frameFor, hasLeft } from './game/anim';
 import { Dialogue } from './game/dialogue';
-import { inView, loadLevel, pick, type Hotspot } from './game/level';
+import { inView, pick, type Hotspot } from './game/level';
 import { clearSave, loadSave, writeSave } from './game/save';
 import { SceneRunner, type ViewState } from './game/scene';
+import { buildScene, loadSceneFile, loadWorld, type Exit, type Scene } from './game/scenefile';
 import { UI } from './game/ui';
 import { World } from './game/world';
 import { createLookPanel } from './look-panel';
@@ -20,6 +21,7 @@ const viewBtn = document.getElementById('view') as HTMLButtonElement;
 const viewLabel = document.getElementById('view-label') as HTMLElement;
 const stats = document.getElementById('stats') as HTMLElement;
 const errorBox = document.getElementById('error') as HTMLElement;
+const fade = document.getElementById('fade') as HTMLElement;
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 function pickTier(): Tier {
@@ -36,20 +38,41 @@ function toLevel(e: PointerEvent, cam: [number, number]): [number, number] {
 
 async function boot(): Promise<void> {
   if (params.has('new')) clearSave();
-  const assets = `${import.meta.env.BASE_URL}assets`, base = `${assets}/styleframe`;
-  const renderer = new Renderer(canvas, QUALITY[pickTier()]);
-  const [scene, level] = await Promise.all([loadScene(renderer.gl, base), loadLevel(base)]);
-  const projectLook = await loadProjectLook(assets);
+  const assets = `${import.meta.env.BASE_URL}assets`;
+  const renderer = new Renderer(canvas, QUALITY[pickTier()]), gl = renderer.gl;
+  const [worldFile, projectLook] = await Promise.all([loadWorld(assets), loadProjectLook(assets)]);
   const save = loadSave();
-  const heroPath = level.hero.sprite, heroName = heroPath.split('/').pop()!;
-  const runner = new SceneRunner(scene, new Set([heroName]));
-  // the hero can live in a folder of her own, such as cast/hero, instead of the scene's
-  const heroSprite = heroPath.includes('/')
-    ? await loadSprite(renderer.gl, `${assets}/${heroPath.slice(0, heroPath.lastIndexOf('/'))}`, heroName, spriteDefaults(renderer.gl))
-    : runner.sprite(heroName);
-  const heroAnchor = heroSprite.def.anchor ?? level.hero.anchor ?? [heroSprite.def.w / 2, heroSprite.def.h];
+  const heroPath = worldFile.hero.sprite, cut = heroPath.lastIndexOf('/');
+  const heroSprite = await loadSprite(gl, `${assets}/${heroPath.slice(0, cut)}`, heroPath.slice(cut + 1), spriteDefaults(gl));
+  const heroAnchor = heroSprite.def.anchor ?? [heroSprite.def.w / 2, heroSprite.def.h];
   const heroBob = () => (heroSprite.def.anims?.walk ? 0 : world.bob);
-  const world = new World(level, save?.heroX, save?.facing);
+
+  // scenes are kept once loaded, so going back and forth is quick
+  const scenes = new Map<string, Promise<Scene>>();
+  const sceneById = (id: string) => {
+    if (!scenes.has(id)) scenes.set(id, loadSceneFile(assets, id).then((file) => buildScene(gl, assets, file, worldFile)));
+    return scenes.get(id)!;
+  };
+  let scene: Scene, runner: SceneRunner, world: World;
+  const cam: [number, number] = [0, 0];
+  let camX = 0;
+  /** Where the camera wants to be: her in the middle, the scene's ends never past the screen's. */
+  const camTarget = () => Math.max(0, Math.min(scene.file.size[0] - NW, world.heroX - NW / 2));
+  const enter = async (id: string, at: { spawn?: string; x?: number; facing?: 1 | -1 }) => {
+    const next = await sceneById(id), sp = at.spawn ? next.file.spawns[at.spawn] : undefined;
+    scene = next;
+    runner = new SceneRunner(next.loaded);
+    world = new World(next.level, at.x ?? sp?.x, at.facing ?? sp?.facing);
+    camX = camTarget();
+    cam[0] = Math.round(camX);
+  };
+  // the scene to start in: asked for in the address, or the saved one, or where the world starts
+  const askedScene = params.get('scene');
+  const startId = askedScene ?? (save?.scene && worldFile.scenes.includes(save.scene) ? save.scene : worldFile.start.scene);
+  if (askedScene) await enter(startId, { spawn: params.get('spawn') ?? Object.keys((await sceneById(startId)).file.spawns)[0] });
+  else if (save?.scene === startId) await enter(startId, { x: save.heroX, facing: save.facing });
+  else await enter(startId, { spawn: worldFile.start.spawn });
+
   const dialogue = new Dialogue(save?.ink ?? null);
   const ui = new UI(stage);
   const debugView = params.get('view') === 'raw';
@@ -57,12 +80,34 @@ async function boot(): Promise<void> {
   const state: ViewState = { view: debugView ? 0 : save && canSwitch() ? save.view : 1, sinceSwitch: 10 };
   // the look panel (L): pixels, light, characters, colour and film, from the game's saved look; split settings follow the view
   const look = createLookPanel(renderer, projectLook, stage, { view: () => (state.view < 0.5 ? 'raw' : 'concierge') });
-  const cam: [number, number] = [0, 0];
   const t0 = performance.now(), fixedT = params.has('t') ? Number(params.get('t')) : null;
   const clock = () => fixedT ?? (performance.now() - t0) / 1000;
   let switchedAt = -10, lastT = clock(), frames = 0, fpsAt = performance.now(), fps = 0, talking: string | null = null;
 
-  const persist = () => writeSave({ v: 1, heroX: Math.round(world.heroX), facing: world.facing, view: state.view, ink: dialogue.save() });
+  const persist = () => writeSave({ v: 1, scene: scene.file.id, heroX: Math.round(world.heroX), facing: world.facing, view: state.view, ink: dialogue.save() });
+
+  // a door or the end of the street: fade out, go to the other scene, fade in
+  let travelling = false;
+  const travel = async (exit: Exit) => {
+    if (travelling) return;
+    travelling = true;
+    world.stop();
+    held.clear();
+    ui.showHover(null);
+    fade.classList.add('on');
+    await new Promise((r) => setTimeout(r, reduceMotion ? 0 : 260));
+    try {
+      await enter(exit.scene, { spawn: exit.spawn });
+      syncKeys();
+      persist();
+    } catch (err) {
+      ui.showCaption(`That way is not built yet (${err instanceof Error ? err.message : String(err)}).`);
+    }
+    fade.classList.remove('on');
+    travelling = false;
+  };
+  /** An exit at an end of the walk line, which walking into with the keyboard takes. */
+  const exitAt = (x: number) => scene.file.hotspots.find((h) => h.go && inView(h, state.view < 0.5) && x >= h.rect[0] - 1 && x <= h.rect[0] + h.rect[2] + 1);
 
   const syncView = () => {
     viewBtn.hidden = !canSwitch();
@@ -101,6 +146,7 @@ async function boot(): Promise<void> {
   ui.onClose = endTalk;
 
   const interact = (h: Hotspot) => {
+    if (h.go) return void travel(h.go);
     const raw = state.view < 0.5;
     if (h.talk) {
       talking = h.talk;
@@ -110,14 +156,14 @@ async function boot(): Promise<void> {
 
   // pointer: hover names, click or tap to walk or to use
   canvas.addEventListener('pointermove', (e) => {
-    if (e.pointerType !== 'mouse' || ui.dialogueOpen) return ui.showHover(null);
+    if (e.pointerType !== 'mouse' || ui.dialogueOpen || travelling) return ui.showHover(null);
     const [x, y] = toLevel(e, cam), h = world.hotspotAt(x, y, state.view < 0.5);
     canvas.style.cursor = h ? 'pointer' : 'default';
     ui.showHover(h ? pick(h.name, state.view < 0.5) : null, e.clientX, e.clientY);
   });
   canvas.addEventListener('pointerleave', () => ui.showHover(null));
   canvas.addEventListener('pointerdown', (e) => {
-    if (ui.dialogueOpen) return;
+    if (ui.dialogueOpen || travelling) return;
     const [x, y] = toLevel(e, cam), h = world.hotspotAt(x, y, state.view < 0.5);
     if (!h) return world.walkTo(x);
     if (h.stand === undefined) return interact(h);
@@ -154,16 +200,24 @@ async function boot(): Promise<void> {
     const t = clock(), dt = Math.min(0.05, Math.max(0, t - lastT));
     lastT = t;
     const wasMoving = world.moving;
-    const arrived = ui.dialogueOpen ? null : world.update(dt);
+    const arrived = ui.dialogueOpen || travelling ? null : world.update(dt);
     // the view may have changed on the way: a generated person is not there to talk to in raw view
     if (arrived && inView(arrived, state.view < 0.5)) interact(arrived);
+    // walking into an end of the walk line that leads somewhere
+    if (world.keyDir !== 0 && !travelling) {
+      const end = world.keyDir < 0 ? scene.file.walk.x0 : scene.file.walk.x1, exit = Math.abs(world.heroX - end) < 0.5 ? exitAt(end) : undefined;
+      if (exit?.go) void travel(exit.go);
+    }
+    // the camera follows her across a wide scene, in whole pixels so the pixel art stays crisp
+    camX += (camTarget() - camX) * Math.min(1, dt * 5);
+    cam[0] = Math.round(camX);
     if (wasMoving && !world.moving) persist();
     state.sinceSwitch = reduceMotion ? 10 : t - switchedAt;
     // facing left: the sprite's own left-facing frames, or its right-facing ones mirrored
-    const flip = world.facing < 0 && !hasLeft(heroSprite.def), [ax, ay] = heroAnchor, w = heroSprite.def.w, bob = heroBob(), hs = level.hero.smoke;
-    const hx = Math.round(world.heroX - cam[0] - (flip ? w - ax : ax)), hy = Math.round(level.walk.y - cam[1] - ay + bob);
+    const flip = world.facing < 0 && !hasLeft(heroSprite.def), [ax, ay] = heroAnchor, w = heroSprite.def.w, bob = heroBob(), hs = worldFile.hero.smoke;
+    const walkY = scene.file.walk.y, hx = Math.round(world.heroX - cam[0] - (flip ? w - ax : ax)), hy = Math.round(walkY - cam[1] - ay + bob);
     // the scene's smoke emitter follows her cigarette, or goes off screen when she has none
-    const smoke: [number, number] = hs ? [world.heroX + hs[0] * world.facing, level.walk.y + hs[1] + bob] : [-1000, -1000];
+    const smoke: [number, number] = hs ? [world.heroX + hs[0] * world.facing, walkY + hs[1] + bob] : [-1000, -1000];
     fitCanvas(canvas);
     renderer.render(runner.frame(t, state, cam, [{ sprite: heroSprite, x: hx, y: hy, flip, frame: frameFor(heroSprite.def, world.moving, world.walked, t, world.facing) }], smoke));
     frames++;

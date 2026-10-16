@@ -28,6 +28,10 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .view[aria-pressed="false"] .dot { background: var(--amber); box-shadow: 0 0 8px var(--amber); }
 .view:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 .stats { position: absolute; left: 16px; top: 12px; margin: 0; font: 12px/1.4 ui-monospace, Menlo, monospace; color: #9ab; }
+/* the fade between scenes */
+.fade { position: absolute; inset: 0; background: #000; opacity: 0; pointer-events: none; transition: opacity .26s ease; }
+.fade.on { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .fade { transition: none; } }
 .error { position: absolute; inset: auto 16px 16px 16px; margin: 0; padding: 12px 14px; background: #200; color: #fbb; font: 14px/1.4 var(--ui); }
 @media (prefers-reduced-motion: reduce) { .view { transition: none; } }
 

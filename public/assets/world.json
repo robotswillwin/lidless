@@ -1,0 +1,14 @@
+{
+  "start": {
+    "scene": "street",
+    "spawn": "start"
+  },
+  "hero": {
+    "sprite": "cast/hero",
+    "speed": 118
+  },
+  "scenes": [
+    "street",
+    "backstreet"
+  ]
+}

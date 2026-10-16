@@ -15,6 +15,8 @@ export interface Hotspot {
   look?: ViewText;
   /** Ink knot to run. */
   talk?: string;
+  /** A door or the end of the street: using it goes to this scene, arriving at this place there. */
+  go?: { scene: string; spawn: string };
   /**
    * Only there in one view. A generated person is gone in raw view ("concierge"); someone the Concierge edits
    * out can only be found in raw view ("raw"). Raw view is the only way to tell who is real.
