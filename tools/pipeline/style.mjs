@@ -17,12 +17,14 @@ const RAW_WORLD = [
   'Concrete panel blocks, cheap plastic, corrugated metal, rust, peeling paint, stained tiles.',
   'People look sick, pale and dull, out of shape and under-trained, in cheap, trashy, worn-out clothes.',
   'Electronics that people use are grey and steampunk-like: dull grey metal casings, exposed valves, tubes, gauges, cables and rivets, patched together. No brass.',
+  'Hardly any text: old signs have peeled away or faded almost to nothing, and what little lettering survives is faint, in Russian or an invented script.',
   'Cold, drab, faded colours: concrete grey, steel and slate blue-grey, dirty white tile. Nothing warm. The only bright colours are small lights on machines: indicators, old screens.',
 ].join(' ');
 const CONCIERGE_WORLD = [
   'cool and sexy: sleek, glossy, expensive and seductive, with cyan, violet and magenta neon accents.',
   'People are clean, healthy, fit and good-looking, in stylish, well-fitted clothes.',
   'Electronics that people use look futuristic: smooth white shells and blue light.',
+  'Signs and screens are in English, with some Chinese and Japanese, like an international city.',
   'It must look completely real and physical, never like a hologram or a projection.',
 ].join(' ');
 
