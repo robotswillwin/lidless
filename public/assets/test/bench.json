@@ -1,9 +1,13 @@
 {
   "assets": [
+    "backstreet",
     "erased-test",
     "fixer",
     "ghost-test",
     "hero-test"
   ],
-  "latest": "fixer"
+  "latest": "fixer",
+  "backgrounds": [
+    "backstreet"
+  ]
 }

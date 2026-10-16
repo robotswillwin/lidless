@@ -22,6 +22,8 @@ export interface SpriteDef {
    * Concierge edits it out). The albedo of a view it is not in is transparent, so this is information for tools.
    */
   exists?: 'both' | 'concierge' | 'raw';
+  /** What the pipeline built it as: character, prop, background or portrait. */
+  kind?: string;
   /** Used when the sprite has no meta map. */
   occluder?: number;
   reflectivity?: number;

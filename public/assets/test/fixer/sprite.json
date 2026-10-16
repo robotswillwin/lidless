@@ -1,8 +1,8 @@
 {
   "name": "fixer",
-  "x": 435,
+  "x": 427,
   "y": 224,
-  "w": 91,
+  "w": 106,
   "h": 240,
   "maps": [
     "albedo.concierge",
@@ -18,8 +18,9 @@
   "reflectivity": 0,
   "object": 0,
   "anchor": [
-    46,
+    53,
     240
   ],
-  "exists": "both"
+  "exists": "both",
+  "kind": "character"
 }

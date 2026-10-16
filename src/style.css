@@ -78,4 +78,5 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .bench .maps { position: absolute; right: 12px; top: 12px; display: grid; gap: 6px; max-height: calc(100% - 24px); overflow: auto; }
 .bench .maps figure { margin: 0; padding: 6px; background: var(--panel); border-radius: 4px; display: grid; gap: 4px; }
 .bench .maps img { image-rendering: pixelated; height: 120px; width: auto; background: repeating-conic-gradient(#222 0 25%, #2c2c2c 0 50%) 0 0 / 12px 12px; }
+.bench.clean .panel, .bench.clean .maps { display: none; }
 .bench .maps figcaption { font: 400 11px/1 var(--ui); color: var(--muted); letter-spacing: .06em; }

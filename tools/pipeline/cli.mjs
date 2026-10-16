@@ -5,7 +5,7 @@ import { existsSync } from 'node:fs';
 import { copyFile, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { basename, join, relative, resolve } from 'node:path';
 import sharp from 'sharp';
-import { contentBox, fitToHeight, hardenAlpha, isOpaque, overlay, paletteFit, removeFlatBackground, silhouetteMatch, unionBox } from './clean.mjs';
+import { contentBox, fitToHeight, hardenAlpha, isOpaque, overlay, paletteFit, pixelate, removeFlatBackground, silhouetteMatch, unionBox } from './clean.mjs';
 import { glowAuto, heightMap, materialMap, metaMap, normalMap } from './derive.mjs';
 import { blank, readRGBA, writePNG } from './image.mjs';
 import { edit, generate } from './openai.mjs';
@@ -94,7 +94,8 @@ async function cmdGenerate([file], opt) {
   console.log(`${r.name}: ${n} × ${size}, ${quality} quality, ${look ?? 'reference'} look, ${as} view${refs.length ? `, ${refs.length} reference${refs.length > 1 ? 's' : ''}` : ''}`);
   if (opt.dry) return console.log(`\n${prompt}`);
   // with references it goes through the edit endpoint, which takes images; Sunburst follows them most closely
-  const res = refs.length ? await edit({ prompt, images: refs, size, quality, n }) : await generate({ prompt, size, quality, n });
+  const background = r.spec.transparent ? 'transparent' : 'opaque';
+  const res = refs.length ? await edit({ prompt, images: refs, size, quality, n, background }) : await generate({ prompt, size, quality, n, background });
   await saveCandidates(r, as, res, opt.tag);
 }
 
@@ -107,7 +108,7 @@ async function cmdVariant([file], opt) {
   const size = `${Math.round(meta.width / 16) * 16}x${Math.round(meta.height / 16) * 16}`;
   console.log(`${r.name}: ${n} Concierge variants of ${rel(src)}, ${size}`);
   if (opt.dry) return console.log(`\n${prompt}`);
-  await saveCandidates(r, 'concierge', await edit({ prompt, images: [src], size, quality, n }), opt.tag);
+  await saveCandidates(r, 'concierge', await edit({ prompt, images: [src], size, quality, n, background: r.spec.transparent ? 'transparent' : 'opaque' }), opt.tag);
 }
 
 async function cmdPick([file, cand]) {
@@ -126,11 +127,15 @@ async function cmdImport([file, image], opt) {
   console.log(`${r.name}: imported ${image} as the ${as} image.`);
 }
 
-async function updateBenchList(scene, name) {
+async function updateBenchList(scene, name, kind) {
   const file = resolve(ROOT, 'public/assets', scene, 'bench.json');
   const list = existsSync(file) ? JSON.parse(await readFile(file, 'utf8')) : { assets: [] };
   if (!list.assets.includes(name)) list.assets.push(name);
   list.assets.sort();
+  // the bench offers backgrounds as backdrops, with a character in front
+  list.backgrounds = (list.backgrounds ?? []).filter((n) => n !== name);
+  if (kind === 'background') list.backgrounds.push(name);
+  list.backgrounds.sort();
   list.latest = name; // the bench opens the asset built last
   await writeFile(file, JSON.stringify(list, null, 2) + '\n');
 }
@@ -141,15 +146,18 @@ async function buildOne(file) {
   if (!existsSync(main)) throw new Error(`${r.name}: no ${exists === 'concierge' ? 'Concierge' : 'raw'} image yet. Generate and pick one, or import one.`);
   let raw = exists === 'concierge' ? null : await readRGBA(rawPath);
   let conc = exists === 'raw' || !existsSync(concPath) ? null : await readRGBA(concPath);
-  for (const img of [raw, conc]) if (img && isOpaque(img)) removeFlatBackground(img);
+  // a cut-out generated on a plain backdrop loses the backdrop; a background fills its frame and keeps it
+  if (spec.transparent) for (const img of [raw, conc]) if (img && isOpaque(img)) removeFlatBackground(img);
   if (raw && conc && (conc.w !== raw.w || conc.h !== raw.h)) {
     const { data } = await sharp(Buffer.from(conc.d.buffer, conc.d.byteOffset, conc.d.length), { raw: { width: conc.w, height: conc.h, channels: 4 } }).resize(raw.w, raw.h, { fit: 'fill' }).raw().toBuffer({ resolveWithObject: true });
     conc = { w: raw.w, h: raw.h, d: new Uint8ClampedArray(data.buffer, data.byteOffset, data.length) };
   }
-  const box = [raw, conc].filter(Boolean).map((img) => contentBox(img)).reduce(unionBox), height = r.height ?? spec.height, strength = r.palette ?? 0.35;
+  const first = raw ?? conc, height = r.height ?? spec.height, strength = r.palette ?? 0.35;
+  const box = spec.transparent ? [raw, conc].filter(Boolean).map((img) => contentBox(img)).reduce(unionBox) : { x: 0, y: 0, w: first.w, h: first.h };
   const hexes = await palette();
-  if (raw) raw = paletteFit(hardenAlpha(await fitToHeight(raw, box, height)), hexes, strength);
-  if (conc) conc = paletteFit(hardenAlpha(await fitToHeight(conc, box, height)), hexes, strength);
+  const finish = (img) => (r.pixel?.colors ? pixelate(img, r.pixel) : img);
+  if (raw) raw = finish(paletteFit(hardenAlpha(await fitToHeight(raw, box, height)), hexes, strength));
+  if (conc) conc = finish(paletteFit(hardenAlpha(await fitToHeight(conc, box, height)), hexes, strength));
 
   // volume and material come from the outline of both views together; a generated thing has only its Concierge look
   const shape = raw && conc ? overlay(raw, conc) : raw ?? conc, { w, h } = shape;
@@ -180,12 +188,12 @@ async function buildOne(file) {
   const sprite = {
     name: r.name, x: Math.round(cx - w / 2), y: Math.round(base - h), w, h, maps: maps.sort(),
     depth: r.depth ?? spec.depth, parallax: r.parallax ?? 1, occluder: (r.occluder ?? spec.occluder) ? 1 : 0, reflectivity: r.reflectivity ?? 0, object: r.object ?? 0,
-    anchor: [Math.round(w / 2), h], exists,
+    anchor: [Math.round(w / 2), h], exists, kind: r.kind,
   };
   await writeFile(join(out, 'sprite.json'), JSON.stringify(sprite, null, 2) + '\n');
   // maps an earlier build wrote that this one did not
   for (const f of await readdir(out)) if (f.endsWith('.png') && !maps.includes(f.slice(0, -4))) await rm(join(out, f));
-  await updateBenchList(r.scene, r.name);
+  await updateBenchList(r.scene, r.name, r.kind);
   const match = exists === 'both' && conc ? ` · outline match ${(silhouetteMatch(raw, conc) * 100).toFixed(0)}%` : exists === 'both' ? '' : ` · ${exists} view only`;
   console.log(`${r.name}: ${w}×${h} → ${rel(out)} (${maps.length} maps)${match}`);
 }
@@ -198,8 +206,9 @@ async function cmdSheet([file]) {
   const height = r.height ?? r.spec.height, hexes = await palette(), scale = 2, pad = 16, label = 24, tiles = [];
   for (const f of files) {
     const img = await readRGBA(join(dir, f));
-    if (isOpaque(img)) removeFlatBackground(img);
-    const s = paletteFit(hardenAlpha(await fitToHeight(img, contentBox(img), height)), hexes, r.palette ?? 0.35);
+    if (r.spec.transparent && isOpaque(img)) removeFlatBackground(img);
+    const box = r.spec.transparent ? contentBox(img) : { x: 0, y: 0, w: img.w, h: img.h };
+    const s = paletteFit(hardenAlpha(await fitToHeight(img, box, height)), hexes, r.palette ?? 0.35);
     const png = await sharp(Buffer.from(s.d.buffer, s.d.byteOffset, s.d.length), { raw: { width: s.w, height: s.h, channels: 4 } }).resize(s.w * scale, s.h * scale, { kernel: 'nearest' }).png().toBuffer();
     tiles.push({ name: f.slice(0, -4), png, w: Math.max(s.w * scale, 150), sw: s.w * scale, h: s.h * scale });
   }

@@ -87,6 +87,11 @@ const RIGS: Record<string, Rig> = {
     { x: 560, y: 150, z: 40, r: 440, c: [0.8, 0.93, 1], i: 2.6, zone: 0, cone: [-0.25, 0.97, 0.45], haze: 0.45, shadow: 1, wrap: 0.3 },
     { x: 300, y: 430, z: 30, r: 260, c: [1, 0.6, 0.3], i: 0.5, zone: 0 },
   ] },
+  // three sterile lamps along the street, as a real level would have, and a dim sky
+  lamps: { zone: outside, lights: [
+    ...[170, 500, 830].map((x): LightDef => ({ x, y: 140, z: 40, r: 380, c: [0.8, 0.93, 1], i: 2.1, zone: 0, cone: [0, 1, 0.4], haze: 0.35, shadow: 1 })),
+    { x: 480, y: 40, z: 200, r: 800, c: [0.5, 0.6, 0.8], i: 0.35, zone: 0 },
+  ] },
   // warm light spilling from a shop door on the left, under a dim sky
   door: { zone: outside, lights: [
     { x: 250, y: 330, z: 60, r: 380, c: [1, 0.62, 0.3], i: 2.4, zone: 0, haze: 0.2, shadow: 1 },
@@ -108,14 +113,15 @@ const RIGS: Record<string, Rig> = {
 /* ---------- state ---------- */
 
 const plain = plainBackdrop();
-let street: SceneRunner | null = null;
+let street: SceneRunner | null = null, backdropAsset: Sprite | null = null, backgrounds: string[] = [];
 let asset: Sprite | null = null, assetDir = '', bust = '', loadToken = 0, view = params.get('view') === 'raw' ? 0 : 1, switchedAt = -10;
 const t0 = performance.now(), fixedT = params.has('t') ? Number(params.get('t')) : null;
 const clock = () => fixedT ?? (performance.now() - t0) / 1000;
 const still = { cars: new Float32Array(64), beacons: new Float32Array(128), steam: new Float32Array(16), godrays: new Float32Array(16) };
 
 sceneIn.value = params.get('scene') ?? 'test';
-backdropSel.value = params.get('backdrop') === 'street' ? 'street' : 'plain';
+// ?clean hides the controls and the maps, for screenshots of the frame alone
+if (params.has('clean')) document.body.classList.add('clean');
 lightSel.value = params.get('light') && RIGS[params.get('light')!] ? params.get('light')! : 'lamp';
 flipIn.checked = params.get('flip') === '1';
 walkIn.checked = params.get('walk') === '1';
@@ -133,7 +139,7 @@ function persist(): void {
   if (view < 0.5) p.set('view', 'raw');
   if (flipIn.checked) p.set('flip', '1');
   if (walkIn.checked) p.set('walk', '1');
-  for (const k of ['q', 't']) if (params.has(k)) p.set(k, params.get(k)!);
+  for (const k of ['q', 't', 'clean']) if (params.has(k)) p.set(k, params.get(k)!);
   history.replaceState(null, '', `?${p}`);
 }
 
@@ -194,7 +200,7 @@ async function selectAsset(name: string, reload: boolean, retry = true): Promise
   persist();
 }
 
-async function loadList(prefer?: string): Promise<void> {
+async function loadList(): Promise<void> {
   const scene = sceneIn.value.trim(), res = await fetch(`${base}/${scene}/bench.json`, { cache: 'no-store' }).catch(() => null);
   if (!res?.ok) {
     asset = null;
@@ -203,15 +209,28 @@ async function loadList(prefer?: string): Promise<void> {
     showInfo(false);
     throw new Error(`Nothing built for "${scene}" yet. Build an asset with: npm run asset -- build art/${scene}/<name>.json`);
   }
-  const list = (await res.json()) as { assets: string[]; latest?: string }, names = list.assets;
+  const list = (await res.json()) as { assets: string[]; latest?: string; backgrounds?: string[] };
+  backgrounds = list.backgrounds ?? [];
+  const names = list.assets.filter((n) => !backgrounds.includes(n));
   assetSel.replaceChildren(...names.map((n) => new Option(n, n)));
-  const want = [prefer, asset?.def.name, params.get('asset'), list.latest].find((n) => n && names.includes(n)) ?? names[0];
-  if (want) await selectAsset(want, false);
+  // backgrounds the pipeline built join the two backdrops the bench has of its own
+  const keep = backdropSel.value;
+  for (const o of [...backdropSel.options]) if (o.value.startsWith('bg:')) o.remove();
+  for (const b of backgrounds) backdropSel.add(new Option(`${b} (generated)`, `bg:${b}`));
+  backdropSel.value = [...backdropSel.options].some((o) => o.value === keep) ? keep : 'plain';
+  const want = [asset?.def.name, params.get('asset'), list.latest].find((n) => n && names.includes(n)) ?? names[0];
+  if (want && want !== asset?.def.name) await selectAsset(want, false);
 }
 
-async function useBackdrop(): Promise<void> {
-  lightSel.disabled = backdropSel.value === 'street';
-  if (backdropSel.value === 'street' && !street) street = new SceneRunner(await loadScene(gl, `${base}/styleframe`), new Set(['hero']));
+async function useBackdrop(reload = false): Promise<void> {
+  const v = backdropSel.value;
+  lightSel.disabled = v === 'street';
+  if (v === 'street' && !street) street = new SceneRunner(await loadScene(gl, `${base}/styleframe`), new Set(['hero']));
+  if (v.startsWith('bg:') && (reload || backdropAsset?.def.name !== v.slice(3))) {
+    const next = await loadSprite(gl, `${base}/${sceneIn.value.trim()}`, v.slice(3), fallback, String(Date.now()));
+    if (backdropAsset) dispose(backdropAsset);
+    backdropAsset = next;
+  }
   showInfo(false);
   persist();
 }
@@ -236,10 +255,11 @@ function draw(): void {
     // the hero is left out of the street; the smoke emitter that follows her cigarette goes off screen
     f = street.frame(t, { view, sinceSwitch }, [0, 0], [actor], [-1000, -1000]);
   } else {
-    const rig = RIGS[lightSel.value] ?? RIGS.lamp;
+    const rig = RIGS[lightSel.value] ?? RIGS.lamp, bg = backdropSel.value.startsWith('bg:') ? backdropAsset : null;
+    const behind: DrawSprite[] = bg ? [{ sprite: bg, x: bg.def.x, y: bg.def.y }] : plain;
     f = {
       t, view, glitch: switchFade(view, sinceSwitch), cam: [0, 0], level: [NW, NH], zone: rig.zone,
-      sprites: [...plain, actor], lights: rig.lights, gi: lightGroups(t),
+      sprites: [...behind, actor], lights: rig.lights, gi: lightGroups(t),
       cars: still.cars, nCars: 0, beacons: still.beacons, nBeacons: 0, steam: still.steam, godrays: still.godrays,
       drips: [0, 0, 0, 0], mirror: GROUND,
     };
@@ -284,22 +304,33 @@ document.addEventListener('keydown', (e) => {
   persist();
 });
 
-// The dev server says which files under public/assets changed: reload the asset that was rebuilt, or show a new one.
+// The dev server says which files under public/assets changed: reload what was rebuilt, or show what is new.
+// A background takes over the backdrop; anything else becomes the asset in front of it.
 import.meta.hot?.on('lidless:asset', (data: { files: string[] }) => {
   const scene = sceneIn.value.trim(), parts = data.files.map((f) => f.split('/')).filter((p) => p[0] === scene);
   const built = parts.filter((p) => p.length === 3 && p[2] === 'sprite.json').map((p) => p[1]);
-  const current = asset?.def.name, touched = !!current && parts.some((p) => p[1] === current);
-  const listChanged = parts.some((p) => p.length === 2 && p[1] === 'bench.json');
-  const fresh = built.find((n) => n !== current);
-  if (listChanged || (fresh && !assetSel.querySelector(`option[value="${CSS.escape(fresh)}"]`))) loadList(fresh).catch(report);
-  else if (fresh) selectAsset(fresh, false).catch(report);
-  else if (touched) selectAsset(current, true).catch(report);
+  const touched = (name: string | undefined) => !!name && parts.some((p) => p[1] === name);
+  const update = async () => {
+    if (parts.some((p) => p.length === 2 && p[1] === 'bench.json')) await loadList();
+    const bg = built.find((n) => backgrounds.includes(n));
+    if (bg) { backdropSel.value = `bg:${bg}`; await useBackdrop(true); }
+    else if (backdropSel.value.startsWith('bg:') && touched(backdropSel.value.slice(3))) await useBackdrop(true);
+    const fresh = built.find((n) => n !== asset?.def.name && !backgrounds.includes(n));
+    if (fresh) await selectAsset(fresh, false);
+    else if (asset && touched(asset.def.name)) await selectAsset(asset.def.name, true);
+  };
+  update().catch(report);
 });
 
 /* ---------- start ---------- */
 
 syncView();
-Promise.all([loadList(), useBackdrop()])
+loadList()
+  .then(() => {
+    const b = params.get('backdrop');
+    if (b && [...backdropSel.options].some((o) => o.value === b)) backdropSel.value = b;
+    return useBackdrop();
+  })
   .catch(report)
   .finally(() => {
     draw();

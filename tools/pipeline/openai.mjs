@@ -30,23 +30,23 @@ async function call(endpoint, init) {
 }
 
 /** @returns {Promise<{ images: Buffer[], usage: object | null, cost: number | null }>} PNG files and what they cost */
-export function generate({ prompt, size, quality = 'medium', n = 1, model = MODELS.generate }) {
+export function generate({ prompt, size, quality = 'medium', n = 1, background = 'transparent', model = MODELS.generate }) {
   return call('generations', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model, prompt, size, quality, n, background: 'transparent', output_format: 'png' }),
+    body: JSON.stringify({ model, prompt, size, quality, n, background, output_format: 'png' }),
   });
 }
 
 /** Edit: the first image is the one being changed, the rest are references. Returns the same as generate. */
-export async function edit({ prompt, images, size, quality = 'medium', n = 1, model = MODELS.edit }) {
+export async function edit({ prompt, images, size, quality = 'medium', n = 1, background = 'transparent', model = MODELS.edit }) {
   const form = new FormData();
   form.append('model', model);
   form.append('prompt', prompt);
   form.append('size', size);
   form.append('quality', quality);
   form.append('n', String(n));
-  form.append('background', 'transparent');
+  form.append('background', background);
   form.append('output_format', 'png');
   for (const path of images) form.append('image[]', new Blob([await readFile(path)], { type: path.endsWith('.png') ? 'image/png' : 'image/jpeg' }), basename(path));
   return call('edits', { method: 'POST', body: form });
