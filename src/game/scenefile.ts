@@ -48,6 +48,8 @@ export interface SceneFile {
   walk: { y: number; x0: number; x1: number };
   /** World y of the line wet surfaces reflect around; by default a little above the walk line. */
   mirror?: number;
+  /** How bright the ambient light is, 1 by default: a room with few lamps gets more, evenly and without highlights. */
+  ambient?: number;
   spawns: Record<string, Spawn>;
   hotspots: Hotspot[];
   beacons?: SceneDef['beacons'];
@@ -126,7 +128,7 @@ export async function buildScene(gl: GL, assets: string, file: SceneFile, world:
   const def: SceneDef = {
     name: file.id, size: file.size, sprites: sprites.map((s) => s.def.name), zone: file.zoneMap ?? '',
     lights: file.lights, beacons: file.beacons ?? [], steam: file.steam ?? [], godrays: file.godrays ?? [],
-    drips: file.drips, mirror: file.mirror ?? file.walk.y - 8, traffic: file.traffic,
+    drips: file.drips, mirror: file.mirror ?? file.walk.y - 8, traffic: file.traffic, ambient: file.ambient,
   };
   const level: LevelDef = {
     walk: file.walk,

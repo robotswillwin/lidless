@@ -92,6 +92,7 @@ export class SceneRunner {
       godrays: this.godrays,
       drips: dr ? [dr.x0, dr.x1, dr.top, dr.bottom] : [0, 0, 0, 0],
       mirror: d.mirror,
+      ambient: d.ambient,
     };
   }
 }

@@ -68,6 +68,8 @@ export interface Frame {
   godrays: Float32Array;
   drips: [number, number, number, number];
   mirror: number;
+  /** The scene's ambient light, over the look's: 1 by default. */
+  ambient?: number;
 }
 
 const MAP_ORDER: [MapName, string][] = [
@@ -222,7 +224,7 @@ export class Renderer {
       gl.uniform1f(pr.u.uView, f.view); gl.uniform1f(pr.u.uTime, f.t); gl.uniform1f(pr.u.uShadows, q.shadows ? 1 : 0);
       gl.uniform4fv(pr.u.uCars, f.cars); gl.uniform1i(pr.u.uNC, f.nCars);
       gl.uniform4fv(pr.u.uBeac, f.beacons); gl.uniform1i(pr.u.uNB, f.nBeacons);
-      gl.uniform4f(pr.u.uLookL, k.lights, k.ambient, k.haze, k.glow);
+      gl.uniform4f(pr.u.uLookL, k.lights, k.ambient * (f.ambient ?? 1), k.haze, k.glow);
       gl.uniform1f(pr.u.uGround, f.mirror);
       gl.uniform1f(pr.u.uFill, k.charFill); gl.uniform1f(pr.u.uRim, k.charRim); gl.uniform1f(pr.u.uRawColour, k.rawColour);
     });

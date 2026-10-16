@@ -47,10 +47,12 @@ async function boot(): Promise<void> {
   const heroAnchor = heroSprite.def.anchor ?? [heroSprite.def.w / 2, heroSprite.def.h];
   const heroBob = () => (heroSprite.def.anims?.walk ? 0 : world.bob);
 
-  // scenes are kept once loaded, so going back and forth is quick
+  // scenes are kept once loaded, so going back and forth is quick; on the dev server a change empties the cache, and
+  // bust makes the art load again instead of coming from the browser's own cache
   const scenes = new Map<string, Promise<Scene>>();
+  let bust = '';
   const sceneById = (id: string) => {
-    if (!scenes.has(id)) scenes.set(id, loadSceneFile(assets, id).then((file) => buildScene(gl, assets, file, worldFile)));
+    if (!scenes.has(id)) scenes.set(id, loadSceneFile(assets, id).then((file) => buildScene(gl, assets, file, worldFile, bust)));
     return scenes.get(id)!;
   };
   let scene: Scene, runner: SceneRunner, world: World;
@@ -227,11 +229,13 @@ async function boot(): Promise<void> {
     if (!stats.hidden) stats.textContent = `${renderer.quality.tier} · ${fps.toFixed(0)} fps · ${canvas.width}×${canvas.height}`;
   };
 
-  // on the dev server: a scene saved in the scene editor comes back in at once, with her where she stands
+  // on the dev server: when a scene file or any art changes, every scene loads again on its next visit, and the one on
+  // screen at once, with her where she stands, if the change is its own (its file, or art it uses)
   import.meta.hot?.on('lidless:asset', (data: { files: string[] }) => {
-    const id = scene.file.id;
-    if (!data.files.includes(`scenes/${id}/scene.json`) || travelling) return;
-    scenes.delete(id);
+    bust = String(Date.now());
+    scenes.clear();
+    const id = scene.file.id, own = data.files.some((f) => f === `scenes/${id}/scene.json` || scene.file.layers.some((l) => f.startsWith(`${l.asset}/`)));
+    if (!own || travelling) return;
     void enter(id, { x: world.heroX, facing: world.facing }).catch((err: unknown) => ui.showCaption(`The scene did not load: ${err instanceof Error ? err.message : String(err)}`));
   });
 

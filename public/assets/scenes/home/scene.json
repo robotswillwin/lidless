@@ -30,19 +30,6 @@
    "shadow": 1
   },
   {
-   "x": 377,
-   "y": 342,
-   "z": 101,
-   "r": 700,
-   "c": [
-    0.82,
-    0.86,
-    1
-   ],
-   "i": 0.75,
-   "zone": 0
-  },
-  {
    "x": 579,
    "y": 297,
    "z": 25,
@@ -300,5 +287,6 @@
     "raw": "Parcels in brown paper and string, from your errands. None has an address on the outside."
    }
   }
- ]
+ ],
+ "ambient": 2.2
 }
