@@ -54,8 +54,11 @@ function lookSave(): Plugin {
         req.on('end', () => {
           try {
             const data = JSON.parse(body) as Record<string, unknown>;
-            const look = Object.fromEntries(Object.entries(data).filter(([k, v]) => /^[a-zA-Z]{1,40}$/.test(k) && typeof v === 'number' && Number.isFinite(v)));
+            // the shared settings as numbers, and the ones split per view under "raw" and "concierge"
+            const numbers = (o: unknown) => Object.fromEntries(Object.entries((o && typeof o === 'object' ? o : {}) as Record<string, unknown>).filter(([k, v]) => /^[a-zA-Z]{1,40}$/.test(k) && typeof v === 'number' && Number.isFinite(v)));
+            const look: Record<string, unknown> = numbers(data);
             if (!Object.keys(look).length) throw new Error('no settings in the request');
+            for (const view of ['raw', 'concierge']) { const split = numbers(data[view]); if (Object.keys(split).length) look[view] = split; }
             writeFile(`${server.config.publicDir}/assets/look.json`, JSON.stringify(look, null, 2) + '\n').then(
               () => { res.statusCode = 200; res.end('saved'); },
               (err: Error) => { res.statusCode = 500; res.end(err.message); },

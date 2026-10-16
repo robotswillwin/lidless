@@ -25,10 +25,11 @@ export interface SpriteDef {
   /** What the pipeline built it as: character, prop, background or portrait. */
   kind?: string;
   /**
-   * How much of the glowing air around lights lies in front of it, 0 to 1. The set behind gets all of it; a person
-   * walking in front gets less, or the haze of a lamp behind them shows across them as if they were see-through.
-   * Default: 0.05 for characters, 1 for everything else.
+   * Drawn in front of the set, like a character: lights behind it only rim it and give it a soft fill, and the set's
+   * glowing air stays mostly behind it. Default: true for characters.
    */
+  actor?: boolean;
+  /** For an actor: how much of the set's glowing air shows over it, 0 to 1. Default: the look's "Glow showing over them". */
   haze?: number;
   /** Animation frames side by side in every map, a transparent gutter between them; w and h are one frame. */
   frames?: { count: number; gutter: number };

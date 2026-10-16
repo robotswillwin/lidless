@@ -16,6 +16,9 @@ out vec4 o;
 vec2 P() { return vec2(gl_FragCoord.x, uRes.y - gl_FragCoord.y); }
 vec4 T(sampler2D t, vec2 p) { return texture(t, vec2(p.x, uRes.y - p.y) / uRes); }
 float lum(vec3 c) { return dot(c, vec3(0.2126, 0.7152, 0.0722)); }
+// G-buffer 3's alpha: 1 for the set; for a character, half its share of the glowing air in front of it (so below 0.5)
+float isActor(float a) { return step(a, 0.75); }
+float airOf(float a) { return a < 0.75 ? a * 2.0 : 1.0; }
 // raw view: things are cold and lit a sterile white; only the poisonous air between them is yellow-green.
 // A machine's own light (a monitor, an indicator, the kiosk's eye) keeps its colour.
 const vec3 RAW_LIGHT = vec3(0.92, 0.98, 1.06);
@@ -59,7 +62,7 @@ uniform float uView;       // 0 raw, 1 Concierge
 uniform float uFlip;
 uniform vec4 uConst;       // fallbacks when a sprite has no meta map: occluder, depth, reflectivity, object id
 uniform float uHasMeta;
-uniform float uHaze;       // how much of the glowing air around lights lies in front of it: 1 for the set, less for people in front
+uniform float uHaze;       // a character: how much of the set's glowing air shows over it, 0 to 1; the set: -1
 layout(location = 0) out vec4 o0;
 layout(location = 1) out vec4 o1;
 layout(location = 2) out vec4 o2;
@@ -85,7 +88,7 @@ void main() {
   o0 = vec4(a.rgb, (floor(m.b * 127.0 + 0.5) * 2.0 + occ) / 255.0);
   o1 = vec4(n.xy * 0.5 + 0.5, m.r, m.g);
   o2 = vec4(g, (grp + 16.0 * mach) / 31.0);
-  o3 = vec4(dep / 3.0, refl / 2.0, obj / 63.0, uHaze);
+  o3 = vec4(dep / 3.0, refl / 2.0, obj / 63.0, uHaze < 0.0 ? 1.0 : uHaze * 0.5);
 }`;
 
 /* ---------- ambient occlusion: occluders, downsampled, then blurred with the shared blur ---------- */
@@ -108,6 +111,7 @@ uniform int uNL;
 uniform float uGI[16], uView, uTime, uShadows;
 uniform vec4 uLookL;      // the look: lights, ambient, haze, glowing surfaces
 uniform float uFill;      // the look: how much of a light behind a character reaches the side we see
+uniform float uRim;       // the look: how strongly a light behind a character catches its edges
 uniform float uGround;    // world y of the ground line
 uniform vec4 uCars[16]; uniform int uNC;
 uniform vec4 uBeac[32]; uniform int uNB;
@@ -125,8 +129,8 @@ void main() {
   vec4 g0 = T(tG0, p), g1 = T(tG1, p), g2 = T(tG2, p), g3 = T(tG3, p), z = Z(p);
   // a character in front of the set: air is how much of the glowing air lies between it and the eye (1 for the set).
   // It stands in the street even in front of a shop, so it takes the zone of the ground under it, not of the set behind.
-  float air = g3.a, actor = 1.0 - air;
-  z = mix(z, Z(vec2(p.x, uGround - uCam.y)), min(1.0, actor * 1.2));
+  float actor = isActor(g3.a), air = airOf(g3.a);
+  z = mix(z, Z(vec2(p.x, uGround - uCam.y)), actor);
   float hv = floor(g0.a * 255.0 + 0.5), occ = mod(hv, 2.0), hz = floor(hv / 2.0) / 127.0 * 22.0;
   vec2 nxy = g1.xy * 2.0 - 1.0; vec3 Nn = vec3(nxy, sqrt(max(0.0, 1.0 - dot(nxy, nxy))));
   float specS = g1.z, shin = mix(6.0, 120.0, g1.w), dep = g3.r, obj = floor(g3.b * 63.0 + 0.5);
@@ -162,7 +166,7 @@ void main() {
     vec3 Lf = normalize(vec3(d2, LP.z - hz)), Lb = normalize(vec3(d2, -0.6 * abs(LP.z - hz) - 4.0));
     vec3 Lv = back > 0.5 ? Lb : Lf;
     float diff = max((dot(Nn, Lv) + LG.z) / (1.0 + LG.z), 0.0);
-    vec3 li = lc * gi * att * cone * sh * zw * keep * uLookL.x;
+    vec3 li = lc * gi * att * cone * sh * zw * keep * uLookL.x * (back > 0.5 ? uRim : 1.0);
     col += alb * li * diff;
     if (back > 0.0) col += alb * lc * gi * min(att, 0.3) * cone * zw * keep * uLookL.x * back * uFill * (0.6 + 0.4 * max(dot(Nn, Lf), 0.0));
     vec3 H = normalize(Lv + vec3(0.0, 0.0, 1.0));
@@ -205,7 +209,7 @@ void main() {
   vec4 g3 = T(tG3, p), z = Z(p);
   float dep = g3.r, refl = g3.g, GY = uMirror - uCam.y;
   // a character takes the zone of the ground it stands on: rain falls in front of it out in the street
-  z = mix(z, Z(vec2(p.x, GY)), min(1.0, (1.0 - g3.a) * 1.2));
+  z = mix(z, Z(vec2(p.x, GY)), isActor(g3.a));
   float dk = uDof * (dep < 0.15 ? 0.4 : dep < 0.5 ? 0.85 : dep < 0.8 ? 0.45 : 0.0);
   if (dk > 0.0) { vec4 b = texture(tDof, gl_FragCoord.xy / uRes); if (b.a > 0.02) c = mix(c, b.rgb / b.a, dk * smoothstep(0.02, 0.3, b.a)); }
   float raw = 1.0 - uView;
@@ -317,7 +321,7 @@ void main() {
   vec3 b1 = texture(tBloom1, uv).rgb, b2 = texture(tBloom2, uv).rgb;
   // a character in front of the set hides the light behind it: the shafts and the wide halo are light caught in the air
   // behind them, and the lens glow only wraps a little over their edges (air: 1 for the set, small for a character)
-  float air = T(tG3, ps > 1.0 ? (floor(p / ps) + 0.5) * ps : p).a, lens = mix(1.0, air, 0.9);
+  float air = airOf(T(tG3, ps > 1.0 ? (floor(p / ps) + 0.5) * ps : p).a), lens = mix(1.0, air, 0.9);
   vec3 bl = (b1 * lens * 0.55 + mix(b2, tone(b2, RAW_AIR), raw * 0.7) * air * 0.45) * uLookB.x;
   vec4 z = Z(p); float jit = hash(floor(p) * 0.37);
   for (int s = 0; s < 4; s++) {

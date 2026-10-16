@@ -39,8 +39,7 @@ async function boot(): Promise<void> {
   const assets = `${import.meta.env.BASE_URL}assets`, base = `${assets}/styleframe`;
   const renderer = new Renderer(canvas, QUALITY[pickTier()]);
   const [scene, level] = await Promise.all([loadScene(renderer.gl, base), loadLevel(base)]);
-  // the look panel (L): pixels, light, colour and film, starting from the game's saved look
-  const look = createLookPanel(renderer, await loadProjectLook(assets), stage);
+  const projectLook = await loadProjectLook(assets);
   const save = loadSave();
   const heroPath = level.hero.sprite, heroName = heroPath.split('/').pop()!;
   const runner = new SceneRunner(scene, new Set([heroName]));
@@ -56,6 +55,8 @@ async function boot(): Promise<void> {
   const debugView = params.get('view') === 'raw';
   const canSwitch = () => dialogue.hasRaw || debugView;
   const state: ViewState = { view: debugView ? 0 : save && canSwitch() ? save.view : 1, sinceSwitch: 10 };
+  // the look panel (L): pixels, light, characters, colour and film, from the game's saved look; split settings follow the view
+  const look = createLookPanel(renderer, projectLook, stage, { view: () => (state.view < 0.5 ? 'raw' : 'concierge') });
   const cam: [number, number] = [0, 0];
   const t0 = performance.now(), fixedT = params.has('t') ? Number(params.get('t')) : null;
   const clock = () => fixedT ?? (performance.now() - t0) / 1000;
@@ -74,6 +75,7 @@ async function boot(): Promise<void> {
     if (!canSwitch() && !force) return;
     state.view = state.view > 0.5 ? 0 : 1;
     switchedAt = clock();
+    look.refresh();
     syncView();
     persist();
   };

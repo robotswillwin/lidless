@@ -291,7 +291,7 @@ const syncView = () => {
   viewBtn.setAttribute('aria-pressed', String(view > 0.5));
   viewLabel.textContent = view > 0.5 ? 'Concierge view' : 'Raw view';
 };
-const toggleView = () => { view = view > 0.5 ? 0 : 1; switchedAt = clock(); syncView(); persist(); };
+const toggleView = () => { view = view > 0.5 ? 0 : 1; switchedAt = clock(); syncView(); persist(); look?.refresh(); };
 const report = (err: unknown) => showError(err instanceof Error ? err.message : String(err));
 
 viewBtn.addEventListener('click', toggleView);
@@ -351,9 +351,12 @@ let look: LookPanel | null = null;
 const lookBtn = el<HTMLButtonElement>('look-toggle');
 lookBtn.addEventListener('click', () => look?.toggle());
 void loadProjectLook(base).then((project) => {
-  look = createLookPanel(renderer, project, el<HTMLElement>('panel').parentElement!, (open) => {
-    document.body.classList.toggle('look-open', open);
-    lookBtn.setAttribute('aria-pressed', String(open));
+  look = createLookPanel(renderer, project, el<HTMLElement>('panel').parentElement!, {
+    view: () => (view < 0.5 ? 'raw' : 'concierge'),
+    onToggle: (open) => {
+      document.body.classList.toggle('look-open', open);
+      lookBtn.setAttribute('aria-pressed', String(open));
+    },
   });
 });
 

@@ -12,6 +12,9 @@
   "shafts": 1,
   "streaks": 1,
   "rawFog": 1,
+  "charFill": 1,
+  "charRim": 1,
+  "charGlow": 0.05,
   "exposure": 0,
   "contrast": 1,
   "saturation": 1,
@@ -19,6 +22,5 @@
   "tint": 0,
   "vignette": 1,
   "grain": 1,
-  "aberration": 1,
-  "charFill": 1
+  "aberration": 1
 }

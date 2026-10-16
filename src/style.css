@@ -94,9 +94,17 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .look-head button:hover, .look-head button:focus-visible { background: #2a2a38; outline: none; }
 .look-note { margin: 6px 0 0; min-height: 1.3em; color: var(--muted); font-size: 11px; }
 .look h3 { margin: 10px 0 2px; font: 500 11px/1 var(--ui); letter-spacing: .14em; text-transform: uppercase; color: var(--amber); }
-.look-row { display: grid; grid-template-columns: 1fr 40px; column-gap: 8px; margin: 5px 0; color: var(--muted); }
-.look-row span { grid-column: 1 / 3; }
-.look-row input[type="range"] { width: 100%; margin: 2px 0 0; accent-color: var(--cyan); }
+.look-row { display: grid; grid-template-columns: 1fr 44px; column-gap: 8px; row-gap: 1px; margin: 6px 0; color: var(--muted); align-items: center; }
+.look-row input[type="range"] { width: 100%; margin: 0; accent-color: var(--cyan); }
 .look-row output { text-align: right; color: var(--ink); font-variant-numeric: tabular-nums; }
-.look-row.look-choice select { grid-column: 1 / 3; margin-top: 2px; font: 400 12px/1.2 var(--ui); padding: 3px 5px; background: #14141c; color: var(--ink); border: 1px solid #2a2a36; border-radius: 3px; }
+.look-row.look-choice select { grid-column: 1 / 3; font: 400 12px/1.2 var(--ui); padding: 3px 5px; background: #14141c; color: var(--ink); border: 1px solid #2a2a36; border-radius: 3px; }
+/* both views share a setting, or it is split and the slider edits the view on screen */
+.look-link { justify-self: end; width: 44px; font: 400 10px/1 var(--ui); padding: 3px 0; letter-spacing: .06em; background: transparent; color: var(--muted); border: 1px solid #333344; border-radius: 3px; cursor: pointer; }
+.look-link:hover, .look-link:focus-visible { color: var(--ink); border-color: #555566; outline: none; }
+.look-link[data-view="raw"] { color: var(--amber); border-color: rgba(240, 178, 90, .6); }
+.look-link[data-view="concierge"] { color: var(--cyan); border-color: rgba(143, 240, 234, .6); }
+.look-editing { margin: 2px 0 0; font-size: 11px; color: var(--muted); }
+.look-editing[data-view="raw"] { color: var(--amber); }
+.look-editing[data-view="concierge"] { color: var(--cyan); }
+.look-editing:empty { display: none; }
 .bench .maps figcaption { font: 400 11px/1 var(--ui); color: var(--muted); letter-spacing: .06em; }
