@@ -17,10 +17,14 @@
    "asset": "styleframe/street"
   },
   {
-   "asset": "styleframe/sleeper"
+   "asset": "street/sleeper",
+   "x": 160,
+   "y": 388
   },
   {
-   "asset": "styleframe/docked"
+   "asset": "street/dock-woman",
+   "x": 700,
+   "y": 342
   }
  ],
  "zoneMap": "styleframe/zone.png",
@@ -517,6 +521,20 @@
    ],
    "g": 6,
    "ar": 1
+  },
+  {
+   "x": 245,
+   "y": 372,
+   "z": 40,
+   "r": 190,
+   "c": [
+    1,
+    0.75,
+    0.45
+   ],
+   "i": 0.7,
+   "zone": 0,
+   "layer": 1
   }
  ],
  "walk": {
@@ -600,6 +618,19 @@
    }
   },
   {
+   "id": "sleeper",
+   "name": "Someone asleep",
+   "rect": [
+    160,
+    388,
+    170,
+    72
+   ],
+   "stand": 245,
+   "only": "raw",
+   "look": "A man asleep against the shop front under a wet blanket. Nobody has woken him in a while."
+  },
+  {
    "id": "radio-door",
    "name": "Radio repair",
    "rect": [
@@ -673,7 +704,7 @@
    "stand": 598,
    "look": {
     "concierge": "Three clipped topiaries and a polite sign: Please rest.",
-    "raw": "A man asleep on the bench under a wet blanket. Nobody has woken him in a while."
+    "raw": "An empty bench, its slats kicked in. The Concierge has grown topiaries over it."
    }
   },
   {
@@ -683,12 +714,12 @@
     "raw": "Someone at the dock"
    },
    "rect": [
-    742,
-    396,
-    58,
-    70
+    700,
+    342,
+    92,
+    130
    ],
-   "stand": 688,
+   "stand": 655,
    "face": 1,
    "look": {
     "concierge": "A woman in a red dress, dining at the machine. She smiles at nothing in particular.",

@@ -46,7 +46,7 @@ const KIND_NOTES = {
 };
 
 /** A background that is a room: the same flat, side-on framing as a street, with the floor where the pavement would be. */
-const INTERIOR_NOTE = 'A wide room seen straight on from the side, like a stage set: the back wall fills the frame, the floor runs along the bottom sixth of the image, and the room continues past the left and right edges. Drawn at adventure-game scale: a doorway is about half the image height, so a standing adult would be a little less than half of it. Flat, even, neutral lighting like an overcast day, no shadows and nothing glowing: this is the colour of every surface, and the game adds the night and its lights. No people, no border.';
+const INTERIOR_NOTE = 'A wide room seen straight on from the side, like a stage set: the back wall fills the frame, the floor runs along the bottom sixth of the image, and the room continues past the left and right edges. Drawn at the game's scale: a doorway is about two fifths of the image height, and a standing adult is a little taller than a doorway. Flat, even, neutral lighting like an overcast day, no shadows and nothing glowing: this is the colour of every surface, and the game adds the night and its lights. No people, no border.';
 
 /** A character that will be cut into parts and animated needs every limb clear of the body. */
 const RIG_POSE = 'A neutral standing pose for animation: arms hanging relaxed and slightly away from the body, hands empty and open, legs straight and slightly apart so both are fully visible, nothing held and nothing crossing the body.';
@@ -55,7 +55,7 @@ export function generationPrompt(r, look = r.look ?? 'pixel') {
   const world = r.exists === 'concierge'
     ? `This does not exist: the city AI made it up and shows it in everyone's eye. Its world is ${conciergeWorld(r)}`
     : RAW_WORLD;
-  return `${look ? `${LOOKS[look]} ` : ''}${HOUSE_STYLE} ${r.kind === 'background' && r.interior ? INTERIOR_NOTE : KIND_NOTES[r.kind]}${r.rig ? ` ${RIG_POSE}` : ''} ${world} Subject: ${r.prompt}`;
+  return `${look ? `${LOOKS[look]} ` : ''}${HOUSE_STYLE} ${r.framing ?? (r.kind === 'background' && r.interior ? INTERIOR_NOTE : KIND_NOTES[r.kind])}${r.rig ? ` ${RIG_POSE}` : ''} ${world} Subject: ${r.prompt}`;
 }
 
 /** Put in front of the prompt when a layout image goes first: it sets the composition, the references the rendering. */
@@ -77,12 +77,24 @@ export function conciergePrompt(r) {
   ].join(' ');
 }
 
+/** The world a view of the asset is in, for edits of an image that is already one view or the other. */
+const worldOf = (r, view) => (view === 'concierge' ? `It shows the city AI's augmented view, whose world is ${conciergeWorld(r)}` : RAW_WORLD);
+
 /** Re-dress the picked image of one view: the same picture, every outline in place, its surfaces changed as asked. */
 export function redressPrompt(r, view, change) {
   return [
     'Edit this image. Keep the layout, the framing and every outline exactly the same, aligned pixel for pixel, and every object where it is; change only surfaces, materials, wear, colours and details.',
-    view === 'concierge' ? `It shows the city AI's augmented view, whose world is ${conciergeWorld(r)}` : RAW_WORLD,
+    worldOf(r, view),
     `Change: ${change}`,
     r.kind === 'background' ? 'Keep the full frame and the flat, even lighting; only neon signs and screens may glow.' : 'Keep the transparent background and the even frontal lighting.',
+  ].join(' ');
+}
+
+/** Paint the new edges around a set that was shrunk to the characters' scale: more of the same place, nothing new in it. */
+export function reframePrompt(r, view) {
+  return [
+    `Extend this picture into the transparent area of the mask: continue the same ${r.interior ? 'room' : 'place'} outward naturally, with more of its walls, ceiling, floor and fittings, at the same scale and in exactly the same style, colours, flat lighting and level of detail.`,
+    'Keep everything that is already there. No people.',
+    worldOf(r, view),
   ].join(' ');
 }

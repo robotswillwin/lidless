@@ -13,7 +13,7 @@ import { KINDS, ROOT, loadRecipe, recipeTemplate } from './recipe.mjs';
 import { conciergePartsPrompt, cut as cutParts, otherSidePrompt, PARTS as PARTS_NAMES, partsPrompt, pointOf, pose as posePartsRig, SHEET, template as partsTemplate, walkAngles } from './parts.mjs';
 import { animatePrompt, guide, poses } from './poses.mjs';
 import { bake, plant, shrink, WORK } from './rig.mjs';
-import { conciergePrompt, generationPrompt, LAYOUT_NOTE, LAYOUT_REFERENCES_NOTE, LOOKS, redressPrompt, REFERENCE_NOTE } from './style.mjs';
+import { conciergePrompt, generationPrompt, LAYOUT_NOTE, LAYOUT_REFERENCES_NOTE, LOOKS, redressPrompt, reframePrompt, REFERENCE_NOTE } from './style.mjs';
 
 try { process.loadEnvFile(resolve(ROOT, '.env.local')); } catch { /* no .env.local: fine until an API call needs the key */ }
 
@@ -32,6 +32,10 @@ const HELP = `Asset pipeline: generate art with an image AI, clean it and turn i
       Edit the picked image of one view into new candidates of the same view: the same layout, every outline in
       place, with surfaces, wear and details changed as the prompt says. Pick one, and remake the other view if the
       outlines must still match it.
+  npm run asset -- reframe <recipe> --scale 0.8 --floor <y> [--view raw|concierge] [--quality medium] [--dry]
+      Shrink the picked image of a view around its floor line (y, in the image's pixels) and have GPT Image 2.5
+      Sunburst paint the new edges: a set drawn too big for the characters gets their scale and keeps what is in it.
+      Prints how scene coordinates move. Remake the other view with variant afterwards, so the two still match.
   npm run asset -- sheet <recipe>
       Lay all candidates side by side at game size, finished as the build would, to choose between them.
   npm run asset -- animate <recipe> [--anim walk] [--view raw|concierge] [--quality low|medium] [--dry]
@@ -159,6 +163,44 @@ async function cmdRedress([file], opt) {
   console.log(`${r.name}: ${n} re-dressed ${view} candidates of ${rel(src)}, ${size}`);
   if (opt.dry) return console.log(`\n${prompt}`);
   await saveCandidates(r, view, await edit({ prompt, images: [src], size, quality, n, background: r.spec.transparent ? 'transparent' : 'opaque' }), opt.tag ?? 'redress');
+}
+
+async function cmdReframe([file], opt) {
+  const r = await loadRecipe(file), view = opt.view ?? (r.exists === 'concierge' ? 'concierge' : 'raw'), src = join(r.dir, `${view}.png`);
+  const s = Number(opt.scale), floor = Number(opt.floor), quality = opt.quality ?? 'medium';
+  if (!(s > 0.3 && s < 1) || !Number.isFinite(floor)) throw new Error('usage: reframe <recipe> --scale 0.8 --floor <y of the floor line, in the image>');
+  if (!existsSync(src)) throw new Error(`no ${view} image at ${rel(src)}`);
+  const { width: W, height: H } = await sharp(src).metadata();
+  // the picture shrinks around the floor line, which stays where it was; the rest of the frame is new
+  const w = Math.round(W * s), h = Math.round(H * s), left = Math.round((W - w) / 2), top = Math.round(floor * (1 - s)), edge = 14;
+  const small = await sharp(src).resize(w, h, { kernel: 'lanczos3' }).removeAlpha().raw().toBuffer();
+  // around it, a blur of the whole picture, so the model has colours to continue from
+  const frame = Buffer.from(await sharp(src).resize(W, H).blur(30).removeAlpha().raw().toBuffer());
+  for (let y = 0; y < h; y++) small.copy(frame, ((top + y) * W + left) * 3, y * w * 3, (y + 1) * w * 3);
+  // the mask is transparent outside the picture and over its last few pixels, where old and new are blended
+  const inside = (x, y) => x - left >= 0 && x - left < w && y - top >= 0 && y - top < h;
+  const depth = (x, y) => Math.min(x - left, left + w - 1 - x, y - top, top + h - 1 - y);
+  const m = Buffer.alloc(W * H * 4, 255);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (!inside(x, y) || depth(x, y) < edge) m[(y * W + x) * 4 + 3] = 0;
+  const prompt = reframePrompt(r, view);
+  console.log(`${r.name}: ${view} image shrunk to ${(s * 100).toFixed(0)}% around y ${floor}, new edges painted at ${quality} quality`);
+  if (opt.dry) return console.log(`\n${prompt}`);
+  const res = await edit({ prompt, images: [{ name: 'frame.png', data: await sharp(frame, { raw: { width: W, height: H, channels: 3 } }).png().toBuffer() }], mask: await sharp(m, { raw: { width: W, height: H, channels: 4 } }).png().toBuffer(), size: `${W}x${H}`, quality, n: 1, background: 'opaque' });
+  if (!res.images.length) throw new Error('the API returned no image');
+  const dir = join(r.dir, 'candidates');
+  await mkdir(dir, { recursive: true });
+  await writeFile(join(dir, (await nextName(dir, `${view}-reframe-output`))()), res.images[0]);
+  // the shrunk picture goes back over what the model drew, blended into it over its edge
+  const { data } = await sharp(res.images[0]).resize(W, H, { fit: 'fill' }).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const X = left + x, Y = top + y, k = Math.min(1, depth(X, Y) / edge), i = (Y * W + X) * 3, j = (y * w + x) * 3;
+    for (let c = 0; c < 3; c++) data[i + c] = Math.round(data[i + c] * (1 - k) + small[j + c] * k);
+  }
+  const name = (await nextName(dir, view, 'reframe'))(), out = join(dir, name);
+  await sharp(data, { raw: { width: W, height: H, channels: 3 } }).png().toFile(out);
+  const spent = res.cost == null ? 'Cost: not reported by the API.' : `Cost: $${res.cost.toFixed(4)}`;
+  console.log(`  ${rel(out)}\n${spent}\nIn the scene, a point x, y of the old picture is now at ${(left / W).toFixed(4)} × width + ${s} x, ${(top / H).toFixed(4)} × height + ${s} y.`);
+  console.log(`Pick it with: npm run asset -- pick ${rel(r.file)} ${basename(name, '.png')}`);
 }
 
 async function cmdPick([file, cand]) {
@@ -654,6 +696,6 @@ async function cmdTouch([file], opt) {
 }
 
 const [cmd, ...rest] = process.argv.slice(2), { pos, opt } = parse(rest);
-const run = { new: cmdNew, generate: cmdGenerate, variant: cmdVariant, redress: cmdRedress, pick: cmdPick, import: cmdImport, sheet: cmdSheet, touch: cmdTouch, erase: cmdErase, animate: cmdAnimate, parts: cmdParts, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
+const run = { new: cmdNew, generate: cmdGenerate, variant: cmdVariant, redress: cmdRedress, reframe: cmdReframe, pick: cmdPick, import: cmdImport, sheet: cmdSheet, touch: cmdTouch, erase: cmdErase, animate: cmdAnimate, parts: cmdParts, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
 if (!run) console.log(HELP);
 else run(pos, opt).catch((e) => { console.error(`error: ${e.message}`); process.exit(1); });

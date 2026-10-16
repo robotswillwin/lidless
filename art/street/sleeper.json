@@ -1,0 +1,15 @@
+{
+  "name": "sleeper",
+  "scene": "street",
+  "kind": "character",
+  "exists": "raw",
+  "size": "1536x1024",
+  "framing": "One man lying asleep on his side on the ground, curled up with his knees drawn in, seen from the side, his head to the left resting on a rolled-up coat, worn boots sticking out at the right. Even, soft, frontal lighting with no cast shadows, no rim light and no glow halos. Transparent background, the whole figure in frame with a little space around it, no ground, no text, no border.",
+  "prompt": "A homeless man in his sixties asleep on the pavement under a wet, stained blanket of faded patchwork, only his grey-stubbled face, one hand and his scuffed boots showing. Like everyone, he wears a partial helmet over one eye: a heavy, grey, steampunk-like device of riveted metal plates and a round lens. An empty bottle lies by his boots.",
+  "height": 72,
+  "position": [690, 464],
+  "material": "cloth",
+  "glow": { "raw": "none", "concierge": "none", "machine": false },
+  "references": ["art/reference/Rainy Neon Cyberpunk Concept Sheet.png"],
+  "palette": 0.35
+}

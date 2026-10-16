@@ -1,0 +1,26 @@
+{
+  "name": "dock-woman",
+  "x": 714,
+  "y": 334,
+  "w": 92,
+  "h": 130,
+  "maps": [
+    "albedo.concierge",
+    "albedo.raw",
+    "glow.concierge",
+    "material",
+    "meta",
+    "normal"
+  ],
+  "depth": 3,
+  "parallax": 1,
+  "occluder": 1,
+  "reflectivity": 0,
+  "object": 0,
+  "anchor": [
+    46,
+    130
+  ],
+  "exists": "both",
+  "kind": "character"
+}

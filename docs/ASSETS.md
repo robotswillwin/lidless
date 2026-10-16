@@ -26,6 +26,14 @@ transparent albedo, and it records the value in `sprite.json` for tools.
 In a level, a hotspot on such a figure gets `"only": "concierge"` or `"only": "raw"`. It can then be clicked only in
 that view.
 
+## Scale
+
+Every scene is drawn at one scale, set by the characters: Lux is 240 px tall, and a doorway is about 220 px, so she
+is a little taller than a door, as in most 2D adventures. A set drawn bigger makes her look like a child in it: shrink
+it with `asset reframe`, which keeps what is in it and paints the new edges. People in a scene are characters built at
+this scale and placed as layers, never painted into a background; only far-off figures, like a crowd behind the
+street, may be part of the art.
+
 ## Maps
 
 All maps share the sprite's canvas size. Pixels with alpha below 50% are not drawn (hard pixel-art edges).
