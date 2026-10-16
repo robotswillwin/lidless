@@ -1,7 +1,12 @@
 // The house style, written into every request so separate generations look like one game.
 
+/** How it is drawn: "pixel" asks the model for pixel art; "paint" asks for a crisp painting, which the build pixelates. */
+export const LOOKS = {
+  pixel: 'High-resolution pixel art for a 2D adventure game, painterly and detailed, with clean pixel clusters.',
+  paint: 'A detailed digital painting for a 2D adventure game: crisp edges, clean readable shapes and controlled painterly shading. Not pixel art.',
+};
+
 export const HOUSE_STYLE = [
-  'High-resolution pixel art for a 2D adventure game, painterly and detailed, with clean pixel clusters.',
   'Adult noir mood in a rain-soaked future city. Realistic proportions, a clear readable silhouette.',
   'Even, soft, frontal lighting with no cast shadows, no rim light and no glow halos: the game lights the sprite itself.',
   'Transparent background. The whole subject in frame with a little space around it, nothing cut off, no ground, no text, no border.',
@@ -22,12 +27,15 @@ const KIND_NOTES = {
   portrait: 'A dialogue portrait: head and shoulders, three-quarter view, filling the frame, more detail in the face.',
 };
 
-export function generationPrompt(r) {
+export function generationPrompt(r, look = r.look ?? 'pixel') {
   const world = r.exists === 'concierge'
     ? `This does not exist: the city AI made it up and shows it in everyone's eye. Its world is ${CONCIERGE_WORLD}`
     : RAW_WORLD;
-  return `${HOUSE_STYLE} ${KIND_NOTES[r.kind]} ${world} Subject: ${r.prompt}`;
+  return `${look ? `${LOOKS[look]} ` : ''}${HOUSE_STYLE} ${KIND_NOTES[r.kind]} ${world} Subject: ${r.prompt}`;
 }
+
+/** Put in front of the prompt when reference images go with it. */
+export const REFERENCE_NOTE = 'The attached images are style references for this game: match their rendering, palette, contrast, mood and level of detail, and keep any character from them that matches the description. Do not copy their layout or lighting: draw only the subject described below, on its own.';
 
 export function conciergePrompt(r) {
   return [

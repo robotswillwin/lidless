@@ -1,0 +1,23 @@
+{
+  "name": "fixer",
+  "scene": "test",
+  "kind": "character",
+  "exists": "both",
+  "prompt": "The fixer: a wiry man in his late fifties who repairs old radios in a cramped back-street shop and secretly installs illegal biohacks. Hollow cheeks, grey stubble, tired and watchful eyes, a thin scar at his right temple. Like everyone, he wears a partial helmet: a cheap, scratched visor of plastic and metal bolted over his left eye and temple. A pilled grey cardigan over a stained work shirt with rolled sleeves, burn marks on his hands, worn trousers, scuffed boots. Standing slightly hunched, a soldering iron in one hand.",
+  "concierge": "The Concierge's flattering version of the same man: groomed and handsome for his age, neat silver hair and a trimmed beard, a tailored charcoal knit, dark trousers, polished boots, and the visor sleek and glossy with a faint cyan light. Same pose, same soldering iron.",
+  "height": 240,
+  "position": [
+    480,
+    464
+  ],
+  "material": "cloth",
+  "glow": {
+    "raw": "none",
+    "concierge": "auto",
+    "machine": false
+  },
+  "palette": 0.35,
+  "references": [
+    "art/reference/Rainy Neon Cyberpunk Concept Sheet.png"
+  ]
+}

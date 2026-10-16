@@ -1,8 +1,9 @@
 {
   "assets": [
     "erased-test",
+    "fixer",
     "ghost-test",
     "hero-test"
   ],
-  "latest": "hero-test"
+  "latest": "fixer"
 }

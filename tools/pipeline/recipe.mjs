@@ -32,6 +32,8 @@ export const PRESENCE = ['both', 'concierge', 'raw'];
  * @property {{ raw?: 'auto'|'none', concierge?: 'auto'|'none', groupRaw?: number, groupConcierge?: number, machine?: boolean }} [glow]
  *   machine: a machine's own light (a screen, an indicator) keeps its colour in raw view; other glow turns sterile white
  * @property {number} [palette]           0 to 1: how strongly to pull colours toward the house palette
+ * @property {string[]} [references]      images sent along as style references, relative to the project folder
+ * @property {'pixel'|'paint'} [look]     ask for pixel art, or a painting that the build pixelates
  */
 
 /** @returns {Promise<Recipe & { file: string, dir: string, spec: typeof KINDS.character }>} */

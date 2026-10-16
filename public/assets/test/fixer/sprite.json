@@ -1,0 +1,25 @@
+{
+  "name": "fixer",
+  "x": 435,
+  "y": 224,
+  "w": 91,
+  "h": 240,
+  "maps": [
+    "albedo.concierge",
+    "albedo.raw",
+    "glow.concierge",
+    "material",
+    "meta",
+    "normal"
+  ],
+  "depth": 3,
+  "parallax": 1,
+  "occluder": 1,
+  "reflectivity": 0,
+  "object": 0,
+  "anchor": [
+    46,
+    240
+  ],
+  "exists": "both"
+}
