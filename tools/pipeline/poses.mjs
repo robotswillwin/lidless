@@ -8,7 +8,7 @@ import sharp from 'sharp';
  * the same for the far leg. Degrees; positive swings a hanging limb forward (toward +x). Knee and elbow are relative
  * to the bone above them. The far limbs run four frames behind the near ones.
  */
-const WALK = {
+export const WALK = {
   thigh: [21, 15, 0, -13, -21, -13, 4, 18],
   knee: [-5, -18, -5, -10, -10, -40, -60, -25],
   arm: [-18, -10, 0, 10, 18, 10, 0, -10],

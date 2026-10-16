@@ -10,6 +10,7 @@ import { glowAuto, heightMap, materialMap, metaMap, normalMap } from './derive.m
 import { blank, readRGBA, writePNG } from './image.mjs';
 import { edit, generate } from './openai.mjs';
 import { KINDS, ROOT, loadRecipe, recipeTemplate } from './recipe.mjs';
+import { conciergePartsPrompt, cut as cutParts, PARTS as PARTS_NAMES, partsPrompt, pointOf, pose as posePartsRig, SHEET, template as partsTemplate, walkAngles } from './parts.mjs';
 import { animatePrompt, guide, poses } from './poses.mjs';
 import { bake, plant, shrink, WORK } from './rig.mjs';
 import { conciergePrompt, generationPrompt, LOOKS, REFERENCE_NOTE } from './style.mjs';
@@ -32,6 +33,12 @@ const HELP = `Asset pipeline: generate art with an image AI, clean it and turn i
       Draw the character in each frame of an animation with GPT Image 2.5 Sunburst, following a grey mannequin
       posed in the character's own proportions (the recipe's pose.joints, in the source image's pixels). Frames and
       guides go to art/<scene>/<name>/anims/<anim>/. --dry only draws the guides, which costs nothing.
+  npm run asset -- parts <recipe> [--view raw|concierge] [--quality low|medium] [--dry]
+      Have GPT Image 2.5 Sunburst draw the character as a sheet of separate body parts (head, torso, coat, upper arm,
+      forearm, thigh, shin) following a template, and cut them out with their joints into art/<scene>/<name>/parts/.
+      The raw sheet is drawn from the recipe's parts.from image (default raw.png); the Concierge sheet is the raw
+      sheet edited, so the parts match. --dry only writes the template.
+      --preview walks the parts in a GIF; --bake renders a standing frame and the walk from them into anims/.
   npm run asset -- touch <recipe> --box x,y,w,h --prompt "what to change" [--view raw|concierge] [--quality low|medium] [--frame idle/1] [--dry]
       Change one area of the picked image with GPT Image 2.5 Sunburst, then rebuild. The box is in the picked
       image's pixels. Only a window around it is sent, and only the box is pasted back; the old image is kept
@@ -394,6 +401,94 @@ async function cmdAnimate([file], opt) {
   console.log(`${frames.length} frames in ${rel(dir)} · cost $${total.toFixed(4)}`);
 }
 
+async function cmdParts([file], opt) {
+  const r = await loadRecipe(file), view = opt.view ?? 'raw', quality = opt.quality ?? 'low', dir = join(r.dir, 'parts');
+  await mkdir(join(dir, view), { recursive: true });
+  const tpl = await partsTemplate();
+  await writeFile(join(dir, 'template.png'), tpl);
+  if (opt.preview) return previewParts(r, dir);
+  if (opt.bake) return bakeParts(r, dir);
+  if (opt.dry) return console.log(`${r.name}: template in ${rel(join(dir, 'template.png'))}\n\n${partsPrompt}`);
+  const small = async (buf) => ({ data: await sharp(buf).resize(1024, 1024, { fit: 'inside' }).png().toBuffer() });
+  const sheetFile = join(dir, `${view}-sheet.png`);
+  let res = { images: [], cost: 0 };
+  // --recut cuts the sheet already drawn again, without drawing a new one
+  if (opt.recut && existsSync(sheetFile)) res.images.push(await readFile(sheetFile));
+  else if (view === 'raw') {
+    const from = join(r.dir, r.parts?.from ?? 'raw.png');
+    if (!existsSync(from)) throw new Error(`no image to draw the parts from at ${rel(from)}`);
+    res = await edit({ prompt: partsPrompt, images: [{ name: 'character.png', ...(await small(await readFile(from))) }, { name: 'template.png', ...(await small(tpl)) }], size: `${SHEET.w}x${SHEET.h}`, quality, n: 1, background: 'transparent' });
+  } else {
+    const rawSheet = join(dir, 'raw-sheet.png');
+    if (!existsSync(rawSheet)) throw new Error('make the raw parts first: they are edited into the Concierge ones');
+    if (!r.concierge) throw new Error(`${r.name} has no "concierge" description`);
+    res = await edit({ prompt: conciergePartsPrompt(r.concierge), images: [rawSheet], size: `${SHEET.w}x${SHEET.h}`, quality, n: 1, background: 'transparent' });
+  }
+  await writeFile(sheetFile, res.images[0]);
+  const parts = cutParts(await readRGBA(sheetFile), r.parts?.at ?? null);
+  for (const [name, p] of Object.entries(parts)) await writePNG(join(dir, view, `${name}.png`), p.img);
+  const jfile = join(dir, 'parts.json'), all = existsSync(jfile) ? JSON.parse(await readFile(jfile, 'utf8')) : {};
+  all[view] = Object.fromEntries(Object.entries(parts).map(([n, p]) => [n, { size: [p.img.w, p.img.h], joints: p.joints }]));
+  await writeFile(jfile, JSON.stringify(all, null, 2) + '\n');
+  const missing = Object.keys(PARTS_NAMES).filter((n) => !parts[n]);
+  console.log(`${r.name}: ${Object.keys(parts).length} parts → ${rel(join(dir, view))}${missing.length ? ` · missing: ${missing.join(', ')}` : ''}`);
+  console.log(res.cost == null ? 'Cost: not reported by the API.' : `Cost: $${res.cost.toFixed(4)}`);
+}
+
+/**
+ * The parts posed into a standing frame and the 8-frame walk, written as frames for build to assemble: feet planted,
+ * every view the same way. The stride comes from the near foot's travel while it is planted.
+ */
+async function bakeParts(r, dir) {
+  const all = JSON.parse(await readFile(join(dir, 'parts.json'), 'utf8')), W = 1600, H = 2000, origin = [800, 900];
+  const views = ['raw', 'concierge'].filter((v) => existsSync(join(dir, v, 'torso.png')));
+  let stride = 0;
+  for (const v of views) {
+    const parts = {};
+    for (const [name, info] of Object.entries(all[v])) parts[name] = { img: await readRGBA(join(dir, v, `${name}.png`)), joints: info.joints };
+    const foot = [parts.shin.img.w * 0.55, parts.shin.img.h * 0.97];
+    if (v === 'raw' || !stride) stride = 2 * (pointOf(parts, walkAngles(0), 'legLower', foot, { origin })[0] - pointOf(parts, walkAngles(4), 'legLower', foot, { origin })[0]);
+    const write = async (anim, k, angles) => {
+      const d = join(r.dir, 'anims', anim);
+      await mkdir(d, { recursive: true });
+      await writePNG(join(d, `${v}-${String(k).padStart(2, '0')}.png`), plant([posePartsRig(parts, angles, { w: W, h: H, origin })])[0]);
+    };
+    await write('idle', 0, {});
+    for (let k = 0; k < 8; k++) await write('walk', k, walkAngles(k));
+  }
+  await writeFile(join(r.dir, 'anims', 'walk', 'stride.json'), JSON.stringify({ stride }) + '\n');
+  console.log(`${r.name}: a standing frame and 8 walk frames for ${views.join(' and ')} → ${rel(join(r.dir, 'anims'))}, stride ${stride.toFixed(0)} px`);
+}
+
+/** The parts assembled and walked through the standard cycle, as an animated GIF beside the sheets, for checking. */
+async function previewParts(r, dir) {
+  const views = ['raw', 'concierge'].filter((v) => existsSync(join(dir, v, 'torso.png')));
+  const all = JSON.parse(await readFile(join(dir, 'parts.json'), 'utf8')), height = r.height ?? r.spec.height, rows = [];
+  for (const v of views) {
+    const parts = {};
+    for (const [name, info] of Object.entries(all[v])) parts[name] = { img: await readRGBA(join(dir, v, `${name}.png`)), joints: info.joints };
+    const W = 1600, H = 2000, origin = [800, 900];
+    const frames = [{}, ...Array.from({ length: 8 }, (_, k) => walkAngles(k))].map((a) => posePartsRig(parts, a, { w: W, h: H, origin }));
+    // feet on one ground line, one crop for all frames, shrunk to game size
+    const planted = frames.map((f) => plant([f])[0]), box = planted.map((f) => contentBox(f)).reduce(unionBox);
+    rows.push(await Promise.all(planted.map(async (f) => hardenAlpha(await fitToHeight(f, box, height)))));
+  }
+  const hexes = await palette(), px = { ...r.spec.pixel, ...(r.pixel ?? {}) }, S = 2;
+  const pngs = [];
+  for (let k = 1; k < rows[0].length; k++) {
+    const tiles = await Promise.all(rows.map(async (fs) => {
+      const f = paletteFit({ ...fs[k], d: new Uint8ClampedArray(fs[k].d) }, hexes, r.palette ?? 0.35);
+      pixelate(f, { colors: px.colors ?? 32, centres: fs.centres ??= fitColours(paletteFit({ ...fs[0], d: new Uint8ClampedArray(fs[0].d) }, hexes, r.palette ?? 0.35), px.colors ?? 32) });
+      return sharp(Buffer.from(f.d.buffer, f.d.byteOffset, f.d.length), { raw: { width: f.w, height: f.h, channels: 4 } }).resize(f.w * S, f.h * S, { kernel: 'nearest' }).png().toBuffer();
+    }));
+    const tw = rows[0][k].w * S, th = rows[0][k].h * S;
+    pngs.push(await sharp({ create: { width: (tw + 20) * tiles.length, height: th, channels: 4, background: '#26262e' } }).composite(tiles.map((t, i) => ({ input: t, left: i * (tw + 20), top: 0 }))).png().toBuffer());
+  }
+  const out = join(dir, 'walk-preview.gif');
+  await sharp(pngs, { join: { animated: true } }).gif({ delay: Array(pngs.length).fill(150), loop: 0 }).toFile(out);
+  console.log(`${r.name}: walk preview → ${rel(out)}`);
+}
+
 async function cmdTouch([file], opt) {
   const r = await loadRecipe(file), view = opt.view ?? (r.exists === 'concierge' ? 'concierge' : 'raw'), src = join(r.dir, `${view}.png`);
   const box = String(opt.box ?? '').split(',').map(Number);
@@ -438,6 +533,6 @@ async function cmdTouch([file], opt) {
 }
 
 const [cmd, ...rest] = process.argv.slice(2), { pos, opt } = parse(rest);
-const run = { new: cmdNew, generate: cmdGenerate, variant: cmdVariant, pick: cmdPick, import: cmdImport, sheet: cmdSheet, touch: cmdTouch, animate: cmdAnimate, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
+const run = { new: cmdNew, generate: cmdGenerate, variant: cmdVariant, pick: cmdPick, import: cmdImport, sheet: cmdSheet, touch: cmdTouch, animate: cmdAnimate, parts: cmdParts, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
 if (!run) console.log(HELP);
 else run(pos, opt).catch((e) => { console.error(`error: ${e.message}`); process.exit(1); });

@@ -1,0 +1,215 @@
+// Cut-out parts: the image model draws a character as an exploded sheet of separate body parts, following a template of
+// grey shapes, and each part is cut out with its joints: where it turns, and where its children hang from it.
+// The far arm and leg reuse the near ones; the animation darkens them.
+
+import sharp from 'sharp';
+import { blank } from './image.mjs';
+import { WALK } from './poses.mjs';
+
+export const SHEET = { w: 1536, h: 1024 };
+
+/**
+ * The template, in sheet pixels, for a figure about 720 pixels tall seen from the side, facing right: each part's
+ * grey shape, and its joints. A part turns on its first joint; the others are where its children attach.
+ */
+export const PARTS = {
+  head: { at: [190, 240], joints: { neck: [190, 330] } },
+  torso: { at: [470, 300], joints: { hip: [470, 400], neck: [470, 192], shoulder: [462, 222] } },
+  coat: { at: [800, 320], joints: { waist: [800, 232] } },
+  upperArm: { at: [1080, 270], joints: { shoulder: [1080, 222], elbow: [1080, 318] } },
+  forearm: { at: [1250, 290], joints: { elbow: [1250, 226] } },
+  thigh: { at: [330, 760], joints: { hip: [330, 696], knee: [330, 826] } },
+  shin: { at: [650, 790], joints: { knee: [646, 712] } },
+};
+
+const SHAPES = {
+  head: ([x, y]) => `<ellipse cx="${x}" cy="${y - 25}" rx="65" ry="75"/><rect x="${x - 22}" y="${y + 30}" width="44" height="70" rx="18"/>`,
+  torso: ([x, y]) => `<rect x="${x - 75}" y="${y - 120}" width="150" height="240" rx="34"/>`,
+  coat: ([x, y]) => `<path d="M ${x - 75} ${y - 100} L ${x + 75} ${y - 100} L ${x + 120} ${y + 100} L ${x - 120} ${y + 100} Z"/>`,
+  upperArm: ([x, y]) => `<rect x="${x - 26}" y="${y - 81}" width="52" height="162" rx="26"/>`,
+  forearm: ([x, y]) => `<rect x="${x - 22}" y="${y - 92}" width="44" height="130" rx="22"/><ellipse cx="${x + 4}" cy="${y + 58}" rx="24" ry="30"/>`,
+  thigh: ([x, y]) => `<rect x="${x - 37}" y="${y - 109}" width="74" height="218" rx="37"/>`,
+  shin: ([x, y]) => `<rect x="${x - 29}" y="${y - 114}" width="58" height="199" rx="29"/><rect x="${x - 29}" y="${y + 51}" width="120" height="44" rx="16"/>`,
+};
+
+/** The template as a PNG: grey shapes on white, no labels. With `cutout`, on transparency, for measuring. */
+export async function template(cutout = false) {
+  const shapes = Object.entries(PARTS).map(([n, p]) => `<g fill="#cfe3ec">${SHAPES[n](p.at)}</g>`).join('');
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${SHEET.w}" height="${SHEET.h}">${cutout ? '' : '<rect width="100%" height="100%" fill="#ffffff"/>'}${shapes}</svg>`;
+  return sharp(Buffer.from(svg)).png().toBuffer();
+}
+
+export const partsPrompt = [
+  'Draw a cut-out animation parts sheet of the character in the first image, seen from the side, facing right.',
+  'The pale shapes in the second image only show where each part goes on the sheet and its rough size and direction; do not draw them.',
+  'Draw every part as a separate piece with empty space around it, complete as if nothing covered it, and a little longer at each joint so it overlaps its neighbour when it bends. Every part ends in its own clothing or skin, never in a grey or coloured cap:',
+  'the head with the neck and hair; the torso with the upper part of the coat, from the collar to the hips; the lower part of the coat, open, hanging from the waist;',
+  'one upper arm in its coat sleeve; one forearm with the end of the sleeve and the hand, relaxed and open; one thigh in the trousers; one lower leg with its boot, toes pointing right.',
+  'The same style, detail, colours and even, soft, frontal lighting as the first image.',
+  'Transparent background, no text, no labels, no guide shapes.',
+].join(' ');
+
+/** Concierge parts: the raw sheet edited, so every part keeps its place and shape. */
+export const conciergePartsPrompt = (description) => [
+  'Edit this cut-out animation parts sheet into the same character\'s augmented look. Keep every part exactly where it is,',
+  'with the same outline and size, separate and complete; change only surfaces, colours and details.',
+  `The augmented look: ${description}`,
+  'Transparent background, no text.',
+].join(' ');
+
+/**
+ * Opaque blobs matched one to one with the parts: name → { pixels, box }. `at` gives each part's spot on the sheet
+ * (the model may lay the sheet out its own way); without it, the template's layout is fitted onto the blobs'.
+ */
+function blobs(sheet, at = null) {
+  const { w, h, d } = sheet, seen = new Uint8Array(w * h), out = {}, found = [];
+  for (let p = 0; p < w * h; p++) {
+    if (seen[p] || d[p * 4 + 3] < 128) continue;
+    const stack = [p], pixels = [];
+    seen[p] = 1;
+    let sx = 0, sy = 0;
+    while (stack.length) {
+      const q = stack.pop(), x = q % w, y = (q / w) | 0;
+      pixels.push(q); sx += x; sy += y;
+      for (const n of [x > 0 ? q - 1 : -1, x < w - 1 ? q + 1 : -1, y > 0 ? q - w : -1, y < h - 1 ? q + w : -1]) {
+        if (n >= 0 && !seen[n] && d[n * 4 + 3] >= 128) { seen[n] = 1; stack.push(n); }
+      }
+    }
+    if (pixels.length >= 40) found.push({ pixels, cx: sx / pixels.length, cy: sy / pixels.length });
+  }
+  // the model draws the parts bigger or shifted: compare layouts after fitting both into the same box, then match
+  // the biggest blobs one to one with the slots, nearest pairs first; small leftovers join the nearest part
+  const slots = Object.entries(at ?? Object.fromEntries(Object.entries(PARTS).map(([n, p]) => [n, { at: p.at }]))).map(([n, v]) => [n, { at: Array.isArray(v) ? v : v.at }]);
+  const big = [...found].sort((a, b) => b.pixels.length - a.pixels.length).slice(0, slots.length);
+  const frame = (pts) => { const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]); return [Math.min(...xs), Math.min(...ys), Math.max(...xs) - Math.min(...xs) || 1, Math.max(...ys) - Math.min(...ys) || 1]; };
+  const [sx0, sy0, sw, sh] = frame(slots.map(([, p]) => p.at)), [bx0, by0, bw, bh] = frame(big.map((b) => [b.cx, b.cy]));
+  const norm = (b) => (at ? [b.cx, b.cy] : [sx0 + ((b.cx - bx0) / bw) * sw, sy0 + ((b.cy - by0) / bh) * sh]);
+  const pairs = [];
+  for (const b of big) for (const [n, p] of slots) { const [x, y] = norm(b); pairs.push([Math.hypot(p.at[0] - x, p.at[1] - y), b, n]); }
+  pairs.sort((a, b) => a[0] - b[0]);
+  for (const [, b, n] of pairs) if (!out[n] && !b.name) { out[n] = { pixels: b.pixels }; b.name = n; }
+  for (const b of found) if (!b.name) {
+    let near = null, nd = Infinity;
+    for (const o of big) if (o.name) { const dd = Math.hypot(o.cx - b.cx, o.cy - b.cy); if (dd < nd) { nd = dd; near = o; } }
+    if (near) for (const q of b.pixels) out[near.name].pixels.push(q);
+  }
+  for (const b of Object.values(out)) {
+    let x0 = w, y0 = h, x1 = 0, y1 = 0;
+    for (const p of b.pixels) { const x = p % w, y = (p / w) | 0; if (x < x0) x0 = x; if (y < y0) y0 = y; if (x > x1) x1 = x; if (y > y1) y1 = y; }
+    b.box = [x0, y0, x1 - x0 + 1, y1 - y0 + 1];
+  }
+  return out;
+}
+
+/**
+ * Where each part's joints are, read from its own shape: a fraction of the way down from its top (or up from its
+ * bottom), centred on what is drawn at that height. The first joint is the one it turns on.
+ */
+const JOINTS = {
+  head: { neck: ['bottom', 0.1] },
+  torso: { hip: ['bottom', 0.1], neck: ['top', 0.04], shoulder: ['top', 0.14] },
+  coat: { waist: ['top', 0.03] },
+  upperArm: { shoulder: ['top', 0.1], elbow: ['bottom', 0.1] },
+  forearm: { elbow: ['top', 0.08] },
+  thigh: { hip: ['top', 0.1], knee: ['bottom', 0.12] },
+  shin: { knee: ['top', 0.08] },
+};
+
+function jointsOf(img, name) {
+  const rowCentre = (y) => { let s = 0, n = 0; for (let x = 0; x < img.w; x++) if (img.d[(y * img.w + x) * 4 + 3] >= 128) { s += x; n++; } return n ? s / n : img.w / 2; };
+  return Object.fromEntries(Object.entries(JOINTS[name]).map(([j, [from, f]]) => {
+    const y = Math.round(from === 'top' ? f * img.h : (1 - f) * img.h);
+    return [j, [Math.round(rowCentre(Math.min(img.h - 1, y))), y]];
+  }));
+}
+
+/** Cut a sheet into its parts, each with its joints. */
+export function cut(sheet, at = null) {
+  const found = blobs(sheet, at), parts = {};
+  for (const [name, { pixels, box: [x0, y0, bw, bh] }] of Object.entries(found)) {
+    const img = blank(bw, bh);
+    for (const p of pixels) { const x = p % sheet.w, y = (p / sheet.w) | 0; img.d.set(sheet.d.subarray(p * 4, p * 4 + 4), ((y - y0) * bw + (x - x0)) * 4); }
+    parts[name] = { img, box: [x0, y0, bw, bh], joints: jointsOf(img, name) };
+  }
+  return parts;
+}
+
+/* ---------- posing the parts: a 2D rig, for previews and for baking frames ---------- */
+
+
+/** The rig's angles for walk frame k of 8: the near limbs, the far ones half a cycle later, a lean and a coat sway. */
+export function walkAngles(k) {
+  const f = (k + 4) % 8;
+  return {
+    torso: WALK.lean, head: -WALK.lean, coat: -4 + 2 * Math.cos((4 * Math.PI * k) / 8),
+    legUpper: WALK.thigh[k], legLower: WALK.knee[k], legFarUpper: WALK.thigh[f], legFarLower: WALK.knee[f],
+    armUpper: WALK.arm[k], armLower: WALK.elbow[k], armFarUpper: WALK.arm[f], armFarLower: WALK.elbow[f],
+  };
+}
+
+const mul = (m, n) => [m[0] * n[0] + m[2] * n[1], m[1] * n[0] + m[3] * n[1], m[0] * n[2] + m[2] * n[3], m[1] * n[2] + m[3] * n[3], m[0] * n[4] + m[2] * n[5] + m[4], m[1] * n[4] + m[3] * n[5] + m[5]];
+const tr = (x, y) => [1, 0, 0, 1, x, y];
+const rot = (deg) => { const t = (deg * Math.PI) / 180, c = Math.cos(t), s = Math.sin(t); return [c, -s, s, c, 0, 0]; };
+const apply = (m, [x, y]) => [m[0] * x + m[2] * y + m[4], m[1] * x + m[3] * y + m[5]];
+const invert = (m) => { const det = m[0] * m[3] - m[2] * m[1]; return [m[3] / det, -m[1] / det, -m[2] / det, m[0] / det, (m[2] * m[5] - m[3] * m[4]) / det, (m[1] * m[4] - m[0] * m[5]) / det]; };
+
+/**
+ * The rig: each part turns on its first joint, which sits on a joint of its parent. Far limbs are the near ones again,
+ * a little behind and darker. Back to front.
+ */
+const RIG = [
+  ['armFarUpper', 'upperArm', 'torso', 'shoulder', 'shoulder', true], ['armFarLower', 'forearm', 'armFarUpper', 'elbow', 'elbow', true],
+  ['legFarUpper', 'thigh', 'torso', 'hip', 'hip', true], ['legFarLower', 'shin', 'legFarUpper', 'knee', 'knee', true],
+  ['coat', 'coat', 'torso', 'hip', 'waist', false], ['torso', 'torso', null, null, 'hip', false], ['head', 'head', 'torso', 'neck', 'neck', false],
+  ['legUpper', 'thigh', 'torso', 'hip', 'hip', false], ['legLower', 'shin', 'legUpper', 'knee', 'knee', false],
+  ['armUpper', 'upperArm', 'torso', 'shoulder', 'shoulder', false], ['armLower', 'forearm', 'armUpper', 'elbow', 'elbow', false],
+];
+
+/** Where a piece's point (in its part's own pixels) ends up for a set of angles: used to measure the stride. */
+export function pointOf(parts, angles, piece, point, { origin, far = [-14, -6] }) {
+  const out = {};
+  pose(parts, angles, { w: 1, h: 1, origin, far, matrices: out });
+  return apply(out[piece], point);
+}
+
+/**
+ * Draw the parts posed. `angles` per rig piece in degrees (positive swings a hanging limb forward, toward +x), and
+ * `far` the offset of the far limbs. Returns an image `w` by `h` with the hip at `origin`.
+ */
+export function pose(parts, angles, { w, h, origin, far = [-14, -6], matrices = null }) {
+  const out = blank(w, h), M = {}, order = [];
+  // parents first, so every piece knows where its joint sits
+  const byName = Object.fromEntries(RIG.map((r) => [r[0], r]));
+  // a piece turns by its own angle plus its parent's, except that the legs and coat ignore the torso's lean
+  const turn = (name) => { let a = 0; for (let n = name; n; n = byName[n][2]) { if (n === 'torso' && name !== 'torso' && !['head', 'armUpper', 'armLower', 'armFarUpper', 'armFarLower'].includes(name)) break; a += angles[n] ?? 0; } return a; };
+  const place = (name) => {
+    if (M[name]) return M[name];
+    const [, part, parent, attach, pivot, isFar] = byName[name], p = parts[part];
+    const at = parent ? apply(place(parent), parts[byName[parent][1]].joints[attach]) : origin;
+    const shift = isFar && parent === 'torso' ? far : [0, 0];
+    M[name] = mul(mul(tr(at[0] + shift[0], at[1] + shift[1]), rot(turn(name))), tr(-p.joints[pivot][0], -p.joints[pivot][1]));
+    return M[name];
+  };
+  for (const [name] of RIG) { place(name); order.push(name); }
+  if (matrices) Object.assign(matrices, M);
+  for (const name of order) {
+    const [, part, , , , isFar] = byName[name], img = parts[part]?.img;
+    if (!img) continue;
+    const inv = invert(M[name]);
+    const corners = [[0, 0], [img.w, 0], [0, img.h], [img.w, img.h]].map((c) => apply(M[name], c));
+    const x0 = Math.max(0, Math.floor(Math.min(...corners.map((c) => c[0])))), x1 = Math.min(w - 1, Math.ceil(Math.max(...corners.map((c) => c[0]))));
+    const y0 = Math.max(0, Math.floor(Math.min(...corners.map((c) => c[1])))), y1 = Math.min(h - 1, Math.ceil(Math.max(...corners.map((c) => c[1]))));
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+      const [sx, sy] = apply(inv, [x + 0.5, y + 0.5]), ix = Math.floor(sx), iy = Math.floor(sy);
+      if (ix < 0 || iy < 0 || ix >= img.w || iy >= img.h) continue;
+      const i = (iy * img.w + ix) * 4;
+      if (img.d[i + 3] < 128) continue;
+      const o = (y * w + x) * 4, k = isFar ? 0.62 : 1;
+      out.d[o] = img.d[i] * k; out.d[o + 1] = img.d[i + 1] * k; out.d[o + 2] = img.d[i + 2] * k; out.d[o + 3] = 255;
+    }
+  }
+  return out;
+}
+
+/** The grey shapes' own boxes, measured from the template. */
+export const measure = (templateCutout) => blobs(templateCutout);
