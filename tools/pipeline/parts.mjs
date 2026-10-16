@@ -192,8 +192,10 @@ export function pointOf(parts, angles, piece, point, { origin, far = [-14, -6] }
  * Draw the parts posed. `angles` per rig piece in degrees (positive swings a hanging limb forward, toward +x), and
  * `far` the offset of the far limbs. Returns an image `w` by `h` with the hip at `origin`.
  */
-export function pose(parts, angles, { w, h, origin, far = [-14, -6], matrices = null }) {
+export function pose(parts, angles, { w, h, origin, far = [-14, -6], matrices = null, coatFront = false }) {
   const out = blank(w, h), M = {}, order = [];
+  // the coat can hang in front of the legs instead of behind them
+  const rig = coatFront ? [...RIG.filter((r) => r[0] !== 'coat' && r[0] !== 'torso' && r[0] !== 'head' && !r[0].startsWith('armUpper') && r[0] !== 'armLower'), RIG.find((r) => r[0] === 'coat'), ...RIG.filter((r) => ['torso', 'head', 'armUpper', 'armLower'].includes(r[0]))] : RIG;
   // parents first, so every piece knows where its joint sits
   const byName = Object.fromEntries(RIG.map((r) => [r[0], r]));
   // a piece turns by its own angle plus its parent's, except that the legs and coat ignore the torso's lean
@@ -206,7 +208,7 @@ export function pose(parts, angles, { w, h, origin, far = [-14, -6], matrices = 
     M[name] = mul(mul(tr(at[0] + shift[0], at[1] + shift[1]), rot(turn(name))), tr(-p.joints[pivot][0], -p.joints[pivot][1]));
     return M[name];
   };
-  for (const [name] of RIG) { place(name); order.push(name); }
+  for (const [name] of rig) { place(name); order.push(name); }
   if (matrices) Object.assign(matrices, M);
   for (const name of order) {
     const [, part, , , , isFar] = byName[name], img = parts[part]?.img;

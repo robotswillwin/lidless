@@ -163,6 +163,35 @@ export function pixelate(img, { colors = 48, cleanup = true, centres } = {}) {
   return img;
 }
 
+/**
+ * Clean the edges of art cut out against a key colour, inside a box [x0, y0, x1, y1]: edge pixels still tinted by the
+ * key are removed a few times over, and a green key's cast is taken out of what is left near the edge. Use it on
+ * cut-out art only; it takes no colour from the inside of the subject.
+ */
+export function cleanEdges(img, [x0, y0, x1, y1], key, { near = 190, iterations = 4, band = 4 } = {}) {
+  const k = parseInt(key.slice(1), 16), kr = k >> 16, kg = (k >> 8) & 255, kb = k & 255, green = kg > 200 && kr < 60 && kb < 60;
+  const clearAt = (x, y) => x < 0 || y < 0 || x >= img.w || y >= img.h || img.d[(y * img.w + x) * 4 + 3] < 128;
+  for (let it = 0; it < iterations; it++) {
+    const drop = [];
+    for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) {
+      const i = (y * img.w + x) * 4;
+      if (img.d[i + 3] < 128) continue;
+      if ((clearAt(x - 1, y) || clearAt(x + 1, y) || clearAt(x, y - 1) || clearAt(x, y + 1)) && Math.hypot(img.d[i] - kr, img.d[i + 1] - kg, img.d[i + 2] - kb) < near) drop.push(i);
+    }
+    if (!drop.length) break;
+    for (const i of drop) img.d[i + 3] = 0;
+  }
+  if (!green) return img;
+  for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) {
+    const i = (y * img.w + x) * 4;
+    if (img.d[i + 3] < 128) continue;
+    let edge = false;
+    for (let dy = -band; dy <= band && !edge; dy++) for (let dx = -band; dx <= band && !edge; dx++) edge = clearAt(x + dx, y + dy);
+    if (edge) img.d[i + 1] = Math.min(img.d[i + 1], Math.max(img.d[i], img.d[i + 2]) + 8);
+  }
+  return img;
+}
+
 /** One image with the shape of both views: the raw pixels, and the Concierge pixels where raw is empty. */
 export function overlay(raw, conc) {
   const out = { w: raw.w, h: raw.h, d: new Uint8ClampedArray(raw.d) };

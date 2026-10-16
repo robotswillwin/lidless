@@ -5,7 +5,7 @@ import { existsSync } from 'node:fs';
 import { copyFile, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { basename, join, relative, resolve } from 'node:path';
 import sharp from 'sharp';
-import { contentBox, fitColours, fitToHeight, hardenAlpha, isOpaque, overlay, paletteFit, pixelate, removeFlatBackground, silhouetteMatch, unionBox } from './clean.mjs';
+import { cleanEdges, contentBox, fitColours, fitToHeight, hardenAlpha, isOpaque, overlay, paletteFit, pixelate, removeFlatBackground, silhouetteMatch, unionBox } from './clean.mjs';
 import { glowAuto, heightMap, materialMap, metaMap, normalMap } from './derive.mjs';
 import { blank, readRGBA, writePNG } from './image.mjs';
 import { edit, generate } from './openai.mjs';
@@ -39,6 +39,8 @@ const HELP = `Asset pipeline: generate art with an image AI, clean it and turn i
       The raw sheet is drawn from the recipe's parts.from image (default raw.png); the Concierge sheet is the raw
       sheet edited, so the parts match. --dry only writes the template.
       --preview walks the parts in a GIF; --bake renders a standing frame and the walk from them into anims/.
+  npm run asset -- erase <recipe> --file <image> --poly "x,y x,y x,y ..."
+      Make everything inside the polygon transparent, to clear stray bits off cut-out art. Free; the old image is kept.
   npm run asset -- touch <recipe> --box x,y,w,h --prompt "what to change" [--view raw|concierge] [--quality low|medium] [--frame idle/1] [--dry]
       Change one area of the picked image with GPT Image 2.5 Sunburst, then rebuild. The box is in the picked
       image's pixels. Only a window around it is sent, and only the box is pasted back; the old image is kept
@@ -299,7 +301,10 @@ async function writeAnimated(r, raws, concs, { anchorX, anims }) {
   const px = r.pixel === false ? null : { ...spec.pixel, ...(r.pixel ?? {}) };
   for (const fs of [raws, concs]) if (fs) {
     for (let k = 0; k < n; k++) fs[k] = paletteFit(fs[k], hexes, strength);
-    const centres = px?.colors ? fitColours(fs[0], px.colors) : null;
+    // the colours are fitted to all frames together: a face seen only from one side keeps its skin tones
+    const together = { w: fs[0].w, h: fs[0].h * n, d: new Uint8ClampedArray(fs[0].d.length * n) };
+    fs.forEach((f, k) => together.d.set(f.d, k * f.d.length));
+    const centres = px?.colors ? fitColours(together, px.colors) : null;
     if (centres) for (const f of fs) pixelate(f, { centres, cleanup: px.cleanup ?? true });
   }
   const { w, h } = (raws ?? concs)[0], glow = r.glow ?? {}, maps = {};
@@ -423,8 +428,14 @@ async function cmdParts([file], opt) {
   const small = async (buf) => ({ data: await sharp(buf).resize(1024, 1024, { fit: 'inside' }).png().toBuffer() });
   const sheetFile = join(dir, `${view}-sheet.png`);
   let res = { images: [], cost: 0 };
-  // --recut cuts the sheet already drawn again, without drawing a new one
+  // --recut cuts the sheet already drawn again, without drawing a new one; --mirror makes the left sheet by mirroring
+  // the right one, so both sides are the same person (touch up what differs, such as an eye device, afterwards)
   if (opt.recut && existsSync(sheetFile)) res.images.push(await readFile(sheetFile));
+  else if (left && opt.mirror) {
+    const right = join(dir, `${look}-sheet.png`);
+    if (!existsSync(right)) throw new Error(`make the right-facing ${look} parts first`);
+    res.images.push(await sharp(right).flop().png().toBuffer());
+  }
   else if (left && look === 'raw') {
     const right = join(dir, 'raw-sheet.png');
     if (!existsSync(right)) throw new Error('make the right-facing raw parts first: the left ones are redrawn from them');
@@ -440,10 +451,19 @@ async function cmdParts([file], opt) {
     res = await edit({ prompt: `${conciergePartsPrompt(r.concierge)} ${left ? r.parts?.left?.concierge ?? '' : ''}`, images: [rawSheet], size: `${SHEET.w}x${SHEET.h}`, quality, n: 1, background: 'transparent' });
   }
   await writeFile(sheetFile, res.images[0]);
-  const parts = cutParts(await readRGBA(sheetFile), r.parts?.at ?? null, r.parts?.joints ?? {}, left);
+  // a mirrored left sheet has every part on the other side of the sheet
+  const at = r.parts?.at && left && r.parts?.left?.mirror ? Object.fromEntries(Object.entries(r.parts.at).map(([n, [x, y]]) => [n, [SHEET.w - x, y]])) : r.parts?.at ?? null;
+  const parts = cutParts(await readRGBA(sheetFile), at, r.parts?.joints ?? {}, left);
   for (const [name, p] of Object.entries(parts)) await writePNG(join(dir, view, `${name}.png`), p.img);
   const jfile = join(dir, 'parts.json'), all = existsSync(jfile) ? JSON.parse(await readFile(jfile, 'utf8')) : {};
-  all[view] = Object.fromEntries(Object.entries(parts).map(([n, p]) => [n, { size: [p.img.w, p.img.h], joints: p.joints }]));
+  // a mirrored left sheet takes its joints from the right one, mirrored across the sheet, so they stay where they
+  // belong even where a touch-up has changed a part's outline
+  const right = left && r.parts?.left?.mirror ? all[look] : null;
+  if (right) for (const [name, p] of Object.entries(parts)) {
+    const rp = right[name];
+    if (rp?.box) p.joints = Object.fromEntries(Object.entries(rp.joints).map(([j, [x, y]]) => [j, [SHEET.w - 1 - (rp.box[0] + x) - p.box[0], rp.box[1] + y - p.box[1]]]));
+  }
+  all[view] = Object.fromEntries(Object.entries(parts).map(([n, p]) => [n, { size: [p.img.w, p.img.h], box: p.box, joints: p.joints }]));
   await writeFile(jfile, JSON.stringify(all, null, 2) + '\n');
   const missing = Object.keys(PARTS_NAMES).filter((n) => !parts[n]);
   console.log(`${r.name}: ${Object.keys(parts).length} parts → ${rel(join(dir, view))}${missing.length ? ` · missing: ${missing.join(', ')}` : ''}`);
@@ -473,7 +493,7 @@ async function bakeParts(r, dir) {
     const write = async (anim, k, angles) => {
       const d = join(r.dir, 'anims', anim + (left ? 'Left' : ''));
       await mkdir(d, { recursive: true });
-      const f = plant([posePartsRig(parts, angles, { w: W, h: H, origin })])[0];
+      const f = plant([posePartsRig(parts, angles, { w: W, h: H, origin, coatFront: left ? r.parts?.left?.coat === 'front' : r.parts?.coat === 'front' })])[0];
       await writePNG(join(d, `${look}-${String(k).padStart(2, '0')}.png`), left ? mirror(f) : f);
     };
     await write('idle', 0, {});
@@ -515,16 +535,51 @@ async function previewParts(r, dir) {
   console.log(`${r.name}: walk preview → ${rel(out)}`);
 }
 
+/** Make everything inside a polygon transparent: clearing stray bits off cut-out art, by hand and for free. */
+async function cmdErase([file], opt) {
+  const r = await loadRecipe(file), src = typeof opt.file === 'string' ? join(r.dir, opt.file) : null;
+  const pts = String(opt.poly ?? '').trim().split(/\s+/).map((p) => p.split(',').map(Number));
+  if (!src || pts.length < 3 || pts.some((p) => p.length !== 2 || p.some((v) => !Number.isFinite(v)))) throw new Error('usage: erase <recipe> --file <image in the asset folder> --poly "x,y x,y x,y ..."');
+  const img = await readRGBA(src);
+  const inside = (x, y) => { let c = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c; } return c; };
+  const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
+  let n = 0;
+  for (let y = Math.max(0, Math.floor(Math.min(...ys))); y <= Math.min(img.h - 1, Math.ceil(Math.max(...ys))); y++) for (let x = Math.max(0, Math.floor(Math.min(...xs))); x <= Math.min(img.w - 1, Math.ceil(Math.max(...xs))); x++) {
+    const i = (y * img.w + x) * 4;
+    if (img.d[i + 3] && inside(x + 0.5, y + 0.5)) { img.d[i + 3] = 0; n++; }
+  }
+  const dir = join(r.dir, 'candidates');
+  await mkdir(dir, { recursive: true });
+  const keep = join(dir, (await nextName(dir, `${basename(src, '.png')}-before-erase`))());
+  await copyFile(src, keep);
+  await writePNG(src, img);
+  console.log(`${r.name}: erased ${n} pixels in ${rel(src)} (the old one is ${rel(keep)})`);
+}
+
 async function cmdTouch([file], opt) {
   // --file touches any image of the asset (a parts sheet, say) instead of the picked one, and rebuilds nothing
   const r = await loadRecipe(file), view = opt.view ?? (r.exists === 'concierge' ? 'concierge' : 'raw'), src = typeof opt.file === 'string' ? join(r.dir, opt.file) : join(r.dir, `${view}.png`);
-  const box = String(opt.box ?? '').split(',').map(Number);
-  if (box.length !== 4 || box.some((v) => !Number.isFinite(v)) || typeof opt.prompt !== 'string') throw new Error('usage: touch <recipe> --box x,y,w,h --prompt "what to change" [--view raw|concierge]');
+  // --box takes several areas, "x,y,w,h;x,y,w,h", repainted together; --keep areas inside them stay exactly as they are
+  const parseBoxes = (s) => String(s ?? '').split(';').filter(Boolean).map((b) => b.split(',').map(Number));
+  const boxes = parseBoxes(opt.box), keeps = parseBoxes(opt.keep);
+  if (!boxes.length || [...boxes, ...keeps].some((b) => b.length !== 4 || b.some((v) => !Number.isFinite(v))) || typeof opt.prompt !== 'string') throw new Error('usage: touch <recipe> --box x,y,w,h[;x,y,w,h] [--keep x,y,w,h[;...]] --prompt "what to change" [--view raw|concierge]');
   if (!existsSync(src)) throw new Error(`no ${view} image at ${rel(src)}`);
-  const img = await readRGBA(src), [bx, by] = [Math.max(0, Math.round(box[0])), Math.max(0, Math.round(box[1]))];
-  const bw = Math.min(img.w - bx, Math.round(box[2])), bh = Math.min(img.h - by, Math.round(box[3]));
+  const img = await readRGBA(src), feather = 6;
+  const clampBox = ([x, y, w, h]) => { const bx = Math.max(0, Math.round(x)), by = Math.max(0, Math.round(y)); return [bx, by, Math.min(img.w - bx, Math.round(w)), Math.min(img.h - by, Math.round(h))]; };
+  const areas = boxes.map(clampBox), kept = keeps.map(clampBox);
+  const ux0 = Math.min(...areas.map((b) => b[0])), uy0 = Math.min(...areas.map((b) => b[1]));
+  const ux1 = Math.max(...areas.map((b) => b[0] + b[2])), uy1 = Math.max(...areas.map((b) => b[1] + b[3]));
+  // how much of the new picture a pixel takes: 1 inside the areas, fading out over their last pixels towards the
+  // outside and towards kept areas. The fade follows the outline of all areas together, so areas that touch blend as one.
+  const bx = ux0, by = uy0, bw = ux1 - ux0, bh = uy1 - uy0, ox = bx - 1, oy = by - 1, OW = bw + 2, OH = bh + 2;
+  const within = (x, y) => areas.some(([ax, ay, aw, ah]) => x >= ax && x < ax + aw && y >= ay && y < ay + ah) && !kept.some(([kx, ky, kw, kh]) => x >= kx && x < kx + kw && y >= ky && y < ky + kh);
+  const D = new Float32Array(OW * OH);
+  for (let y = 0; y < OH; y++) for (let x = 0; x < OW; x++) D[y * OW + x] = within(ox + x, oy + y) ? 1e9 : 0;
+  for (let y = 1; y < OH; y++) for (let x = 1; x < OW - 1; x++) { const i = y * OW + x; if (D[i]) D[i] = Math.min(D[i], D[i - 1] + 1, D[i - OW] + 1, D[i - OW - 1] + 1.414, D[i - OW + 1] + 1.414); }
+  for (let y = OH - 2; y >= 0; y--) for (let x = OW - 2; x >= 1; x--) { const i = y * OW + x; if (D[i]) D[i] = Math.min(D[i], D[i + 1] + 1, D[i + OW] + 1, D[i + OW + 1] + 1.414, D[i + OW - 1] + 1.414); }
+  const weight = (x, y) => { const d = D[(y - oy) * OW + (x - ox)]; return d ? Math.min(1, d / feather) : 0; };
   const win = editWindow(img.w, img.h, bx, by, bw, bh), quality = opt.quality ?? 'medium';
-  console.log(`${r.name}: touching ${bw}×${bh} at ${bx},${by} in the ${view} image, sending ${win.width}×${win.height} at ${quality} quality`);
+  console.log(`${r.name}: touching ${areas.length > 1 ? `${areas.length} areas within ` : ''}${bw}×${bh} at ${bx},${by}${kept.length ? `, keeping ${kept.length}` : ''}, sending ${win.width}×${win.height} at ${quality} quality`);
   const prompt = `Change only the transparent area of the mask: ${opt.prompt}. Everything else stays exactly as it is; match the style, colours, lighting and detail around it.${r.spec.transparent ? ' Keep the flat, plain background colour around the subject exactly as it is.' : ''}`;
   if (opt.dry) return console.log(`\n${prompt}`);
   // the window, and a mask that is transparent over the box. Cut-out art goes on a key colour (--key, default green):
@@ -532,22 +587,29 @@ async function cmdTouch([file], opt) {
   const key = r.spec.transparent ? (typeof opt.key === 'string' ? opt.key : '#00ff00') : null;
   const piece = await (key ? sharp(src).extract(win).flatten({ background: key }) : sharp(src).extract(win)).png().toBuffer();
   const m = Buffer.alloc(win.width * win.height * 4, 255);
-  for (let y = by - win.top; y < by - win.top + bh; y++) for (let x = bx - win.left; x < bx - win.left + bw; x++) m[(y * win.width + x) * 4 + 3] = 0;
+  for (let y = by; y < by + bh; y++) for (let x = bx; x < bx + bw; x++) if (weight(x, y) > 0) m[((y - win.top) * win.width + (x - win.left)) * 4 + 3] = 0;
   const mask = await sharp(m, { raw: { width: win.width, height: win.height, channels: 4 } }).png().toBuffer();
   const res = await edit({ prompt, images: [{ name: 'piece.png', data: piece }], mask, size: `${win.width}x${win.height}`, quality, n: 1, background: r.spec.transparent ? 'transparent' : 'opaque' });
   if (!res.images.length) throw new Error('the API returned no image');
+  // keep what the model drew, before it is pasted back, to see what went wrong when a touch-up fails
+  await mkdir(join(r.dir, 'candidates'), { recursive: true });
+  await writeFile(join(r.dir, 'candidates', (await nextName(join(r.dir, 'candidates'), `${basename(src, '.png')}-touch-output`))()), res.images[0]);
   const { data } = await sharp(res.images[0]).resize(win.width, win.height, { fit: 'fill' }).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   // cut-out art stays cut out: the key colour, and anything near it, becomes transparent again
   if (key) {
     const k = parseInt(key.slice(1), 16), kr = k >> 16, kg = (k >> 8) & 255, kb = k & 255;
     for (let i = 0; i < data.length; i += 4) if (Math.hypot(data[i] - kr, data[i + 1] - kg, data[i + 2] - kb) < 110) data[i + 3] = 0;
   }
-  // only the box comes back, blended over its last 6 pixels so no seam shows
-  const out = { w: img.w, h: img.h, d: new Uint8ClampedArray(img.d) }, feather = 6;
+  // only the areas come back, blended over their edges so no seam shows
+  const out = { w: img.w, h: img.h, d: new Uint8ClampedArray(img.d) };
   for (let y = by; y < by + bh; y++) for (let x = bx; x < bx + bw; x++) {
-    const k = Math.min(1, (Math.min(x - bx, bx + bw - 1 - x, y - by, by + bh - 1 - y) + 1) / feather), i = (y * img.w + x) * 4, j = ((y - win.top) * win.width + (x - win.left)) * 4;
+    const k = weight(x, y);
+    if (k <= 0) continue;
+    const i = (y * img.w + x) * 4, j = ((y - win.top) * win.width + (x - win.left)) * 4;
     for (let c = 0; c < 4; c++) out.d[i + c] = img.d[i + c] * (1 - k) + data[j + c] * k;
   }
+  // --clean sets how close to the key colour an edge pixel must be to go: lower keeps more of colours near the key
+  if (key) cleanEdges(out, [Math.max(0, bx - 2), Math.max(0, by - 2), Math.min(img.w, bx + bw + 2), Math.min(img.h, by + bh + 2)], key, { near: Number(opt.clean ?? 190) });
   const spent = res.cost == null ? 'Cost: not reported by the API.' : `Cost: $${res.cost.toFixed(4)} (${res.usage.output_tokens ?? '?'} image tokens out, ${res.usage.input_tokens ?? '?'} tokens in)`;
   if (typeof opt.frame === 'string') {
     // an animation frame: the picked image is frame 0, and this one differs only inside the box
@@ -567,6 +629,6 @@ async function cmdTouch([file], opt) {
 }
 
 const [cmd, ...rest] = process.argv.slice(2), { pos, opt } = parse(rest);
-const run = { new: cmdNew, generate: cmdGenerate, variant: cmdVariant, pick: cmdPick, import: cmdImport, sheet: cmdSheet, touch: cmdTouch, animate: cmdAnimate, parts: cmdParts, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
+const run = { new: cmdNew, generate: cmdGenerate, variant: cmdVariant, pick: cmdPick, import: cmdImport, sheet: cmdSheet, touch: cmdTouch, erase: cmdErase, animate: cmdAnimate, parts: cmdParts, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
 if (!run) console.log(HELP);
 else run(pos, opt).catch((e) => { console.error(`error: ${e.message}`); process.exit(1); });
