@@ -38,7 +38,8 @@ function sceneLights() {
   ];
 }
 
-function encodeGroup() {
+/* rawOnly: someone the Concierge edits out, whose Concierge maps stay empty */
+function encodeGroup(rawOnly = false) {
   let x0 = NW, y0 = NH, x1 = -1, y1 = -1;
   for (let y = 0; y < NH; y++) for (let x = 0; x < NW; x++) { const p = y * NW + x; if (Math.max(G.covR[p], G.covC[p]) > 0.02) { if (x < x0) x0 = x; if (y < y0) y0 = y; if (x > x1) x1 = x; if (y > y1) y1 = y; } }
   if (x1 < 0) return null;
@@ -51,13 +52,13 @@ function encodeGroup() {
     const a = img['albedo.raw'].data, c = img['albedo.concierge'].data;
     a[t] = b8(G.alb[q] * un); a[t + 1] = b8(G.alb[q + 1] * un); a[t + 2] = b8(G.alb[q + 2] * un); a[t + 3] = b8(cr);
     const ar = G.arm[p] && cc > 0.02;
-    c[t] = ar ? b8(G.albA[q]) : a[t]; c[t + 1] = ar ? b8(G.albA[q + 1]) : a[t + 1]; c[t + 2] = ar ? b8(G.albA[q + 2]) : a[t + 2]; c[t + 3] = b8(Math.max(cr, cc));
+    c[t] = ar ? b8(G.albA[q]) : a[t]; c[t + 1] = ar ? b8(G.albA[q + 1]) : a[t + 1]; c[t + 2] = ar ? b8(G.albA[q + 2]) : a[t + 2]; c[t + 3] = rawOnly ? 0 : b8(Math.max(cr, cc));
     let nx = -(H(x + 1, y) - H(x - 1, y)) * 5, ny = -(H(x, y + 1) - H(x, y - 1)) * 5, nz = 1; const L = Math.hypot(nx, ny, nz); nx /= L; ny /= L; nz /= L;
     const n = img.normal.data; n[t] = b8(nx * 0.5 + 0.5); n[t + 1] = b8(ny * 0.5 + 0.5); n[t + 2] = b8(nz * 0.5 + 0.5); n[t + 3] = 255;
     const m = img.material.data; m[t] = b8(G.spec[p]); m[t + 1] = b8(G.shin[p]); m[t + 2] = b8(G.hgt[p]); m[t + 3] = 255;
     const me = img.meta.data; me[t] = (G.occ[p] ? 128 : 0) + (ar ? 64 : 0) + Math.min(63, G.obj[p]); me[t + 1] = Math.min(3, G.dep[p]) * 64 + Math.min(2, G.refl[p]) * 16 + (MACHINE.has(G.ehg[p]) ? 1 : 0); me[t + 2] = Math.min(15, G.ehg[p]) * 16 + Math.min(15, G.eag[p]); me[t + 3] = 255;
     const gr = img['glow.raw'].data, gc = img['glow.concierge'].data, off = G.ehg[p] === 9 ? 0 : 1;
-    for (let k = 0; k < 3; k++) { gr[t + k] = b8(G.eh[q + k] / 2); gc[t + k] = b8((G.eh[q + k] * off + G.ea[q + k]) / 2); }
+    for (let k = 0; k < 3; k++) { gr[t + k] = b8(G.eh[q + k] / 2); gc[t + k] = rawOnly ? 0 : b8((G.eh[q + k] * off + G.ea[q + k]) / 2); }
     gr[t + 3] = gc[t + 3] = 255;
   }
   const cv = document.createElement('canvas'); cv.width = w; cv.height = h; const cx = cv.getContext('2d');
@@ -69,10 +70,10 @@ function exportAll() {
     ['sky-city', () => { drawCity(); drawMidground(); }],
     // no characters in the set: the fixer works inside the shop, which is a scene of its own
     ['street', () => { drawRoom(); drawProps(); drawFront(); drawGround(); drawKiosk(); drawStreet(); }],
-    ['crowd', () => drawCrowd()], ['docked', () => drawDocked()], ['hero', () => drawHero()],
+    ['crowd', () => drawCrowd()], ['sleeper', () => drawSleeper(), true], ['docked', () => drawDocked()], ['hero', () => drawHero()],
   ];
   const out = { groups: {} }; let inn = null;
-  for (const [name, fn] of groups) { resetG(); fn(); out.groups[name] = encodeGroup(); if (name === 'street') inn = G.inn.slice(); }
+  for (const [name, fn, rawOnly] of groups) { resetG(); fn(); out.groups[name] = encodeGroup(rawOnly); if (name === 'street') inn = G.inn.slice(); }
   // the level's zone map: r = inside, g = outside, b = static ambient occlusion (the shop's floor line and ceiling)
   const zd = new ImageData(NW, NH);
   for (let y = 0; y < NH; y++) for (let x = 0; x < NW; x++) { const p = y * NW + x, t = p * 4; let ao = 1;

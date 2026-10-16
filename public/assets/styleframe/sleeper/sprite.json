@@ -1,0 +1,19 @@
+{
+  "name": "sleeper",
+  "x": 634,
+  "y": 408,
+  "w": 66,
+  "h": 48,
+  "maps": [
+    "albedo.concierge",
+    "albedo.raw",
+    "glow.concierge",
+    "glow.raw",
+    "material",
+    "meta",
+    "normal"
+  ],
+  "depth": 3,
+  "parallax": 1,
+  "exists": "raw"
+}
