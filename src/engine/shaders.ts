@@ -107,6 +107,7 @@ uniform vec4 uLP[${MAX_LIGHTS}], uLC[${MAX_LIGHTS}], uLK[${MAX_LIGHTS}], uLG[${M
 uniform int uNL;
 uniform float uGI[16], uView, uTime, uShadows;
 uniform vec4 uLookL;      // the look: lights, ambient, haze, glowing surfaces
+uniform float uGround;    // world y of the ground line
 uniform vec4 uCars[16]; uniform int uNC;
 uniform vec4 uBeac[32]; uniform int uNB;
 float facadeW(vec2 w) { return w.y < 104.0 ? 1.0 : w.y > 424.0 ? 0.7 : w.x > 524.0 ? 0.5 : 0.18; }
@@ -121,6 +122,10 @@ float shadowMarch(vec2 p, vec2 lp, float self) {
 void main() {
   vec2 p = P(), w = p + uCam;
   vec4 g0 = T(tG0, p), g1 = T(tG1, p), g2 = T(tG2, p), g3 = T(tG3, p), z = Z(p);
+  // a character in front of the set: air is how much of the glowing air lies between it and the eye (1 for the set).
+  // It stands in the street even in front of a shop, so it takes the zone of the ground under it, not of the set behind.
+  float air = g3.a, actor = 1.0 - air;
+  z = mix(z, Z(vec2(p.x, uGround - uCam.y)), min(1.0, actor * 1.2));
   float hv = floor(g0.a * 255.0 + 0.5), occ = mod(hv, 2.0), hz = floor(hv / 2.0) / 127.0 * 22.0;
   vec2 nxy = g1.xy * 2.0 - 1.0; vec3 Nn = vec3(nxy, sqrt(max(0.0, 1.0 - dot(nxy, nxy))));
   float specS = g1.z, shin = mix(6.0, 120.0, g1.w), dep = g3.r, obj = floor(g3.b * 63.0 + 0.5);
@@ -135,7 +140,8 @@ void main() {
   for (int i = 0; i < ${MAX_LIGHTS}; i++) {
     if (i >= uNL) break;
     vec4 LP = uLP[i], LC = uLC[i], LK = uLK[i], LG = uLG[i];
-    float arL = mod(LG.y, 2.0), machL = step(1.5, LG.y);
+    // flags: 1 only in Concierge view, 2 a machine's own light, 4 and 8 its layer: 0 behind the characters, 1 among them, 2 in front
+    float arL = mod(LG.y, 2.0), machL = mod(floor(LG.y * 0.5 + 0.01), 2.0), layer = floor(LG.y * 0.25 + 0.01);
     float gi = uGI[int(LG.x + 0.5)] * (arL > 0.5 ? uView : 1.0);
     if (gi < 0.002) continue;
     float zh = LC.w < 0.5 ? 1.0 : LC.w < 1.5 ? z.r : LC.w < 2.5 ? z.g : LC.w < 3.5 ? facadeW(w) : z.g;
@@ -149,16 +155,20 @@ void main() {
     float ex = floor(LK.w * 0.5 + 0.01), keep = (ex > 0.5 && abs(obj - ex) < 0.5) ? 0.0 : 1.0;
     float sh = (uShadows > 0.5 && mod(LK.w, 2.0) > 0.5) ? shadowMarch(p, lp, occ) : 1.0;
     vec3 lc = arL + machL > 0.5 ? LC.rgb : mix(LC.rgb, tone(LC.rgb, RAW_LIGHT), raw);
-    vec3 Lv = normalize(vec3(d2, LP.z - hz));
+    // a light behind a character shines at it from behind: it only catches the character's edges, as a rim
+    float lz = layer < 0.5 ? mix(LP.z - hz, -0.6 * abs(LP.z - hz) - 4.0, actor) : LP.z - hz;
+    vec3 Lv = normalize(vec3(d2, lz));
     float diff = max((dot(Nn, Lv) + LG.z) / (1.0 + LG.z), 0.0);
     vec3 li = lc * gi * att * cone * sh * zw * keep * uLookL.x;
     col += alb * li * diff;
     vec3 H = normalize(Lv + vec3(0.0, 0.0, 1.0));
     spc += li * specS * pow(max(dot(Nn, H), 0.0), shin) * 2.0;
-    haze += mix(lc, tone(lc, RAW_AIR), raw) * gi * pow(att, LK.z > -1.5 ? 2.0 : 3.0) * cone * LG.w * zh;
+    // its glow in the air: hidden behind a character when the light is behind it, mostly hidden among them
+    float seen = layer < 0.5 ? air : layer < 1.5 ? mix(air, 1.0, 0.25) : 1.0;
+    haze += mix(lc, tone(lc, RAW_AIR), raw) * gi * pow(att, LK.z > -1.5 ? 2.0 : 3.0) * cone * LG.w * zh * seen;
   }
   // the glowing air around lights: a person in front of it gets only the part between them and the eye (g3.a)
-  vec3 outc = col + spc + haze * mix(0.06, 0.16, z.g) * g3.a * uLookL.z;
+  vec3 outc = col + spc + haze * mix(0.06, 0.16, z.g) * uLookL.z;
   float ge = floor(g2.a * 31.0 + 0.5), machE = step(15.5, ge);
   vec3 em = lin(g2.rgb * 2.0);
   outc += mix(em, tone(em, RAW_LIGHT), raw * (1.0 - machE)) * uGI[int(mod(ge, 16.0))] * uLookL.w;
@@ -190,6 +200,8 @@ void main() {
   vec3 c = T(tA, p).rgb;
   vec4 g3 = T(tG3, p), z = Z(p);
   float dep = g3.r, refl = g3.g, GY = uMirror - uCam.y;
+  // a character takes the zone of the ground it stands on: rain falls in front of it out in the street
+  z = mix(z, Z(vec2(p.x, GY)), min(1.0, (1.0 - g3.a) * 1.2));
   float dk = uDof * (dep < 0.15 ? 0.4 : dep < 0.5 ? 0.85 : dep < 0.8 ? 0.45 : 0.0);
   if (dk > 0.0) { vec4 b = texture(tDof, gl_FragCoord.xy / uRes); if (b.a > 0.02) c = mix(c, b.rgb / b.a, dk * smoothstep(0.02, 0.3, b.a)); }
   float raw = 1.0 - uView;
@@ -261,7 +273,7 @@ void main() { vec2 uv = gl_FragCoord.xy / uRes; vec3 s = vec3(0.0); float tw = 0
 /* ---------- final: sharp upscale, bloom and light shafts, film grade ---------- */
 
 export const FINAL_FS = HEAD + ZONE + `
-uniform sampler2D tB, tBloom1, tBloom2, tStreak;
+uniform sampler2D tB, tBloom1, tBloom2, tStreak, tG3;
 uniform float uTime, uGlitch, uView, uStreaks;
 uniform vec4 uGR[4];
 uniform vec2 uOut;
@@ -299,17 +311,19 @@ void main() {
   if (nerve > 0.0) c = mix(c, pixelT(p + vec2(12.0, -2.0) * nerve, ps), 0.45 * nerve);
   vec2 uv = vec2(p.x, uRes.y - p.y) / uRes;
   vec3 b1 = texture(tBloom1, uv).rgb, b2 = texture(tBloom2, uv).rgb;
-  // the wide halo and the light shafts are light caught in the air
-  vec3 bl = (b1 * 0.55 + mix(b2, tone(b2, RAW_AIR), raw * 0.7) * 0.45) * uLookB.x;
+  // a character in front of the set hides the light behind it: the shafts and the wide halo are light caught in the air
+  // behind them, and the lens glow only wraps a little over their edges (air: 1 for the set, small for a character)
+  float air = T(tG3, ps > 1.0 ? (floor(p / ps) + 0.5) * ps : p).a, lens = mix(1.0, air, 0.45);
+  vec3 bl = (b1 * lens * 0.55 + mix(b2, tone(b2, RAW_AIR), raw * 0.7) * mix(1.0, air, 0.85) * 0.45) * uLookB.x;
   vec4 z = Z(p); float jit = hash(floor(p) * 0.37);
   for (int s = 0; s < 4; s++) {
     vec4 g = uGR[s]; if (g.z <= 0.0) continue;
     float zw = g.w < 1.5 ? z.r : z.g; if (zw < 0.05) continue;
     vec2 dv = (g.xy - uCam - p) / 24.0, q = p + dv * jit; float dec = 1.0; vec3 acc = vec3(0.0);
     for (int k = 0; k < 24; k++) { q += dv; acc += texture(tBloom1, vec2(q.x, uRes.y - q.y) / uRes).rgb * dec; dec *= 0.92; }
-    bl += mix(acc, tone(acc, RAW_AIR), raw) * g.z * zw / 24.0 * uLookB.y;
+    bl += mix(acc, tone(acc, RAW_AIR), raw) * g.z * zw / 24.0 * uLookB.y * air;
   }
-  c += bl + texture(tStreak, uv).rgb * vec3(0.5, 0.68, 1.0) * 0.5 * uStreaks * uLookB.z + b1 * mix(vec3(0.22, 0.06, 0.02), tone(vec3(0.22, 0.06, 0.02), RAW_AIR), raw) * uLookB.x;
+  c += bl + (texture(tStreak, uv).rgb * vec3(0.5, 0.68, 1.0) * 0.5 * uStreaks * uLookB.z + b1 * mix(vec3(0.22, 0.06, 0.02), tone(vec3(0.22, 0.06, 0.02), RAW_AIR), raw) * uLookB.x) * lens;
   c = aces(c * 1.32 * exp2(uLookC.x));
   float l = lum(c);
   // Concierge view: cool shadows, warm highlights. Raw view: a neutral grade, its cold things and yellow-green air are already in the image

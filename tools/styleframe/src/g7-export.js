@@ -19,7 +19,7 @@ function sceneLights() {
     L({ x: 160, y: 14, z: 30, r: 170, c: [1.0, 0.72, 0.42], i: 1.5, zone: 3, cone: [0.15, 0.99, 0.1] }),
     L({ x: 388, y: 14, z: 30, r: 170, c: [1.0, 0.72, 0.42], i: 1.5, zone: 3, cone: [0.15, 0.99, 0.1] }),
     L({ x: 720, y: 470, z: 90, r: 460, c: [0.35, 0.22, 0.6], i: 0.5, zone: 2 }),
-    L({ x: 636, y: 234, z: 34, r: 380, c: [0.85, 0.97, 1.0], i: 2.6, zone: 2, cone: [0, 1, 0.3], shadow: 1, haze: 0.45 }),
+    L({ x: 636, y: 154, z: 34, r: 510, c: [0.85, 0.97, 1.0], i: 2.6, zone: 2, cone: [0, 1, 0.3], shadow: 1, haze: 0.45 }),
     L({ x: 882, y: 404, z: 12, r: 100, c: [0.4, 0.8, 1.0], i: 0.7, zone: 2, g: 6, ar: 1 }),
     L({ x: 932, y: 446, z: 8, r: 90, c: [1.0, 0.6, 0.25], i: 1.0, zone: 2 }),
     L({ x: 796, y: 316, z: 34, r: 360, c: [0.55, 0.95, 1.0], i: 2.4, zone: 2, g: 4, shadow: 1, haze: 0.12, ex: 1, machine: 1 }),
@@ -77,7 +77,7 @@ function exportAll() {
     if (inn[p]) { if (y > 420 && y < 436) ao *= 0.6 + 0.4 * Math.abs(y - 428) / 8; if (y < 132) ao *= 0.6 + 0.4 * (y - 104) / 28; }
     zd.data[t] = Math.round(insideD(x / S2, y / S2) * 255); zd.data[t + 1] = Math.round(outsideD(x / S2, y / S2) * 255); zd.data[t + 2] = Math.round(Math.max(0, Math.min(1, ao)) * 255); zd.data[t + 3] = 255; }
   const cv = document.createElement('canvas'); cv.width = NW; cv.height = NH; cv.getContext('2d').putImageData(zd, 0, 0); out.zone = cv.toDataURL('image/png');
-  out.lights = sceneLights(); out.beacons = SC.beacons; out.steam = [504, 386, 70, 9, 636, 466, 140, 14, 565, 249, 90, -5]; out.godrays = [636, 232, 0.35, 2, 708, 110, 0.22, 2, 796, 316, 0.25, 2, 300, 154, 0.3, 1];
+  out.lights = sceneLights(); out.beacons = SC.beacons; out.steam = [504, 386, 70, 9, 636, 466, 140, 14, 565, 249, 90, -5]; out.godrays = [636, 152, 0.35, 2, 708, 110, 0.22, 2, 796, 316, 0.25, 2, 300, 154, 0.3, 1];
   document.documentElement.setAttribute('data-export', JSON.stringify(out));
 }
 const FONTS = ['300 20px Jost', '400 20px Jost', '700 20px "Playfair Display"', 'italic 600 20px "Playfair Display"', '400 20px Yellowtail'];

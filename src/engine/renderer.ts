@@ -165,7 +165,8 @@ export class Renderer {
     gl.clearBufferfv(gl.COLOR, 0, [0, 0, 0, 0]);
     gl.clearBufferfv(gl.COLOR, 1, [0.5, 0.5, 0, 0]);
     gl.clearBufferfv(gl.COLOR, 2, [0, 0, 0, 0]);
-    gl.clearBufferfv(gl.COLOR, 3, [0, 0, 0, 0]);
+    // alpha: the air in front of each pixel, 1 where nothing is drawn
+    gl.clearBufferfv(gl.COLOR, 3, [0, 0, 0, 1]);
     const sp = this.prog.sprite;
     gl.useProgram(sp.p);
     gl.uniform2f(sp.u.uScreen, NW, NH);
@@ -180,7 +181,7 @@ export class Renderer {
       const fr = def.frames, k = fr ? Math.max(0, Math.min(fr.count - 1, d.frame ?? 0)) : 0, tw = fr ? fr.count * def.w + (fr.count - 1) * fr.gutter : def.w;
       gl.uniform2f(sp.u.uUV, (k * (def.w + (fr?.gutter ?? 0))) / tw, def.w / tw);
       gl.uniform1f(sp.u.uHasMeta, s.hasMeta ? 1 : 0);
-      gl.uniform1f(sp.u.uHaze, def.haze ?? (def.kind === 'character' ? 0.3 : 1));
+      gl.uniform1f(sp.u.uHaze, def.haze ?? (def.kind === 'character' ? 0.1 : 1));
       gl.uniform4f(sp.u.uConst, def.occluder ?? 0, def.depth, def.reflectivity ?? 0, def.object ?? 0);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
     }
@@ -201,7 +202,9 @@ export class Renderer {
       LP.set([l.x, l.y, l.z, l.r], i * 4);
       LC.set([l.c[0] * l.i, l.c[1] * l.i, l.c[2] * l.i, l.zone], i * 4);
       LK.set([...(l.cone ?? [0, 0, -2]), (l.shadow ? 1 : 0) + 2 * (l.ex ?? 0)], i * 4);
-      LG.set([l.g ?? 0, (l.ar ? 1 : 0) + (l.machine ? 2 : 0), l.wrap ?? 0.3, l.haze ?? 0], i * 4);
+      // layer against the characters: inside and facade lights are behind them, the rest among them, unless the light says
+      const layer = l.layer ?? (l.zone === 1 || l.zone === 3 ? 0 : 1);
+      LG.set([l.g ?? 0, (l.ar ? 1 : 0) + (l.machine ? 2 : 0) + 4 * layer, l.wrap ?? 0.3, l.haze ?? 0], i * 4);
     });
     this.pass(this.prog.light, t.fa, (pr) => {
       t.gbuf.tex.forEach((tx, i) => this.bind(pr, `tG${i}`, tx, i));
@@ -216,6 +219,7 @@ export class Renderer {
       gl.uniform4fv(pr.u.uBeac, f.beacons); gl.uniform1i(pr.u.uNB, f.nBeacons);
       const k = this.look;
       gl.uniform4f(pr.u.uLookL, k.lights, k.ambient, k.haze, k.glow);
+      gl.uniform1f(pr.u.uGround, f.mirror);
     });
 
     // depth of field: background-only blur at half resolution
@@ -255,6 +259,7 @@ export class Renderer {
     this.pass(this.prog.final, null, (pr) => {
       this.bind(pr, 'tB', t.fb.tex[0], 0); this.bind(pr, 'tBloom1', t.q1.tex[0], 1); this.bind(pr, 'tBloom2', t.e1.tex[0], 2); this.bind(pr, 'tStreak', t.a1.tex[0], 3);
       this.zoneUniforms(pr, f, 4);
+      this.bind(pr, 'tG3', t.gbuf.tex[3], 5);
       gl.uniform1f(pr.u.uTime, f.t); gl.uniform1f(pr.u.uGlitch, f.glitch); gl.uniform1f(pr.u.uView, f.view);
       gl.uniform1f(pr.u.uStreaks, q.streaks ? 1 : 0);
       gl.uniform4fv(pr.u.uGR, q.godrays ? f.godrays : new Float32Array(16));

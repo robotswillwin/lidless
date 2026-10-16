@@ -27,7 +27,7 @@ export interface SpriteDef {
   /**
    * How much of the glowing air around lights lies in front of it, 0 to 1. The set behind gets all of it; a person
    * walking in front gets less, or the haze of a lamp behind them shows across them as if they were see-through.
-   * Default: 0.3 for characters, 1 for everything else.
+   * Default: 0.1 for characters, 1 for everything else.
    */
   haze?: number;
   /** Animation frames side by side in every map, a transparent gutter between them; w and h are one frame. */
@@ -62,6 +62,12 @@ export interface LightDef {
   ar?: number;
   /** A machine's own light (a monitor, an indicator, the kiosk's eye): keeps its colour in raw view, where main lighting goes sterile white. */
   machine?: number;
+  /**
+   * Where the light is against the characters: 0 behind them (inside a shop, on a facade: a character in front hides
+   * its glow in the air and catches it only on the edges), 1 among them (a street lamp: half its glow is in front of
+   * them), 2 in front of them. Default: 0 for inside and facade lights, 1 for the rest.
+   */
+  layer?: number;
   /** Object id this light does not light (its own housing). */
   ex?: number;
 }

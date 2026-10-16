@@ -1,0 +1,23 @@
+{
+  "pixelSize": 1,
+  "pixelShape": 0,
+  "shapeAmount": 0.5,
+  "colorLevels": 0,
+  "dither": 0.5,
+  "lights": 1,
+  "ambient": 1,
+  "haze": 1,
+  "glow": 1,
+  "bloom": 1,
+  "shafts": 1,
+  "streaks": 1,
+  "rawFog": 1,
+  "exposure": 0,
+  "contrast": 1,
+  "saturation": 1,
+  "temperature": 0,
+  "tint": 0,
+  "vignette": 1,
+  "grain": 1,
+  "aberration": 1
+}

@@ -103,3 +103,14 @@ and its glow the machine flag in `meta.png`.
 A scene folder holds the sprite sets plus `scene.json` (sprite order back to front, lights, beacons,
 steam and smoke, light shafts, drips, the reflection line, traffic) and `zone.png`, a level-sized map of
 where it is inside (R), outside (G) and how much static shadow there is (B).
+
+Characters walk in front of the set, so lights and characters need to know which is in front of which:
+
+- A light's `layer` says where it is against the characters. 0 means behind them, such as inside a shop or on a facade:
+  a character in front hides its glow in the air, and the light only catches the character's edges, as a rim. 1 means
+  among them, such as a street lamp: most of its glow is hidden behind a character. 2 means in front of them. Inside and
+  facade lights default to 0, the rest to 1.
+- A sprite's `haze` is how much of the glowing air lies in front of it: 1 for the set, 0.1 for characters by default.
+  Light shafts and the wide halo around lights follow it too.
+- A character takes the zone of the ground it stands on, not of the set behind it: standing in the street in front of
+  an open shop, it is outside, lit by the street lights and in the rain.

@@ -68,14 +68,14 @@ function drawStreet() {
   for (let x = 277; x <= 452; x++) { const t = (x - 276) / 176, y = 40 + 56 * t * (1 - t) - 6 * t; fill(LN(px, py, x, y, 0.5), { alb: P.n0, h: 0.55, dep: 3 }); px = x; py = y;
     if (x % 12 === 0) { fill(R(x - 0.4, y, 0.8, 1), { alb: P.n1, h: 0.6, dep: 3 }); fill(E(x, y + 2.2, 0.9, 1.2), { alb: P.n2, round: 1.5, rh: 0.4, h: 0.5, spec: 0.8, shin: 0.85, dep: 3, eag: 6, ea: (a, b, i) => (i.d > 0.9 ? P.cA : mulc(P.c9, 0.8)) }); } }
   sag(304, 128, 452, 108, 9, 0.6, { alb: P.n0, h: 0.55, spec: 0.3, dep: 3 }); sag(276, 70, 304, 126, 6, 0.6, { alb: P.n0, h: 0.55, spec: 0.3, dep: 3 });
-  // street lamp, with a camera dome and a hand-written notice
-  fill(R(301.4, 118, 3.4, 102), { ...MAT.metal(P.n3, { rust: 0.6 }), h: cylU(0.3, 0.55), spec: 0.5, shin: 0.6, dep: 3, occ: 1 });
+  // street lamp, with a camera dome and a hand-written notice; its head well above a standing person's
+  fill(R(301.4, 78, 3.4, 142), { ...MAT.metal(P.n3, { rust: 0.6 }), h: cylU(0.3, 0.55), spec: 0.5, shin: 0.6, dep: 3, occ: 1 });
   box(298, 219, 10, 9, P.n2, { ...MAT.metal(P.n2, { rust: 0.55 }), bv: 2, spec: 0.45, shin: 0.55, occ: 1 });
   for (const ry of [150, 196]) box(300.6, ry, 5, 2, P.n4, { bv: 0.6, spec: 0.5, occ: 1 });
-  fill(LN(303, 119, 316, 113.5, 1.6), { ...MAT.metal(P.n3), h: 0.6, spec: 0.5, shin: 0.6, dep: 3, occ: 1 });
-  fill(PL([[311, 114], [313, 110.6], [319, 109.6], [325, 111.2], [326, 114.4], [322, 116.6], [312.5, 116.6]]), { ...MAT.metal(P.n4, { rust: 0.6 }), round: 3, rh: 0.5, h: 0.4, spec: 0.6, shin: 0.7, dep: 3, occ: 1 });
-  fill(PL([[313.5, 115.6], [323.5, 115.6], [322, 117.4], [315, 117.4]], false), { alb: P.n6, h: 0.5, spec: 0.9, shin: 0.9, dep: 3, eh: (x, y, i) => mixc(P.c9, P.cA, 1 - i.v) });
-  fill(R(307, 116.5, 1, 3), { alb: P.n2, h: 0.6, dep: 3 }); fill(E(307.5, 120.4, 1.6, 1.3), { alb: P.n1, round: 1.6, rh: 0.5, h: 0.5, spec: 0.95, shin: 0.95, dep: 3, occ: 1 }); fill(E(307.8, 120.8, 0.4, 0.4), { eh: P.m5 });
+  fill(LN(303, 79, 316, 73.5, 1.6), { ...MAT.metal(P.n3), h: 0.6, spec: 0.5, shin: 0.6, dep: 3, occ: 1 });
+  fill(PL([[311, 74], [313, 70.6], [319, 69.6], [325, 71.2], [326, 74.4], [322, 76.6], [312.5, 76.6]]), { ...MAT.metal(P.n4, { rust: 0.6 }), round: 3, rh: 0.5, h: 0.4, spec: 0.6, shin: 0.7, dep: 3, occ: 1 });
+  fill(PL([[313.5, 75.6], [323.5, 75.6], [322, 77.4], [315, 77.4]], false), { alb: P.n6, h: 0.5, spec: 0.9, shin: 0.9, dep: 3, eh: (x, y, i) => mixc(P.c9, P.cA, 1 - i.v) });
+  fill(R(307, 76.5, 1, 3), { alb: P.n2, h: 0.6, dep: 3 }); fill(E(307.5, 80.4, 1.6, 1.3), { alb: P.n1, round: 1.6, rh: 0.5, h: 0.5, spec: 0.95, shin: 0.95, dep: 3, occ: 1 }); fill(E(307.8, 80.8, 0.4, 0.4), { eh: P.m5 });
   fill(PL([[300.2, 168], [306.2, 167.6], [306.4, 176], [300.4, 176.4]], false), { alb: (x, y) => mixc(P.n6, P.w8, 0.25 * fbm(x * 0.3, y * 0.3, 2)), h: 0.6, spec: 0.03, dep: 3, occ: 1 });
   for (const ly of [169.6, 171.1, 172.6, 174.1]) fill(LN(301, ly, 305.2 - (ly % 2), ly, 0.35), { alb: P.n2, h: 0.6 });
   // bench, with someone asleep on it; the eye mod covers them with a planter
