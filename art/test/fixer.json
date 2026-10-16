@@ -19,5 +19,20 @@
   "palette": 0.35,
   "references": [
     "art/reference/Rainy Neon Cyberpunk Concept Sheet.png"
-  ]
+  ],
+  "anims": {
+    "idle": {
+      "fps": 3,
+      "seq": [
+        0,
+        0,
+        0,
+        1,
+        1,
+        2,
+        2,
+        0
+      ]
+    }
+  }
 }

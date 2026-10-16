@@ -4,7 +4,7 @@
   "kind": "character",
   "exists": "both",
   "prompt": "The hero: a woman in her late twenties who runs errands nobody asks about. Thin and pale, tired eyes, dark hair pulled back in a messy bun. Like everyone, she wears a partial helmet: a cheap visor of scratched plastic and metal over her left eye and temple. A long, cheap raincoat in faded grey-maroon, open and hanging loose, over a worn black top and leggings, scuffed boots to the knee.",
-  "concierge": "The Concierge's version of her: striking and glamorous, healthy glowing skin, glossy dark hair in a sleek bun, the visor sleek and glossy with a faint cyan light, a long red leather coat open over a fitted black top and black trousers, polished tall black boots. Same pose.",
+  "concierge": "The Concierge's version of her, a striking cyberpunk look: an asymmetric undercut, one side shaved, long hair swept over the other side in neon green fading to purple. Bold make-up with dark lips and sharp eyeliner, the visor sleek and glossy with a cyan glow. A cropped black top, fitted high-waisted black trousers, a long glossy red coat with thin neon trims, chunky black platform boots. Confident, glamorous and attractive. Same pose.",
   "height": 240,
   "position": [
     480,
@@ -19,108 +19,84 @@
   "references": [
     "art/reference/Rainy Neon Cyberpunk Concept Sheet.png"
   ],
-  "rig": {
-    "skeleton": "human",
+  "pose": {
     "joints": {
       "crown": [
-        45,
-        2
+        544,
+        31
       ],
       "neck": [
-        44,
-        46
+        538,
+        304
       ],
       "pelvis": [
-        42,
-        122
+        525,
+        775
       ],
       "shoulderBack": [
-        22,
-        58
+        401,
+        379
       ],
       "elbowBack": [
-        16,
-        92
+        364,
+        589
       ],
       "wristBack": [
-        17,
-        117
+        370,
+        744
       ],
       "handBack": [
-        18,
-        133
+        377,
+        844
       ],
       "shoulderFront": [
-        60,
-        60
+        637,
+        391
       ],
       "elbowFront": [
-        67,
-        92
+        680,
+        589
       ],
       "wristFront": [
-        70,
-        116
+        699,
+        738
       ],
       "handFront": [
-        71,
-        131
+        705,
+        831
       ],
       "hipBack": [
-        31,
-        128
+        457,
+        813
       ],
       "kneeBack": [
-        23,
-        172
+        408,
+        1085
       ],
       "ankleBack": [
-        21,
-        222
+        395,
+        1395
       ],
       "toeBack": [
-        29,
-        236
+        445,
+        1482
       ],
       "hipFront": [
-        49,
-        128
+        569,
+        813
       ],
       "kneeFront": [
-        50,
-        172
+        575,
+        1085
       ],
       "ankleFront": [
-        52,
-        224
+        587,
+        1408
       ],
       "toeFront": [
-        67,
-        238
+        680,
+        1495
       ]
-    },
-    "radii": {
-      "legBackUpper": [
-        0,
-        9
-      ],
-      "legBackLower": [
-        0,
-        9
-      ],
-      "legFrontUpper": [
-        4,
-        9
-      ],
-      "legFrontLower": [
-        4,
-        9
-      ],
-      "armFrontUpper": 5,
-      "armFrontLower": 4,
-      "armBackUpper": 5,
-      "armBackLower": 4
-    },
-    "hem": 186
+    }
   }
 }

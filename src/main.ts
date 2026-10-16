@@ -153,7 +153,7 @@ async function boot(): Promise<void> {
     // the scene's smoke emitter follows her cigarette, or goes off screen when she has none
     const smoke: [number, number] = hs ? [world.heroX + hs[0] * world.facing, level.walk.y + hs[1] + bob] : [-1000, -1000];
     fitCanvas(canvas);
-    renderer.render(runner.frame(t, state, cam, [{ sprite: heroSprite, x: hx, y: hy, flip, frame: frameFor(heroSprite.def, world.moving, world.walked) }], smoke));
+    renderer.render(runner.frame(t, state, cam, [{ sprite: heroSprite, x: hx, y: hy, flip, frame: frameFor(heroSprite.def, world.moving, world.walked, t) }], smoke));
     frames++;
     const now = performance.now();
     if (now - fpsAt > 500) { fps = (frames * 1000) / (now - fpsAt); frames = 0; fpsAt = now; }

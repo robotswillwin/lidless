@@ -26,8 +26,11 @@ export interface SpriteDef {
   kind?: string;
   /** Animation frames side by side in every map, a transparent gutter between them; w and h are one frame. */
   frames?: { count: number; gutter: number };
-  /** Named runs of frames. A walk has a stride: how far the body moves in one cycle, so the planted foot does not slide. */
-  anims?: Record<string, { from: number; count: number; stride?: number }>;
+  /**
+   * Named runs of frames. A walk has a stride: how far the body moves in one cycle, so the planted foot does not
+   * slide. A loop has a speed in frames per second, and can give the order to play its frames in (repeats hold one).
+   */
+  anims?: Record<string, { from: number; count: number; stride?: number; fps?: number; seq?: number[] }>;
   /** Used when the sprite has no meta map. */
   occluder?: number;
   reflectivity?: number;

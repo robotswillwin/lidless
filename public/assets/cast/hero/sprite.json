@@ -1,8 +1,8 @@
 {
   "name": "hero",
-  "x": 392,
+  "x": 405,
   "y": 224,
-  "w": 175,
+  "w": 145,
   "h": 240,
   "maps": [
     "albedo.concierge",
@@ -18,7 +18,7 @@
   "reflectivity": 0,
   "object": 0,
   "anchor": [
-    88,
+    75,
     240
   ],
   "exists": "both",
@@ -35,7 +35,7 @@
     "walk": {
       "from": 1,
       "count": 8,
-      "stride": 150
+      "stride": 169
     }
   }
 }

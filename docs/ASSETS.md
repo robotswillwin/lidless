@@ -71,16 +71,21 @@ with a transparent gutter of `frames.gutter` pixels between them. `anims` names 
 "anims": { "idle": { "from": 0, "count": 1 }, "walk": { "from": 1, "count": 8, "stride": 150 } }
 ```
 
-A walk's `stride` is how far the body moves in one full cycle. The game picks the walk frame from the distance walked,
-so the planted foot never slides, whatever the walking speed.
+A walk's `stride` is how far the body moves in one full cycle; the game picks the walk frame from the distance walked,
+so the planted foot never slides, whatever the walking speed. A loop has `fps` and can have `seq`, the order to play
+its frames in, where repeating a frame holds it.
 
-The pipeline makes these from one standing image per view: a cut-out rig. The recipe's `rig.joints` places about 20
-joints (neck, pelvis, shoulders, elbows, wrists, hands, hips, knees, ankles, toes, front and back) in the still
-sprite's pixels. Each pixel goes with the nearest limb, the rest with the torso and head, and the frames are posed,
-shrunk and pixelated with one set of colours, so nothing flickers. A long coat needs `rig.hem`, the hem line, and
-thin legs above it (`rig.radii`: `[above the hem, below it]`), so the coat hangs from the torso and the legs swing
-beneath it. Characters for rigs are generated in a neutral pose: arms relaxed and clear of the body, legs apart,
-nothing in the hands.
+The pipeline makes the frames in two ways, and every frame of a character shares one set of colours, so nothing
+flickers:
+
+- **Characters that walk** (`animate`): the image model draws the character in each frame of an animation, following
+  a grey mannequin posed in the character's own proportions. The recipe's `pose.joints` places the joints (neck,
+  pelvis, shoulders, elbows, wrists, hands, hips, knees, ankles, toes, near and far) in the picked image's pixels.
+  The walk is seen closer to profile than a standing pose, and has its own standing frame for when the character stops.
+- **Characters that stand** (`touch --frame idle/N`): each frame repaints one area, such as a hand or a face, and
+  everything outside it is identical in every frame. The recipe's `anims.idle` sets `fps` and `seq`.
+
+(A cut-out rig, `rig.joints`, can also bake frames from one image. It suits small motions, not walking.)
 
 ## Light language
 

@@ -22,5 +22,26 @@
     240
   ],
   "exists": "both",
-  "kind": "character"
+  "kind": "character",
+  "frames": {
+    "count": 3,
+    "gutter": 2
+  },
+  "anims": {
+    "idle": {
+      "from": 0,
+      "count": 3,
+      "fps": 3,
+      "seq": [
+        0,
+        0,
+        0,
+        1,
+        1,
+        2,
+        2,
+        0
+      ]
+    }
+  }
 }

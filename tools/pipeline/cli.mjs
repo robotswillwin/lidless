@@ -10,6 +10,7 @@ import { glowAuto, heightMap, materialMap, metaMap, normalMap } from './derive.m
 import { blank, readRGBA, writePNG } from './image.mjs';
 import { edit, generate } from './openai.mjs';
 import { KINDS, ROOT, loadRecipe, recipeTemplate } from './recipe.mjs';
+import { animatePrompt, guide, poses } from './poses.mjs';
 import { bake, plant, shrink, WORK } from './rig.mjs';
 import { conciergePrompt, generationPrompt, LOOKS, REFERENCE_NOTE } from './style.mjs';
 
@@ -27,10 +28,15 @@ const HELP = `Asset pipeline: generate art with an image AI, clean it and turn i
       Edit the picked raw image into Concierge-view candidates (GPT Image 2.5 Sunburst).
   npm run asset -- sheet <recipe>
       Lay all candidates side by side at game size, finished as the build would, to choose between them.
-  npm run asset -- touch <recipe> --box x,y,w,h --prompt "what to change" [--view raw|concierge] [--quality low|medium] [--dry]
+  npm run asset -- animate <recipe> [--anim walk] [--view raw|concierge] [--quality low|medium] [--dry]
+      Draw the character in each frame of an animation with GPT Image 2.5 Sunburst, following a grey mannequin
+      posed in the character's own proportions (the recipe's pose.joints, in the source image's pixels). Frames and
+      guides go to art/<scene>/<name>/anims/<anim>/. --dry only draws the guides, which costs nothing.
+  npm run asset -- touch <recipe> --box x,y,w,h --prompt "what to change" [--view raw|concierge] [--quality low|medium] [--frame idle/1] [--dry]
       Change one area of the picked image with GPT Image 2.5 Sunburst, then rebuild. The box is in the picked
       image's pixels. Only a window around it is sent, and only the box is pasted back; the old image is kept
-      in candidates/.
+      in candidates/. With --frame, the result becomes that animation frame instead (art/<scene>/<name>/anims/),
+      the picked image staying frame 0: everything outside the box is identical in every frame.
   npm run asset -- pick <recipe> <candidate>
       Use a candidate, e.g. raw-03 or concierge-01.
   npm run asset -- import <recipe> <image> [--as raw|concierge]
@@ -159,6 +165,8 @@ async function updateBenchList(scene, name, kind) {
 
 async function buildOne(file) {
   const r = await loadRecipe(file), spec = r.spec, exists = r.exists ?? 'both', rawPath = join(r.dir, 'raw.png'), concPath = join(r.dir, 'concierge.png');
+  // frames drawn with `animate` make an animated sprite
+  if (existsSync(join(r.dir, 'anims'))) return assembleOne(r);
   const main = exists === 'concierge' ? concPath : rawPath;
   if (!existsSync(main)) throw new Error(`${r.name}: no ${exists === 'concierge' ? 'Concierge' : 'raw'} image yet. Generate and pick one, or import one.`);
   let raw = exists === 'concierge' ? null : await readRGBA(rawPath);
@@ -218,11 +226,10 @@ async function buildOne(file) {
 
 /**
  * A rigged character: cut into parts at its joints, posed into an idle frame and a walk cycle, each frame shrunk to
- * game size, planted on the ground and finished with one set of colours per view, so nothing flickers between
- * frames. Its maps are derived frame by frame, and every map is a strip of frames.
+ * game size and planted on the ground.
  */
 async function bakeOne(r, rawSrc, concSrc, box) {
-  const spec = r.spec, exists = r.exists ?? 'both', height = r.height ?? spec.height, hexes = await palette(), strength = r.palette ?? 0.35, pad = 48, G = 2;
+  const height = r.height ?? r.spec.height, pad = 48;
   const work = async (img) => img && hardenAlpha(await fitToHeight(img, box, height * WORK));
   const { frames, stride } = bake([await work(rawSrc), await work(concSrc)], r.rig.joints, { radii: r.rig.radii, hem: r.rig.hem, pad });
   const views = frames.map((fs) => fs && fs.map((f) => hardenAlpha(shrink(f)))), n = (views[0] ?? views[1]).length;
@@ -230,14 +237,56 @@ async function bakeOne(r, rawSrc, concSrc, box) {
     const planted = plant(views.filter(Boolean).map((fs) => fs[k]));
     views.filter(Boolean).forEach((fs, v) => { fs[k] = planted[v]; });
   }
+  const restW = Math.round((box.w * height) / box.h);
+  await writeAnimated(r, views[0], views[1], { anchorX: pad + Math.round(restW / 2), anims: { idle: { from: 0, count: 1 }, walk: { from: 1, count: n - 1, stride: Math.round(stride) } } });
+}
+
+/**
+ * A character animated frame by frame with `animate`: an idle frame, then the walk. Every frame of both views is
+ * cropped and scaled the same way, so the character keeps its size and place, and planted on the ground.
+ */
+async function assembleOne(r) {
+  const height = r.height ?? r.spec.height, dir = join(r.dir, 'anims');
+  const load = async (anim, view) => {
+    const d = join(dir, anim);
+    if (!existsSync(d)) return [];
+    const files = (await readdir(d)).filter((f) => f.startsWith(`${view}-`) && f.endsWith('.png')).sort();
+    return Promise.all(files.map((f) => readRGBA(join(d, f))));
+  };
+  const views = {};
+  for (const v of ['raw', 'concierge']) {
+    const idle = await load('idle', v), walk = await load('walk', v);
+    if (idle.length || walk.length) views[v] = { idle, walk };
+  }
+  if (!views.raw && !views.concierge) throw new Error(`${r.name}: no frames in ${rel(dir)} yet; make them with: npm run asset -- animate ${rel(r.file)}`);
+  const [a, b] = [views.raw, views.concierge].filter(Boolean);
+  if (b && (a.idle.length !== b.idle.length || a.walk.length !== b.walk.length)) throw new Error(`${r.name}: the raw and Concierge views have different frames; animate both the same way`);
+  const all = [views.raw, views.concierge].filter(Boolean).flatMap((v) => [...v.idle, ...v.walk]);
+  const box = all.map((img) => contentBox(img)).reduce(unionBox), scale = height / box.h;
+  const frames = async (v) => v && Promise.all([...v.idle, ...v.walk].map(async (img) => plant([hardenAlpha(await fitToHeight(img, box, height))])[0]));
+  const stride = existsSync(join(dir, 'walk', 'stride.json')) ? JSON.parse(await readFile(join(dir, 'walk', 'stride.json'), 'utf8')).stride * scale : 0;
+  const idle = a.idle.length, walk = a.walk.length, anims = {};
+  if (idle) anims.idle = { from: 0, count: idle };
+  if (walk) anims.walk = { from: idle, count: walk, stride: Math.round(stride) };
+  const anchorX = r.pose?.joints?.pelvis ? Math.round((r.pose.joints.pelvis[0] - box.x) * scale) : null;
+  // timing from the recipe: a loop's frames per second, and the order to play them in, repeats making a frame hold
+  for (const [k, extra] of Object.entries(r.anims ?? {})) if (anims[k]) Object.assign(anims[k], extra);
+  await writeAnimated(r, await frames(views.raw), await frames(views.concierge), { anchorX, anims });
+}
+
+/**
+ * Animation frames, game size, into the asset: one set of colours per view across all frames, so nothing flickers;
+ * maps derived frame by frame; every map a strip of frames with a transparent gutter between them.
+ */
+async function writeAnimated(r, raws, concs, { anchorX, anims }) {
+  const spec = r.spec, exists = r.exists ?? 'both', hexes = await palette(), strength = r.palette ?? 0.35, G = 2, n = (raws ?? concs).length;
   const px = r.pixel === false ? null : { ...spec.pixel, ...(r.pixel ?? {}) };
-  for (const fs of views) if (fs) {
+  for (const fs of [raws, concs]) if (fs) {
     for (let k = 0; k < n; k++) fs[k] = paletteFit(fs[k], hexes, strength);
     const centres = px?.colors ? fitColours(fs[0], px.colors) : null;
     if (centres) for (const f of fs) pixelate(f, { centres, cleanup: px.cleanup ?? true });
   }
-
-  const [raws, concs] = views, { w, h } = (raws ?? concs)[0], glow = r.glow ?? {}, maps = {};
+  const { w, h } = (raws ?? concs)[0], glow = r.glow ?? {}, maps = {};
   const add = (name, img) => (maps[name] ??= []).push(img);
   for (let k = 0; k < n; k++) {
     let raw = raws?.[k] ?? null, conc = concs?.[k] ?? null;
@@ -267,18 +316,16 @@ async function bakeOne(r, rawSrc, concSrc, box) {
   const out = resolve(ROOT, 'public/assets', r.scene, r.name);
   await mkdir(out, { recursive: true });
   for (const [name, imgs] of Object.entries(maps)) await writePNG(join(out, `${name}.png`), strip(imgs), { rgb: !name.startsWith('albedo') });
-  const restW = Math.round((box.w * height) / box.h), anchor = [pad + Math.round(restW / 2), h], [cx, base] = r.position ?? [480, 464];
+  const anchor = [anchorX ?? Math.round(w / 2), h], [cx, base] = r.position ?? [480, 464];
   const sprite = {
     name: r.name, x: cx - anchor[0], y: base - h, w, h, maps: Object.keys(maps).sort(),
     depth: r.depth ?? spec.depth, parallax: r.parallax ?? 1, occluder: (r.occluder ?? spec.occluder) ? 1 : 0, reflectivity: r.reflectivity ?? 0, object: r.object ?? 0,
-    anchor, exists, kind: r.kind,
-    frames: { count: n, gutter: G },
-    anims: { idle: { from: 0, count: 1 }, walk: { from: 1, count: n - 1, stride: Math.round(stride) } },
+    anchor, exists, kind: r.kind, frames: { count: n, gutter: G }, anims,
   };
   await writeFile(join(out, 'sprite.json'), JSON.stringify(sprite, null, 2) + '\n');
   for (const f of await readdir(out)) if (f.endsWith('.png') && !sprite.maps.includes(f.slice(0, -4))) await rm(join(out, f));
   await updateBenchList(r.scene, r.name, r.kind);
-  console.log(`${r.name}: ${n} frames of ${w}×${h}, walk stride ${Math.round(stride)} px → ${rel(out)} (${sprite.maps.length} maps)`);
+  console.log(`${r.name}: ${n} frames of ${w}×${h}${anims.walk ? `, walk stride ${anims.walk.stride} px` : ''} → ${rel(out)} (${sprite.maps.length} maps)`);
 }
 
 /** Every candidate cleaned and sized as the build would, side by side and feet level, at twice game size. */
@@ -321,6 +368,32 @@ function editWindow(W, H, bx, by, bw, bh) {
   return { left: Math.max(0, Math.min(W - w, Math.round(bx + bw / 2 - w / 2))), top: Math.max(0, Math.min(H - h, Math.round(by + bh / 2 - h / 2))), width: w, height: h };
 }
 
+async function cmdAnimate([file], opt) {
+  const r = await loadRecipe(file), anim = opt.anim ?? 'walk', view = opt.view ?? 'raw', quality = opt.quality ?? 'low';
+  if (!r.pose?.joints) throw new Error(`${r.name} has no pose.joints to pose a mannequin with`);
+  const src = join(r.dir, `${view}.png`);
+  if (!existsSync(src)) throw new Error(`no ${view} image at ${rel(src)}`);
+  const { w, h } = await sharp(src).metadata().then((m) => ({ w: m.width, h: m.height }));
+  const { frames, stride } = poses(anim, r.pose.joints), dir = join(r.dir, 'anims', anim);
+  await mkdir(dir, { recursive: true });
+  const guides = await Promise.all(frames.map((P) => guide(P, w, h)));
+  await Promise.all(guides.map((g, k) => writeFile(join(dir, `guide-${String(k).padStart(2, '0')}.png`), g)));
+  await writeFile(join(dir, 'stride.json'), JSON.stringify({ stride }) + '\n');
+  console.log(`${r.name}: ${frames.length} ${anim} guides in ${rel(dir)}, stride ${stride.toFixed(0)} px in the source image`);
+  const what = anim === 'walk' ? 'walking to the right' : 'standing still, facing right';
+  if (opt.dry) return console.log(`\n${animatePrompt(what)}`);
+  // one call per frame, all at once; the character goes first, its guide second, both shrunk to save input tokens
+  const small = (data) => sharp(data).resize(768, 768, { fit: 'inside' }).png().toBuffer();
+  const prompt = animatePrompt(what), base = { name: `${view}.png`, data: await small(await readFile(src)) };
+  let total = 0;
+  await Promise.all(guides.map(async (g, k) => {
+    const res = await edit({ prompt, images: [base, { name: 'guide.png', data: await small(g) }], size: `${w}x${h}`, quality, n: 1, background: 'transparent' });
+    await writeFile(join(dir, `${view}-${String(k).padStart(2, '0')}.png`), res.images[0]);
+    total += res.cost ?? 0;
+  }));
+  console.log(`${frames.length} frames in ${rel(dir)} · cost $${total.toFixed(4)}`);
+}
+
 async function cmdTouch([file], opt) {
   const r = await loadRecipe(file), view = opt.view ?? (r.exists === 'concierge' ? 'concierge' : 'raw'), src = join(r.dir, `${view}.png`);
   const box = String(opt.box ?? '').split(',').map(Number);
@@ -346,17 +419,25 @@ async function cmdTouch([file], opt) {
     const k = Math.min(1, (Math.min(x - bx, bx + bw - 1 - x, y - by, by + bh - 1 - y) + 1) / feather), i = (y * img.w + x) * 4, j = ((y - win.top) * win.width + (x - win.left)) * 4;
     for (let c = 0; c < 4; c++) out.d[i + c] = img.d[i + c] * (1 - k) + data[j + c] * k;
   }
+  const spent = res.cost == null ? 'Cost: not reported by the API.' : `Cost: $${res.cost.toFixed(4)} (${res.usage.output_tokens ?? '?'} image tokens out, ${res.usage.input_tokens ?? '?'} tokens in)`;
+  if (typeof opt.frame === 'string') {
+    // an animation frame: the picked image is frame 0, and this one differs only inside the box
+    const [anim, num] = opt.frame.split('/'), adir = join(r.dir, 'anims', anim), name = (k) => join(adir, `${view}-${String(k).padStart(2, '0')}.png`);
+    await mkdir(adir, { recursive: true });
+    if (!existsSync(name(0))) await copyFile(src, name(0));
+    await writePNG(name(Number(num)), out);
+    return console.log(`  ${rel(name(Number(num)))}\n${spent}`);
+  }
   const dir = join(r.dir, 'candidates');
   await mkdir(dir, { recursive: true });
   const keep = join(dir, (await nextName(dir, `${view}-before-touch`))());
   await copyFile(src, keep);
   await writePNG(src, out);
-  console.log(`  ${rel(src)} (the old one is ${rel(keep)})`);
-  console.log(res.cost == null ? 'Cost: not reported by the API.' : `Cost: $${res.cost.toFixed(4)} (${res.usage.output_tokens ?? '?'} image tokens out, ${res.usage.input_tokens ?? '?'} tokens in)`);
+  console.log(`  ${rel(src)} (the old one is ${rel(keep)})\n${spent}`);
   await buildOne(file);
 }
 
 const [cmd, ...rest] = process.argv.slice(2), { pos, opt } = parse(rest);
-const run = { new: cmdNew, generate: cmdGenerate, variant: cmdVariant, pick: cmdPick, import: cmdImport, sheet: cmdSheet, touch: cmdTouch, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
+const run = { new: cmdNew, generate: cmdGenerate, variant: cmdVariant, pick: cmdPick, import: cmdImport, sheet: cmdSheet, touch: cmdTouch, animate: cmdAnimate, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
 if (!run) console.log(HELP);
 else run(pos, opt).catch((e) => { console.error(`error: ${e.message}`); process.exit(1); });

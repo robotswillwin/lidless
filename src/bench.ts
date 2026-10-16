@@ -250,7 +250,7 @@ function draw(): void {
   const t = clock(), d = asset.def, [ax] = d.anchor ?? [d.w / 2, d.h];
   const [cx, flip] = walkIn.checked ? walkAt(t) : [Number(xIn.value), flipIn.checked];
   // walking, the frames follow the distance covered (90 px a second), as they do in the game
-  const actor: DrawSprite = { sprite: asset, x: Math.round(cx - (flip ? d.w - ax : ax)), y: d.y, flip, frame: frameFor(d, walkIn.checked, t * 90) };
+  const actor: DrawSprite = { sprite: asset, x: Math.round(cx - (flip ? d.w - ax : ax)), y: d.y, flip, frame: frameFor(d, walkIn.checked, t * 90, t) };
   const sinceSwitch = reduceMotion ? 10 : t - switchedAt;
   let f: Frame;
   if (backdropSel.value === 'street' && street) {
