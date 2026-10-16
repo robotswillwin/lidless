@@ -21,7 +21,7 @@ const RAW_WORLD = [
   'Cold, drab, faded colours: concrete grey, steel and slate blue-grey, dirty white tile. Nothing warm. The only bright colours are small lights on machines: indicators, old screens.',
 ].join(' ');
 const CONCIERGE_WORLD = [
-  'cool and sexy: sleek, glossy, expensive and seductive, with cyan, violet and magenta neon accents.',
+  'cool and glamorous: sleek, glossy, expensive and stylish, with cyan, violet and magenta neon accents.',
   'People are clean, healthy, fit and good-looking, in stylish, well-fitted clothes.',
   'Electronics that people use look futuristic: smooth white shells and blue light.',
   'Signs and screens are in English, with some Chinese and Japanese, like an international city.',
@@ -36,11 +36,14 @@ const KIND_NOTES = {
   portrait: 'A dialogue portrait: head and shoulders, three-quarter view, filling the frame, more detail in the face. Even, soft, frontal lighting with no rim light. Transparent background, no text, no border.',
 };
 
+/** A character that will be cut into parts and animated needs every limb clear of the body. */
+const RIG_POSE = 'A neutral standing pose for animation: arms hanging relaxed and slightly away from the body, hands empty and open, legs straight and slightly apart so both are fully visible, nothing held and nothing crossing the body.';
+
 export function generationPrompt(r, look = r.look ?? 'pixel') {
   const world = r.exists === 'concierge'
     ? `This does not exist: the city AI made it up and shows it in everyone's eye. Its world is ${CONCIERGE_WORLD}`
     : RAW_WORLD;
-  return `${look ? `${LOOKS[look]} ` : ''}${HOUSE_STYLE} ${KIND_NOTES[r.kind]} ${world} Subject: ${r.prompt}`;
+  return `${look ? `${LOOKS[look]} ` : ''}${HOUSE_STYLE} ${KIND_NOTES[r.kind]}${r.rig ? ` ${RIG_POSE}` : ''} ${world} Subject: ${r.prompt}`;
 }
 
 /** Put in front of the prompt when reference images go with it. */

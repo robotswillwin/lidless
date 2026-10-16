@@ -24,7 +24,11 @@ export interface Hotspot {
 
 export interface LevelDef {
   walk: { y: number; x0: number; x1: number };
-  hero: { sprite: string; x: number; anchor: [number, number]; smoke: [number, number]; speed: number };
+  /**
+   * The hero's sprite is a name in the scene, or a path under assets such as "cast/hero". Anchor and smoke (where her
+   * cigarette is, from her feet) are for sprites that do not say themselves.
+   */
+  hero: { sprite: string; x: number; anchor?: [number, number]; smoke?: [number, number]; speed: number };
   hotspots: Hotspot[];
 }
 

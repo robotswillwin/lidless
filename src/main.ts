@@ -1,8 +1,9 @@
 // Lidless: boot, input, the frame loop, conversations, the view switch and saving.
 
 import './style.css';
-import { loadScene } from './engine/assets';
+import { loadScene, loadSprite, spriteDefaults } from './engine/assets';
 import { fitCanvas, NH, NW, QUALITY, Renderer, type Tier } from './engine/renderer';
+import { frameFor } from './game/anim';
 import { Dialogue } from './game/dialogue';
 import { inView, loadLevel, pick, type Hotspot } from './game/level';
 import { clearSave, loadSave, writeSave } from './game/save';
@@ -33,12 +34,18 @@ function toLevel(e: PointerEvent, cam: [number, number]): [number, number] {
 
 async function boot(): Promise<void> {
   if (params.has('new')) clearSave();
-  const base = `${import.meta.env.BASE_URL}assets/styleframe`;
+  const assets = `${import.meta.env.BASE_URL}assets`, base = `${assets}/styleframe`;
   const renderer = new Renderer(canvas, QUALITY[pickTier()]);
   const [scene, level] = await Promise.all([loadScene(renderer.gl, base), loadLevel(base)]);
   const save = loadSave();
-  const runner = new SceneRunner(scene, new Set([level.hero.sprite]));
-  const heroSprite = runner.sprite(level.hero.sprite);
+  const heroPath = level.hero.sprite, heroName = heroPath.split('/').pop()!;
+  const runner = new SceneRunner(scene, new Set([heroName]));
+  // the hero can live in a folder of her own, such as cast/hero, instead of the scene's
+  const heroSprite = heroPath.includes('/')
+    ? await loadSprite(renderer.gl, `${assets}/${heroPath.slice(0, heroPath.lastIndexOf('/'))}`, heroName, spriteDefaults(renderer.gl))
+    : runner.sprite(heroName);
+  const heroAnchor = heroSprite.def.anchor ?? level.hero.anchor ?? [heroSprite.def.w / 2, heroSprite.def.h];
+  const heroBob = () => (heroSprite.def.anims?.walk ? 0 : world.bob);
   const world = new World(level, save?.heroX, save?.facing);
   const dialogue = new Dialogue(save?.ink ?? null);
   const ui = new UI(stage);
@@ -141,11 +148,12 @@ async function boot(): Promise<void> {
     if (arrived && inView(arrived, state.view < 0.5)) interact(arrived);
     if (wasMoving && !world.moving) persist();
     state.sinceSwitch = reduceMotion ? 10 : t - switchedAt;
-    const flip = world.facing < 0, [ax, ay] = level.hero.anchor, w = heroSprite.def.w;
-    const hx = Math.round(world.heroX - cam[0] - (flip ? w - ax : ax)), hy = Math.round(level.walk.y - cam[1] - ay + world.bob);
-    const smoke: [number, number] = [world.heroX + level.hero.smoke[0] * world.facing, level.walk.y + level.hero.smoke[1] + world.bob];
+    const flip = world.facing < 0, [ax, ay] = heroAnchor, w = heroSprite.def.w, bob = heroBob(), hs = level.hero.smoke;
+    const hx = Math.round(world.heroX - cam[0] - (flip ? w - ax : ax)), hy = Math.round(level.walk.y - cam[1] - ay + bob);
+    // the scene's smoke emitter follows her cigarette, or goes off screen when she has none
+    const smoke: [number, number] = hs ? [world.heroX + hs[0] * world.facing, level.walk.y + hs[1] + bob] : [-1000, -1000];
     fitCanvas(canvas);
-    renderer.render(runner.frame(t, state, cam, [{ sprite: heroSprite, x: hx, y: hy, flip }], smoke));
+    renderer.render(runner.frame(t, state, cam, [{ sprite: heroSprite, x: hx, y: hy, flip, frame: frameFor(heroSprite.def, world.moving, world.walked) }], smoke));
     frames++;
     const now = performance.now();
     if (now - fpsAt > 500) { fps = (frames * 1000) / (now - fpsAt); frames = 0; fpsAt = now; }

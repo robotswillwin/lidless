@@ -51,7 +51,8 @@ npm run asset -- build art/street/dock-worker.json
 4. `import` brings in an image made anywhere else.
 5. `build` makes the sprite in `public/assets/<scene>/<name>/`.
 
-`npm run asset` alone lists every command and option.
+`npm run asset` alone lists every command and option. `touch` changes one marked area of a picked image, and a
+recipe with a `rig` is baked into animation frames (see [docs/ASSETS.md](docs/ASSETS.md)).
 
 The image AI needs an OpenAI API key in `.env.local` as `OPENAI_API_KEY=...`. That file is never committed.
 

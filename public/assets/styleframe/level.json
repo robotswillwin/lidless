@@ -1,6 +1,6 @@
 {
   "walk": {"y": 464, "x0": 36, "x1": 930},
-  "hero": {"sprite": "hero", "x": 540, "anchor": [70, 246], "smoke": [25, -215], "speed": 118},
+  "hero": {"sprite": "cast/hero", "x": 540, "speed": 118},
   "hotspots": [
     {"id": "sky", "name": {"concierge": "The Concierge", "raw": "The moon"}, "rect": [640, 20, 200, 200], "look": {"concierge": "The Concierge's face, as big as weather, watching the street with kind attention.", "raw": "The moon. You'd forgotten it was still up there."}},
     {"id": "sign", "name": "Shop sign", "rect": [48, 14, 428, 60], "stand": 260, "look": "RADIO REPAIR, in gold leaf. Somebody still cares about lettering."},

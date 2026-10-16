@@ -43,6 +43,8 @@ export interface DrawSprite {
   y: number;
   /** Mirror horizontally (a character facing the other way). */
   flip?: boolean;
+  /** Which animation frame, for sprites that have frames. */
+  frame?: number;
 }
 
 export interface Frame {
@@ -172,6 +174,8 @@ export class Renderer {
       MAP_ORDER.forEach(([m, u], i) => this.bind(sp, u, s.tex[m], i));
       gl.uniform4f(sp.u.uRect, d.x, d.y, def.w, def.h);
       gl.uniform1f(sp.u.uFlip, d.flip ? 1 : 0);
+      const fr = def.frames, k = fr ? Math.max(0, Math.min(fr.count - 1, d.frame ?? 0)) : 0, tw = fr ? fr.count * def.w + (fr.count - 1) * fr.gutter : def.w;
+      gl.uniform2f(sp.u.uUV, (k * (def.w + (fr?.gutter ?? 0))) / tw, def.w / tw);
       gl.uniform1f(sp.u.uHasMeta, s.hasMeta ? 1 : 0);
       gl.uniform4f(sp.u.uConst, def.occluder ?? 0, def.depth, def.reflectivity ?? 0, def.object ?? 0);
       gl.drawArrays(gl.TRIANGLES, 0, 6);

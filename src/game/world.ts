@@ -8,6 +8,8 @@ export class World {
   /** Held keyboard direction: -1, 0 or 1. */
   keyDir = 0;
   moving = false;
+  /** Distance walked so far, which drives the walk cycle. */
+  walked = 0;
   private walkT = 0;
   private target: number | null = null;
   private pending: Hotspot | null = null;
@@ -33,7 +35,7 @@ export class World {
 
   /** Advance by dt seconds. Returns the hotspot the hero just reached, if any. */
   update(dt: number): Hotspot | null {
-    const speed = this.level.hero.speed;
+    const speed = this.level.hero.speed, startX = this.heroX;
     let arrived: Hotspot | null = null;
     if (this.keyDir !== 0) {
       this.stop();
@@ -59,11 +61,12 @@ export class World {
         this.moving = true;
       }
     } else this.moving = false;
+    this.walked += Math.abs(this.heroX - startX);
     this.walkT = this.moving ? this.walkT + dt : 0;
     return arrived;
   }
 
-  /** A one-pixel step bob while walking, until the hero has a proper walk cycle. */
+  /** A one-pixel step bob while walking, for a hero sprite without a walk cycle. */
   get bob(): number {
     return this.moving && Math.floor(this.walkT * 4.4) % 2 === 1 ? -1 : 0;
   }

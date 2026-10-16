@@ -99,43 +99,52 @@ export function paletteFit(img, hexes, strength) {
   return img;
 }
 
-/**
- * Pixel-art finish: reduce the image to `colors` flat colours (k-means in OKLab, no dithering), then give each lone
- * pixel that matches none of its eight neighbours the colour most of them share. A shrunken painting becomes clean
- * pixel clusters. Seeded, so the same image always gives the same result.
- */
-export function pixelate(img, { colors = 48, cleanup = true } = {}) {
+/** The `colors` flat colours that best cover the image (k-means in OKLab on a sample, seeded so it is repeatable). */
+export function fitColours(img, colors) {
   const n = img.w * img.h, px = [];
   for (let p = 0; p < n; p++) if (img.d[p * 4 + 3] >= 128) px.push(p);
-  if (px.length <= colors) return img;
-  const lab = new Float32Array(px.length * 3);
-  px.forEach((p, k) => lab.set(oklab(img.d[p * 4], img.d[p * 4 + 1], img.d[p * 4 + 2]), k * 3));
+  if (px.length <= colors) return null;
   let seed = 7;
   const rand = () => ((seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 4294967296);
-  const dist = (a, i, c, j) => (a[i] - c[j]) ** 2 + (a[i + 1] - c[j + 1]) ** 2 + (a[i + 2] - c[j + 2]) ** 2;
-  // fit the colours on a sample, seeded k-means++ style
   const S = Math.min(px.length, 20000), sample = new Float32Array(S * 3);
-  for (let s = 0; s < S; s++) { const k = ((rand() * px.length) | 0) * 3; sample.set(lab.subarray(k, k + 3), s * 3); }
+  for (let s = 0; s < S; s++) { const p = px[(rand() * px.length) | 0]; sample.set(oklab(img.d[p * 4], img.d[p * 4 + 1], img.d[p * 4 + 2]), s * 3); }
   const C = new Float32Array(colors * 3), near = new Float32Array(S).fill(Infinity);
   C.set(sample.subarray(0, 3));
   for (let c = 1; c < colors; c++) {
     let total = 0;
-    for (let s = 0; s < S; s++) { near[s] = Math.min(near[s], dist(sample, s * 3, C, (c - 1) * 3)); total += near[s]; }
+    for (let s = 0; s < S; s++) { near[s] = Math.min(near[s], dist3(sample, s * 3, C, (c - 1) * 3)); total += near[s]; }
     let r = rand() * total, s = 0;
     while (s < S - 1 && (r -= near[s]) > 0) s++;
     C.set(sample.subarray(s * 3, s * 3 + 3), c * 3);
   }
-  const nearest = (a, i) => { let best = 0, bd = Infinity; for (let c = 0; c < colors; c++) { const d = dist(a, i, C, c * 3); if (d < bd) { bd = d; best = c; } } return best; };
   for (let iter = 0; iter < 12; iter++) {
     const sum = new Float64Array(colors * 4);
-    for (let s = 0; s < S; s++) { const c = nearest(sample, s * 3); sum[c * 4] += sample[s * 3]; sum[c * 4 + 1] += sample[s * 3 + 1]; sum[c * 4 + 2] += sample[s * 3 + 2]; sum[c * 4 + 3]++; }
+    for (let s = 0; s < S; s++) { const c = nearestColour(sample, s * 3, C); sum[c * 4] += sample[s * 3]; sum[c * 4 + 1] += sample[s * 3 + 1]; sum[c * 4 + 2] += sample[s * 3 + 2]; sum[c * 4 + 3]++; }
     for (let c = 0; c < colors; c++) if (sum[c * 4 + 3]) C.set([sum[c * 4] / sum[c * 4 + 3], sum[c * 4 + 1] / sum[c * 4 + 3], sum[c * 4 + 2] / sum[c * 4 + 3]], c * 3);
   }
-  // every pixel takes its nearest colour; lone pixels join their neighbours
-  const label = new Int16Array(n).fill(-1);
-  px.forEach((p, k) => { label[p] = nearest(lab, k * 3); });
+  return C;
+}
+
+const dist3 = (a, i, c, j) => (a[i] - c[j]) ** 2 + (a[i + 1] - c[j + 1]) ** 2 + (a[i + 2] - c[j + 2]) ** 2;
+function nearestColour(a, i, C) {
+  let best = 0, bd = Infinity;
+  for (let c = 0; c < C.length / 3; c++) { const d = dist3(a, i, C, c * 3); if (d < bd) { bd = d; best = c; } }
+  return best;
+}
+
+/**
+ * Pixel-art finish: every pixel takes its nearest of a few flat colours (fitted to this image, or given as
+ * `centres` so animation frames share one set), then each lone pixel that matches none of its eight neighbours takes
+ * the colour most of them share. A shrunken painting becomes clean pixel clusters.
+ */
+export function pixelate(img, { colors = 48, cleanup = true, centres } = {}) {
+  const C = centres ?? fitColours(img, colors);
+  if (!C) return img;
+  const n = img.w * img.h, label = new Int16Array(n).fill(-1), lab = new Float32Array(3);
+  for (let p = 0; p < n; p++) if (img.d[p * 4 + 3] >= 128) { lab.set(oklab(img.d[p * 4], img.d[p * 4 + 1], img.d[p * 4 + 2])); label[p] = nearestColour(lab, 0, C); }
   const out = cleanup ? Int16Array.from(label) : label;
-  if (cleanup) for (const p of px) {
+  if (cleanup) for (let p = 0; p < n; p++) {
+    if (label[p] < 0) continue;
     const x = p % img.w, y = (p / img.w) | 0, count = new Map();
     let same = 0;
     for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
@@ -149,8 +158,8 @@ export function pixelate(img, { colors = 48, cleanup = true } = {}) {
     }
     if (!same && count.size) out[p] = [...count].sort((a, b) => b[1] - a[1])[0][0];
   }
-  const rgb = Array.from({ length: colors }, (_, c) => fromOklab(C[c * 3], C[c * 3 + 1], C[c * 3 + 2]));
-  for (const p of px) img.d.set(rgb[out[p]], p * 4);
+  const rgb = Array.from({ length: C.length / 3 }, (_, c) => fromOklab(C[c * 3], C[c * 3 + 1], C[c * 3 + 2]));
+  for (let p = 0; p < n; p++) if (out[p] >= 0) img.d.set(rgb[out[p]], p * 4);
   return img;
 }
 

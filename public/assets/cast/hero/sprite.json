@@ -1,0 +1,41 @@
+{
+  "name": "hero",
+  "x": 392,
+  "y": 224,
+  "w": 175,
+  "h": 240,
+  "maps": [
+    "albedo.concierge",
+    "albedo.raw",
+    "glow.concierge",
+    "material",
+    "meta",
+    "normal"
+  ],
+  "depth": 3,
+  "parallax": 1,
+  "occluder": 1,
+  "reflectivity": 0,
+  "object": 0,
+  "anchor": [
+    88,
+    240
+  ],
+  "exists": "both",
+  "kind": "character",
+  "frames": {
+    "count": 9,
+    "gutter": 2
+  },
+  "anims": {
+    "idle": {
+      "from": 0,
+      "count": 1
+    },
+    "walk": {
+      "from": 1,
+      "count": 8,
+      "stride": 150
+    }
+  }
+}

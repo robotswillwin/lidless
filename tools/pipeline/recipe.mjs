@@ -38,6 +38,7 @@ export const PRESENCE = ['both', 'concierge', 'raw'];
  * @property {number} [palette]           0 to 1: how strongly to pull colours toward the house palette
  * @property {string[]} [references]      images sent along as style references, relative to the project folder
  * @property {{ colors?: number, cleanup?: boolean } | false} [pixel]  pixel-art finish (default by kind), or false for none
+ * @property {object} [rig]               cut into parts at these joints and baked into animation frames (see rig.mjs)
  * @property {'pixel'|'paint'} [look]     ask for pixel art, or a painting that the build pixelates
  */
 

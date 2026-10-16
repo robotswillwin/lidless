@@ -61,6 +61,27 @@ Without a `meta.png`, the sprite uses `occluder`, `depth`, `reflectivity` and `o
 - `anchor` is the point inside the sprite that stands on the ground, for anything placed by its feet.
 - `exists` says which views it is in. It is information for tools; the albedo alpha decides what is drawn.
 
+## Animated sprites
+
+A sprite with `frames` has every map laid out as a strip: the frames side by side, `w` and `h` being one frame,
+with a transparent gutter of `frames.gutter` pixels between them. `anims` names runs of frames:
+
+```json
+"frames": { "count": 9, "gutter": 2 },
+"anims": { "idle": { "from": 0, "count": 1 }, "walk": { "from": 1, "count": 8, "stride": 150 } }
+```
+
+A walk's `stride` is how far the body moves in one full cycle. The game picks the walk frame from the distance walked,
+so the planted foot never slides, whatever the walking speed.
+
+The pipeline makes these from one standing image per view: a cut-out rig. The recipe's `rig.joints` places about 20
+joints (neck, pelvis, shoulders, elbows, wrists, hands, hips, knees, ankles, toes, front and back) in the still
+sprite's pixels. Each pixel goes with the nearest limb, the rest with the torso and head, and the frames are posed,
+shrunk and pixelated with one set of colours, so nothing flickers. A long coat needs `rig.hem`, the hem line, and
+thin legs above it (`rig.radii`: `[above the hem, below it]`), so the coat hangs from the torso and the legs swing
+beneath it. Characters for rigs are generated in a neutral pose: arms relaxed and clear of the body, legs apart,
+nothing in the hands.
+
 ## Light language
 
 Every asset follows it, and the pipeline will check it. These are the Concierge view's colours. In raw view the

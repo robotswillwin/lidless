@@ -5,11 +5,12 @@ import { existsSync } from 'node:fs';
 import { copyFile, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { basename, join, relative, resolve } from 'node:path';
 import sharp from 'sharp';
-import { contentBox, fitToHeight, hardenAlpha, isOpaque, overlay, paletteFit, pixelate, removeFlatBackground, silhouetteMatch, unionBox } from './clean.mjs';
+import { contentBox, fitColours, fitToHeight, hardenAlpha, isOpaque, overlay, paletteFit, pixelate, removeFlatBackground, silhouetteMatch, unionBox } from './clean.mjs';
 import { glowAuto, heightMap, materialMap, metaMap, normalMap } from './derive.mjs';
 import { blank, readRGBA, writePNG } from './image.mjs';
 import { edit, generate } from './openai.mjs';
 import { KINDS, ROOT, loadRecipe, recipeTemplate } from './recipe.mjs';
+import { bake, plant, shrink, WORK } from './rig.mjs';
 import { conciergePrompt, generationPrompt, LOOKS, REFERENCE_NOTE } from './style.mjs';
 
 try { process.loadEnvFile(resolve(ROOT, '.env.local')); } catch { /* no .env.local: fine until an API call needs the key */ }
@@ -170,6 +171,7 @@ async function buildOne(file) {
   }
   const first = raw ?? conc, height = r.height ?? spec.height, strength = r.palette ?? 0.35;
   const box = spec.transparent ? [raw, conc].filter(Boolean).map((img) => contentBox(img)).reduce(unionBox) : { x: 0, y: 0, w: first.w, h: first.h };
+  if (r.rig?.joints) return bakeOne(r, raw, conc, box);
   const hexes = await palette();
   const finish = finishFor(r);
   if (raw) raw = finish(paletteFit(hardenAlpha(await fitToHeight(raw, box, height)), hexes, strength));
@@ -212,6 +214,71 @@ async function buildOne(file) {
   await updateBenchList(r.scene, r.name, r.kind);
   const match = exists === 'both' && conc ? ` · outline match ${(silhouetteMatch(raw, conc) * 100).toFixed(0)}%` : exists === 'both' ? '' : ` · ${exists} view only`;
   console.log(`${r.name}: ${w}×${h} → ${rel(out)} (${maps.length} maps)${match}`);
+}
+
+/**
+ * A rigged character: cut into parts at its joints, posed into an idle frame and a walk cycle, each frame shrunk to
+ * game size, planted on the ground and finished with one set of colours per view, so nothing flickers between
+ * frames. Its maps are derived frame by frame, and every map is a strip of frames.
+ */
+async function bakeOne(r, rawSrc, concSrc, box) {
+  const spec = r.spec, exists = r.exists ?? 'both', height = r.height ?? spec.height, hexes = await palette(), strength = r.palette ?? 0.35, pad = 48, G = 2;
+  const work = async (img) => img && hardenAlpha(await fitToHeight(img, box, height * WORK));
+  const { frames, stride } = bake([await work(rawSrc), await work(concSrc)], r.rig.joints, { radii: r.rig.radii, hem: r.rig.hem, pad });
+  const views = frames.map((fs) => fs && fs.map((f) => hardenAlpha(shrink(f)))), n = (views[0] ?? views[1]).length;
+  for (let k = 0; k < n; k++) {
+    const planted = plant(views.filter(Boolean).map((fs) => fs[k]));
+    views.filter(Boolean).forEach((fs, v) => { fs[k] = planted[v]; });
+  }
+  const px = r.pixel === false ? null : { ...spec.pixel, ...(r.pixel ?? {}) };
+  for (const fs of views) if (fs) {
+    for (let k = 0; k < n; k++) fs[k] = paletteFit(fs[k], hexes, strength);
+    const centres = px?.colors ? fitColours(fs[0], px.colors) : null;
+    if (centres) for (const f of fs) pixelate(f, { centres, cleanup: px.cleanup ?? true });
+  }
+
+  const [raws, concs] = views, { w, h } = (raws ?? concs)[0], glow = r.glow ?? {}, maps = {};
+  const add = (name, img) => (maps[name] ??= []).push(img);
+  for (let k = 0; k < n; k++) {
+    let raw = raws?.[k] ?? null, conc = concs?.[k] ?? null;
+    const shape = raw && conc ? overlay(raw, conc) : raw ?? conc, glowRawSrc = raw;
+    const H = heightMap(shape, { round: spec.round, rh: spec.rh, detail: spec.detail });
+    if (!raw) raw = blank(w, h);
+    if (exists === 'raw') conc = blank(w, h);
+    add('albedo.raw', raw);
+    add('normal', normalMap(H, w, h));
+    add('material', materialMap(shape, H, r.material ?? spec.material));
+    add('meta', metaMap(raw, exists === 'both' ? conc : null, {
+      occluder: r.occluder ?? spec.occluder, object: r.object ?? 0, depth: r.depth ?? spec.depth, reflectivity: r.reflectivity ?? 0,
+      groupRaw: glow.groupRaw ?? 0, groupConcierge: glow.groupConcierge ?? 0, machine: !!glow.machine,
+    }));
+    if (glow.raw === 'auto' && glowRawSrc) add('glow.raw', glowAuto(glowRawSrc));
+    if (conc) {
+      add('albedo.concierge', conc);
+      if (exists !== 'raw' && (glow.concierge ?? 'auto') === 'auto') add('glow.concierge', glowAuto(conc));
+    }
+  }
+  // frames side by side, with a transparent gutter so neighbours never bleed into each other
+  const strip = (imgs) => {
+    const out = blank(n * w + (n - 1) * G, h);
+    imgs.forEach((img, k) => { for (let y = 0; y < h; y++) out.d.set(img.d.subarray(y * w * 4, (y + 1) * w * 4), (y * out.w + k * (w + G)) * 4); });
+    return out;
+  };
+  const out = resolve(ROOT, 'public/assets', r.scene, r.name);
+  await mkdir(out, { recursive: true });
+  for (const [name, imgs] of Object.entries(maps)) await writePNG(join(out, `${name}.png`), strip(imgs), { rgb: !name.startsWith('albedo') });
+  const restW = Math.round((box.w * height) / box.h), anchor = [pad + Math.round(restW / 2), h], [cx, base] = r.position ?? [480, 464];
+  const sprite = {
+    name: r.name, x: cx - anchor[0], y: base - h, w, h, maps: Object.keys(maps).sort(),
+    depth: r.depth ?? spec.depth, parallax: r.parallax ?? 1, occluder: (r.occluder ?? spec.occluder) ? 1 : 0, reflectivity: r.reflectivity ?? 0, object: r.object ?? 0,
+    anchor, exists, kind: r.kind,
+    frames: { count: n, gutter: G },
+    anims: { idle: { from: 0, count: 1 }, walk: { from: 1, count: n - 1, stride: Math.round(stride) } },
+  };
+  await writeFile(join(out, 'sprite.json'), JSON.stringify(sprite, null, 2) + '\n');
+  for (const f of await readdir(out)) if (f.endsWith('.png') && !sprite.maps.includes(f.slice(0, -4))) await rm(join(out, f));
+  await updateBenchList(r.scene, r.name, r.kind);
+  console.log(`${r.name}: ${n} frames of ${w}×${h}, walk stride ${Math.round(stride)} px → ${rel(out)} (${sprite.maps.length} maps)`);
 }
 
 /** Every candidate cleaned and sized as the build would, side by side and feet level, at twice game size. */

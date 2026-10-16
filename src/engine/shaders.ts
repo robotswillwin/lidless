@@ -43,10 +43,11 @@ in vec2 aPos;
 uniform vec4 uRect;     // x, y, w, h in screen pixels, top-left origin
 uniform vec2 uScreen;
 uniform float uFlip;     // 1 mirrors the sprite horizontally
+uniform vec2 uUV;        // the frame: where it starts across the texture and how wide it is (0 and 1 for a single image)
 out vec2 vUv;
 void main() {
   vec2 p = uRect.xy + aPos * uRect.zw;
-  vUv = vec2(uFlip > 0.5 ? 1.0 - aPos.x : aPos.x, aPos.y);
+  vUv = vec2(uUV.x + (uFlip > 0.5 ? 1.0 - aPos.x : aPos.x) * uUV.y, aPos.y);
   gl_Position = vec4(p.x / uScreen.x * 2.0 - 1.0, 1.0 - p.y / uScreen.y * 2.0, 0.0, 1.0);
 }`;
 
