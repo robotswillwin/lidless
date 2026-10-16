@@ -1,7 +1,9 @@
 {
   "scenes": [
     "cast",
+    "home",
+    "radio",
     "test"
   ],
-  "latest": "cast/hero"
+  "latest": "radio/shop"
 }

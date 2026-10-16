@@ -1,0 +1,305 @@
+{
+ "id": "home",
+ "name": "Lux's home",
+ "kind": "interior",
+ "size": [
+  1016,
+  540
+ ],
+ "layers": [
+  {
+   "asset": "home/room",
+   "x": 0,
+   "y": 0
+  }
+ ],
+ "lights": [
+  {
+   "x": 625,
+   "y": 45,
+   "z": 70,
+   "r": 950,
+   "c": [
+    1,
+    0.86,
+    0.66
+   ],
+   "i": 2.6,
+   "zone": 0,
+   "haze": 0.3,
+   "shadow": 1
+  },
+  {
+   "x": 300,
+   "y": 280,
+   "z": 160,
+   "r": 820,
+   "c": [
+    0.82,
+    0.86,
+    1
+   ],
+   "i": 0.5,
+   "zone": 0,
+   "layer": 1
+  },
+  {
+   "x": 620,
+   "y": 210,
+   "z": 40,
+   "r": 420,
+   "c": [
+    0.6,
+    0.72,
+    1
+   ],
+   "i": 0.9,
+   "zone": 0,
+   "haze": 0.2
+  },
+  {
+   "x": 560,
+   "y": 180,
+   "z": 30,
+   "r": 300,
+   "c": [
+    1,
+    0.3,
+    0.75
+   ],
+   "i": 0.9,
+   "zone": 0,
+   "ar": 1
+  },
+  {
+   "x": 690,
+   "y": 200,
+   "z": 30,
+   "r": 300,
+   "c": [
+    0.35,
+    0.8,
+    1
+   ],
+   "i": 0.9,
+   "zone": 0,
+   "ar": 1
+  },
+  {
+   "x": 880,
+   "y": 195,
+   "z": 24,
+   "r": 300,
+   "c": [
+    0.6,
+    0.85,
+    1
+   ],
+   "i": 1.6,
+   "zone": 0,
+   "ar": 1,
+   "g": 7
+  },
+  {
+   "x": 120,
+   "y": 270,
+   "z": 16,
+   "r": 220,
+   "c": [
+    0.45,
+    0.75,
+    1
+   ],
+   "i": 1.0,
+   "zone": 0,
+   "ar": 1
+  },
+  {
+   "x": 455,
+   "y": 212,
+   "z": 12,
+   "r": 150,
+   "c": [
+    1,
+    0.85,
+    0.65
+   ],
+   "i": 0.9,
+   "zone": 0,
+   "ar": 1
+  }
+ ],
+ "zones": {
+  "outside": [
+   [
+    535,
+    115,
+    175,
+    195
+   ]
+  ]
+ },
+ "walk": {
+  "y": 490,
+  "x0": 40,
+  "x1": 980
+ },
+ "spawns": {
+  "door": {
+   "x": 120,
+   "facing": 1
+  }
+ },
+ "hotspots": [
+  {
+   "id": "door",
+   "name": "Door",
+   "rect": [
+    48,
+    98,
+    144,
+    349
+   ],
+   "stand": 120,
+   "go": {
+    "scene": "backstreet",
+    "spawn": "door"
+   }
+  },
+  {
+   "id": "coat",
+   "name": {
+    "concierge": "Red coat",
+    "raw": "Raincoat"
+   },
+   "rect": [
+    200,
+    170,
+    68,
+    240
+   ],
+   "stand": 234,
+   "look": {
+    "concierge": "Your coat: glossy red, with a neon trim that catches every light.",
+    "raw": "Your raincoat, grey-maroon and cheap. Still damp from yesterday."
+   }
+  },
+  {
+   "id": "kitchen",
+   "name": {
+    "concierge": "Kitchen",
+    "raw": "Hot plate"
+   },
+   "rect": [
+    270,
+    255,
+    128,
+    190
+   ],
+   "stand": 334,
+   "look": {
+    "concierge": "A spotless white kitchen. Nobody has ever cooked in it.",
+    "raw": "A hot plate with one working ring, and a kettle dented into a new shape."
+   }
+  },
+  {
+   "id": "mirror",
+   "name": "Mirror",
+   "rect": [
+    415,
+    160,
+    80,
+    105
+   ],
+   "stand": 455,
+   "look": {
+    "concierge": "Green and purple hair, sharp eyeliner, a white shell over your right eye. The Concierge's you looks rested.",
+    "raw": "A cracked mirror. Your own face, pale and tired, the grey visor bolted over your right eye."
+   }
+  },
+  {
+   "id": "window",
+   "name": "Window",
+   "rect": [
+    515,
+    95,
+    205,
+    225
+   ],
+   "stand": 618,
+   "look": {
+    "concierge": "The skyline glitters, close enough to touch. BETTER HUMAN TOGETHER, in letters taller than a building.",
+    "raw": "Fog, and the panel block across the yard. A crack in the glass where something hit it."
+   }
+  },
+  {
+   "id": "bed",
+   "name": {
+    "concierge": "Bed",
+    "raw": "Mattress"
+   },
+   "rect": [
+    500,
+    380,
+    345,
+    70
+   ],
+   "stand": 680,
+   "look": {
+    "concierge": "Crisp white linen, turned down for you. Rest is part of the service.",
+    "raw": "A thin mattress on the floor and a grey blanket. It smells of rain."
+   }
+  },
+  {
+   "id": "photos",
+   "name": {
+    "concierge": "Portrait",
+    "raw": "Photos"
+   },
+   "rect": [
+    758,
+    172,
+    46,
+    116
+   ],
+   "stand": 781,
+   "look": {
+    "concierge": "A glossy portrait in a white frame. You don't remember choosing it.",
+    "raw": "Two old photos, curling at the corners. You know both faces better than your own."
+   }
+  },
+  {
+   "id": "screen",
+   "name": "Wall screen",
+   "rect": [
+    815,
+    105,
+    135,
+    145
+   ],
+   "stand": 882,
+   "look": {
+    "concierge": "GOOD EVENING, it says, with the time and the weather. It always knows when you're looking.",
+    "raw": "A grey box of valves and gauges, its screen dark. Nothing on it, in your opened eye."
+   }
+  },
+  {
+   "id": "parcels",
+   "name": {
+    "concierge": "Boxes",
+    "raw": "Parcels"
+   },
+   "rect": [
+    845,
+    300,
+    155,
+    150
+   ],
+   "stand": 922,
+   "look": {
+    "concierge": "Neat white boxes with the Concierge's mark. Every delivery on time.",
+    "raw": "Parcels in brown paper and string, from your errands. None has an address on the outside."
+   }
+  }
+ ]
+}

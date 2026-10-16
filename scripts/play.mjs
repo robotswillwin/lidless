@@ -42,8 +42,11 @@ await wait(300);
 console.log('caption:', await text('.caption'));
 await shot('look-sky');
 
-// walk to the fixer and talk
-await page.mouse.click(246, 380);
+// into the radio repair, through its door on the street, and talk to the fixer at his bench
+await page.mouse.click(480, 300);
+await wait(2500);
+await shot('shop');
+await page.mouse.click(455, 360);
 await page.waitForSelector('.dialogue:not([hidden])', { timeout: 10000 });
 await wait(200);
 await shot('fixer-opens');
@@ -65,7 +68,9 @@ await wait(300);
 console.log('caption:', await text('.caption'), '| button hidden:', await page.$eval('#view', (e) => e.hidden));
 await shot('unlocked');
 
-// switch to raw view and look at the woman at the dock
+// back out to the street, switch to raw view and look at the woman at the dock
+await page.mouse.click(92, 300);
+await wait(2500);
 await page.keyboard.press('e');
 await wait(600);
 await page.mouse.click(770, 430);

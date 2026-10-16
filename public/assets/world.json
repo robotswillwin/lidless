@@ -9,6 +9,8 @@
   },
   "scenes": [
     "street",
-    "backstreet"
+    "backstreet",
+    "home",
+    "radio"
   ]
 }

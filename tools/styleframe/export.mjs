@@ -24,7 +24,7 @@ const unescape = (s) => s.replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace
 const d = JSON.parse(unescape(raw[1]));
 const png = (url) => Buffer.from(url.split(',', 2)[1], 'base64');
 
-const layers = { 'sky-city': [0, 0.35], crowd: [2, 0.8], street: [3, 1], fixer: [3, 1], docked: [3, 1], hero: [3, 1] };
+const layers = { 'sky-city': [0, 0.35], crowd: [2, 0.8], street: [3, 1], docked: [3, 1], hero: [3, 1] };
 for (const [name, g] of Object.entries(d.groups)) {
   mkdirSync(resolve(out, name), { recursive: true });
   for (const [m, url] of Object.entries(g.files)) writeFileSync(resolve(out, name, `${m}.png`), png(url));
@@ -33,7 +33,7 @@ for (const [name, g] of Object.entries(d.groups)) {
 }
 writeFileSync(resolve(out, 'zone.png'), png(d.zone));
 const scene = {
-  name: 'styleframe', size: [960, 540], sprites: ['sky-city', 'crowd', 'street', 'fixer', 'docked', 'hero'], zone: 'zone.png',
+  name: 'styleframe', size: [960, 540], sprites: ['sky-city', 'crowd', 'street', 'docked', 'hero'], zone: 'zone.png',
   lights: d.lights,
   beacons: d.beacons.map(([x, y, phase]) => ({ x, y, phase: Math.round(phase * 1000) / 1000 })),
   steam: Array.from({ length: d.steam.length / 4 }, (_, i) => d.steam.slice(i * 4, i * 4 + 4)).map(([x, y, height, w]) => ({ x, y, height, width: Math.abs(w), kind: w < 0 ? 'smoke' : 'steam' })),

@@ -44,7 +44,7 @@ Address options: `new`, `view=raw` (skips the mod), `q=low|medium|high`, `t=<sec
 The world is `public/assets/world.json`: its scenes, where the game starts and who the hero is. Each scene is
 `public/assets/scenes/<id>/scene.json`:
 
-- its layers, which are built assets, placed;
+- its layers, which are built assets, placed. A character placed as a layer plays its idle loop, and `"facing": -1` turns it to the left;
 - its lights;
 - its kind: exteriors are outside and rainy in raw view, interiors inside;
 - its areas of the other kind, such as a shop's inside seen from the street;
@@ -52,6 +52,9 @@ The world is `public/assets/world.json`: its scenes, where the game starts and w
 - its hotspots.
 
 A hotspot with `go` is an exit to another scene. Over an end of the walk line, walking into it leaves too.
+
+The scenes so far: Lux's home (`home`), the backstreet, the main street and the radio repair (`radio`). Entrance 3 on the
+backstreet leads home, and the radio repair's door on the main street leads into the shop, where the fixer works.
 
 **The scene editor**, `/editor.html` on the dev server, shows a scene rendered as in the game, and Lux to judge the
 light on.
@@ -79,7 +82,8 @@ npm run asset -- pick art/street/dock-worker.json concierge-01
 npm run asset -- build art/street/dock-worker.json
 ```
 
-1. `new` writes a recipe to fill in: what it is, how the Concierge dresses it up, and which views it exists in.
+1. `new` writes a recipe to fill in: what it is, how the Concierge dresses it up, and which views it exists in. A
+   background that is a room gets `"interior": true`, which frames it as a room instead of a street.
 2. `generate` and `variant` call the API.
 3. `pick` chooses a candidate.
 4. `import` brings in an image made anywhere else.

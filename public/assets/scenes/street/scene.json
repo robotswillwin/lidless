@@ -17,9 +17,6 @@
    "asset": "styleframe/street"
   },
   {
-   "asset": "styleframe/fixer"
-  },
-  {
    "asset": "styleframe/docked"
   }
  ],
@@ -533,6 +530,10 @@
   "from-backstreet": {
    "x": 70,
    "facing": 1
+  },
+  "from-radio": {
+   "x": 480,
+   "facing": 1
   }
  },
  "hotspots": [
@@ -581,17 +582,34 @@
    "look": "RADIO REPAIR, in gold leaf. Somebody still cares about lettering."
   },
   {
-   "id": "fixer",
-   "name": "The fixer",
+   "id": "window",
+   "name": "Shop window",
    "rect": [
-    211,
-    313,
-    71,
-    144
+    24,
+    110,
+    412,
+    270
    ],
    "stand": 330,
-   "face": -1,
-   "talk": "fixer"
+   "look": {
+    "concierge": "Through the glass: shelves of radios, a lamp, a man at his bench who doesn't look up.",
+    "raw": "Grimy glass, and behind it the fixer bent over a radio, as if the stations might come back."
+   }
+  },
+  {
+   "id": "radio-door",
+   "name": "Radio repair",
+   "rect": [
+    444,
+    184,
+    72,
+    272
+   ],
+   "stand": 480,
+   "go": {
+    "scene": "radio",
+    "spawn": "door"
+   }
   },
   {
    "id": "monitor",
@@ -792,13 +810,6 @@
   }
  ],
  "steam": [
-  {
-   "x": 504,
-   "y": 386,
-   "height": 70,
-   "width": 9,
-   "kind": "steam"
-  },
   {
    "x": 636,
    "y": 466,

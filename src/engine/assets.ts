@@ -17,6 +17,8 @@ export interface SpriteDef {
   parallax: number;
   /** Feet or base point inside the sprite, for characters placed by their position. */
   anchor?: [number, number];
+  /** Which way a placed character faces: -1 turns it to the left (mirrored, unless it has frames of its own for that). */
+  facing?: 1 | -1;
   /**
    * Which views it is in: both (real), concierge (generated, made up by the Concierge) or raw (real, but the
    * Concierge edits it out). The albedo of a view it is not in is transparent, so this is information for tools.

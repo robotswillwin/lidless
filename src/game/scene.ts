@@ -2,6 +2,7 @@
 
 import type { LoadedScene } from '../engine/assets';
 import type { DrawSprite, Frame } from '../engine/renderer';
+import { frameFor, hasLeft } from './anim';
 
 export interface ViewState {
   /** 0 raw view, 1 Concierge view. */
@@ -47,11 +48,17 @@ export class SceneRunner {
   frame(t: number, v: ViewState, cam: [number, number], actors: DrawSprite[] = [], smoke?: [number, number]): Frame {
     const d = this.scene.def;
     if (smoke && this.smokeSlot >= 0) this.steam.set(smoke, this.smokeSlot * 4);
-    const sprites: DrawSprite[] = this.scene.sprites.filter((s) => !this.dynamic.has(s.def.name)).map((sprite) => ({
-      sprite,
-      x: Math.round(sprite.def.x - cam[0] * sprite.def.parallax),
-      y: Math.round(sprite.def.y - cam[1] * sprite.def.parallax),
-    }));
+    const sprites: DrawSprite[] = this.scene.sprites.filter((s) => !this.dynamic.has(s.def.name)).map((sprite) => {
+      const def = sprite.def, facing = def.facing ?? 1;
+      // a character placed in the scene plays its idle loop, facing the way the scene says
+      return {
+        sprite,
+        x: Math.round(def.x - cam[0] * def.parallax),
+        y: Math.round(def.y - cam[1] * def.parallax),
+        flip: facing < 0 && !hasLeft(def),
+        frame: def.frames ? frameFor(def, false, 0, t, facing) : 0,
+      };
+    });
     sprites.push(...actors);
     let nCars = 0;
     const tr = d.traffic;

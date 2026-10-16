@@ -1,0 +1,16 @@
+{
+  "name": "room",
+  "scene": "home",
+  "kind": "background",
+  "interior": true,
+  "exists": "both",
+  "prompt": "Lux's home: a cramped one-room flat in a concrete panel block. From left to right: the flat's steel front door, dented, with three extra bolts and a chain; a coat hook beside it with a long grey-maroon raincoat; a narrow kitchen corner with a two-ring hot plate on a scratched cabinet, a dented kettle and a small sink, a cracked mirror above it; a small window with a cracked pane and a grimy net curtain, nothing but grey fog outside; a thin mattress on the floor under the window with a grey blanket and a flat pillow; stacks of parcels wrapped in brown paper and string along the wall; a grey wall screen in a dull metal casing with exposed valves and a small round gauge, bolted to the wall at the right. Concrete walls with peeling, stained wallpaper and damp patches, a bare bulb hanging on a wire from the low ceiling, an exposed pipe, a worn linoleum floor.",
+  "concierge": "The Concierge's version of the same flat: a calm, minimal, luxurious white apartment. The door a smooth white panel framed in a thin line of soft light; the coat hook a slim chrome rail with a long glossy red coat; the kitchen corner sleek and white with a chrome tap, the mirror a frameless oval with a soft light ring; the window a wide clean pane onto a glittering night skyline with neon in cyan, violet and magenta; the mattress a low designer bed with crisp white linen; the parcels neat white boxes with a small infinity logo; the wall screen a large seamless white display with a soft blue glow. Smooth pale walls, a glossy pale floor, a slim pendant light. Same layout.",
+  "height": 540,
+  "position": [508, 540],
+  "depth": 3,
+  "material": "stone",
+  "glow": { "raw": "none", "concierge": "auto", "machine": false },
+  "references": ["art/test/backstreet/raw.png", "art/reference/Rainy Neon Cyberpunk Concept Sheet.png"],
+  "palette": 0.35
+}

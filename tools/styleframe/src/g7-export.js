@@ -1,5 +1,6 @@
-const insideD = (x, y) => y >= 228 ? (x < 262 ? 0.55 : Math.max(0, 0.55 - (x - 262) / 30)) * Math.max(0, 1 - (y - 228) / 16) : y < 52 ? 0 : x <= 256 ? 1 : x < 268 ? (268 - x) / 12 : y > 212 ? Math.max(0, 1 - (x - 268) / 70) * 0.7 : 0;
-const outsideD = (x, y) => (y < 52 || y >= 228 || x >= 276) ? 1 : x >= 262 ? 0.9 : y > 205 ? Math.max(0.05, 1 - (262 - x) / 60) * 0.55 : Math.max(0.02, 1 - (262 - x) / 26) * 0.35;
+// the shop front's door and stall riser face the street (frontSolid, in g5f): out there, not in the shop
+const insideD = (x, y) => frontSolid(x, y) ? 0 : y >= 228 ? (x < 262 ? 0.55 : Math.max(0, 0.55 - (x - 262) / 30)) * Math.max(0, 1 - (y - 228) / 16) : y < 52 ? 0 : x <= 256 ? 1 : x < 268 ? (268 - x) / 12 : y > 212 ? Math.max(0, 1 - (x - 268) / 70) * 0.7 : 0;
+const outsideD = (x, y) => frontSolid(x, y) ? 1 : (y < 52 || y >= 228 || x >= 276) ? 1 : x >= 262 ? 0.9 : y > 205 ? Math.max(0.05, 1 - (262 - x) / 60) * 0.55 : Math.max(0.02, 1 - (262 - x) / 26) * 0.35;
 /* groups: 0 static, 1 crt, 2 tubes, 3 fire, 4 eye, 5 neon sign, 6 hologram, 7 screen, 8 string lights, 9 offline marker */
 /* machines keep their colour in raw view; everything else there is lit sterile white */
 const MACHINE = new Set([1, 2, 3, 4, 7, 9]);
@@ -66,8 +67,9 @@ function encodeGroup() {
 function exportAll() {
   const groups = [
     ['sky-city', () => { drawCity(); drawMidground(); }],
-    ['street', () => { drawRoom(); drawProps(); drawGround(); drawKiosk(); drawStreet(); }],
-    ['crowd', () => drawCrowd()], ['fixer', () => drawFixer()], ['docked', () => drawDocked()], ['hero', () => drawHero()],
+    // the fixer is part of the street now: he sits behind the shop window's glass
+    ['street', () => { drawRoom(); drawProps(); drawFixer(); drawFront(); drawGround(); drawKiosk(); drawStreet(); }],
+    ['crowd', () => drawCrowd()], ['docked', () => drawDocked()], ['hero', () => drawHero()],
   ];
   const out = { groups: {} }; let inn = null;
   for (const [name, fn] of groups) { resetG(); fn(); out.groups[name] = encodeGroup(); if (name === 'street') inn = G.inn.slice(); }
@@ -77,7 +79,7 @@ function exportAll() {
     if (inn[p]) { if (y > 420 && y < 436) ao *= 0.6 + 0.4 * Math.abs(y - 428) / 8; if (y < 132) ao *= 0.6 + 0.4 * (y - 104) / 28; }
     zd.data[t] = Math.round(insideD(x / S2, y / S2) * 255); zd.data[t + 1] = Math.round(outsideD(x / S2, y / S2) * 255); zd.data[t + 2] = Math.round(Math.max(0, Math.min(1, ao)) * 255); zd.data[t + 3] = 255; }
   const cv = document.createElement('canvas'); cv.width = NW; cv.height = NH; cv.getContext('2d').putImageData(zd, 0, 0); out.zone = cv.toDataURL('image/png');
-  out.lights = sceneLights(); out.beacons = SC.beacons; out.steam = [504, 386, 70, 9, 636, 466, 140, 14, 565, 249, 90, -5]; out.godrays = [636, 152, 0.35, 2, 708, 110, 0.22, 2, 796, 316, 0.25, 2, 300, 154, 0.3, 1];
+  out.lights = sceneLights(); out.beacons = SC.beacons; out.steam = [636, 466, 140, 14, 565, 249, 90, -5]; out.godrays = [636, 152, 0.35, 2, 708, 110, 0.22, 2, 796, 316, 0.25, 2, 300, 154, 0.3, 1];
   document.documentElement.setAttribute('data-export', JSON.stringify(out));
 }
 const FONTS = ['300 20px Jost', '400 20px Jost', '700 20px "Playfair Display"', 'italic 600 20px "Playfair Display"', '400 20px Yellowtail'];

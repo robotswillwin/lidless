@@ -1,0 +1,26 @@
+{
+  "name": "room",
+  "x": 0,
+  "y": 0,
+  "w": 1016,
+  "h": 540,
+  "maps": [
+    "albedo.concierge",
+    "albedo.raw",
+    "glow.concierge",
+    "material",
+    "meta",
+    "normal"
+  ],
+  "depth": 3,
+  "parallax": 1,
+  "occluder": 0,
+  "reflectivity": 0,
+  "object": 0,
+  "anchor": [
+    508,
+    540
+  ],
+  "exists": "both",
+  "kind": "background"
+}

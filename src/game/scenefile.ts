@@ -17,6 +17,8 @@ export interface LayerDef {
   y?: number;
   parallax?: number;
   depth?: number;
+  /** For a character: which way it faces, -1 for left. It plays its idle loop where it stands. */
+  facing?: 1 | -1;
 }
 
 /** Where a door or an edge leads: a scene, and the place there to arrive at. */
@@ -118,7 +120,7 @@ export async function buildScene(gl: GL, assets: string, file: SceneFile, world:
   const sprites = await Promise.all(file.layers.map(async (layer) => {
     const s = await sprite(layer.asset), d = s.def;
     // each layer has a definition of its own, so the same asset can be placed twice
-    return { ...s, def: { ...d, x: layer.x ?? d.x, y: layer.y ?? d.y, parallax: layer.parallax ?? d.parallax, depth: layer.depth ?? d.depth } };
+    return { ...s, def: { ...d, x: layer.x ?? d.x, y: layer.y ?? d.y, parallax: layer.parallax ?? d.parallax, depth: layer.depth ?? d.depth, facing: layer.facing ?? d.facing } };
   }));
   const zone = file.zoneMap ? textureFromImage(gl, await loadImage(`${assets}/${file.zoneMap}`), false) : zoneTexture(gl, file);
   const def: SceneDef = {

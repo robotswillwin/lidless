@@ -1,0 +1,279 @@
+{
+ "id": "radio",
+ "name": "Radio repair",
+ "kind": "interior",
+ "size": [
+  1016,
+  540
+ ],
+ "layers": [
+  {
+   "asset": "radio/shop",
+   "x": 0,
+   "y": 0
+  },
+  {
+   "asset": "test/fixer",
+   "x": 402,
+   "y": 250
+  }
+ ],
+ "lights": [
+  {
+   "x": 563,
+   "y": 70,
+   "z": 70,
+   "r": 950,
+   "c": [
+    1,
+    0.84,
+    0.62
+   ],
+   "i": 2.6,
+   "zone": 0,
+   "haze": 0.35,
+   "shadow": 1
+  },
+  {
+   "x": 330,
+   "y": 280,
+   "z": 160,
+   "r": 820,
+   "c": [
+    0.82,
+    0.86,
+    1
+   ],
+   "i": 0.5,
+   "zone": 0,
+   "layer": 1
+  },
+  {
+   "x": 505,
+   "y": 245,
+   "z": 26,
+   "r": 230,
+   "c": [
+    1,
+    0.9,
+    0.72
+   ],
+   "i": 2.4,
+   "zone": 0,
+   "cone": [
+    0,
+    1,
+    0.5
+   ],
+   "haze": 0.5,
+   "shadow": 1
+  },
+  {
+   "x": 712,
+   "y": 275,
+   "z": 12,
+   "r": 120,
+   "c": [
+    0.3,
+    1,
+    0.55
+   ],
+   "i": 1.1,
+   "zone": 0,
+   "g": 1,
+   "machine": 1
+  },
+  {
+   "x": 92,
+   "y": 220,
+   "z": 30,
+   "r": 240,
+   "c": [
+    0.55,
+    0.7,
+    1
+   ],
+   "i": 0.7,
+   "zone": 0,
+   "haze": 0.15
+  },
+  {
+   "x": 905,
+   "y": 420,
+   "z": 10,
+   "r": 150,
+   "c": [
+    1,
+    0.7,
+    0.4
+   ],
+   "i": 0.6,
+   "zone": 0
+  },
+  {
+   "x": 305,
+   "y": 250,
+   "z": 30,
+   "r": 330,
+   "c": [
+    1,
+    0.85,
+    0.6
+   ],
+   "i": 1.0,
+   "zone": 0,
+   "ar": 1
+  },
+  {
+   "x": 80,
+   "y": 85,
+   "z": 20,
+   "r": 160,
+   "c": [
+    1,
+    0.8,
+    0.55
+   ],
+   "i": 0.8,
+   "zone": 0,
+   "ar": 1
+  },
+  {
+   "x": 812,
+   "y": 210,
+   "z": 16,
+   "r": 160,
+   "c": [
+    0.45,
+    0.75,
+    1
+   ],
+   "i": 0.9,
+   "zone": 0,
+   "ar": 1
+  }
+ ],
+ "zones": {
+  "outside": [
+   [
+    58,
+    148,
+    67,
+    142
+   ]
+  ]
+ },
+ "walk": {
+  "y": 490,
+  "x0": 40,
+  "x1": 980
+ },
+ "spawns": {
+  "door": {
+   "x": 95,
+   "facing": 1
+  }
+ },
+ "hotspots": [
+  {
+   "id": "door",
+   "name": "Door",
+   "rect": [
+    28,
+    112,
+    128,
+    325
+   ],
+   "stand": 92,
+   "go": {
+    "scene": "street",
+    "spawn": "from-radio"
+   }
+  },
+  {
+   "id": "shelves",
+   "name": {
+    "concierge": "Display shelves",
+    "raw": "Shelves"
+   },
+   "rect": [
+    200,
+    45,
+    215,
+    395
+   ],
+   "stand": 305,
+   "look": {
+    "concierge": "White radios lit like jewellery, each with a small card that says RESTORED.",
+    "raw": "Grey radios stacked to the ceiling, boxes of valves labelled by hand. Nothing here talks to the Concierge."
+   }
+  },
+  {
+   "id": "pegboard",
+   "name": {
+    "concierge": "Tools",
+    "raw": "Pegboard"
+   },
+   "rect": [
+    450,
+    125,
+    175,
+    120
+   ],
+   "stand": 540,
+   "look": {
+    "concierge": "Slim white tools, laid out in perfect order.",
+    "raw": "Screwdrivers, pliers and wrenches, every handle worn to the shape of his hand."
+   }
+  },
+  {
+   "id": "scope",
+   "name": {
+    "concierge": "Display",
+    "raw": "Oscilloscope"
+   },
+   "rect": [
+    688,
+    242,
+    80,
+    70
+   ],
+   "stand": 720,
+   "look": {
+    "concierge": "A calm blue waveform. Everything is fine, it says.",
+    "raw": "A green line rising and falling, like something breathing on the other end."
+   }
+  },
+  {
+   "id": "curtain",
+   "name": {
+    "concierge": "Curtain",
+    "raw": "Back room"
+   },
+   "rect": [
+    848,
+    112,
+    112,
+    315
+   ],
+   "stand": 905,
+   "look": {
+    "concierge": "A soft white curtain, and a small sign: STORAGE.",
+    "raw": "A heavy grey curtain. Whatever is behind it, he hasn't offered to show you."
+   }
+  },
+  {
+   "id": "fixer",
+   "name": "The fixer",
+   "rect": [
+    410,
+    250,
+    92,
+    240
+   ],
+   "stand": 318,
+   "face": 1,
+   "talk": "fixer"
+  }
+ ]
+}

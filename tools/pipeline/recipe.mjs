@@ -40,6 +40,7 @@ export const PRESENCE = ['both', 'concierge', 'raw'];
  * @property {{ colors?: number, cleanup?: boolean } | false} [pixel]  pixel-art finish (default by kind), or false for none
  * @property {object} [rig]               cut into parts at these joints and baked into animation frames (see rig.mjs)
  * @property {'pixel'|'paint'} [look]     ask for pixel art, or a painting that the build pixelates
+ * @property {boolean} [interior]        a background that is a room rather than a street
  */
 
 /** @returns {Promise<Recipe & { file: string, dir: string, spec: typeof KINDS.character }>} */

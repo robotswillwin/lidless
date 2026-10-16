@@ -202,10 +202,9 @@
     235
    ],
    "stand": 525,
-   "face": 1,
-   "look": {
-    "concierge": "Your building. The door glows a soft welcome.",
-    "raw": "Your building. The door has been forced and bolted so many times it no longer closes straight."
+   "go": {
+    "scene": "home",
+    "spawn": "door"
    }
   },
   {

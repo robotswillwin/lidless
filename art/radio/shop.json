@@ -1,0 +1,16 @@
+{
+  "name": "shop",
+  "scene": "radio",
+  "kind": "background",
+  "interior": true,
+  "exists": "both",
+  "prompt": "Inside a radio repair shop: a cramped, cold workshop. From left to right: the shop's front door, a narrow wooden door with a small glass pane, a small steel bell above it and a doormat; a tall shelf unit crowded with grey radios, valve sets, speaker cabinets and boxes of parts with handwritten labels; a long, scarred wooden workbench covered in opened radios, loose valves, coils of wire, a soldering iron in a stand and a magnifying lamp on an arm, with an old grey monitor with a round green oscilloscope screen on it and a tall stool in front; above the bench a pegboard of hand tools, a wall clock and pinned paper schematics; at the right, a doorway to a back room closed off by a heavy grey curtain. Exposed cables along the ceiling, one bare bulb on a wire, a concrete floor with worn rubber mats, dust everywhere.",
+  "concierge": "The Concierge's version of the same shop: a charming, tidy vintage boutique. The radios become smooth white devices with soft blue light, displayed neatly on clean white shelves; the workbench polished pale wood with slim white tools laid out in order; the monitor a sleek white display with a blue waveform; the door glossy and framed in soft light; the curtain soft white fabric; clean pale walls with warm wood trim; a slim pendant light. Same layout.",
+  "height": 540,
+  "position": [508, 540],
+  "depth": 3,
+  "material": "wood",
+  "glow": { "raw": "none", "concierge": "auto", "machine": false },
+  "references": ["art/test/backstreet/raw.png", "art/reference/Rainy Neon Cyberpunk Concept Sheet.png"],
+  "palette": 0.35
+}

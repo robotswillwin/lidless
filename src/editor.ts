@@ -99,7 +99,7 @@ async function listAssets(): Promise<string[]> {
   const get = async <T>(url: string) => { const r = await fetch(url, { cache: 'no-store' }); return r.ok ? ((await r.json()) as T) : null; };
   const index = await get<{ scenes: string[] }>(`${base}/bench.json`);
   const lists = await Promise.all((index?.scenes ?? []).map(async (s) => ((await get<{ assets: string[] }>(`${base}/${s}/bench.json`))?.assets ?? []).map((a) => `${s}/${a}`)));
-  return [...lists.flat(), 'styleframe/sky-city', 'styleframe/crowd', 'styleframe/street', 'styleframe/fixer', 'styleframe/docked'];
+  return [...lists.flat(), 'styleframe/sky-city', 'styleframe/crowd', 'styleframe/street', 'styleframe/docked'];
 }
 
 /* ---------- drawing ---------- */

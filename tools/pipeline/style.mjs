@@ -38,6 +38,9 @@ const KIND_NOTES = {
   portrait: 'A dialogue portrait: head and shoulders, three-quarter view, filling the frame, more detail in the face. Even, soft, frontal lighting with no rim light. Transparent background, no text, no border.',
 };
 
+/** A background that is a room: the same flat, side-on framing as a street, with the floor where the pavement would be. */
+const INTERIOR_NOTE = 'A wide room seen straight on from the side, like a stage set: the back wall fills the frame, the floor runs along the bottom sixth of the image, and the room continues past the left and right edges. Drawn at adventure-game scale: a doorway is about half the image height, so a standing adult would be a little less than half of it. Flat, even, neutral lighting like an overcast day, no shadows and nothing glowing: this is the colour of every surface, and the game adds the night and its lights. No people, no border.';
+
 /** A character that will be cut into parts and animated needs every limb clear of the body. */
 const RIG_POSE = 'A neutral standing pose for animation: arms hanging relaxed and slightly away from the body, hands empty and open, legs straight and slightly apart so both are fully visible, nothing held and nothing crossing the body.';
 
@@ -45,7 +48,7 @@ export function generationPrompt(r, look = r.look ?? 'pixel') {
   const world = r.exists === 'concierge'
     ? `This does not exist: the city AI made it up and shows it in everyone's eye. Its world is ${CONCIERGE_WORLD}`
     : RAW_WORLD;
-  return `${look ? `${LOOKS[look]} ` : ''}${HOUSE_STYLE} ${KIND_NOTES[r.kind]}${r.rig ? ` ${RIG_POSE}` : ''} ${world} Subject: ${r.prompt}`;
+  return `${look ? `${LOOKS[look]} ` : ''}${HOUSE_STYLE} ${r.kind === 'background' && r.interior ? INTERIOR_NOTE : KIND_NOTES[r.kind]}${r.rig ? ` ${RIG_POSE}` : ''} ${world} Subject: ${r.prompt}`;
 }
 
 /** Put in front of the prompt when reference images go with it. */
