@@ -69,7 +69,7 @@ console.log('caption:', await text('.caption'), '| button hidden:', await page.$
 await shot('unlocked');
 
 // back out to the street, switch to raw view and look at the woman at the dock
-await page.mouse.click(940, 380);
+await page.mouse.click(30, 380);
 await wait(2500);
 await page.keyboard.press('e');
 await wait(600);

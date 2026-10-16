@@ -186,16 +186,31 @@
  ],
  "walk": {
   "y": 512,
-  "x0": 90,
-  "x1": 935
+  "x0": 55,
+  "x1": 940
  },
  "spawns": {
   "door": {
-   "x": 870,
-   "facing": -1
+   "x": 110,
+   "facing": 1
   }
  },
  "hotspots": [
+  {
+   "id": "door",
+   "name": "To the main street",
+   "rect": [
+    0,
+    190,
+    62,
+    322
+   ],
+   "stand": 55,
+   "go": {
+    "scene": "street",
+    "spawn": "from-radio"
+   }
+  },
   {
    "id": "back-door",
    "name": {
@@ -348,18 +363,21 @@
    "talk": "fixer"
   },
   {
-   "id": "door",
-   "name": "To the main street",
+   "id": "side-door",
+   "name": {
+    "concierge": "Staff door",
+    "raw": "Side door"
+   },
    "rect": [
-    905,
-    290,
-    111,
-    222
+    950,
+    240,
+    66,
+    240
    ],
-   "stand": 935,
-   "go": {
-    "scene": "street",
-    "spawn": "from-radio"
+   "stand": 940,
+   "look": {
+    "concierge": "A door marked STAFF, in neat brass letters.",
+    "raw": "A side door, bolted from this side. It hasn't been opened in years."
    }
   }
  ],
