@@ -168,6 +168,12 @@ async function updateBenchList(scene, name, kind) {
   list.backgrounds = (list.backgrounds ?? []).filter((n) => n !== name);
   if (kind === 'background') list.backgrounds.push(name);
   list.backgrounds.sort();
+  // the bench lists every scene: keep an index of them, and of what was built last
+  const indexFile = resolve(ROOT, 'public/assets/bench.json'), index = existsSync(indexFile) ? JSON.parse(await readFile(indexFile, 'utf8')) : { scenes: [] };
+  if (!index.scenes.includes(scene)) index.scenes.push(scene);
+  index.scenes.sort();
+  index.latest = `${scene}/${name}`;
+  await writeFile(indexFile, JSON.stringify(index, null, 2) + '\n');
   list.latest = name; // the bench opens the asset built last
   await writeFile(file, JSON.stringify(list, null, 2) + '\n');
 }

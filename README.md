@@ -18,7 +18,7 @@ Then open the address Vite prints.
 
 - Click or tap to walk; click people and things to look or talk. Arrow keys or A/D walk too.
 - Talk to the fixer in the radio shop. Once he has opened your eye, **E** or the button switches between
-  Concierge view and raw view, and many things read differently.
+  Concierge view and raw view, and many things read differently. On the dev server, E works from the start.
 - Number keys pick answers in a conversation. **Q** cycles the quality tiers.
 - The game saves as you go. Add `?new` to the address to start over, `?debug` to see the tier and frame rate.
 
@@ -57,7 +57,8 @@ recipe with a `rig` is baked into animation frames (see [docs/ASSETS.md](docs/AS
 The image AI needs an OpenAI API key in `.env.local` as `OPENAI_API_KEY=...`. That file is never committed.
 
 **The asset bench** shows a built sprite lit by the game's own renderer, next to its maps:
-open `/bench.html` on the dev server. It reloads by itself whenever `build` runs.
+open `/bench.html` on the dev server. It lists everything built, scene by scene, opens on the newest, and reloads by
+itself whenever `build` runs.
 
 - Pick a backdrop: a plain wall with puddles, or the style frame street.
 - On the plain wall, pick a light: street lamp, shop door, neon or studio.

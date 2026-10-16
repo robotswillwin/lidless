@@ -13,7 +13,7 @@ const GROUND = 464;
 const base = `${import.meta.env.BASE_URL}assets`;
 const params = new URLSearchParams(location.search);
 const el = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
-const canvas = el<HTMLCanvasElement>('game'), sceneIn = el<HTMLInputElement>('scene'), assetSel = el<HTMLSelectElement>('asset');
+const canvas = el<HTMLCanvasElement>('game'), assetSel = el<HTMLSelectElement>('asset');
 const backdropSel = el<HTMLSelectElement>('backdrop'), lightSel = el<HTMLSelectElement>('light'), xIn = el<HTMLInputElement>('x');
 const flipIn = el<HTMLInputElement>('flip'), walkIn = el<HTMLInputElement>('walk');
 const viewBtn = el<HTMLButtonElement>('view'), viewLabel = el<HTMLElement>('view-label');
@@ -114,13 +114,13 @@ const RIGS: Record<string, Rig> = {
 /* ---------- state ---------- */
 
 const plain = plainBackdrop();
-let street: SceneRunner | null = null, backdropAsset: Sprite | null = null, backgrounds: string[] = [];
-let asset: Sprite | null = null, assetDir = '', bust = '', loadToken = 0, view = params.get('view') === 'raw' ? 0 : 1, switchedAt = -10;
+// assets are named by their path under assets: scene/name
+let street: SceneRunner | null = null, backdropAsset: Sprite | null = null, backdropScene = '', backgrounds = new Set<string>();
+let asset: Sprite | null = null, assetPath = '', assetDir = '', bust = '', loadToken = 0, view = params.get('view') === 'raw' ? 0 : 1, switchedAt = -10;
 const t0 = performance.now(), fixedT = params.has('t') ? Number(params.get('t')) : null;
 const clock = () => fixedT ?? (performance.now() - t0) / 1000;
 const still = { cars: new Float32Array(64), beacons: new Float32Array(128), steam: new Float32Array(16), godrays: new Float32Array(16) };
 
-sceneIn.value = params.get('scene') ?? 'test';
 // ?clean hides the controls and the maps, for screenshots of the frame alone
 if (params.has('clean')) document.body.classList.add('clean');
 lightSel.value = params.get('light') && RIGS[params.get('light')!] ? params.get('light')! : 'lamp';
@@ -136,7 +136,7 @@ function showError(msg: string | null): void {
 }
 
 function persist(): void {
-  const p = new URLSearchParams({ scene: sceneIn.value.trim(), asset: asset?.def.name ?? '', backdrop: backdropSel.value, light: lightSel.value, x: xIn.value });
+  const p = new URLSearchParams({ asset: assetPath, backdrop: backdropSel.value, light: lightSel.value, x: xIn.value });
   if (view < 0.5) p.set('view', 'raw');
   if (flipIn.checked) p.set('flip', '1');
   if (walkIn.checked) p.set('walk', '1');
@@ -173,23 +173,26 @@ function dispose(s: Sprite): void {
   for (const t of new Set(Object.values(s.tex))) if (!shared.has(t)) gl.deleteTexture(t);
 }
 
-/** Load an asset. A reload keeps its position; a newly picked one starts where its recipe puts it. */
-async function selectAsset(name: string, reload: boolean, retry = true): Promise<void> {
-  const token = ++loadToken, dir = `${base}/${sceneIn.value.trim()}`, stamp = String(Date.now());
+const split = (path: string): [string, string] => { const i = path.lastIndexOf('/'); return [path.slice(0, i), path.slice(i + 1)]; };
+
+/** Load an asset (scene/name). A reload keeps its position; a newly picked one starts where its recipe puts it. */
+async function selectAsset(path: string, reload: boolean, retry = true): Promise<void> {
+  const [scene, name] = split(path), token = ++loadToken, dir = `${base}/${scene}`, stamp = String(Date.now());
   let next: Sprite;
   try {
     next = await loadSprite(gl, dir, name, fallback, stamp);
   } catch (err) {
     // the pipeline may still be writing files: try once more a moment later
-    if (reload && retry) return void setTimeout(() => void selectAsset(name, true, false), 400);
+    if (reload && retry) return void setTimeout(() => void selectAsset(path, true, false), 400);
     throw err;
   }
   if (token !== loadToken) return dispose(next);
   if (asset) dispose(asset);
   asset = next;
+  assetPath = path;
   assetDir = `${dir}/${name}`;
   bust = stamp;
-  assetSel.value = name;
+  assetSel.value = path;
   if (!reload) {
     const d = next.def;
     xIn.value = String(startX ?? Math.round(d.x + (d.anchor?.[0] ?? d.w / 2)));
@@ -201,34 +204,43 @@ async function selectAsset(name: string, reload: boolean, retry = true): Promise
   persist();
 }
 
+const getJSON = async <T>(url: string): Promise<T | null> => {
+  const res = await fetch(url, { cache: 'no-store' }).catch(() => null);
+  return res?.ok ? ((await res.json()) as T) : null;
+};
+
+/** Every built asset of every scene, grouped by scene; the backgrounds among them go in the backdrop list. */
 async function loadList(): Promise<void> {
-  const scene = sceneIn.value.trim(), res = await fetch(`${base}/${scene}/bench.json`, { cache: 'no-store' }).catch(() => null);
-  if (!res?.ok) {
-    asset = null;
-    assetSel.replaceChildren();
-    showMaps();
-    showInfo(false);
-    throw new Error(`Nothing built for "${scene}" yet. Build an asset with: npm run asset -- build art/${scene}/<name>.json`);
-  }
-  const list = (await res.json()) as { assets: string[]; latest?: string; backgrounds?: string[] };
-  backgrounds = list.backgrounds ?? [];
-  const names = list.assets.filter((n) => !backgrounds.includes(n));
-  assetSel.replaceChildren(...names.map((n) => new Option(n, n)));
+  const index = await getJSON<{ scenes: string[]; latest?: string }>(`${base}/bench.json`);
+  if (!index?.scenes.length) throw new Error('Nothing built yet. Build an asset with: npm run asset -- build art/<scene>/<name>.json');
+  const lists = await Promise.all(index.scenes.map(async (scene) => [scene, await getJSON<{ assets: string[]; backgrounds?: string[] }>(`${base}/${scene}/bench.json`)] as const));
+  backgrounds = new Set(lists.flatMap(([scene, l]) => (l?.backgrounds ?? []).map((n) => `${scene}/${n}`)));
+  const paths: string[] = [];
+  assetSel.replaceChildren(...lists.filter(([, l]) => l).map(([scene, l]) => {
+    const group = document.createElement('optgroup');
+    group.label = scene;
+    for (const n of l!.assets) if (!backgrounds.has(`${scene}/${n}`)) { group.append(new Option(n, `${scene}/${n}`)); paths.push(`${scene}/${n}`); }
+    return group;
+  }));
   // backgrounds the pipeline built join the two backdrops the bench has of its own
   const keep = backdropSel.value;
   for (const o of [...backdropSel.options]) if (o.value.startsWith('bg:')) o.remove();
-  for (const b of backgrounds) backdropSel.add(new Option(`${b} (generated)`, `bg:${b}`));
+  for (const b of backgrounds) backdropSel.add(new Option(`${split(b)[1]} (${split(b)[0]})`, `bg:${b}`));
   backdropSel.value = [...backdropSel.options].some((o) => o.value === keep) ? keep : 'plain';
-  const want = [asset?.def.name, params.get('asset'), list.latest].find((n) => n && names.includes(n)) ?? names[0];
-  if (want && want !== asset?.def.name) await selectAsset(want, false);
+  // an address may name the asset as scene/name, or the old way with a separate scene
+  const asked = params.get('asset'), legacy = asked && !asked.includes('/') && params.get('scene') ? `${params.get('scene')}/${asked}` : asked;
+  const want = [assetPath, legacy, index.latest].find((p) => p && paths.includes(p)) ?? paths[0];
+  if (want && want !== assetPath) await selectAsset(want, false);
 }
 
 async function useBackdrop(reload = false): Promise<void> {
   const v = backdropSel.value;
   lightSel.disabled = v === 'street';
   if (v === 'street' && !street) street = new SceneRunner(await loadScene(gl, `${base}/styleframe`), new Set(['hero']));
-  if (v.startsWith('bg:') && (reload || backdropAsset?.def.name !== v.slice(3))) {
-    const next = await loadSprite(gl, `${base}/${sceneIn.value.trim()}`, v.slice(3), fallback, String(Date.now()));
+  if (v.startsWith('bg:') && (reload || `${backdropAsset ? backdropScene : ''}/${backdropAsset?.def.name}` !== v.slice(3))) {
+    const [scene, name] = split(v.slice(3));
+    const next = await loadSprite(gl, `${base}/${scene}`, name, fallback, String(Date.now()));
+    backdropScene = scene;
     if (backdropAsset) dispose(backdropAsset);
     backdropAsset = next;
   }
@@ -281,7 +293,6 @@ const toggleView = () => { view = view > 0.5 ? 0 : 1; switchedAt = clock(); sync
 const report = (err: unknown) => showError(err instanceof Error ? err.message : String(err));
 
 viewBtn.addEventListener('click', toggleView);
-sceneIn.addEventListener('change', () => loadList().catch(report));
 assetSel.addEventListener('change', () => selectAsset(assetSel.value, false).catch(report));
 backdropSel.addEventListener('change', () => useBackdrop().catch(report));
 lightSel.addEventListener('change', () => { showInfo(false); persist(); });
@@ -289,7 +300,7 @@ for (const input of [xIn, flipIn, walkIn]) input.addEventListener('input', persi
 el<HTMLFormElement>('panel').addEventListener('submit', (e) => e.preventDefault());
 
 // E switches view, F turns the asset around, W walks it, Q cycles quality, arrows nudge it. The letters work wherever
-// the focus is, except while typing in the scene field; the arrows still move a focused slider or list.
+// the focus is, except while typing in a text field; the arrows still move a focused slider or list.
 document.addEventListener('keydown', (e) => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   const tgt = e.target, k = e.key.toLowerCase();
@@ -315,17 +326,17 @@ document.addEventListener('keydown', (e) => {
 // The dev server says which files under public/assets changed: reload what was rebuilt, or show what is new.
 // A background takes over the backdrop; anything else becomes the asset in front of it.
 import.meta.hot?.on('lidless:asset', (data: { files: string[] }) => {
-  const scene = sceneIn.value.trim(), parts = data.files.map((f) => f.split('/')).filter((p) => p[0] === scene);
-  const built = parts.filter((p) => p.length === 3 && p[2] === 'sprite.json').map((p) => p[1]);
-  const touched = (name: string | undefined) => !!name && parts.some((p) => p[1] === name);
+  const parts = data.files.map((f) => f.split('/'));
+  const built = parts.filter((p) => p.length === 3 && p[2] === 'sprite.json').map((p) => `${p[0]}/${p[1]}`);
+  const touched = (path: string) => !!path && parts.some((p) => `${p[0]}/${p[1]}` === path);
   const update = async () => {
-    if (parts.some((p) => p.length === 2 && p[1] === 'bench.json')) await loadList();
-    const bg = built.find((n) => backgrounds.includes(n));
+    if (parts.some((p) => p[p.length - 1] === 'bench.json')) await loadList();
+    const bg = built.find((p) => backgrounds.has(p));
     if (bg) { backdropSel.value = `bg:${bg}`; await useBackdrop(true); }
     else if (backdropSel.value.startsWith('bg:') && touched(backdropSel.value.slice(3))) await useBackdrop(true);
-    const fresh = built.find((n) => n !== asset?.def.name && !backgrounds.includes(n));
+    const fresh = built.find((p) => p !== assetPath && !backgrounds.has(p));
     if (fresh) await selectAsset(fresh, false);
-    else if (asset && touched(asset.def.name)) await selectAsset(asset.def.name, true);
+    else if (asset && touched(assetPath)) await selectAsset(assetPath, true);
   };
   update().catch(report);
 });

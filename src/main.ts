@@ -64,8 +64,10 @@ async function boot(): Promise<void> {
     viewBtn.setAttribute('aria-pressed', String(state.view > 0.5));
     viewLabel.textContent = state.view > 0.5 ? 'Concierge view' : 'Raw view';
   };
-  const toggleView = () => {
-    if (!canSwitch()) return;
+  // On the dev server E switches view from the start, to look at both views while building the game; the button and
+  // every built version keep the story's lock until the fixer has opened her eye.
+  const toggleView = (force = false) => {
+    if (!canSwitch() && !force) return;
     state.view = state.view > 0.5 ? 0 : 1;
     switchedAt = clock();
     syncView();
@@ -125,7 +127,7 @@ async function boot(): Promise<void> {
     if (ui.key(e.key)) return e.preventDefault();
     const dir = dirOf(e.key);
     if (dir && !ui.dialogueOpen) { held.add(dir); syncKeys(); return e.preventDefault(); }
-    if (e.key === 'e' || e.key === 'E') toggleView();
+    if (e.key === 'e' || e.key === 'E') toggleView(import.meta.env.DEV);
     if (e.key === 'q' || e.key === 'Q') {
       const order: Tier[] = ['low', 'medium', 'high'];
       renderer.quality = QUALITY[order[(order.indexOf(renderer.quality.tier) + 1) % order.length]];
@@ -137,7 +139,7 @@ async function boot(): Promise<void> {
     if (dir) { held.delete(dir); syncKeys(); if (!world.keyDir) persist(); }
   });
   window.addEventListener('blur', () => { held.clear(); syncKeys(); });
-  viewBtn.addEventListener('click', toggleView);
+  viewBtn.addEventListener('click', () => toggleView());
 
   const draw = () => {
     const t = clock(), dt = Math.min(0.05, Math.max(0, t - lastT));
