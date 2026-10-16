@@ -4,9 +4,11 @@
 import './style.css';
 import { loadScene, loadSprite, spriteDefaults, type LightDef, type MapName, type Sprite, type SpriteDef } from './engine/assets';
 import { solidTexture, textureFromImage } from './engine/gl';
+import { loadProjectLook } from './engine/look';
 import { fitCanvas, NH, NW, QUALITY, Renderer, type DrawSprite, type Frame, type Tier } from './engine/renderer';
 import { frameFor, hasLeft } from './game/anim';
 import { lightGroups, SceneRunner, switchFade } from './game/scene';
+import { createLookPanel, type LookPanel } from './look-panel';
 
 /** The walk line of the style frame street: feet stand here. */
 const GROUND = 464;
@@ -309,6 +311,7 @@ document.addEventListener('keydown', (e) => {
   if (control && k.startsWith('arrow')) return;
   // a focused list would also jump to an entry starting with the letter
   if (tgt instanceof HTMLSelectElement && 'efwq'.includes(k)) e.preventDefault();
+  if (k === 'l') { look?.toggle(); return; }
   if (k === 'e') toggleView();
   else if (k === 'f') flipIn.checked = !flipIn.checked;
   else if (k === 'w') walkIn.checked = !walkIn.checked;
@@ -342,6 +345,17 @@ import.meta.hot?.on('lidless:asset', (data: { files: string[] }) => {
 });
 
 /* ---------- start ---------- */
+
+// the look panel (L, or the Look button): it takes the place of the map strip while it is open
+let look: LookPanel | null = null;
+const lookBtn = el<HTMLButtonElement>('look-toggle');
+lookBtn.addEventListener('click', () => look?.toggle());
+void loadProjectLook(base).then((project) => {
+  look = createLookPanel(renderer, project, el<HTMLElement>('panel').parentElement!, (open) => {
+    document.body.classList.toggle('look-open', open);
+    lookBtn.setAttribute('aria-pressed', String(open));
+  });
+});
 
 syncView();
 loadList()

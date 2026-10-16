@@ -1,6 +1,7 @@
 // The 2D deferred renderer: sprites into a G-buffer, then lighting, composite, bloom and the final grade.
 
 import type { LightDef, MapName, Sprite } from './assets';
+import { LOOK_DEFAULTS, type Look } from './look';
 import { createGeometry, createProgram, createTarget, solidTexture, type GL, type Program, type Target } from './gl';
 import * as S from './shaders';
 
@@ -81,6 +82,8 @@ export class Renderer {
   private t: Record<'gbuf' | 'ao1' | 'ao2' | 'fa' | 'fb' | 'd1' | 'd2' | 'q1' | 'q2' | 'e1' | 'e2' | 'a1' | 'a2', Target>;
   private black: WebGLTexture;
   quality: Quality;
+  /** The look: pixels, light, colour and film, changed live by the look panel. */
+  look: Look = { ...LOOK_DEFAULTS };
 
   constructor(private canvas: HTMLCanvasElement, quality: Quality) {
     const gl = canvas.getContext('webgl2', { antialias: false, premultipliedAlpha: false, preserveDrawingBuffer: true, alpha: false });
@@ -211,6 +214,8 @@ export class Renderer {
       gl.uniform1f(pr.u.uView, f.view); gl.uniform1f(pr.u.uTime, f.t); gl.uniform1f(pr.u.uShadows, q.shadows ? 1 : 0);
       gl.uniform4fv(pr.u.uCars, f.cars); gl.uniform1i(pr.u.uNC, f.nCars);
       gl.uniform4fv(pr.u.uBeac, f.beacons); gl.uniform1i(pr.u.uNB, f.nBeacons);
+      const k = this.look;
+      gl.uniform4f(pr.u.uLookL, k.lights, k.ambient, k.haze, k.glow);
     });
 
     // depth of field: background-only blur at half resolution
@@ -228,6 +233,7 @@ export class Renderer {
       this.zoneUniforms(pr, f, 3);
       gl.uniform1f(pr.u.uTime, f.t); gl.uniform1f(pr.u.uDof, q.dof ? 1 : 0); gl.uniform1f(pr.u.uView, f.view);
       gl.uniform4fv(pr.u.uSteam, f.steam); gl.uniform4f(pr.u.uDrips, ...f.drips); gl.uniform1f(pr.u.uMirror, f.mirror);
+      gl.uniform1f(pr.u.uRawFog, this.look.rawFog);
     });
 
     // bloom at a quarter and an eighth of the resolution
@@ -252,6 +258,11 @@ export class Renderer {
       gl.uniform1f(pr.u.uTime, f.t); gl.uniform1f(pr.u.uGlitch, f.glitch); gl.uniform1f(pr.u.uView, f.view);
       gl.uniform1f(pr.u.uStreaks, q.streaks ? 1 : 0);
       gl.uniform4fv(pr.u.uGR, q.godrays ? f.godrays : new Float32Array(16));
+      const k = this.look;
+      gl.uniform4f(pr.u.uLookP, k.pixelSize, k.pixelShape, k.shapeAmount, k.colorLevels);
+      gl.uniform4f(pr.u.uLookB, k.bloom, k.shafts, k.streaks, k.dither);
+      gl.uniform4f(pr.u.uLookC, k.exposure, k.contrast, k.saturation, k.temperature);
+      gl.uniform4f(pr.u.uLookF, k.tint, k.vignette, k.grain, k.aberration);
     });
   }
 }

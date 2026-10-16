@@ -20,6 +20,9 @@ Then open the address Vite prints.
 - Talk to the fixer in the radio shop. Once he has opened your eye, **E** or the button switches between
   Concierge view and raw view, and many things read differently. On the dev server, E works from the start.
 - Number keys pick answers in a conversation. **Q** cycles the quality tiers.
+- **L** opens the look panel: pixel size and shape, colour levels and dither, lights, haze, bloom, light shafts,
+  raw-view fog, exposure, contrast, saturation, temperature, tint, vignette, grain and colour fringes, all live.
+  Tuning is kept in the browser; **Save** (on the dev server) makes it the game's look, in `public/assets/look.json`.
 - The game saves as you go. Add `?new` to the address to start over, `?debug` to see the tier and frame rate.
 
 Other commands:

@@ -2,6 +2,7 @@
 
 import './style.css';
 import { loadScene, loadSprite, spriteDefaults } from './engine/assets';
+import { loadProjectLook } from './engine/look';
 import { fitCanvas, NH, NW, QUALITY, Renderer, type Tier } from './engine/renderer';
 import { frameFor, hasLeft } from './game/anim';
 import { Dialogue } from './game/dialogue';
@@ -10,6 +11,7 @@ import { clearSave, loadSave, writeSave } from './game/save';
 import { SceneRunner, type ViewState } from './game/scene';
 import { UI } from './game/ui';
 import { World } from './game/world';
+import { createLookPanel } from './look-panel';
 
 const params = new URLSearchParams(location.search);
 const stage = document.querySelector('.stage') as HTMLElement;
@@ -37,6 +39,8 @@ async function boot(): Promise<void> {
   const assets = `${import.meta.env.BASE_URL}assets`, base = `${assets}/styleframe`;
   const renderer = new Renderer(canvas, QUALITY[pickTier()]);
   const [scene, level] = await Promise.all([loadScene(renderer.gl, base), loadLevel(base)]);
+  // the look panel (L): pixels, light, colour and film, starting from the game's saved look
+  const look = createLookPanel(renderer, await loadProjectLook(assets), stage);
   const save = loadSave();
   const heroPath = level.hero.sprite, heroName = heroPath.split('/').pop()!;
   const runner = new SceneRunner(scene, new Set([heroName]));
@@ -124,6 +128,9 @@ async function boot(): Promise<void> {
   const dirOf = (k: string) => (k === 'ArrowLeft' || k === 'a' || k === 'A' ? 'left' : k === 'ArrowRight' || k === 'd' || k === 'D' ? 'right' : null);
   document.addEventListener('keydown', (e) => {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === 'l' || e.key === 'L') return look.toggle();
+    // the keys a slider or list uses itself stay with it: arrows move a look slider, not the hero; E, Q and L still work
+    if (e.target instanceof Element && e.target.closest('.look') && /^(Arrow|Home|End|Page)/.test(e.key)) return;
     if (ui.key(e.key)) return e.preventDefault();
     const dir = dirOf(e.key);
     if (dir && !ui.dialogueOpen) { held.add(dir); syncKeys(); return e.preventDefault(); }

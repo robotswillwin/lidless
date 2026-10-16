@@ -1,3 +1,4 @@
+import { writeFile } from 'node:fs/promises';
 import { defineConfig, type Plugin } from 'vite';
 import { Compiler } from 'inkjs/full';
 
@@ -41,10 +42,38 @@ function assetWatch(): Plugin {
   };
 }
 
+/** On the dev server, the look panel's Save writes the look as public/assets/look.json: flat numbers only. */
+function lookSave(): Plugin {
+  return {
+    name: 'lidless-look-save',
+    configureServer(server) {
+      server.middlewares.use('/__look', (req, res) => {
+        if (req.method !== 'POST') { res.statusCode = 405; res.end('POST the look as JSON'); return; }
+        let body = '';
+        req.on('data', (chunk: Buffer) => { body += chunk; if (body.length > 100_000) req.destroy(); });
+        req.on('end', () => {
+          try {
+            const data = JSON.parse(body) as Record<string, unknown>;
+            const look = Object.fromEntries(Object.entries(data).filter(([k, v]) => /^[a-zA-Z]{1,40}$/.test(k) && typeof v === 'number' && Number.isFinite(v)));
+            if (!Object.keys(look).length) throw new Error('no settings in the request');
+            writeFile(`${server.config.publicDir}/assets/look.json`, JSON.stringify(look, null, 2) + '\n').then(
+              () => { res.statusCode = 200; res.end('saved'); },
+              (err: Error) => { res.statusCode = 500; res.end(err.message); },
+            );
+          } catch (err) {
+            res.statusCode = 400;
+            res.end(err instanceof Error ? err.message : String(err));
+          }
+        });
+      });
+    },
+  };
+}
+
 // Relative base so the same build runs from a subpath, from file:// in tests, and inside Capacitor and Tauri.
 export default defineConfig({
   base: './',
-  plugins: [ink(), assetWatch()],
+  plugins: [ink(), assetWatch(), lookSave()],
   build: {
     target: 'es2022',
     assetsInlineLimit: 0,

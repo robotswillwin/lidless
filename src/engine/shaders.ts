@@ -106,6 +106,7 @@ uniform sampler2D tG0, tG1, tG2, tG3, tAO;
 uniform vec4 uLP[${MAX_LIGHTS}], uLC[${MAX_LIGHTS}], uLK[${MAX_LIGHTS}], uLG[${MAX_LIGHTS}];
 uniform int uNL;
 uniform float uGI[16], uView, uTime, uShadows;
+uniform vec4 uLookL;      // the look: lights, ambient, haze, glowing surfaces
 uniform vec4 uCars[16]; uniform int uNC;
 uniform vec4 uBeac[32]; uniform int uNB;
 float facadeW(vec2 w) { return w.y < 104.0 ? 1.0 : w.y > 424.0 ? 0.7 : w.x > 524.0 ? 0.5 : 0.18; }
@@ -129,7 +130,7 @@ void main() {
   alb = mix(alb, tone(alb, RAW_COLD), raw * 0.8);
   float occB = T(tAO, p).r, ao = (occ > 0.5 ? 1.0 - 0.25 * occB : 1.0 - 0.8 * occB) * z.b;
   vec3 ambIn = vec3(0.1, 0.066, 0.046), ambOut = vec3(0.045, 0.055, 0.1);
-  vec3 amb = mix(ambIn, tone(ambIn, RAW_LIGHT), raw) * z.r + mix(ambOut, tone(ambOut, RAW_COLD), raw) * z.g;
+  vec3 amb = (mix(ambIn, tone(ambIn, RAW_LIGHT), raw) * z.r + mix(ambOut, tone(ambOut, RAW_COLD), raw) * z.g) * uLookL.y;
   vec3 col = alb * amb * mix(0.4, 1.0, ao) * (0.85 - 0.3 * Nn.y), spc = vec3(0.0), haze = vec3(0.0);
   for (int i = 0; i < ${MAX_LIGHTS}; i++) {
     if (i >= uNL) break;
@@ -150,17 +151,17 @@ void main() {
     vec3 lc = arL + machL > 0.5 ? LC.rgb : mix(LC.rgb, tone(LC.rgb, RAW_LIGHT), raw);
     vec3 Lv = normalize(vec3(d2, LP.z - hz));
     float diff = max((dot(Nn, Lv) + LG.z) / (1.0 + LG.z), 0.0);
-    vec3 li = lc * gi * att * cone * sh * zw * keep;
+    vec3 li = lc * gi * att * cone * sh * zw * keep * uLookL.x;
     col += alb * li * diff;
     vec3 H = normalize(Lv + vec3(0.0, 0.0, 1.0));
     spc += li * specS * pow(max(dot(Nn, H), 0.0), shin) * 2.0;
     haze += mix(lc, tone(lc, RAW_AIR), raw) * gi * pow(att, LK.z > -1.5 ? 2.0 : 3.0) * cone * LG.w * zh;
   }
   // the glowing air around lights: a person in front of it gets only the part between them and the eye (g3.a)
-  vec3 outc = col + spc + haze * mix(0.06, 0.16, z.g) * g3.a;
+  vec3 outc = col + spc + haze * mix(0.06, 0.16, z.g) * g3.a * uLookL.z;
   float ge = floor(g2.a * 31.0 + 0.5), machE = step(15.5, ge);
   vec3 em = lin(g2.rgb * 2.0);
-  outc += mix(em, tone(em, RAW_LIGHT), raw * (1.0 - machE)) * uGI[int(mod(ge, 16.0))];
+  outc += mix(em, tone(em, RAW_LIGHT), raw * (1.0 - machE)) * uGI[int(mod(ge, 16.0))] * uLookL.w;
   if (dep < 0.4 && uView > 0.5) {
     for (int k = 0; k < 16; k++) { if (k >= uNC) break; vec4 c = uCars[k]; vec2 r = p - (c.xy - uCam); float al = r.x * c.z;
       if (abs(r.y) < 1.2) { if (al > -c.w && al < 0.0) outc += vec3(2.2, 0.25, 0.2) * pow(1.0 + al / c.w, 2.0) * 0.6; if (al >= 0.0 && al < 4.0) outc += al < 2.0 ? vec3(4.0, 4.2, 4.6) : vec3(0.08, 0.08, 0.1); } }
@@ -174,7 +175,7 @@ void main() {
 
 export const COMP_FS = HEAD + ZONE + `
 uniform sampler2D tA, tG3, tDof;
-uniform float uTime, uDof, uView;
+uniform float uTime, uDof, uView, uRawFog;
 uniform vec4 uSteam[4];
 uniform vec4 uDrips;      // world x0, x1, top, bottom of the drip curtain; z <= 0 turns it off
 uniform float uMirror;    // world y of the reflection line
@@ -204,7 +205,7 @@ void main() {
   // raw view: the poisonous air between the eye and everything it sees, thicker with distance and outdoors
   if (raw > 0.0) {
     float fd = dep < 0.15 ? 0.55 : dep < 0.5 ? 0.38 : dep < 0.8 ? 0.22 : 0.08;
-    c = mix(c, tone(vec3(0.045), RAW_AIR), raw * fd * mix(0.35, 1.0, z.g * (1.0 - z.r)));
+    c = mix(c, tone(vec3(0.045), RAW_AIR), min(1.0, raw * fd * mix(0.35, 1.0, z.g * (1.0 - z.r)) * uRawFog));
   }
   vec3 near = (T(tA, p + vec2(6.0, 0.0)).rgb + T(tA, p - vec2(6.0, 0.0)).rgb + T(tA, p + vec2(0.0, 6.0)).rgb + T(tA, p - vec2(0.0, 6.0)).rgb) * 0.25;
   for (int s = 0; s < 4; s++) {
@@ -264,8 +265,25 @@ uniform sampler2D tB, tBloom1, tBloom2, tStreak;
 uniform float uTime, uGlitch, uView, uStreaks;
 uniform vec4 uGR[4];
 uniform vec2 uOut;
+// the look: pixel size, pixel shape, shape strength, colour levels | bloom, shafts, streaks, dither |
+// exposure, contrast, saturation, temperature | tint, vignette, grain, colour fringes
+uniform vec4 uLookP, uLookB, uLookC, uLookF;
 // each source pixel stays a crisp block at any size, with one anti-aliased device pixel at its edges
 vec3 sharpT(vec2 p) { float s = max(1.0, uOut.x / uRes.x); vec2 q = floor(p) + 0.5 + clamp((fract(p) - 0.5) * s, -0.5, 0.5); return T(tB, q).rgb; }
+// a bigger pixel: the average of its block, from four filtered taps
+vec3 blockT(vec2 centre, float ps) { float o = ps * 0.25; return (T(tB, centre + vec2(-o, -o)).rgb + T(tB, centre + vec2(o, -o)).rgb + T(tB, centre + vec2(-o, o)).rgb + T(tB, centre + vec2(o, o)).rgb) * 0.25; }
+vec3 pixelT(vec2 p, float ps) { return ps > 1.0 ? blockT((floor(p / ps) + 0.5) * ps, ps) : sharpT(p); }
+// the shape of one pixel, from where this screen pixel sits inside it (0 to 1 each way)
+float shapeMask(vec2 local, float shape, float soft) {
+  vec2 d = abs(local - 0.5);
+  if (shape < 0.5) return 1.0;
+  if (shape < 1.5) return 1.0 - smoothstep(0.2 - soft, 0.2 + soft, length(max(d - 0.3, 0.0)));
+  if (shape < 2.5) return 1.0 - smoothstep(0.42 - soft, 0.42 + soft, length(d));
+  if (shape < 3.5) return 1.0 - smoothstep(0.44 - soft, 0.5, max(d.x, d.y));
+  return 1.0 - smoothstep(0.3 - soft, 0.5, d.y);
+}
+float bayer4(vec2 b) { vec2 m = mod(b, 4.0); int i = int(m.x) + int(m.y) * 4;
+  float t[16] = float[](0.0, 8.0, 2.0, 10.0, 12.0, 4.0, 14.0, 6.0, 3.0, 11.0, 1.0, 9.0, 15.0, 7.0, 13.0, 5.0); return (t[i] + 0.5) / 16.0; }
 vec3 aces(vec3 x) { return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0); }
 void main() {
   vec2 p = vec2(gl_FragCoord.x, uOut.y - gl_FragCoord.y) * (uRes / uOut);
@@ -275,33 +293,43 @@ void main() {
   // into raw view: the biohack shuts the augmented eye's nerve, and the healthy eye's own signal swims in, doubled at first
   float nerve = uView > 0.5 ? 0.0 : smoothstep(0.0, 1.0, uGlitch);
   vec2 ctr = p - uRes * 0.5; float r2 = dot(ctr, ctr) / dot(uRes * 0.5, uRes * 0.5);
-  vec2 ca = ctr / length(uRes * 0.5) * 1.2 * r2;
-  vec3 c = vec3(sharpT(p + ca).r, sharpT(p).g, sharpT(p - ca).b);
-  if (nerve > 0.0) c = mix(c, sharpT(p + vec2(12.0, -2.0) * nerve), 0.45 * nerve);
+  vec2 ca = ctr / length(uRes * 0.5) * 1.2 * r2 * uLookF.w;
+  float ps = max(1.0, floor(uLookP.x + 0.5));
+  vec3 c = vec3(pixelT(p + ca, ps).r, pixelT(p, ps).g, pixelT(p - ca, ps).b);
+  if (nerve > 0.0) c = mix(c, pixelT(p + vec2(12.0, -2.0) * nerve, ps), 0.45 * nerve);
   vec2 uv = vec2(p.x, uRes.y - p.y) / uRes;
   vec3 b1 = texture(tBloom1, uv).rgb, b2 = texture(tBloom2, uv).rgb;
   // the wide halo and the light shafts are light caught in the air
-  vec3 bl = b1 * 0.55 + mix(b2, tone(b2, RAW_AIR), raw * 0.7) * 0.45;
+  vec3 bl = (b1 * 0.55 + mix(b2, tone(b2, RAW_AIR), raw * 0.7) * 0.45) * uLookB.x;
   vec4 z = Z(p); float jit = hash(floor(p) * 0.37);
   for (int s = 0; s < 4; s++) {
     vec4 g = uGR[s]; if (g.z <= 0.0) continue;
     float zw = g.w < 1.5 ? z.r : z.g; if (zw < 0.05) continue;
     vec2 dv = (g.xy - uCam - p) / 24.0, q = p + dv * jit; float dec = 1.0; vec3 acc = vec3(0.0);
     for (int k = 0; k < 24; k++) { q += dv; acc += texture(tBloom1, vec2(q.x, uRes.y - q.y) / uRes).rgb * dec; dec *= 0.92; }
-    bl += mix(acc, tone(acc, RAW_AIR), raw) * g.z * zw / 24.0;
+    bl += mix(acc, tone(acc, RAW_AIR), raw) * g.z * zw / 24.0 * uLookB.y;
   }
-  c += bl + texture(tStreak, uv).rgb * vec3(0.5, 0.68, 1.0) * 0.5 * uStreaks + b1 * mix(vec3(0.22, 0.06, 0.02), tone(vec3(0.22, 0.06, 0.02), RAW_AIR), raw);
-  c = aces(c * 1.32);
+  c += bl + texture(tStreak, uv).rgb * vec3(0.5, 0.68, 1.0) * 0.5 * uStreaks * uLookB.z + b1 * mix(vec3(0.22, 0.06, 0.02), tone(vec3(0.22, 0.06, 0.02), RAW_AIR), raw) * uLookB.x;
+  c = aces(c * 1.32 * exp2(uLookC.x));
   float l = lum(c);
   // Concierge view: cool shadows, warm highlights. Raw view: a neutral grade, its cold things and yellow-green air are already in the image
   c = mix(c, c * mix(vec3(0.84, 0.95, 1.12), vec3(1.0), raw) + vec3(0.0, 0.005, 0.012) * uView, (1.0 - smoothstep(0.0, 0.45, l)) * 0.7);
   c = mix(c, c * mix(vec3(1.07, 1.0, 0.9), vec3(0.97, 1.0, 1.04), raw), smoothstep(0.45, 1.0, l) * 0.4);
   l = lum(c);
   c = mix(vec3(l), c, mix(mix(0.72, 0.95, raw), 1.05, smoothstep(0.45, 0.95, l)));
-  c *= 1.0 - 0.36 * pow(r2, 1.3);
+  c *= max(0.0, 1.0 - 0.36 * pow(r2, 1.3) * uLookF.y);
   if (nerve > 0.0) c = mix(c, vec3(lum(c)), 0.5 * nerve) * (1.0 - nerve * (0.55 + 0.4 * smoothstep(0.1, 0.9, r2)));
   c = pow(max(c, 0.0), vec3(1.0 / 2.2));
   c = mix(c, c * c * (3.0 - 2.0 * c), 0.15);
-  c += (hash(p + fract(uTime) * 91.0) - 0.5) * mix(0.05, 0.018, sqrt(l));
+  // colour: contrast, saturation, temperature and tint, in display space
+  c = (c - 0.5) * uLookC.y + 0.5;
+  c = mix(vec3(lum(c)), c, uLookC.z);
+  c *= vec3(1.0 + 0.12 * uLookC.w - 0.04 * uLookF.x, 1.0 + 0.08 * uLookF.x, 1.0 - 0.12 * uLookC.w - 0.04 * uLookF.x);
+  // fewer colours, with an ordered dither laid on the art pixels
+  if (uLookP.w > 1.5) { float L = uLookP.w - 1.0; c = floor(clamp(c, 0.0, 1.0) * L + 0.5 + (bayer4(floor(p / ps)) - 0.5) * uLookB.w) / L; }
+  // the shape of each pixel, soft over about one screen pixel
+  float cellPx = ps * uOut.x / uRes.x;
+  if (uLookP.z > 0.0 && cellPx >= 2.0) c *= mix(1.0, shapeMask(fract(p / ps), uLookP.y, 0.5 / cellPx), uLookP.z);
+  c += (hash(p + fract(uTime) * 91.0) - 0.5) * mix(0.05, 0.018, sqrt(l)) * uLookF.z;
   o = vec4(c, 1.0);
 }`;
