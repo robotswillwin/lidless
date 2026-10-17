@@ -31,10 +31,10 @@ Then open the address Vite prints.
 Other commands:
 
 - `npm run build` type-checks and builds to `dist/`.
-- `npm run shot -- "t=3" "t=3&view=raw" "bench.html?asset=hero-test"` builds and saves screenshots to `shots/` with headless Chrome. No server needed.
+- `npm run shot -- "t=3" "t=3&view=raw" "bench.html?asset=cast/hero"` builds and saves screenshots to `shots/` with headless Chrome. No server needed.
 - `npm run play` builds and plays a scripted run (look, talk to the fixer, switch view, reload) with a screenshot per step.
 - `npm run perf` builds and reports the frame rate per quality tier, up to a 4K canvas.
-- `node tools/styleframe/export.mjs` regenerates the test scene in `public/assets/styleframe` from the hand-coded style frame.
+- `node tools/styleframe/export.mjs` regenerates the main street's hand-coded layers (its sky, crowd and set) and its zone map in `public/assets/street`.
 
 Address options: `new`, `view=raw` (skips the mod), `q=low|medium|high`, `t=<seconds>` to freeze time, `debug`,
 `scene=<id>&spawn=<place>` to start in any scene.
@@ -92,8 +92,8 @@ npm run asset -- build art/street/dock-worker.json
 
 `npm run asset` alone lists every command and option. `touch` changes one marked area of a picked image, `redress`
 re-dresses a whole view while keeping its layout, `generate --layout` follows a rough picture's composition (the radio
-repair's inside was laid out from the shop seen through its window), and a recipe with a `rig` is baked into animation
-frames (see [docs/ASSETS.md](docs/ASSETS.md)).
+repair's inside was laid out from the shop seen through its window), `reframe` shrinks a set to the characters' scale,
+and `parts` makes a character that walks (see [docs/ASSETS.md](docs/ASSETS.md)).
 
 The image AI needs an OpenAI API key in `.env.local` as `OPENAI_API_KEY=...`. That file is never committed.
 
@@ -101,7 +101,7 @@ The image AI needs an OpenAI API key in `.env.local` as `OPENAI_API_KEY=...`. Th
 open `/bench.html` on the dev server. It lists everything built, scene by scene, opens on the newest, and reloads by
 itself whenever `build` runs.
 
-- Pick a backdrop: a plain wall with puddles, or the style frame street.
+- Pick a backdrop: a plain wall with puddles, or the main street.
 - On the plain wall, pick a light: street lamp, shop door, neon or studio.
 - **E** switches view, **F** turns the sprite around and **W** walks it across the street.
 
@@ -110,9 +110,14 @@ itself whenever `build` runs.
 - `src/engine`: WebGL helpers, shaders, renderer, asset loading.
 - `src/game`: scenes, the walking hero, hotspots, conversations, saving.
 - `src/story`: dialogue in Ink, compiled at build time. `main.ink` declares the variables and includes one file per scene; a tag on a line names its speaker (`#lux`, `#fixer`, `#concierge`), and untagged lines are narration.
-- `public/assets`: game assets in the format described in [docs/ASSETS.md](docs/ASSETS.md).
-- `art`: recipes and the chosen source images for the pipeline (generated candidates are not committed).
-- `tools/pipeline`: the asset pipeline. `tools/styleframe`: the hand-coded style frame that produced the first test assets.
-- `docs`: the plan and the asset contract.
+- `public/assets`: game assets in the format described in [docs/ASSETS.md](docs/ASSETS.md), one folder per scene
+  (`home`, `backstreet`, `street`, `radio`) plus `cast` for recurring characters; `scenes/<id>/scene.json` places them,
+  and `world.json` lists the scenes and where the game starts.
+- `art`: recipes and the chosen source images for the pipeline, in the same folders (generated candidates are not
+  committed).
+- `tools/pipeline`: the asset pipeline. `tools/styleframe`: the hand-coded main street (sky, crowd and set), drawn in code.
+- `scripts`: headless checks: `play` walks the opening route, `shot` takes screenshots, `perf` measures frame times.
+- `docs`: the plan, the asset contract, the story documents and the art review; [docs/README.md](docs/README.md) lists
+  them.
 
 The plan and the reasoning behind the stack: [docs/PLAN.md](docs/PLAN.md).

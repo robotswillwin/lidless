@@ -2,6 +2,9 @@
 
 The full build plan, with the reasoning, image AI pricing and risks: https://claude.ai/artifact/5FwBfUkBwgAKMLe6X5GMMP
 
+The story and the art direction live in [docs/story](story) and [docs/art](art); [docs/README.md](README.md) lists every
+document.
+
 ## Decisions
 
 - **Genre**: narrative adventure with RPG systems. Encounters are turn-based in side view (the Darkest Dungeon model). Climbing and jumping are tapped context actions.
@@ -42,6 +45,6 @@ How assets and levels express it: `exists` in a recipe (see [ASSETS.md](ASSETS.m
 | M0 Setup: repository, tooling, renderer drawing sprites, quality tiers | Done |
 | M1 Vertical slice: tap to walk, hotspots, view switch unlocked by the fixer, Ink conversations, saving | Done, on one screen; the scrolling camera comes with a wider street |
 | M2 Pipeline v1: clean, derive maps, pack, preview, one image AI connected | Done. The live API is untested until there is a key in `.env.local` |
-| M3 First real art through the pipeline | In progress. Lux (the hero) walks both ways from AI-drawn parts. Scenes connect through doors and street ends, a camera scrolls wide scenes, and a scene editor places lights, hotspots and exits. Lux's home and the radio repair's interior are generated; the shop has a glazed front on the main street, and the fixer works inside. Next: dialogue from the writing brief, and switchable idle loops for characters |
+| M3 First real art through the pipeline | In progress. Lux (the hero) walks both ways from AI-drawn parts. Scenes connect through doors and street ends, a camera scrolls wide scenes, and a scene editor places lights, hotspots and exits. All four opening places are built at one scale, the street's people are generated characters, and the game starts at home. Next: the art review's first pass (physical scale and continuity between the views, starting with the radio repair's tool wall), then the opening chapter's script |
 | M4 Turn-based encounters | |
 | M5 Mobile builds and touch controls | |
