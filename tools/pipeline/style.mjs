@@ -46,7 +46,7 @@ const KIND_NOTES = {
 };
 
 /** A background that is a room: the same flat, side-on framing as a street, with the floor where the pavement would be. */
-const INTERIOR_NOTE = 'A wide room seen straight on from the side, like a stage set: the back wall fills the frame, the floor runs along the bottom sixth of the image, and the room continues past the left and right edges. Drawn at the game's scale: a doorway is about two fifths of the image height, and a standing adult is a little taller than a doorway. Flat, even, neutral lighting like an overcast day, no shadows and nothing glowing: this is the colour of every surface, and the game adds the night and its lights. No people, no border.';
+const INTERIOR_NOTE = 'A wide room seen straight on from the side, like a stage set: the back wall fills the frame, the floor runs along the bottom sixth of the image, and the room continues past the left and right edges. Drawn at the game\'s scale: a doorway is about two fifths of the image height, and a standing adult is a little taller than a doorway. Flat, even, neutral lighting like an overcast day, no shadows and nothing glowing: this is the colour of every surface, and the game adds the night and its lights. No people, no border.';
 
 /** A character that will be cut into parts and animated needs every limb clear of the body. */
 const RIG_POSE = 'A neutral standing pose for animation: arms hanging relaxed and slightly away from the body, hands empty and open, legs straight and slightly apart so both are fully visible, nothing held and nothing crossing the body.';

@@ -19,7 +19,7 @@
     "machine": false
   },
   "references": [
-    "art/test/backstreet/raw.png",
+    "art/backstreet/lane/raw.png",
     "art/reference/Rainy Neon Cyberpunk Concept Sheet.png"
   ],
   "palette": 0.35,

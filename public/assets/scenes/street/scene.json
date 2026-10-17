@@ -8,13 +8,13 @@
  ],
  "layers": [
   {
-   "asset": "styleframe/sky-city"
+   "asset": "street/sky"
   },
   {
-   "asset": "styleframe/crowd"
+   "asset": "street/crowd"
   },
   {
-   "asset": "styleframe/street"
+   "asset": "street/set"
   },
   {
    "asset": "street/sleeper",
@@ -27,7 +27,7 @@
    "y": 342
   }
  ],
- "zoneMap": "styleframe/zone.png",
+ "zoneMap": "street/zone.png",
  "lights": [
   {
    "z": 70,

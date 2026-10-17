@@ -78,7 +78,7 @@ function drawStreet() {
   fill(R(307, 76.5, 1, 3), { alb: P.n2, h: 0.6, dep: 3 }); fill(E(307.5, 80.4, 1.6, 1.3), { alb: P.n1, round: 1.6, rh: 0.5, h: 0.5, spec: 0.95, shin: 0.95, dep: 3, occ: 1 }); fill(E(307.8, 80.8, 0.4, 0.4), { eh: P.m5 });
   fill(PL([[300.2, 168], [306.2, 167.6], [306.4, 176], [300.4, 176.4]], false), { alb: (x, y) => mixc(P.n6, P.w8, 0.25 * fbm(x * 0.3, y * 0.3, 2)), h: 0.6, spec: 0.03, dep: 3, occ: 1 });
   for (const ly of [169.6, 171.1, 172.6, 174.1]) fill(LN(301, ly, 305.2 - (ly % 2), ly, 0.35), { alb: P.n2, h: 0.6 });
-  // the bench; the eye mod covers it, and whoever sleeps on it (drawSleeper), with a planter
+  // the bench; the eye mod covers it with a planter
   for (const lx of [318, 345]) fill(R(lx, 205, 2, 23), { ...MAT.metal(P.n2, { rust: 0.5 }), h: cylU(0.35, 0.4), spec: 0.4, shin: 0.5, dep: 3, occ: 1 });
   for (const [sy, sh] of [[203.5, 2.4], [212.5, 3]]) fill(R(316, sy, 32, sh), { ...WOOD(P.w4), h: cylV(0.4, 0.3), spec: 0.3, shin: 0.55, occ: 1 });
   fill(R(317, 215.5, 30, 0.8), { alb: P.n1, h: 0.4, dep: 3, occ: 1 });
@@ -116,13 +116,4 @@ function drawStreet() {
     fill(PL([[bx, 230], [bx, 217.5], [bx + 0.6, 216.3], [bx + 2.5, 215.6], [bx + 4.4, 216.3], [bx + 5, 217.5], [bx + 5, 230]], false), { ...MAT.metal(P.n4, { rust: 0.6 }), h: cylU(0.3, 0.55), spec: 0.5, shin: 0.6, dep: 3, occ: 1 });
     fill(R(bx, 219.6, 5, 1.6), { alb: P.n7, h: cylU(0.35, 0.5), spec: 0.9, shin: 0.85, dep: 3, occ: 1 });
   }
-}
-/* someone asleep on the bench, under a blanket, a bottle by his boots: real, but edited out of the Concierge's view */
-function drawSleeper() {
-  const blanket = (x, y) => mulc([mixc(P.c4, P.n4, 0.5), mixc(P.m3, P.w3, 0.55), mixc(P.c5, P.n5, 0.6), P.w4][(((x >> 3) + (y >> 3) * 2) % 4 + 4) % 4], 0.8 + 0.25 * fbm(x * 0.08, y * 0.05, 3));
-  fill(PL([[320, 213], [323.5, 206.5], [330, 204.2], [336, 204.6], [342, 206], [346.4, 209.6], [347.2, 213]]), { alb: blanket, round: 6, rh: 0.55, h: (x, y) => 0.35 + 0.08 * Math.sin(x * 0.5 + y * 0.2), spec: 0.03, dep: 3, occ: 1 });
-  fill(E(320.5, 209.3, 2.8, 2.6), { alb: P.sk2, round: 3, rh: 0.5, h: 0.45, spec: 0.12, shin: 0.4, dep: 3, occ: 1 });
-  fill(PL([[317.4, 208.5], [318, 205.6], [321, 204.6], [323.6, 206], [323.6, 208.2]]), { ...MAT.fabric(mixc(P.m4, P.n4, 0.55), { fold: 0.9 }), round: 2, rh: 0.4, h: 0.4, spec: 0.03, dep: 3, occ: 1 });
-  fill(PL([[346.5, 210.6], [349.4, 210], [350, 212.8], [346.8, 213]], false), { alb: P.n1, round: 1.4, rh: 0.4, h: 0.45, spec: 0.3, dep: 3, occ: 1 });
-  fill(PL([[332, 228], [332, 223.5], [332.8, 222.4], [332.8, 220.5], [333.8, 220.5], [333.8, 222.4], [334.6, 223.5], [334.6, 228]], false), { alb: P.g1, h: cylU(0.35, 0.4), spec: 0.95, shin: 0.95, dep: 3, occ: 1 });
 }

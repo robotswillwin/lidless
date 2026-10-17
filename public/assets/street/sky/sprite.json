@@ -1,0 +1,18 @@
+{
+  "name": "sky",
+  "x": 552,
+  "y": 0,
+  "w": 374,
+  "h": 456,
+  "maps": [
+    "albedo.concierge",
+    "albedo.raw",
+    "glow.concierge",
+    "glow.raw",
+    "material",
+    "meta",
+    "normal"
+  ],
+  "depth": 0,
+  "parallax": 0.35
+}

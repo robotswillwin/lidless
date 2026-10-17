@@ -2,7 +2,7 @@
 // Usage: npm run play   (builds first; screenshots land in shots/play-*.png)
 
 import { execFileSync } from 'node:child_process';
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, readdirSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import puppeteer from 'puppeteer-core';
 
@@ -10,6 +10,8 @@ const root = resolve(import.meta.dirname, '..');
 const chrome = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 execFileSync('npx', ['vite', 'build', '--logLevel', 'warn'], { cwd: root, stdio: 'inherit' });
 mkdirSync(resolve(root, 'shots'), { recursive: true });
+// last run's screenshots go, so a renamed step leaves nothing stale behind
+for (const f of readdirSync(resolve(root, 'shots'))) if (/^play-.*\.png$/.test(f)) rmSync(resolve(root, 'shots', f));
 
 const browser = await puppeteer.launch({
   executablePath: chrome,
@@ -32,9 +34,21 @@ const shot = async (name) => {
 const text = (sel) => page.$eval(sel, (e) => (e.hidden ? '' : e.textContent ?? '')).catch(() => '');
 const ready = () => page.waitForFunction(() => document.documentElement.dataset.ready === '1' || document.documentElement.dataset.err, { timeout: 15000 });
 
+const where = () => page.evaluate(() => { const s = JSON.parse(localStorage.getItem('lidless.save.v1') ?? '{}'); return `${s.scene} x=${s.heroX}`; });
+const hold = async (key, ms) => { await page.keyboard.down(key); await wait(ms); await page.keyboard.up(key); await wait(1500); };
+
+// the opening route: the game starts in Lux's flat
 await page.goto(`${url}?new`);
 await ready();
-await shot('start');
+await shot('home');
+
+// out of the flat, down to the backstreet, and along it to the main street: walking into its right end leaves
+await page.mouse.click(260, 330);
+await wait(3000);
+console.log('out of the flat:', await where());
+await shot('backstreet');
+await hold('ArrowRight', 5000);
+console.log('along the backstreet:', await where());
 
 // look at something far away: the face in the sky (no walking)
 await page.mouse.click(740, 120);
@@ -44,9 +58,10 @@ await shot('look-sky');
 
 // into the radio repair, through its door on the street, and talk to the fixer at his bench
 await page.mouse.click(480, 300);
-await wait(2500);
+await wait(5000);
+console.log('through the shop door:', await where());
 await shot('shop');
-await page.mouse.click(585, 400);
+await page.mouse.click(620, 400);
 await page.waitForSelector('.dialogue:not([hidden])', { timeout: 10000 });
 await wait(200);
 await shot('fixer-opens');
@@ -68,9 +83,10 @@ await wait(300);
 console.log('caption:', await text('.caption'), '| button hidden:', await page.$eval('#view', (e) => e.hidden));
 await shot('unlocked');
 
-// back out to the street, switch to raw view and look at the woman at the dock
-await page.mouse.click(30, 380);
-await wait(2500);
+// back out to the street by the door in the left wall: walking into the left end leaves. Then raw view, and the woman
+// at the street machine
+await hold('ArrowLeft', 7000);
+console.log('back out:', await where());
 await page.keyboard.press('e');
 await wait(600);
 await page.mouse.click(770, 430);

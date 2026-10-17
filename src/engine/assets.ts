@@ -162,12 +162,3 @@ export async function loadSprite(gl: GL, base: string, name: string, fallback: R
   };
 }
 
-export async function loadScene(gl: GL, base: string): Promise<LoadedScene> {
-  const def = await loadJSON<SceneDef>(`${base}/scene.json`);
-  const fallback = spriteDefaults(gl);
-  const [sprites, zoneImg] = await Promise.all([
-    Promise.all(def.sprites.map((n) => loadSprite(gl, base, n, fallback))),
-    loadImage(`${base}/${def.zone}`),
-  ]);
-  return { def, sprites, zone: textureFromImage(gl, zoneImg, false) };
-}

@@ -4,7 +4,39 @@
 
 import sharp from 'sharp';
 import { blank } from './image.mjs';
-import { WALK } from './poses.mjs';
+
+/**
+ * The walk, 8 frames starting as the near leg touches down in front. Classic keys: contact, down, passing, up, then
+ * the same for the far leg. Degrees; positive swings a hanging limb forward (toward +x). Knee and elbow are relative
+ * to the bone above them. The far limbs run four frames behind the near ones.
+ */
+export const WALK = {
+  thigh: [21, 15, 0, -13, -21, -13, 4, 18],
+  knee: [-5, -18, -5, -10, -10, -40, -60, -25],
+  arm: [-18, -10, 0, 10, 18, 10, 0, -10],
+  elbow: [10, 12, 12, 18, 25, 18, 12, 12],
+  lean: 3,
+};
+
+/**
+ * Move the images of one frame down together until the lowest opaque row of any of them sits on the bottom edge:
+ * the planted foot stays on the ground, and both views stay aligned.
+ */
+export function plant(imgs) {
+  let low = -1;
+  for (const img of imgs) for (let y = img.h - 1; y > low; y--) {
+    let hit = false;
+    for (let x = 0; x < img.w && !hit; x++) hit = img.d[(y * img.w + x) * 4 + 3] >= 128;
+    if (hit) { low = y; break; }
+  }
+  const drop = low < 0 ? 0 : imgs[0].h - 1 - low;
+  return imgs.map((img) => {
+    if (!drop) return img;
+    const out = blank(img.w, img.h);
+    out.d.set(img.d.subarray(0, (img.h - drop) * img.w * 4), drop * img.w * 4);
+    return out;
+  });
+}
 
 export const SHEET = { w: 1536, h: 1024 };
 

@@ -38,9 +38,3 @@ export interface LevelDef {
 export const inView = (h: Hotspot, raw: boolean): boolean => !h.only || (h.only === 'raw') === raw;
 
 export const pick = (t: ViewText, raw: boolean): string => (typeof t === 'string' ? t : raw ? t.raw : t.concierge);
-
-export async function loadLevel(base: string): Promise<LevelDef> {
-  const res = await fetch(`${base}/level.json`);
-  if (!res.ok) throw new Error(`could not load ${base}/level.json (${res.status})`);
-  return res.json() as Promise<LevelDef>;
-}

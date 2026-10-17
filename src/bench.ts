@@ -2,12 +2,13 @@
 // Open bench.html on the dev server; it reloads the asset by itself when the pipeline rebuilds it.
 
 import './style.css';
-import { loadScene, loadSprite, spriteDefaults, type LightDef, type MapName, type Sprite, type SpriteDef } from './engine/assets';
+import { loadSprite, spriteDefaults, type LightDef, type MapName, type Sprite, type SpriteDef } from './engine/assets';
 import { solidTexture, textureFromImage } from './engine/gl';
 import { loadProjectLook } from './engine/look';
 import { fitCanvas, NH, NW, QUALITY, Renderer, type DrawSprite, type Frame, type Tier } from './engine/renderer';
 import { frameFor, hasLeft } from './game/anim';
 import { lightGroups, SceneRunner, switchFade } from './game/scene';
+import { buildScene, loadSceneFile, loadWorld } from './game/scenefile';
 import { createLookPanel, type LookPanel } from './look-panel';
 
 /** The walk line of the style frame street: feet stand here. */
@@ -238,7 +239,11 @@ async function loadList(): Promise<void> {
 async function useBackdrop(reload = false): Promise<void> {
   const v = backdropSel.value;
   lightSel.disabled = v === 'street';
-  if (v === 'street' && !street) street = new SceneRunner(await loadScene(gl, `${base}/styleframe`), new Set(['hero']));
+  if (v === 'street' && !street) {
+    // the game's own main street, without its people: the asset on trial stands there alone
+    const { loaded } = await buildScene(gl, base, await loadSceneFile(base, 'street'), await loadWorld(base));
+    street = new SceneRunner(loaded, new Set(loaded.sprites.filter((s) => s.def.kind === 'character').map((s) => s.def.name)));
+  }
   if (v.startsWith('bg:') && (reload || `${backdropAsset ? backdropScene : ''}/${backdropAsset?.def.name}` !== v.slice(3))) {
     const [scene, name] = split(v.slice(3));
     const next = await loadSprite(gl, `${base}/${scene}`, name, fallback, String(Date.now()));

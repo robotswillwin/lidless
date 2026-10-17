@@ -11,6 +11,6 @@
   "depth": 3,
   "material": "stone",
   "glow": { "raw": "none", "concierge": "auto", "machine": false },
-  "references": ["art/test/backstreet/raw.png", "art/reference/Rainy Neon Cyberpunk Concept Sheet.png"],
+  "references": ["art/backstreet/lane/raw.png", "art/reference/Rainy Neon Cyberpunk Concept Sheet.png"],
   "palette": 0.35
 }

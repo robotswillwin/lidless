@@ -1,6 +1,9 @@
 {
   "assets": [
+    "crowd",
     "dock-woman",
+    "set",
+    "sky",
     "sleeper"
   ],
   "backgrounds": [],

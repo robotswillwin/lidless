@@ -96,6 +96,8 @@ async function boot(): Promise<void> {
     world.stop();
     held.clear();
     ui.showHover(null);
+    // what she was looking at stays behind
+    ui.hideCaption();
     fade.classList.add('on');
     await new Promise((r) => setTimeout(r, reduceMotion ? 0 : 260));
     try {

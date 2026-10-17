@@ -1,13 +1,15 @@
-// Regenerates public/assets/styleframe from the hand-coded style frame in ./src.
-// The style frame paints every surface into buffers (albedo for both views, height, material, glow);
-// this runs it in headless Chrome one layer at a time and writes each layer in the asset contract format.
+// Regenerates the main street's hand-coded layers from ./src: the sky with the city (sky), the crowd far off (crowd)
+// and the street itself with the radio repair's front (set), plus the street's zone map. The style frame paints every
+// surface into buffers (albedo for both views, height, material, glow); this runs it in headless Chrome and writes each
+// layer in the asset contract format into public/assets/street/, beside the street's generated characters.
+// The scene itself (lights, hotspots, effects) is public/assets/scenes/street/scene.json, edited in the scene editor.
 // Usage: node tools/styleframe/export.mjs
 
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-const here = import.meta.dirname, root = resolve(here, '../..'), out = resolve(root, 'public/assets/styleframe');
+const here = import.meta.dirname, root = resolve(here, '../..'), out = resolve(root, 'public/assets/street');
 const chrome = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const parts = readdirSync(resolve(here, 'src')).filter((f) => f.endsWith('.js')).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 const js = '(() => {\n' + parts.map((f) => readFileSync(resolve(here, 'src', f), 'utf8')).join('\n') + '\n})();';
@@ -24,23 +26,18 @@ const unescape = (s) => s.replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace
 const d = JSON.parse(unescape(raw[1]));
 const png = (url) => Buffer.from(url.split(',', 2)[1], 'base64');
 
-// depth, parallax, and which views a layer exists in when not both
-const layers = { 'sky-city': [0, 0.35], crowd: [2, 0.8], street: [3, 1], sleeper: [3, 1, 'raw'], docked: [3, 1], hero: [3, 1] };
+// depth and parallax per layer: the sky is far and moves slowly, the crowd between, the street with the camera
+const layers = { sky: [0, 0.35], crowd: [2, 0.8], set: [3, 1] };
 for (const [name, g] of Object.entries(d.groups)) {
   mkdirSync(resolve(out, name), { recursive: true });
   for (const [m, url] of Object.entries(g.files)) writeFileSync(resolve(out, name, `${m}.png`), png(url));
-  const [depth, parallax, exists] = layers[name];
-  writeFileSync(resolve(out, name, 'sprite.json'), JSON.stringify({ name, x: g.x, y: g.y, w: g.w, h: g.h, maps: Object.keys(g.files).sort(), depth, parallax, ...(exists ? { exists } : {}) }, null, 2));
+  const [depth, parallax] = layers[name];
+  writeFileSync(resolve(out, name, 'sprite.json'), JSON.stringify({ name, x: g.x, y: g.y, w: g.w, h: g.h, maps: Object.keys(g.files).sort(), depth, parallax }, null, 2) + '\n');
 }
 writeFileSync(resolve(out, 'zone.png'), png(d.zone));
-const scene = {
-  name: 'styleframe', size: [960, 540], sprites: ['sky-city', 'crowd', 'street', 'sleeper', 'docked', 'hero'], zone: 'zone.png',
-  lights: d.lights,
-  beacons: d.beacons.map(([x, y, phase]) => ({ x, y, phase: Math.round(phase * 1000) / 1000 })),
-  steam: Array.from({ length: d.steam.length / 4 }, (_, i) => d.steam.slice(i * 4, i * 4 + 4)).map(([x, y, height, w]) => ({ x, y, height, width: Math.abs(w), kind: w < 0 ? 'smoke' : 'steam' })),
-  godrays: Array.from({ length: d.godrays.length / 4 }, (_, i) => d.godrays.slice(i * 4, i * 4 + 4)).map(([x, y, strength, zone]) => ({ x, y, strength, zone, ...(x === 708 && y === 110 ? { ar: 1 } : {}) })),
-  drips: { x0: 16, x1: 524, top: 106, bottom: 456 }, mirror: 456,
-  traffic: { lanes: [184, 212, 248, 276], perLane: 3, x0: 552, span: 352, ar: 1 },
-};
-writeFileSync(resolve(out, 'scene.json'), JSON.stringify(scene, null, 1));
-console.log(`exported ${Object.keys(d.groups).length} sprites, ${d.lights.length} lights to ${out}`);
+
+// list the layers with the street's other assets, so the asset bench and the scene editor offer them
+const listFile = resolve(out, 'bench.json'), list = existsSync(listFile) ? JSON.parse(readFileSync(listFile, 'utf8')) : { assets: [], backgrounds: [] };
+list.assets = [...new Set([...(list.assets ?? []), ...Object.keys(d.groups)])].sort();
+writeFileSync(listFile, JSON.stringify(list, null, 2) + '\n');
+console.log(`exported ${Object.keys(d.groups).join(', ')} and the zone map to ${out}`);

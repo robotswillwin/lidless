@@ -1,7 +1,8 @@
 {
   "assets": [
+    "fixer",
     "hero"
   ],
   "backgrounds": [],
-  "latest": "hero"
+  "latest": "fixer"
 }

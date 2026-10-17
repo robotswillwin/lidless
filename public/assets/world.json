@@ -1,7 +1,7 @@
 {
   "start": {
-    "scene": "street",
-    "spawn": "start"
+    "scene": "home",
+    "spawn": "door"
   },
   "hero": {
     "sprite": "cast/hero",

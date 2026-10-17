@@ -86,14 +86,13 @@ its frames in, where repeating a frame holds it.
 The pipeline makes the frames in two ways, and every frame of a character shares one set of colours, so nothing
 flickers:
 
-- **Characters that walk** (`animate`): the image model draws the character in each frame of an animation, following
-  a grey mannequin posed in the character's own proportions. The recipe's `pose.joints` places the joints (neck,
-  pelvis, shoulders, elbows, wrists, hands, hips, knees, ankles, toes, near and far) in the picked image's pixels.
-  The walk is seen closer to profile than a standing pose, and has its own standing frame for when the character stops.
+- **Characters that walk** (`parts`): the image model draws the character as a sheet of separate body parts (head,
+  torso, coat, upper arm, forearm, thigh, shin) following a template; the parts are cut out with their joints, posed
+  through the walk and baked into frames (`parts --bake`). The left-facing side is the right side mirrored, with
+  touch-ups only where the two differ, so it stays the same person. Lux is made this way.
 - **Characters that stand** (`touch --frame idle/N`): each frame repaints one area, such as a hand or a face, and
-  everything outside it is identical in every frame. The recipe's `anims.idle` sets `fps` and `seq`.
-
-(A cut-out rig, `rig.joints`, can also bake frames from one image. It suits small motions, not walking.)
+  everything outside it is identical in every frame. The recipe's `anims.idle` sets `fps` and `seq`. The fixer's
+  soldering loop is made this way.
 
 ## Light language
 

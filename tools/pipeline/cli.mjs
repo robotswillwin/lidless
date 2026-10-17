@@ -10,9 +10,7 @@ import { glowAuto, heightMap, materialMap, metaMap, normalMap } from './derive.m
 import { blank, readRGBA, writePNG } from './image.mjs';
 import { edit, generate } from './openai.mjs';
 import { KINDS, ROOT, loadRecipe, recipeTemplate } from './recipe.mjs';
-import { conciergePartsPrompt, cut as cutParts, otherSidePrompt, PARTS as PARTS_NAMES, partsPrompt, pointOf, pose as posePartsRig, SHEET, template as partsTemplate, walkAngles } from './parts.mjs';
-import { animatePrompt, guide, poses } from './poses.mjs';
-import { bake, plant, shrink, WORK } from './rig.mjs';
+import { conciergePartsPrompt, cut as cutParts, otherSidePrompt, PARTS as PARTS_NAMES, partsPrompt, plant, pointOf, pose as posePartsRig, SHEET, template as partsTemplate, walkAngles } from './parts.mjs';
 import { conciergePrompt, generationPrompt, LAYOUT_NOTE, LAYOUT_REFERENCES_NOTE, LOOKS, redressPrompt, reframePrompt, REFERENCE_NOTE } from './style.mjs';
 
 try { process.loadEnvFile(resolve(ROOT, '.env.local')); } catch { /* no .env.local: fine until an API call needs the key */ }
@@ -38,10 +36,6 @@ const HELP = `Asset pipeline: generate art with an image AI, clean it and turn i
       Prints how scene coordinates move. Remake the other view with variant afterwards, so the two still match.
   npm run asset -- sheet <recipe>
       Lay all candidates side by side at game size, finished as the build would, to choose between them.
-  npm run asset -- animate <recipe> [--anim walk] [--view raw|concierge] [--quality low|medium] [--dry]
-      Draw the character in each frame of an animation with GPT Image 2.5 Sunburst, following a grey mannequin
-      posed in the character's own proportions (the recipe's pose.joints, in the source image's pixels). Frames and
-      guides go to art/<scene>/<name>/anims/<anim>/. --dry only draws the guides, which costs nothing.
   npm run asset -- parts <recipe> [--view raw|concierge] [--quality low|medium] [--dry]
       Have GPT Image 2.5 Sunburst draw the character as a sheet of separate body parts (head, torso, coat, upper arm,
       forearm, thigh, shin) following a template, and cut them out with their joints into art/<scene>/<name>/parts/.
@@ -240,7 +234,7 @@ async function updateBenchList(scene, name, kind) {
 
 async function buildOne(file) {
   const r = await loadRecipe(file), spec = r.spec, exists = r.exists ?? 'both', rawPath = join(r.dir, 'raw.png'), concPath = join(r.dir, 'concierge.png');
-  // frames drawn with `animate` make an animated sprite
+  // frames baked from parts, or touched up one by one, make an animated sprite
   if (existsSync(join(r.dir, 'anims'))) return assembleOne(r);
   const main = exists === 'concierge' ? concPath : rawPath;
   if (!existsSync(main)) throw new Error(`${r.name}: no ${exists === 'concierge' ? 'Concierge' : 'raw'} image yet. Generate and pick one, or import one.`);
@@ -254,7 +248,6 @@ async function buildOne(file) {
   }
   const first = raw ?? conc, height = r.height ?? spec.height, strength = r.palette ?? 0.35;
   const box = spec.transparent ? [raw, conc].filter(Boolean).map((img) => contentBox(img)).reduce(unionBox) : { x: 0, y: 0, w: first.w, h: first.h };
-  if (r.rig?.joints) return bakeOne(r, raw, conc, box);
   const hexes = await palette();
   const finish = finishFor(r);
   if (raw) raw = finish(paletteFit(hardenAlpha(await fitToHeight(raw, box, height)), hexes, strength));
@@ -300,25 +293,9 @@ async function buildOne(file) {
 }
 
 /**
- * A rigged character: cut into parts at its joints, posed into an idle frame and a walk cycle, each frame shrunk to
- * game size and planted on the ground.
- */
-async function bakeOne(r, rawSrc, concSrc, box) {
-  const height = r.height ?? r.spec.height, pad = 48;
-  const work = async (img) => img && hardenAlpha(await fitToHeight(img, box, height * WORK));
-  const { frames, stride } = bake([await work(rawSrc), await work(concSrc)], r.rig.joints, { radii: r.rig.radii, hem: r.rig.hem, pad });
-  const views = frames.map((fs) => fs && fs.map((f) => hardenAlpha(shrink(f)))), n = (views[0] ?? views[1]).length;
-  for (let k = 0; k < n; k++) {
-    const planted = plant(views.filter(Boolean).map((fs) => fs[k]));
-    views.filter(Boolean).forEach((fs, v) => { fs[k] = planted[v]; });
-  }
-  const restW = Math.round((box.w * height) / box.h);
-  await writeAnimated(r, views[0], views[1], { anchorX: pad + Math.round(restW / 2), anims: { idle: { from: 0, count: 1 }, walk: { from: 1, count: n - 1, stride: Math.round(stride) } } });
-}
-
-/**
- * A character animated frame by frame with `animate`: an idle frame, then the walk. Every frame of both views is
- * cropped and scaled the same way, so the character keeps its size and place, and planted on the ground.
+ * An animated character: frames baked from its parts (parts --bake), or loops touched up frame by frame (touch
+ * --frame). Every frame of both views is cropped and scaled the same way, so the character keeps its size and place,
+ * and planted on the ground.
  */
 async function assembleOne(r) {
   const height = r.height ?? r.spec.height, dir = join(r.dir, 'anims');
@@ -335,7 +312,7 @@ async function assembleOne(r) {
     for (const run of RUNS) runs[run] = await load(run, v);
     if (RUNS.some((run) => runs[run].length)) views[v] = runs;
   }
-  if (!views.raw && !views.concierge) throw new Error(`${r.name}: no frames in ${rel(dir)} yet; make them with: npm run asset -- animate ${rel(r.file)}`);
+  if (!views.raw && !views.concierge) throw new Error(`${r.name}: no frames in ${rel(dir)} yet; bake them with: npm run asset -- parts ${rel(r.file)} --bake`);
   const [a, b] = [views.raw, views.concierge].filter(Boolean);
   if (b && RUNS.some((run) => a[run].length !== b[run].length)) throw new Error(`${r.name}: the raw and Concierge views have different frames; make both the same way`);
   const all = [views.raw, views.concierge].filter(Boolean).flatMap((v) => RUNS.flatMap((run) => v[run]));
@@ -350,8 +327,8 @@ async function assembleOne(r) {
     anims[run] = run.startsWith('walk') ? { from, count, stride: Math.round(stride) } : { from, count };
     from += count;
   }
-  // the anchor: the rig's hip if the frames were baked from parts, else the posed pelvis
-  const origin = existsSync(join(dir, 'origin.json')) ? JSON.parse(await readFile(join(dir, 'origin.json'), 'utf8')).x : r.pose?.joints?.pelvis?.[0];
+  // the anchor: the rig's hip if the frames were baked from parts; otherwise writeAnimated centres it
+  const origin = existsSync(join(dir, 'origin.json')) ? JSON.parse(await readFile(join(dir, 'origin.json'), 'utf8')).x : null;
   const anchorX = origin != null ? Math.round((origin - box.x) * scale) : null;
   // timing from the recipe: a loop's frames per second, and the order to play them in, repeats making a frame hold
   for (const [k, extra] of Object.entries(r.anims ?? {})) if (anims[k]) Object.assign(anims[k], extra);
@@ -454,32 +431,6 @@ function editWindow(W, H, bx, by, bw, bh) {
   if (h > 3 * w) w = up16(h / 3);
   w = Math.min(w, W - (W % 16)); h = Math.min(h, H - (H % 16));
   return { left: Math.max(0, Math.min(W - w, Math.round(bx + bw / 2 - w / 2))), top: Math.max(0, Math.min(H - h, Math.round(by + bh / 2 - h / 2))), width: w, height: h };
-}
-
-async function cmdAnimate([file], opt) {
-  const r = await loadRecipe(file), anim = opt.anim ?? 'walk', view = opt.view ?? 'raw', quality = opt.quality ?? 'low';
-  if (!r.pose?.joints) throw new Error(`${r.name} has no pose.joints to pose a mannequin with`);
-  const src = join(r.dir, `${view}.png`);
-  if (!existsSync(src)) throw new Error(`no ${view} image at ${rel(src)}`);
-  const { w, h } = await sharp(src).metadata().then((m) => ({ w: m.width, h: m.height }));
-  const { frames, stride } = poses(anim, r.pose.joints), dir = join(r.dir, 'anims', anim);
-  await mkdir(dir, { recursive: true });
-  const guides = await Promise.all(frames.map((P) => guide(P, w, h)));
-  await Promise.all(guides.map((g, k) => writeFile(join(dir, `guide-${String(k).padStart(2, '0')}.png`), g)));
-  await writeFile(join(dir, 'stride.json'), JSON.stringify({ stride }) + '\n');
-  console.log(`${r.name}: ${frames.length} ${anim} guides in ${rel(dir)}, stride ${stride.toFixed(0)} px in the source image`);
-  const what = anim === 'walk' ? 'walking to the right' : 'standing still, facing right';
-  if (opt.dry) return console.log(`\n${animatePrompt(what)}`);
-  // one call per frame, all at once; the character goes first, its guide second, both shrunk to save input tokens
-  const small = (data) => sharp(data).resize(768, 768, { fit: 'inside' }).png().toBuffer();
-  const prompt = animatePrompt(what), base = { name: `${view}.png`, data: await small(await readFile(src)) };
-  let total = 0;
-  await Promise.all(guides.map(async (g, k) => {
-    const res = await edit({ prompt, images: [base, { name: 'guide.png', data: await small(g) }], size: `${w}x${h}`, quality, n: 1, background: 'transparent' });
-    await writeFile(join(dir, `${view}-${String(k).padStart(2, '0')}.png`), res.images[0]);
-    total += res.cost ?? 0;
-  }));
-  console.log(`${frames.length} frames in ${rel(dir)} · cost $${total.toFixed(4)}`);
 }
 
 async function cmdParts([file], opt) {
@@ -696,6 +647,6 @@ async function cmdTouch([file], opt) {
 }
 
 const [cmd, ...rest] = process.argv.slice(2), { pos, opt } = parse(rest);
-const run = { new: cmdNew, generate: cmdGenerate, variant: cmdVariant, redress: cmdRedress, reframe: cmdReframe, pick: cmdPick, import: cmdImport, sheet: cmdSheet, touch: cmdTouch, erase: cmdErase, animate: cmdAnimate, parts: cmdParts, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
+const run = { new: cmdNew, generate: cmdGenerate, variant: cmdVariant, redress: cmdRedress, reframe: cmdReframe, pick: cmdPick, import: cmdImport, sheet: cmdSheet, touch: cmdTouch, erase: cmdErase, parts: cmdParts, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
 if (!run) console.log(HELP);
 else run(pos, opt).catch((e) => { console.error(`error: ${e.message}`); process.exit(1); });

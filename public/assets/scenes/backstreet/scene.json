@@ -8,7 +8,7 @@
  ],
  "layers": [
   {
-   "asset": "test/backstreet",
+   "asset": "backstreet/lane",
    "x": 0,
    "y": 0
   }
