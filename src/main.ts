@@ -121,6 +121,7 @@ async function boot(): Promise<void> {
   const toggleView = (force = false) => {
     if (!canSwitch() && !force) return;
     state.view = state.view > 0.5 ? 0 : 1;
+    ui.showHover(null);
     switchedAt = clock();
     look.refresh();
     syncView();

@@ -381,5 +381,8 @@
    }
   }
  ],
- "ambient": 2.2
+ "ambient": {
+  "raw": 2.2,
+  "concierge": 1.2
+ }
 }

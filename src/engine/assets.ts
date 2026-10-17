@@ -91,8 +91,11 @@ export interface SceneDef {
   drips?: { x0: number; x1: number; top: number; bottom: number };
   /** World y of the line wet surfaces reflect around. */
   mirror: number;
-  /** How bright the ambient light is, 1 by default: a room with few lamps gets more, evenly and without highlights. */
-  ambient?: number;
+  /**
+   * How bright the ambient light is, 1 by default: a room with few lamps gets more, evenly and without highlights.
+   * One number for both views, or one per view, since a dark raw room can be a white one to the Concierge.
+   */
+  ambient?: number | { raw?: number; concierge?: number };
   /** Flying traffic far away; ar = only in Concierge view. */
   traffic?: { lanes: number[]; perLane: number; x0: number; span: number; ar?: number };
 }
