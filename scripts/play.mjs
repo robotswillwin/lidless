@@ -50,7 +50,12 @@ await shot('backstreet');
 await hold('ArrowRight', 5000);
 console.log('along the backstreet:', await where());
 
-// look at something far away: the face in the sky (no walking)
+// something far away: the face in the sky. In the Concierge's view it has two uses, looking and asking it, so a click
+// fans them out; a second click on it does the default, looking, from where she stands
+await page.mouse.click(740, 120);
+await wait(250);
+console.log('ring:', await page.$$eval('.hud-slot', (b) => b.map((e) => e.getAttribute('aria-label')).join(', ')));
+await shot('ring-sky');
 await page.mouse.click(740, 120);
 await wait(300);
 console.log('caption:', await text('.caption'));
@@ -61,7 +66,8 @@ await page.mouse.click(480, 300);
 await wait(5000);
 console.log('through the shop door:', await where());
 await shot('shop');
-await page.mouse.click(620, 400);
+// a double-click on him does his default, talking
+await page.mouse.click(620, 400, { count: 2 });
 await page.waitForSelector('.dialogue:not([hidden])', { timeout: 10000 });
 await wait(200);
 await shot('fixer-opens');
@@ -90,15 +96,25 @@ console.log('back out:', await where());
 await page.keyboard.press('e');
 await wait(600);
 await page.mouse.click(770, 430);
-await wait(4000);
-console.log('caption:', await text('.caption'));
+await wait(600);
+console.log('caption:', await text('.caption'), '| attention:', await page.$eval('.hud-eye', (e) => e.dataset.level));
 await shot('raw-dock');
+
+// her notebook, and what is really in her pockets
+await page.keyboard.press('n');
+await wait(300);
+console.log('notebook:', (await text('.hud-panel.notebook')).slice(0, 80));
+await shot('raw-notebook');
+await page.keyboard.press('i');
+await wait(300);
+await shot('raw-pockets');
+await page.keyboard.press('Escape');
 
 // reload: the save should keep the mod, the view and the position
 await page.goto(url);
 await ready();
 await wait(300);
-console.log('after reload, button hidden:', await page.$eval('#view', (e) => e.hidden), '| label:', await text('#view-label'));
+console.log('after reload, button hidden:', await page.$eval('#view', (e) => e.hidden), '| label:', await text('#view-label'), '| skin:', await page.$eval('.hud', (e) => e.dataset.skin));
 await shot('reloaded');
 
 console.log(errors.length ? `errors:\n${errors.join('\n')}` : 'no errors');

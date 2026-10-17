@@ -29,23 +29,21 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .view:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 .stats { position: absolute; left: 16px; top: 12px; margin: 0; font: 12px/1.4 ui-monospace, Menlo, monospace; color: #9ab; }
 /* the fade between scenes */
-.fade { position: absolute; inset: 0; background: #000; opacity: 0; pointer-events: none; transition: opacity .26s ease; }
+.fade { position: absolute; inset: 0; z-index: 4; background: #000; opacity: 0; pointer-events: none; transition: opacity .26s ease; }
 .fade.on { opacity: 1; }
 @media (prefers-reduced-motion: reduce) { .fade { transition: none; } }
-.error { position: absolute; inset: auto 16px 16px 16px; margin: 0; padding: 12px 14px; background: #200; color: #fbb; font: 14px/1.4 var(--ui); }
+.error { position: absolute; z-index: 5; inset: auto 16px 16px 16px; margin: 0; padding: 12px 14px; background: #200; color: #fbb; font: 14px/1.4 var(--ui); }
 @media (prefers-reduced-motion: reduce) { .view { transition: none; } }
 
-/* hotspot name under the pointer */
-.hover { position: absolute; transform: translate(14px, -50%); pointer-events: none; padding: 4px 8px; background: var(--panel); color: var(--ink); font: 400 13px/1.2 var(--ui); letter-spacing: .06em; white-space: nowrap; border-radius: 3px; }
 /* short captions: what you see when you look at something */
 .caption {
-  position: absolute; left: 50%; bottom: max(76px, calc(env(safe-area-inset-bottom) + 76px)); transform: translateX(-50%);
+  position: absolute; z-index: 2; left: 50%; bottom: max(76px, calc(env(safe-area-inset-bottom) + 76px)); transform: translateX(-50%);
   width: min(680px, calc(100% - 32px)); margin: 0; padding: 12px 16px; background: var(--panel); color: var(--ink);
   font: italic 500 clamp(15px, 1.6vw, 19px)/1.45 var(--serif); text-align: center; text-wrap: balance; border-radius: 4px; pointer-events: none;
 }
 /* the dialogue panel */
 .dialogue {
-  position: absolute; left: 50%; bottom: max(16px, env(safe-area-inset-bottom)); transform: translateX(-50%);
+  position: absolute; z-index: 2; left: 50%; bottom: max(16px, env(safe-area-inset-bottom)); transform: translateX(-50%);
   width: min(720px, calc(100% - 32px)); max-height: 60%; overflow: auto; display: grid; gap: 12px; padding: 16px 18px;
   background: var(--panel); color: var(--ink); border-radius: 4px; box-shadow: 0 0 0 1px rgba(240, 178, 90, .25), 0 20px 60px rgba(0, 0, 0, .5);
 }
@@ -65,6 +63,185 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 }
 .choice:hover, .choice:focus-visible { background: rgba(240, 178, 90, .16); outline: none; }
 .choice .key { color: var(--amber); font: 500 12px/1 var(--ui); min-width: 1ch; }
+
+/* ---------- the HUD over the frame: the Concierge's interface in its view, Lux's own in raw view ---------- */
+.stage > #game, .stage > .hud { grid-area: 1 / 1; }
+.hud {
+  position: relative; z-index: 1; width: min(100cqw, 177.78cqh); height: min(56.25cqw, 100cqh); pointer-events: none; container-type: size;
+  --m: clamp(12px, 2.4cqw, 34px); --slot: clamp(42px, 3.6cqw, 56px); --co-line: rgba(143, 240, 234, .45); --co-text: #f2f8fb;
+  --co-muted: rgba(196, 238, 242, .82); --hand: "Kalam", "Bradley Hand", cursive;
+  color: var(--co-text); font-family: var(--ui);
+}
+.hud :is(button, .hud-panel, .hud-toast) { pointer-events: auto; }
+/* no weight of its own, so each button's own colour wins */
+:where(.hud button) { font: inherit; color: inherit; cursor: pointer; }
+.hud button:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.hud .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.hud-defs { position: absolute; }
+.hud-caps { font: 400 clamp(10px, .8cqw, 12px)/1.3 var(--ui); letter-spacing: .22em; text-transform: uppercase; }
+.hud-serif { font-family: var(--serif); font-style: italic; font-weight: 500; }
+.hud-hand { font-family: var(--hand); color: var(--amber); text-shadow: 0 1px 2px #000, 0 0 10px rgba(0, 0, 0, .85); }
+.hud-co { background: rgba(6, 10, 20, .66); border: 1px solid var(--co-line); border-radius: 2px; }
+
+/* the Concierge's greeting and its line of the day; its messages under them */
+.hud-ribbon { position: absolute; left: var(--m); top: var(--m); display: flex; align-items: center; gap: 12px; padding: 10px 16px 10px 12px; }
+.hud-ribbon > svg { flex: none; color: var(--cyan); width: clamp(20px, 2cqw, 28px); height: auto; }
+.hud-ribbon .greet { font-size: clamp(14px, 1.45cqw, 21px); line-height: 1.2; }
+.hud-ribbon .status { margin-top: 3px; color: var(--co-muted); }
+.hud-toast {
+  position: absolute; left: var(--m); top: calc(var(--m) + clamp(58px, 5.6cqw, 80px)); width: min(400px, 46cqw); display: grid; gap: 12px;
+  padding: 14px 16px; background: rgba(6, 10, 20, .82); border: 1px solid var(--co-line); border-radius: 2px;
+}
+.hud-toast p { margin: 0; font: italic 500 clamp(14px, 1.3cqw, 19px)/1.35 var(--serif); }
+.hud-toast .row, .hud-panel .row { display: flex; flex-wrap: wrap; gap: 8px; }
+.hud-toast button, .hud-panel.things .row button { min-height: 34px; padding: 0 14px; border: 1px solid var(--co-line); border-radius: 2px; background: transparent; }
+.hud-toast button.primary, .hud-panel.things .row button.primary { background: var(--cyan); border-color: var(--cyan); color: #05060a; font-weight: 500; }
+
+/* her sense of being watched */
+.hud-eye { position: absolute; right: var(--m); top: var(--m); display: grid; justify-items: center; gap: 6px; color: var(--amber); opacity: .45; transition: opacity .3s; }
+.hud-eye .pupil { fill: var(--amber); }
+.hud-eye .ticks { display: flex; gap: 6px; }
+.hud-eye .ticks span { width: 14px; height: 4px; border-radius: 2px; border: 1px solid rgba(240, 178, 90, .6); }
+.hud-eye .ticks span.on { background: var(--amber); border-color: var(--amber); }
+.hud[data-skin="raw"] .hud-eye, .hud-eye:not([data-level="0"]) { opacity: 1; }
+.hud-eye:is([data-level="2"], [data-level="3"]) .pupil { fill: #e2553d; }
+.hud-eye[data-level="3"] { color: #e2553d; animation: hud-watched 1.6s ease-in-out infinite; }
+@keyframes hud-watched { 50% { opacity: .55; } }
+
+/* the name under the pointer: its label in its view, her handwriting in raw view */
+.hud-hover { position: absolute; transform: translate(18px, -50%); display: grid; gap: 2px; white-space: nowrap; }
+.hud-hover.flip { transform: translate(calc(-100% - 18px), -50%); justify-items: end; }
+.hud[data-skin="concierge"] .hud-hover { padding: 7px 12px 8px; background: rgba(6, 10, 20, .74); border: 1px solid var(--co-line); border-radius: 2px; }
+.hud[data-skin="concierge"] .hud-hover .name { font: italic 500 clamp(14px, 1.3cqw, 19px)/1.2 var(--serif); }
+.hud[data-skin="concierge"] .hud-hover .tag { font: 400 clamp(9px, .75cqw, 11px)/1.3 var(--ui); letter-spacing: .2em; text-transform: uppercase; color: var(--cyan); }
+.hud[data-skin="raw"] .hud-hover { font-family: var(--hand); color: var(--amber); text-shadow: 0 1px 2px #000, 0 0 10px rgba(0, 0, 0, .9); }
+.hud[data-skin="raw"] .hud-hover .name { font-size: clamp(18px, 1.7cqw, 25px); line-height: 1.1; }
+.hud[data-skin="raw"] .hud-hover .tag { font-size: clamp(14px, 1.2cqw, 18px); font-weight: 300; }
+
+/* the action ring: an arc of her properties above what she clicked */
+.hud-ring { position: absolute; width: 0; height: 0; }
+.hud-ring .arc { position: absolute; overflow: visible; }
+.hud-ring .arc path { stroke: rgba(143, 240, 234, .45); stroke-width: 1; }
+.hud-ring .arc .anchor { fill: var(--cyan); }
+.hud[data-skin="raw"] .hud-ring .arc path { stroke: rgba(240, 178, 90, .55); stroke-width: 1.6; }
+.hud[data-skin="raw"] .hud-ring .arc .anchor { fill: var(--amber); }
+.hud-slot {
+  position: absolute; width: var(--slot); height: var(--slot); margin: calc(var(--slot) / -2) 0 0 calc(var(--slot) / -2); padding: 0; border-radius: 50%;
+  display: grid; place-items: center; border: 1px solid rgba(143, 240, 234, .6); background: rgba(6, 10, 20, .78); color: #dff8f6;
+}
+.hud-slot.co { color: var(--cyan); }
+.hud-slot.default { border: 1.5px solid var(--cyan); background: rgba(143, 240, 234, .22); color: #fff; box-shadow: 0 0 18px rgba(143, 240, 234, .55); }
+.hud-slot:hover { background: rgba(143, 240, 234, .32); }
+.hud-slot svg { position: relative; }
+.hud[data-skin="raw"] .hud-slot { border: 0; background: rgba(14, 10, 6, .62); color: var(--amber); box-shadow: none; }
+.hud[data-skin="raw"] .hud-slot .loop { position: absolute; inset: 0; width: 100%; height: 100%; stroke-width: 1.8; }
+.hud[data-skin="raw"] .hud-slot.default { background: rgba(240, 178, 90, .2); box-shadow: 0 0 16px rgba(240, 178, 90, .4); }
+.hud[data-skin="raw"] .hud-slot.default .loop { stroke-width: 2.8; }
+.hud[data-skin="raw"] .hud-slot:hover { background: rgba(240, 178, 90, .3); }
+.hud-slot-label {
+  position: absolute; white-space: nowrap; display: flex; align-items: center; gap: 6px;
+  font: 400 clamp(10px, .82cqw, 12px)/1 var(--ui); letter-spacing: .2em; text-transform: uppercase; text-shadow: 0 1px 3px rgba(0, 0, 0, .95);
+}
+.hud-slot-label.co { color: var(--cyan); }
+.hud-slot-label.left { transform: translate(-100%, -50%); }
+.hud-slot-label.right { transform: translate(0, -50%); }
+.hud-slot-label.above { transform: translate(-50%, -100%); }
+.hud-slot-label.below { transform: translate(-50%, 0); }
+.hud[data-skin="raw"] .hud-slot-label { font: 400 clamp(16px, 1.4cqw, 21px)/1 var(--hand); letter-spacing: 0; text-transform: none; color: var(--amber); text-shadow: 0 1px 2px #000, 0 0 8px rgba(0, 0, 0, .9); }
+.hud-slot-label .cost { stroke: #e2553d; stroke-width: 1.6; }
+.hud-slot-label .cost circle { fill: #e2553d; stroke: none; }
+.hud-ring-title { position: absolute; left: 0; transform: translate(-50%, -100%); display: grid; justify-items: center; gap: 2px; white-space: nowrap; text-shadow: 0 1px 3px rgba(0, 0, 0, .95); }
+.hud-ring-title.below { transform: translate(-50%, 0); }
+.hud-ring-title .name { font: italic 500 clamp(15px, 1.35cqw, 20px)/1.2 var(--serif); }
+.hud-ring-title .tag { font: 400 clamp(9px, .75cqw, 11px)/1.3 var(--ui); letter-spacing: .2em; text-transform: uppercase; color: var(--cyan); }
+.hud[data-skin="raw"] .hud-ring-title .name { font: 400 clamp(19px, 1.8cqw, 27px)/1.1 var(--hand); color: var(--amber); }
+.hud[data-skin="raw"] .hud-ring-title .tag { font: 300 clamp(14px, 1.2cqw, 18px)/1.2 var(--hand); letter-spacing: 0; text-transform: none; color: var(--amber); }
+
+/* the corners: her notebook and things on the left; its bell and her temple on the right */
+.hud-left, .hud-right { position: absolute; bottom: var(--m); display: flex; align-items: center; gap: 14px; }
+.hud-left { left: var(--m); }
+.hud[data-talking] :is(.hud-left, .hud-right, .hud-hover) { visibility: hidden; }
+.hud-right { right: var(--m); }
+.hud-btn { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 0; border: 0; background: none; }
+.hud-round { width: clamp(42px, 3.6cqw, 54px); aspect-ratio: 1; border-radius: 50%; }
+.hud-lux { border: 1.5px solid rgba(240, 178, 90, .75); background: rgba(14, 10, 6, .6); color: var(--amber); }
+.hud-btn.hud-co { min-height: clamp(40px, 3.2cqw, 46px); padding: 0 16px 0 12px; background: rgba(6, 10, 20, .62); border: 1px solid var(--co-line); border-radius: 2px; font: 400 clamp(10px, .82cqw, 12px)/1 var(--ui); letter-spacing: .22em; text-transform: uppercase; color: var(--co-text); }
+.hud-btn.hud-co svg { color: var(--cyan); }
+.hud-things .badge { min-width: 20px; height: 20px; border-radius: 10px; background: var(--cyan); color: #05060a; font: 500 11px/20px var(--ui); letter-spacing: 0; text-align: center; }
+.hud[data-skin="raw"] .hud-round.hud-lux { border: 0; }
+.hud[data-skin="raw"] .hud-round .loop { position: absolute; inset: 0; width: 100%; height: 100%; stroke-width: 1.8; }
+.hud-things.hud-lux { min-height: clamp(42px, 3.6cqw, 54px); padding: 0 16px 0 6px; border: 0; border-radius: 999px; font: 400 clamp(16px, 1.4cqw, 20px)/1 var(--hand); }
+.hud-btn.hud-co[aria-pressed="true"] { border-color: var(--cyan); background: rgba(143, 240, 234, .18); }
+.hud-btn.hud-lux[aria-pressed="true"] { background: rgba(240, 178, 90, .22); box-shadow: 0 0 0 1.5px var(--amber); }
+.hud[data-skin="raw"] :is(.hud-bell, .hud-ribbon, .hud-toast) { display: none; }
+.hud-temple-note { display: none; font-size: clamp(15px, 1.3cqw, 19px); }
+.hud[data-skin="raw"] .hud-temple-note { display: block; }
+.hud-temple { width: clamp(40px, 3.1cqw, 46px); aspect-ratio: 1; border-radius: 50%; border: 1.5px solid rgba(240, 178, 90, .7); background: rgba(14, 10, 6, .55); }
+.hud-temple .dot { width: 30%; aspect-ratio: 1; border-radius: 50%; border: 1.5px solid var(--amber); }
+.hud[data-skin="raw"] .hud-temple { border-color: var(--amber); background: rgba(240, 178, 90, .18); box-shadow: 0 0 16px rgba(240, 178, 90, .45); }
+.hud[data-skin="raw"] .hud-temple .dot { background: var(--amber); box-shadow: 0 0 10px var(--amber); }
+
+/* panels over the street: the Concierge's catalogue, her pockets, her notebook */
+.hud-panel { position: absolute; left: var(--m); right: var(--m); bottom: calc(var(--m) + clamp(54px, 4.6cqw, 70px)); max-height: calc(100% - 2 * var(--m) - 80px); overflow: auto; }
+.hud-close { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; flex: none; padding: 0; border: 0; background: none; }
+.hud-panel.things { display: grid; gap: 16px; padding: 18px 22px 22px; background: rgba(5, 8, 16, .92); border: 1px solid var(--co-line); border-radius: 2px; }
+.hud-panel.things .head { display: flex; align-items: baseline; gap: 20px; }
+.hud-panel.things h2 { margin: 0; color: var(--cyan); }
+.hud-panel.things .motto { flex: 1; font-size: clamp(14px, 1.25cqw, 18px); color: rgba(242, 248, 251, .85); }
+.hud-panel.things .hud-close { border: 1px solid var(--co-line); color: #dff8f6; }
+.hud-panel .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr)); gap: 16px; }
+.hud-panel.things .card { display: flex; gap: 14px; padding: 14px; border: 1px solid rgba(143, 240, 234, .28); border-radius: 2px; background: rgba(143, 240, 234, .04); color: #dff8f6; }
+.hud-panel.things .card svg { flex: none; }
+.hud-panel.things .card .accent { stroke: var(--cyan); }
+.hud-panel.things .card.unlicensed { border-color: rgba(255, 124, 190, .7); background: rgba(255, 124, 190, .07); }
+.hud-panel.things .words { display: grid; gap: 6px; align-content: start; }
+.hud-panel.things .name { font-size: clamp(16px, 1.4cqw, 20px); color: var(--co-text); }
+.hud-panel.things .note { color: var(--co-muted); line-height: 1.5; }
+.hud-panel.things .unlicensed .note { color: #ff9fcf; }
+.hud-panel.things .offer { font-size: 15px; color: rgba(242, 248, 251, .9); }
+.hud-panel.things .unlicensed .row button.primary { background: #ff9fcf; border-color: #ff9fcf; color: #10060c; }
+.hud-panel.pockets {
+  display: grid; gap: 10px; padding: 26px 28px 26px; background: #e4dac4; color: #2b2824; font-family: var(--hand); border-radius: 2px;
+  clip-path: polygon(0 12px, 6% 2px, 13% 10px, 21% 3px, 30% 11px, 38% 1px, 47% 9px, 55% 2px, 63% 11px, 72% 1px, 80% 9px, 88% 3px, 95% 10px, 100% 2px, 100% 100%, 0 100%);
+  box-shadow: inset 0 0 60px rgba(90, 70, 40, .25);
+}
+.hud-panel.pockets .head { display: flex; align-items: baseline; gap: 16px; }
+.hud-panel.pockets h2 { margin: 0; font-size: clamp(24px, 2.2cqw, 32px); }
+.hud-panel.pockets .motto { flex: 1; font-size: clamp(15px, 1.3cqw, 19px); color: #5a5148; }
+.hud-panel.pockets .hud-close, .hud-panel.notebook .hud-close { color: #2b2824; }
+.hud-panel.pockets .card { display: grid; gap: 4px; align-content: start; color: #2b2824; }
+.hud-panel.pockets .card .accent { stroke: #a8661c; }
+.hud-panel.pockets .card circle.accent { fill: #a8661c; }
+.hud-panel.pockets .name { font-size: clamp(16px, 1.4cqw, 20px); line-height: 1.2; }
+.hud-panel.pockets .note { font-size: clamp(14px, 1.15cqw, 17px); line-height: 1.2; color: #5a5148; }
+.hud-panel.pockets .gone { color: #5a5148; }
+.hud-panel.pockets .gone .name { text-decoration: line-through; text-decoration-thickness: 2px; }
+.hud-panel.notebook {
+  left: 50%; right: auto; top: var(--m); transform: translateX(-50%); width: min(1180px, calc(100% - 2 * var(--m))); max-height: none;
+  display: grid; grid-template-columns: 1fr 1fr; padding: 14px; background: #3a2a1e; border-radius: 10px; box-shadow: 0 18px 40px rgba(0, 0, 0, .7);
+  font-family: var(--hand); color: #2b2824;
+}
+.hud-panel.notebook .page { padding: clamp(18px, 3cqw, 44px); background: #e8dfca; display: grid; align-content: start; gap: 12px; box-shadow: inset 0 0 40px rgba(90, 70, 40, .2); }
+.hud-panel.notebook .page:first-child { box-shadow: inset -14px 0 18px -10px rgba(40, 30, 20, .45), inset 0 0 40px rgba(90, 70, 40, .2); }
+.hud-panel.notebook h2 { margin: 0; font-size: clamp(22px, 2.2cqw, 32px); }
+.hud-panel.notebook .warning { justify-self: end; font-size: clamp(13px, 1.1cqw, 16px); color: #a03b24; transform: rotate(-3deg); }
+.hud-panel.notebook .entry .name { font-size: clamp(16px, 1.5cqw, 22px); font-weight: 700; }
+.hud-panel.notebook .note, .hud-panel.notebook li { font-size: clamp(14px, 1.3cqw, 19px); line-height: 1.35; color: #3c3630; }
+.hud-panel.notebook p.note { margin: 0; }
+.hud-panel.notebook .questions { margin: 0; padding-left: 1.4em; }
+.hud-panel.notebook .map { width: 100%; height: auto; color: #2b2824; font-family: var(--hand); }
+.hud-panel.notebook .map .accent { stroke: #a8661c; }
+.hud-panel.notebook .map text.accent { fill: #a8661c; }
+.hud-panel.notebook > .hud-close { position: absolute; right: 22px; top: 22px; }
+@container (max-width: 700px) {
+  .hud-panel.notebook { grid-template-columns: 1fr; }
+  .hud-panel.notebook .warning { justify-self: start; }
+  .hud-ribbon .status { display: none; }
+  .hud-btn.hud-co { width: 44px; min-height: 44px; height: 44px; padding: 0; border-radius: 50%; }
+  .hud-btn.hud-co > span:not(.badge) { display: none; }
+  .hud-btn.hud-co .badge { position: absolute; right: -5px; top: -5px; min-width: 17px; height: 17px; font-size: 10px; line-height: 17px; }
+}
+@media (prefers-reduced-motion: reduce) { .hud-eye[data-level="3"] { animation: none; } }
 
 /* asset bench */
 .bench .panel {

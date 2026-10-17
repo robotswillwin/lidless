@@ -128,7 +128,7 @@ So when Lux uses raw view, her own feed goes missing and the Concierge fills her
 
 - **Hint system.** When the player is stuck, it kindly offers to solve the puzzle. They can always say yes, and it always costs them. *(Decided.)*
 - **Signal.** How much it sees through Lux. Every mod raises it: high Signal opens doors, low Signal hides her. *(Decided.)*
-- **Attention.** How closely it is looking right now, fed by what Lux does, looks at and says. *(Planned, not built yet.)*
+- **Attention.** How closely it is looking right now, fed by what Lux does, looks at and says. *(A first version is in the game: in raw view, looking closely at something that differs between the views costs a step; at three steps it remarks on it when she returns to its view. Dialogue and actions are planned.)*
 
 ### What it wants
 
@@ -492,7 +492,7 @@ Reply with each file in its own code block, its file name on the line above. The
 | Deliverable | Format |
 | --- | --- |
 | Conversations | `<scene id>.ink`, for example `home.ink` or `radio.ink` |
-| Hotspot names and look texts | JSON, one file per scene, below |
+| Hotspot names, look texts, labels and the Concierge's answers | JSON, one file per scene, below |
 | New speakers | A table: tag, name shown, who they are |
 | New variables | A list: name, what it tracks, where it is set |
 | Notes | Comments in the Ink: `// ART:` for art needed, `// GAME:` for something the game must do |
@@ -542,10 +542,12 @@ Hotspots are the things the player can point at. Write their names and texts as 
 ```
 {
   "scene": "home",
+  "greeting": "Welcome home, guest.",
+  "assist": "Your parcel is due at Radio Repair by 22:00, guest.",
   "hotspots": [
     { "id": "window", "name": "Window", "look": { "concierge": "A glittering skyline, close enough to touch.", "raw": "Fog, the colour of old teeth. The block across the yard." } },
-    { "id": "screen", "name": "Wall screen", "talk": "home_screen" },
-    { "id": "stash", "name": "Loose tile", "look": "Behind it, three real cigarettes and a map drawn by hand.", "only": "raw" }
+    { "id": "screen", "name": "Wall screen", "tag": "Your Concierge", "ask": "Good evening, guest. Your parcel is due at Radio Repair by 22:00.", "talk": "home_screen" },
+    { "id": "stash", "name": "Loose tile", "look": "Behind it, three real cigarettes and a map drawn by hand.", "only": "raw", "tag": { "raw": "don't let it see" } }
   ]
 }
 ```
@@ -555,12 +557,26 @@ Hotspots are the things the player can point at. Write their names and texts as 
 | `id` | Lowercase with hyphens, unique in the scene. Keep existing ids, listed below. |
 | `name` | Shown under the pointer. One string, or `{ "concierge": …, "raw": … }` when it differs. |
 | `look` | The caption when Lux looks at it: one or two sentences, second person. One string, or one per view. |
-| `talk` | Instead of `look`: the knot to run. Use a knot with only narration for a look text that changes with the story. |
+| `talk` | The knot to run when Lux talks to it. A thing can have both `look` and `talk`: the player picks in the action ring. Use a knot with only narration for a look text that changes with the story. |
+| `tag` | A label under the name on hover. A plain string is the Concierge's classification, in its voice and shown only in its view: "Guest · dining", "Unlicensed notice". `{ "raw": … }` is Lux's own note in raw view, short and lowercase, in her handwriting: "her wrist is locked in". Give both as `{ "concierge": …, "raw": … }`. Optional. |
+| `ask` | What the Concierge answers when Lux asks it about the thing, in its view: one or two sentences in its voice. Leave it out where it would have nothing to say. |
 | `only` | `"concierge"` for something generated, gone in raw view; `"raw"` for something edited out, only in raw view. |
+
+Each scene also has two lines of the Concierge's: `greeting`, its welcome at the top of the screen (by default "Good evening, guest."), and `assist`, what it says when she rings for assistance there. For now `assist` is a plain hint; later it becomes the paid hint below.
 
 Don't write positions; the director places hotspots in the scene editor. For a door, give its name and say in a note where it leads.
 
 **Existing ids.** `street`: to-backstreet, sky, sign, window, sleeper, radio-door, monitor, notice, crowd, planter, dock, kiosk, bar, bakery. `backstreet`: store, entrance, box, to-street. `home`: door, coat, kitchen, mirror, window, bed, photos, screen, parcels. `radio`: back-door, shelves, sofa, pegboard, radios, monitor, corkboard, visor, fixer, door, side-door. Their current texts are drafts; rewrite them freely.
+
+### Her things and her notebook
+
+What Lux carries is in `items.json`, each thing by id, with a name and a note for each view. `"only": "concierge"` marks something that exists only in its eye, like her credits; `"unlicensed": true` marks something people made, which the Concierge offers to dispose of. Her pockets show the raw names and notes in her voice; *Your things* shows the Concierge's.
+
+```
+"matches": { "icon": "matches", "unlicensed": true, "name": { "concierge": "Matches", "raw": "matches (3)" }, "note": { "concierge": "Unlicensed item", "raw": "real fire. it hates that." } }
+```
+
+Her notebook is `notebook.json`: a `warning` line, then `errands`, `people` and `questions`. Each entry is `{ "name": …, "note": …, "when": … }`, where `when` names an Ink variable that must be true for her to have written it, such as `has_raw`. The notebook is paper, the same in both views, in her voice. Icons exist for the parcel, credits, matches, cigarettes and map; a new thing needs one drawn.
 
 ### The current draft
 
@@ -617,8 +633,8 @@ These are not built yet. Until they are, write the lines and mark the need with 
 
 | System | Until it exists |
 | --- | --- |
-| Attention: what Lux does, looks at and says can alert the Concierge | Mark risky choices: `// GAME: attention +1` |
+| Attention: what Lux does, looks at and says can alert the Concierge | Staring in raw view already costs attention. For choices and actions, mark them: `// GAME: attention +1` |
 | Skill checks, in the style of Disco Elysium | Write both outcomes and mark the check: `// GAME: check Heart, hard` |
-| Items and errands: the parcel, cigarettes, a hand-drawn map | Track them with variables, and note what Lux should be holding |
-| The Concierge's hints: it solves a puzzle for a price | Write the offer and the price as a knot, `<scene>_hint`; the game will offer it |
+| Items and errands: the parcel, cigarettes, a hand-drawn map | Her things and notebook are shown (see above), but picking up, using and giving are not built. Track them with variables, and note what Lux should be holding |
+| The Concierge's hints: it solves a puzzle for a price | *Ring for assistance* shows the scene's `assist` line for now. Write the offer and the price as a knot, `<scene>_hint`; the game will offer it |
 | Hand signs in the Wastelands | Write the signs as narration for now: *She touches her mouth, then shakes her head.* |

@@ -16,7 +16,12 @@ npm run dev
 
 Then open the address Vite prints.
 
-- Click or tap to walk; click people and things to look or talk. Arrow keys or A/D walk too.
+- Click or tap to walk. Click a thing to use it: with one use she just does it; with several they fan out in an arc
+  above it, each in its fixed place (Feet go, Hands use, Eyes look, Heart talks, and in Concierge view its bell asks
+  the Concierge). A second click on the same thing, or a double-click, does its main use. Right-click looks. Arrow
+  keys or A/D walk too.
+- **N** opens her notebook, **I** her things (her pockets in raw view), **Esc** closes. In Concierge view,
+  *Ring for assistance* asks the Concierge for a hint.
 - Talk to the fixer in the radio shop. Once he has opened your eye, **E** or the button switches between
   Concierge view and raw view, and many things read differently. On the dev server, E works from the start.
 - Number keys pick answers in a conversation. **Q** cycles the quality tiers.

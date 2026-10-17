@@ -1,6 +1,7 @@
 {
  "id": "radio",
  "name": "Radio repair",
+ "assist": "The gentleman at the bench is expecting a parcel, guest.",
  "kind": "interior",
  "size": [
   1016,
@@ -285,7 +286,8 @@
    "look": {
     "concierge": "A row of radios restored to their old glory, dials glowing warm.",
     "raw": "Radios patched with rivets and tape, valves bare to the air. Every one of them works."
-   }
+   },
+   "tag": "Restored radios"
   },
   {
    "id": "monitor",
@@ -336,7 +338,9 @@
    "look": {
     "concierge": "A white visor on a stand, its blue light soft and steady. Somebody's spare.",
     "raw": "A visor ripped open, wires hanging out, its lens cracked. Someone's old eye."
-   }
+   },
+   "tag": "Spare visor",
+   "ask": "A spare, guest. Yours is working perfectly."
   },
   {
    "id": "side-door",
@@ -367,7 +371,16 @@
    ],
    "stand": 520,
    "face": 1,
-   "talk": "fixer"
+   "talk": "fixer",
+   "look": {
+    "concierge": "Silver hair, a tailored knit. He works as if he has all the time in the world.",
+    "raw": "Hollow cheeks, burn marks on his hands. The iron never stops."
+   },
+   "tag": {
+    "concierge": "Guest · repairs",
+    "raw": "the radio man"
+   },
+   "ask": "He repairs old radios, guest. A charming pastime."
   }
  ],
  "ambient": {

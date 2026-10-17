@@ -1,4 +1,4 @@
-// The words on screen: hotspot names under the pointer, short captions, and the dialogue panel.
+// The words on screen: short captions, and the dialogue panel. Names under the pointer are the HUD's (hud.ts).
 
 import type { Line } from './dialogue';
 
@@ -16,7 +16,6 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, parent: 
 export class UI {
   onChoose: (i: number) => void = () => {};
   onClose: () => void = () => {};
-  private hover: HTMLElement;
   private caption: HTMLElement;
   private panel: HTMLElement;
   private linesEl: HTMLElement;
@@ -24,9 +23,7 @@ export class UI {
   private captionTimer = 0;
   private choiceCount = 0;
 
-  constructor(private stage: HTMLElement) {
-    this.hover = el('div', 'hover', stage);
-    this.hover.hidden = true;
+  constructor(stage: HTMLElement) {
     this.caption = el('p', 'caption', stage);
     this.caption.hidden = true;
     this.caption.setAttribute('aria-live', 'polite');
@@ -40,19 +37,6 @@ export class UI {
 
   get dialogueOpen(): boolean {
     return !this.panel.hidden;
-  }
-
-  /** Name of what is under the pointer, next to it. Pass null to hide. */
-  showHover(name: string | null, clientX = 0, clientY = 0): void {
-    if (!name) {
-      this.hover.hidden = true;
-      return;
-    }
-    const r = this.stage.getBoundingClientRect();
-    this.hover.textContent = name;
-    this.hover.style.left = `${clientX - r.left}px`;
-    this.hover.style.top = `${clientY - r.top}px`;
-    this.hover.hidden = false;
   }
 
   showCaption(text: string): void {
@@ -70,7 +54,6 @@ export class UI {
   /** Show the next block of a conversation. `said` is the choice the player just made, if any. */
   showDialogue(lines: Line[], choices: string[], said?: string): void {
     this.hideCaption();
-    this.showHover(null);
     this.linesEl.replaceChildren();
     if (said) el('p', 'line said', this.linesEl).textContent = said;
     let last = '';

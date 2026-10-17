@@ -55,6 +55,10 @@ export interface SceneFile {
    * One number for both views, or one per view, since a dark raw room can be a white one to the Concierge.
    */
   ambient?: number | { raw?: number; concierge?: number };
+  /** The Concierge's greeting here, in its view: "Welcome home, guest." By default "Good evening, guest." */
+  greeting?: string;
+  /** What the Concierge says when she rings for assistance here: its hint, for now. */
+  assist?: string;
   /** Exposure in stops, 0 by default; one number, or one per view. */
   exposure?: number | { raw?: number; concierge?: number };
   spawns: Record<string, Spawn>;
@@ -68,7 +72,7 @@ export interface SceneFile {
 
 export interface WorldFile {
   start: Exit;
-  hero: { sprite: string; speed: number; smoke?: [number, number] };
+  hero: { sprite: string; speed: number; smoke?: [number, number]; items?: string[] };
   scenes: string[];
 }
 

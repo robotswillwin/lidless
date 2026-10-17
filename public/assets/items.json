@@ -1,0 +1,61 @@
+{
+ "parcel": {
+  "icon": "parcel",
+  "name": {
+   "concierge": "Parcel",
+   "raw": "the parcel"
+  },
+  "note": {
+   "concierge": "Delivery 4471 · to Radio Repair, by 22:00",
+   "raw": "for the radio man. don't open it."
+  }
+ },
+ "credits": {
+  "icon": "credits",
+  "only": "concierge",
+  "name": {
+   "concierge": "312 credits",
+   "raw": "credits"
+  },
+  "note": {
+   "concierge": "Weekly allowance · renews in 4 days",
+   "raw": "only there in its eye."
+  }
+ },
+ "matches": {
+  "icon": "matches",
+  "unlicensed": true,
+  "name": {
+   "concierge": "Matches",
+   "raw": "matches (3)"
+  },
+  "note": {
+   "concierge": "Unlicensed item",
+   "raw": "real fire. it hates that."
+  }
+ },
+ "cigarettes": {
+  "icon": "cigarettes",
+  "unlicensed": true,
+  "name": {
+   "concierge": "Cigarettes",
+   "raw": "cigarettes (2)"
+  },
+  "note": {
+   "concierge": "Unlicensed item",
+   "raw": "a week's credits, these."
+  }
+ },
+ "map": {
+  "icon": "map",
+  "unlicensed": true,
+  "name": {
+   "concierge": "Paper",
+   "raw": "my map"
+  },
+  "note": {
+   "concierge": "Unlicensed item",
+   "raw": "drawn by hand. no names on it."
+  }
+ }
+}

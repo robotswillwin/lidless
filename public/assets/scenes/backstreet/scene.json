@@ -1,6 +1,7 @@
 {
  "id": "backstreet",
  "name": "Backstreet",
+ "assist": "The main street is to your right, guest.",
  "kind": "exterior",
  "size": [
   1016,
@@ -190,7 +191,9 @@
    "look": {
     "concierge": "Coffee, drinks, snacks, essentials. A cleaner, brighter you, it promises.",
     "raw": "Rusted shutters, a smiley sprayed across them. Whatever it sold, it stopped."
-   }
+   },
+   "tag": "Concierge Store 24 · open",
+   "ask": "Coffee, drinks, snacks and essentials, guest. Shall I place an order?"
   },
   {
    "id": "entrance",
@@ -223,7 +226,9 @@
    "look": {
     "concierge": "A Brighter Tomorrow, Together.",
     "raw": "Gauges and patched cables. Somebody keeps this running by hand."
-   }
+   },
+   "tag": "City panel",
+   "ask": "A Brighter Tomorrow, Together, guest."
   },
   {
    "id": "to-street",

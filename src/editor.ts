@@ -6,7 +6,7 @@ import { loadSprite, spriteDefaults, type Sprite } from './engine/assets';
 import { loadProjectLook } from './engine/look';
 import { fitCanvas, NH, NW, QUALITY, Renderer, type DrawSprite } from './engine/renderer';
 import { frameFor } from './game/anim';
-import type { Hotspot, ViewText } from './game/level';
+import type { Hotspot, ViewNote, ViewText } from './game/level';
 import { SceneRunner } from './game/scene';
 import { buildScene, loadSceneFile, loadWorld, zoneTexture, type Rect, type Scene, type SceneFile, type WorldFile } from './game/scenefile';
 import { createLookPanel, type LookPanel } from './look-panel';
@@ -347,6 +347,16 @@ function viewText(label: string, value: ViewText | undefined, set: (v: ViewText 
   ];
 }
 
+/** The label under a name on hover: the Concierge's classification in its view, her own note in raw view. */
+function labelFields(value: ViewNote | undefined, set: (v: ViewNote | undefined) => void): HTMLLabelElement[] {
+  const now = { concierge: typeof value === 'string' ? value : value?.concierge ?? '', raw: typeof value === 'string' ? '' : value?.raw ?? '' };
+  const store = () => set(!now.raw ? now.concierge || undefined : { ...(now.concierge ? { concierge: now.concierge } : {}), raw: now.raw });
+  return [
+    str('Label, the Concierge’s (its view only)', now.concierge, (v) => { now.concierge = v; store(); }),
+    str('Her note (raw view only)', now.raw, (v) => { now.raw = v; store(); }),
+  ];
+}
+
 const GROUPS: [string, string][] = [['0', 'Steady'], ['1', 'Monitor flicker'], ['2', 'Valves'], ['3', 'Fire'], ['4', 'The machine’s eye'], ['5', 'Neon flicker'], ['6', 'Hologram'], ['7', 'Screen'], ['8', 'String lights']];
 const ZONES: [string, string][] = [['0', 'Everywhere'], ['1', 'Inside areas'], ['2', 'Outside, near layer'], ['4', 'Outside, every depth'], ['3', 'Facade']];
 
@@ -391,6 +401,9 @@ function hotspotSide(i: number): void {
     choice('Faces', String(h.face ?? 0), [['0', 'Towards it'], ['1', 'Right'], ['-1', 'Left']], (v) => { const n = Number(v); if (n) h.face = n as 1 | -1; else delete h.face; }),
     choice('There in', h.only ?? 'both', [['both', 'Both views'], ['concierge', 'Concierge view only'], ['raw', 'Raw view only']], (v) => { if (v === 'both') delete h.only; else h.only = v as 'raw' | 'concierge'; }),
   );
+  // under its name on hover: the Concierge's classification, or her own note in raw view; and its answer when she asks it
+  side.append(...labelFields(h.tag, (v) => { if (v === undefined) delete h.tag; else h.tag = v; }));
+  side.append(str('The Concierge’s answer to Ask', h.ask ?? '', (v) => { if (v) h.ask = v; else delete h.ask; }, { area: true }));
   if (h.go) {
     const go = h.go;
     side.append(
@@ -473,6 +486,8 @@ function sceneSide(): void {
     num('Walk line y', file.walk.y, (v) => { file.walk.y = v; }, { after: refresh }),
     num('Walk from x', file.walk.x0, (v) => { file.walk.x0 = v; }), num('Walk to x', file.walk.x1, (v) => { file.walk.x1 = v; }),
     num('Reflection line y', file.mirror ?? file.walk.y - 8, (v) => { file.mirror = v; }, { after: refresh }),
+    str('The Concierge’s greeting', file.greeting ?? '', (v) => { if (v) file.greeting = v; else delete file.greeting; }),
+    str('Its answer to Ring for assistance', file.assist ?? '', (v) => { if (v) file.assist = v; else delete file.assist; }, { area: true }),
   );
   side.append(heading('Lux', 'Drag the triangle at her feet to move her.'));
   side.append(

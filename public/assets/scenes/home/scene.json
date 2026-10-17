@@ -1,6 +1,8 @@
 {
  "id": "home",
  "name": "Lux's home",
+ "greeting": "Welcome home, guest.",
+ "assist": "Your parcel is due at Radio Repair by 22:00, guest. The main street is to the right as you leave.",
  "kind": "interior",
  "size": [
   1016,
@@ -268,7 +270,9 @@
    "look": {
     "concierge": "GOOD EVENING, it says, with the time and the weather. It always knows when you're looking.",
     "raw": "A grey box of valves and gauges, its screen dark. Nothing on it, in your opened eye."
-   }
+   },
+   "tag": "Your Concierge",
+   "ask": "Good evening, guest. Your parcel is due at Radio Repair by 22:00."
   },
   {
    "id": "parcels",

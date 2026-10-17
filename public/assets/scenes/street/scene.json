@@ -1,6 +1,7 @@
 {
  "id": "street",
  "name": "Main street",
+ "assist": "Radio Repair is the green door, guest. Your parcel is expected.",
  "kind": "exterior",
  "size": [
   960,
@@ -587,7 +588,9 @@
    "look": {
     "concierge": "The Concierge's face, as big as weather, watching the street with kind attention.",
     "raw": "The moon. You'd forgotten it was still up there."
-   }
+   },
+   "tag": "At your service",
+   "ask": "I am always here, guest. Is there anything you need?"
   },
   {
    "id": "sign",
@@ -614,7 +617,8 @@
    "look": {
     "concierge": "Through the glass: shelves of old radios, a lamp left on, a bench covered in work.",
     "raw": "Grimy glass, and behind it a lamp left on over a bench full of half-mended radios."
-   }
+   },
+   "tag": "Radio Repair"
   },
   {
    "id": "sleeper",
@@ -627,7 +631,10 @@
    ],
    "stand": 245,
    "only": "raw",
-   "look": "A man asleep against the shop front under a wet blanket. Nobody has woken him in a while."
+   "look": "A man asleep against the shop front under a wet blanket. Nobody has woken him in a while.",
+   "tag": {
+    "raw": "they all walk past him"
+   }
   },
   {
    "id": "radio-door",
@@ -668,7 +675,9 @@
    ],
    "stand": 580,
    "face": 1,
-   "look": "A handwritten notice on the lamp post. MISSING, and a name the rain has taken."
+   "look": "A handwritten notice on the lamp post. MISSING, and a name the rain has taken.",
+   "tag": "Unlicensed notice",
+   "ask": "That notice is not one of mine, guest. Shall I have it removed?"
   },
   {
    "id": "crowd",
@@ -686,7 +695,9 @@
    "look": {
     "concierge": "People strolling under glowing umbrellas. Nobody hurries here.",
     "raw": "One figure on the walkway, standing still in the rain. The rest of the crowd was never there."
-   }
+   },
+   "tag": "Guests · evening walk",
+   "ask": "Our guests enjoy an evening walk. Shall I suggest a route for you?"
   },
   {
    "id": "planter",
@@ -704,7 +715,9 @@
    "look": {
     "concierge": "Three clipped topiaries and a polite sign: Please rest.",
     "raw": "An empty bench, its slats kicked in. The Concierge has grown topiaries over it."
-   }
+   },
+   "tag": "Rest area",
+   "ask": "Please rest whenever you like, guest."
   },
   {
    "id": "dock",
@@ -723,7 +736,12 @@
    "look": {
     "concierge": "A woman in a red dress, dining at the machine. She smiles at nothing in particular.",
     "raw": "She's wire-thin, her wrist locked in the cradle, head down. The red dress was never there."
-   }
+   },
+   "tag": {
+    "concierge": "Guest · dining",
+    "raw": "her wrist is locked in"
+   },
+   "ask": "She is a guest, dining. Shall I reserve a cradle for you?"
   },
   {
    "id": "kiosk",
@@ -736,7 +754,13 @@
    ],
    "stand": 696,
    "face": 1,
-   "talk": "kiosk"
+   "talk": "kiosk",
+   "tag": "Dining service",
+   "look": {
+    "concierge": "A street machine with a soft blue eye and a cradle for the wrist.",
+    "raw": "A grey box bolted to the wall, its eye still lit. The cradle is worn bright."
+   },
+   "ask": "Dinner is served here every evening, guest. Everything you need, and nothing you don't."
   },
   {
    "id": "bar",
@@ -749,7 +773,9 @@
    ],
    "stand": 900,
    "face": 1,
-   "look": "A red neon pin-up over a door. Human-made, unlicensed. The Concierge disapproves, politely."
+   "look": "A red neon pin-up over a door. Human-made, unlicensed. The Concierge disapproves, politely.",
+   "tag": "Unlicensed establishment",
+   "ask": "That establishment is not licensed, guest. I would be glad to recommend another."
   },
   {
    "id": "bakery",
@@ -762,7 +788,9 @@
    ],
    "stand": 900,
    "face": 1,
-   "look": "Real bread behind the glass. A week of credits a loaf, and someone still bakes it."
+   "look": "Real bread behind the glass. A week of credits a loaf, and someone still bakes it.",
+   "tag": "Bakery · unlicensed",
+   "ask": "Real bread costs a week of credits, guest. Shall I add a loaf from the catalogue to your things instead?"
   }
  ],
  "beacons": [

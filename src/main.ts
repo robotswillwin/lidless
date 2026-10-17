@@ -6,6 +6,7 @@ import { loadProjectLook } from './engine/look';
 import { fitCanvas, NH, NW, QUALITY, Renderer, type Tier } from './engine/renderer';
 import { frameFor, hasLeft } from './game/anim';
 import { Dialogue } from './game/dialogue';
+import { Hud, type Action, type Item, type NotebookPages } from './game/hud';
 import { inView, pick, type Hotspot } from './game/level';
 import { clearSave, loadSave, writeSave } from './game/save';
 import { SceneRunner, type ViewState } from './game/scene';
@@ -17,8 +18,6 @@ import { createLookPanel } from './look-panel';
 const params = new URLSearchParams(location.search);
 const stage = document.querySelector('.stage') as HTMLElement;
 const canvas = document.getElementById('game') as HTMLCanvasElement;
-const viewBtn = document.getElementById('view') as HTMLButtonElement;
-const viewLabel = document.getElementById('view-label') as HTMLElement;
 const stats = document.getElementById('stats') as HTMLElement;
 const errorBox = document.getElementById('error') as HTMLElement;
 const fade = document.getElementById('fade') as HTMLElement;
@@ -40,7 +39,10 @@ async function boot(): Promise<void> {
   if (params.has('new')) clearSave();
   const assets = `${import.meta.env.BASE_URL}assets`;
   const renderer = new Renderer(canvas, QUALITY[pickTier()]), gl = renderer.gl;
-  const [worldFile, projectLook] = await Promise.all([loadWorld(assets), loadProjectLook(assets)]);
+  const optional = <T>(file: string, fallback: T) => fetch(`${assets}/${file}`, { cache: 'no-store' }).then((r) => (r.ok ? (r.json() as Promise<T>) : fallback)).catch(() => fallback);
+  const [worldFile, projectLook, items, notebook] = await Promise.all([
+    loadWorld(assets), loadProjectLook(assets), optional<Record<string, Item>>('items.json', {}), optional<NotebookPages>('notebook.json', {}),
+  ]);
   const save = loadSave();
   const heroPath = worldFile.hero.sprite, cut = heroPath.lastIndexOf('/');
   const heroSprite = await loadSprite(gl, `${assets}/${heroPath.slice(0, cut)}`, heroPath.slice(cut + 1), spriteDefaults(gl));
@@ -77,6 +79,10 @@ async function boot(): Promise<void> {
 
   const dialogue = new Dialogue(save?.ink ?? null);
   const ui = new UI(stage);
+  const hud = new Hud(canvas);
+  hud.setThings(items, worldFile.hero.items ?? []);
+  hud.setNotebook(notebook);
+  hud.known = (v) => Boolean(dialogue.story.variablesState[v]);
   const debugView = params.get('view') === 'raw';
   const canSwitch = () => dialogue.hasRaw || debugView;
   const state: ViewState = { view: debugView ? 0 : save && canSwitch() ? save.view : 1, sinceSwitch: 10 };
@@ -85,8 +91,10 @@ async function boot(): Promise<void> {
   const t0 = performance.now(), fixedT = params.has('t') ? Number(params.get('t')) : null;
   const clock = () => fixedT ?? (performance.now() - t0) / 1000;
   let switchedAt = -10, lastT = clock(), frames = 0, fpsAt = performance.now(), fps = 0, lockedBeforeTalk = false;
+  // how closely the Concierge is watching her, 0 to 3: staring at what it hides raises it, behaving in its view lets it fall
+  let attention = save?.attention ?? 0, attentionAt = 0;
 
-  const persist = () => writeSave({ v: 1, scene: scene.file.id, heroX: Math.round(world.heroX), facing: world.facing, view: state.view, ink: dialogue.save() });
+  const persist = () => writeSave({ v: 1, scene: scene.file.id, heroX: Math.round(world.heroX), facing: world.facing, view: state.view, ink: dialogue.save(), attention });
 
   // a door or the end of the street: fade out, go to the other scene, fade in
   let travelling = false;
@@ -95,7 +103,7 @@ async function boot(): Promise<void> {
     travelling = true;
     world.stop();
     held.clear();
-    ui.showHover(null);
+    hud.closeAll();
     // what she was looking at stays behind
     ui.hideCaption();
     fade.classList.add('on');
@@ -113,26 +121,30 @@ async function boot(): Promise<void> {
   /** An exit at an end of the walk line, which walking into with the keyboard takes. */
   const exitAt = (x: number) => scene.file.hotspots.find((h) => h.go && inView(h, state.view < 0.5) && x >= h.rect[0] - 1 && x <= h.rect[0] + h.rect[2] + 1);
 
-  const syncView = () => {
-    viewBtn.hidden = !canSwitch();
-    viewBtn.setAttribute('aria-pressed', String(state.view > 0.5));
-    viewLabel.textContent = state.view > 0.5 ? 'Concierge view' : 'Raw view';
+  const syncView = () => hud.setView(state.view < 0.5, canSwitch());
+  const raiseAttention = (n: number) => {
+    attention = Math.min(3, attention + n);
+    attentionAt = clock();
+    hud.setAttention(attention);
+    persist();
   };
   // On the dev server E switches view from the start, to look at both views while building the game; the button and
   // every built version keep the story's lock until the fixer has opened her eye.
   const toggleView = (force = false) => {
     if (!canSwitch() && !force) return;
     state.view = state.view > 0.5 ? 0 : 1;
-    ui.showHover(null);
     switchedAt = clock();
     look.refresh();
     syncView();
     persist();
+    // back in its view after staring too long: it noticed, and it is concerned
+    if (state.view > 0.5 && attention >= 3) hud.toast('You seem distracted this evening, guest. Shall I schedule some rest for you?', [{ label: 'Yes, please', primary: true }, { label: 'No, thank you' }]);
   };
 
   // conversations
   const endTalk = () => {
     ui.closeDialogue();
+    hud.setTalking(false);
     // the conversation that unlocks the view switch, whichever it is, says how to use it
     const unlocked = lockedBeforeTalk && canSwitch();
     lockedBeforeTalk = false;
@@ -151,29 +163,74 @@ async function boot(): Promise<void> {
   };
   ui.onClose = endTalk;
 
-  const interact = (h: Hotspot) => {
-    if (h.go) return void travel(h.go);
-    const raw = state.view < 0.5;
-    if (h.talk) {
-      lockedBeforeTalk = !canSwitch();
-      ui.showDialogue(dialogue.start(h.talk, raw), dialogue.choices);
-    } else if (h.look) ui.showCaption(pick(h.look, raw));
+  // what can be done with a thing, by Lux's properties: Feet go, Heart talks, Eyes look; in the Concierge's view its bell
+  // asks it. In raw view, looking at something it shows differently is staring, and staring costs attention
+  const actionsFor = (h: Hotspot, raw: boolean): Action[] => {
+    const out: Action[] = [];
+    if (h.go) out.push({ kind: 'feet', label: raw ? 'go' : 'Go' });
+    if (h.talk) out.push({ kind: 'heart', label: raw ? 'talk' : 'Talk' });
+    if (h.look) {
+      const stare = raw && typeof h.look === 'object' && h.look.raw !== h.look.concierge;
+      out.push({ kind: 'eyes', label: raw ? (stare ? 'look closely' : 'look') : 'Look', cost: stare ? 1 : 0 });
+    }
+    if (!raw && h.ask) out.push({ kind: 'ask', label: 'Ask' });
+    return out;
   };
+  /** What a thing is mostly for: talking to someone, going through a door, else looking. */
+  const defaultOf = (actions: Action[]): Action => {
+    const order = ['heart', 'feet', 'hands', 'eyes', 'ask'];
+    return [...actions].sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind))[0];
+  };
+  let pending: Action | null = null;
+  const act = (h: Hotspot, a: Action) => {
+    const raw = state.view < 0.5;
+    if (a.kind === 'feet' && h.go) return void travel(h.go);
+    if (a.kind === 'heart' && h.talk) {
+      lockedBeforeTalk = !canSwitch();
+      hud.setTalking(true);
+      ui.showDialogue(dialogue.start(h.talk, raw), dialogue.choices);
+    } else if (a.kind === 'eyes' && h.look) {
+      ui.showCaption(pick(h.look, raw));
+      if (a.cost) raiseAttention(a.cost);
+    } else if (a.kind === 'ask' && h.ask) hud.toast(h.ask);
+  };
+  /** Looking and asking happen from where she stands, turned towards it; going and talking walk her there first. */
+  const perform = (h: Hotspot, a: Action) => {
+    hud.closeRing();
+    if (a.kind === 'eyes' || a.kind === 'ask' || h.stand === undefined) {
+      if (!world.moving) world.facing = h.rect[0] + h.rect[2] / 2 >= world.heroX ? 1 : -1;
+      return act(h, a);
+    }
+    pending = a;
+    world.walkTo(h.stand, h);
+  };
+  hud.onAction = perform;
+  hud.onTemple = () => toggleView();
+  hud.onBell = () => hud.toast(scene.file.assist ?? 'Is there anything I can do for you, guest?');
+  hud.onPanel = () => ui.hideCaption();
+  hud.onDispose = (_id, dispose) => hud.toast(dispose ? 'Of course, guest. I will collect it at your convenience.' : 'As you wish, guest.');
 
-  // pointer: hover names, click or tap to walk or to use
+  // pointer: names under it; a click or tap on a thing with one use does it, on a thing with several fans them out, and a
+  // second click on the same thing (or a double-click) does the default. Right-click looks. On the ground, she walks
   canvas.addEventListener('pointermove', (e) => {
-    if (e.pointerType !== 'mouse' || ui.dialogueOpen || travelling) return ui.showHover(null);
+    if (e.pointerType !== 'mouse' || ui.dialogueOpen || travelling) return hud.showHover(null);
     const [x, y] = toLevel(e, cam), h = world.hotspotAt(x, y, state.view < 0.5);
     canvas.style.cursor = h ? 'pointer' : 'default';
-    ui.showHover(h ? pick(h.name, state.view < 0.5) : null, e.clientX, e.clientY);
+    hud.showHover(h, e.clientX, e.clientY);
   });
-  canvas.addEventListener('pointerleave', () => ui.showHover(null));
+  canvas.addEventListener('pointerleave', () => hud.showHover(null));
+  canvas.addEventListener('contextmenu', (e) => e.preventDefault());
   canvas.addEventListener('pointerdown', (e) => {
     if (ui.dialogueOpen || travelling) return;
-    const [x, y] = toLevel(e, cam), h = world.hotspotAt(x, y, state.view < 0.5);
+    if (hud.panelOpen) return hud.closePanel();
+    const raw = state.view < 0.5, [x, y] = toLevel(e, cam), h = world.hotspotAt(x, y, raw), again = h !== null && hud.ringFor === h;
+    hud.closeRing();
     if (!h) return world.walkTo(x);
-    if (h.stand === undefined) return interact(h);
-    world.walkTo(h.stand, h);
+    const actions = actionsFor(h, raw);
+    if (!actions.length) return;
+    if (e.button === 2) { const eyes = actions.find((a) => a.kind === 'eyes'); if (eyes) perform(h, eyes); return; }
+    if (actions.length === 1 || again) return perform(h, again ? defaultOf(actions) : actions[0]);
+    hud.openRing(h, actions, defaultOf(actions).kind, e.clientX, e.clientY);
   });
 
   // keyboard: arrows or A/D walk, E switches view, number keys answer, Q cycles quality
@@ -186,6 +243,7 @@ async function boot(): Promise<void> {
     // the keys a slider or list uses itself stay with it: arrows move a look slider, not the hero; E, Q and L still work
     if (e.target instanceof Element && e.target.closest('.look') && /^(Arrow|Home|End|Page)/.test(e.key)) return;
     if (ui.key(e.key)) return e.preventDefault();
+    if (!ui.dialogueOpen && hud.key(e.key)) return e.preventDefault();
     const dir = dirOf(e.key);
     if (dir && !ui.dialogueOpen) { held.add(dir); syncKeys(); return e.preventDefault(); }
     if (e.key === 'e' || e.key === 'E') toggleView(import.meta.env.DEV);
@@ -200,7 +258,6 @@ async function boot(): Promise<void> {
     if (dir) { held.delete(dir); syncKeys(); if (!world.keyDir) persist(); }
   });
   window.addEventListener('blur', () => { held.clear(); syncKeys(); });
-  viewBtn.addEventListener('click', () => toggleView());
 
   const draw = () => {
     const t = clock(), dt = Math.min(0.05, Math.max(0, t - lastT));
@@ -208,7 +265,16 @@ async function boot(): Promise<void> {
     const wasMoving = world.moving;
     const arrived = ui.dialogueOpen || travelling ? null : world.update(dt);
     // the view may have changed on the way: a generated person is not there to talk to in raw view
-    if (arrived && inView(arrived, state.view < 0.5)) interact(arrived);
+    if (arrived && inView(arrived, state.view < 0.5)) {
+      const actions = actionsFor(arrived, state.view < 0.5), a = actions.find((x) => x.kind === pending?.kind) ?? defaultOf(actions);
+      pending = null;
+      if (a) act(arrived, a);
+    }
+    // in its view, with nothing to stare at, its attention slowly settles
+    if (attention > 0 && state.view > 0.5 && t - attentionAt > 30) { attention--; attentionAt = t; hud.setAttention(attention); }
+    // its greeting and its line of the day: the evening goes on, and it never says it is raining
+    const minute = 21 * 60 + 40 + Math.floor(t / 60), hh = Math.floor(minute / 60) % 24, mm = minute % 60;
+    hud.setStatus(scene.file.greeting ?? 'Good evening, guest.', `Friday · Year 64 of Care · ${hh}:${String(mm).padStart(2, '0')} · ${scene.file.kind === 'interior' ? 'Indoors, 21°' : '14°, umbrella advised'}`);
     // walking into an end of the walk line that leads somewhere
     if (world.keyDir !== 0 && !travelling) {
       const end = world.keyDir < 0 ? scene.file.walk.x0 : scene.file.walk.x1, exit = Math.abs(world.heroX - end) < 0.5 ? exitAt(end) : undefined;
@@ -244,6 +310,7 @@ async function boot(): Promise<void> {
 
   stats.hidden = !params.has('debug');
   syncView();
+  hud.setAttention(attention);
   draw();
   document.documentElement.dataset.ready = '1';
   if (fixedT !== null) return;

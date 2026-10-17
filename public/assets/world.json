@@ -5,7 +5,14 @@
   },
   "hero": {
     "sprite": "cast/hero",
-    "speed": 170
+    "speed": 170,
+    "items": [
+      "parcel",
+      "credits",
+      "matches",
+      "cigarettes",
+      "map"
+    ]
   },
   "scenes": [
     "street",

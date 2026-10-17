@@ -1,0 +1,34 @@
+{
+ "warning": "don't read this where it can see",
+ "errands": [
+  {
+   "name": "parcel 4471",
+   "note": "to the radio repair, main street. by ten."
+  }
+ ],
+ "people": [
+  {
+   "name": "the fixer",
+   "note": "radio shop, main street. sees what I see now. I owe him one favour. he didn't say what.",
+   "when": "has_raw"
+  },
+  {
+   "name": "the woman at the cradle",
+   "note": "real. wire-thin. nobody looks at her.",
+   "when": "has_raw"
+  },
+  {
+   "name": "under the shop window",
+   "note": "a man asleep. not there for them. who is he?",
+   "when": "has_raw"
+  }
+ ],
+ "questions": {
+  "when": "has_raw",
+  "lines": [
+   "what is weather?",
+   "who ran the radio shop before Care?",
+   "make it promise, don't just ask."
+  ]
+ }
+}

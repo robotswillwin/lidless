@@ -3,6 +3,9 @@
 /** Text that can differ between Concierge view and raw view. */
 export type ViewText = string | { concierge: string; raw: string };
 
+/** A label under a name: a plain string is the Concierge's own and shows only in its view; `raw` is her note in raw view. */
+export type ViewNote = string | { concierge?: string; raw?: string };
+
 export interface Hotspot {
   id: string;
   name: ViewText;
@@ -13,6 +16,10 @@ export interface Hotspot {
   /** Which way the hero faces when she gets there. */
   face?: 1 | -1;
   look?: ViewText;
+  /** Under its name: in the Concierge's view its classification of the thing ("Guest · dining"), in raw view her own note, if any. */
+  tag?: ViewNote;
+  /** What the Concierge answers when she asks it about the thing. Its view only. */
+  ask?: string;
   /** Ink knot to run. */
   talk?: string;
   /** A door or the end of the street: using it goes to this scene, arriving at this place there. */
@@ -38,3 +45,6 @@ export interface LevelDef {
 export const inView = (h: Hotspot, raw: boolean): boolean => !h.only || (h.only === 'raw') === raw;
 
 export const pick = (t: ViewText, raw: boolean): string => (typeof t === 'string' ? t : raw ? t.raw : t.concierge);
+
+/** The label for the view on screen, or an empty string if it has none there. The Concierge's words never show in raw view. */
+export const note = (t: ViewNote | undefined, raw: boolean): string => (t === undefined ? '' : typeof t === 'string' ? (raw ? '' : t) : (raw ? t.raw : t.concierge) ?? '');

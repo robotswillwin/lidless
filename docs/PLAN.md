@@ -35,8 +35,26 @@ How assets and levels express it: `exists` in a recipe (see [ASSETS.md](ASSETS.m
 - **Early in the game** the player has to think about what they do, what they look at and what they say, because the Concierge may detect malicious plans.
 - **Later biohacks** manipulate the local side of the devices. One has a local AI device simulate the player staying put, during sleep or nutrition. Those windows are when the player can go rogue.
 - **Systems this needs:**
-  - the Concierge's attention, fed by actions, gaze and dialogue choices;
+  - the Concierge's attention, fed by actions, gaze and dialogue choices. A first version is in: looking closely at
+    something that differs between the views, in raw view, costs a step; her eye in the HUD shows three steps, and its
+    attention settles back while she stays in its view;
   - time windows tied to the daily routine, when a decoy can cover for the player.
+
+## The HUD
+
+The design: https://claude.ai/artifact/X65FknT3sqWZBgJaHgHboZ. In code: `src/game/hud.ts`, with its styles in
+`src/style.css`.
+
+- **Two skins.** In Concierge view the HUD is the Concierge's own interface: its greeting and line of the day, its
+  labels on things, its messages, *Ring for assistance* and *Your things*. In raw view that interface is gone with the
+  augmented eye, and what is left is Lux's own: her handwriting, her pockets, her notebook, her sense of being watched
+  and the temple switch.
+- **The action ring.** Her properties, each always in the same place on an arc above the thing: Feet, Hands, Eyes,
+  Heart and the Concierge's bell. One use does itself; several fan out; a second click does the main one.
+- **Data.** A hotspot's `tag` and `ask`, a scene's `greeting` and `assist`, `public/assets/items.json` for her things
+  and `public/assets/notebook.json` for her notebook, whose entries appear as Ink variables come true.
+- **Not built yet.** Hands (use, take, give) waits for items in the story; the Concierge's offers (rest, disposal) only
+  answer for now.
 
 ## Milestones
 
@@ -45,6 +63,6 @@ How assets and levels express it: `exists` in a recipe (see [ASSETS.md](ASSETS.m
 | M0 Setup: repository, tooling, renderer drawing sprites, quality tiers | Done |
 | M1 Vertical slice: tap to walk, hotspots, view switch unlocked by the fixer, Ink conversations, saving | Done, on one screen; the scrolling camera comes with a wider street |
 | M2 Pipeline v1: clean, derive maps, pack, preview, one image AI connected | Done. The live API is untested until there is a key in `.env.local` |
-| M3 First real art through the pipeline | In progress. Lux (the hero) walks both ways from AI-drawn parts. Scenes connect through doors and street ends, a camera scrolls wide scenes, and a scene editor places lights, hotspots and exits. All four opening places are built at one scale, the street's people are generated characters, and the game starts at home. The art review's first pass has begun: the radio repair is rebuilt from a blockout at true scale, its tools within reach, and the woman at the street machine holds one pose in both views. Next: the same pass for Lux's home, the backstreet and the main street, then the opening chapter's script |
+| M3 First real art through the pipeline | In progress. Lux (the hero) walks both ways from AI-drawn parts. Scenes connect through doors and street ends, a camera scrolls wide scenes, and a scene editor places lights, hotspots and exits. All four opening places are built at one scale, the street's people are generated characters, and the game starts at home. The art review's first pass has begun: the radio repair is rebuilt from a blockout at true scale, its tools within reach, and the woman at the street machine holds one pose in both views. The HUD is in, in both skins: the action ring, her things and pockets, her notebook, the Concierge's greeting, messages and bell, and her sense of being watched. Next: the same art pass for Lux's home, the backstreet and the main street, then the opening chapter's script |
 | M4 Turn-based encounters | |
 | M5 Mobile builds and touch controls | |

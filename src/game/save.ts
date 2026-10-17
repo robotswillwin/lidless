@@ -9,6 +9,8 @@ export interface SaveData {
   view: number;
   /** Ink story state, which holds the dialogue progress and the has_raw flag. */
   ink: string | null;
+  /** How closely the Concierge is watching her, 0 to 3. */
+  attention?: number;
 }
 
 const KEY = 'lidless.save.v1';
