@@ -28,9 +28,18 @@ that view.
 
 ## Scale
 
-Every scene is drawn at one scale, set by the characters: Lux is 240 px tall, and a doorway is about 220 px, so she
-is a little taller than a door, as in most 2D adventures. A set drawn bigger makes her look like a child in it: shrink
-it with `asset reframe`, which keeps what is in it and paints the new edges. People in a scene are characters built at
+Every scene is drawn at one scale, set by the characters and one camera. The camera's eye is at Lux's eye height,
+1.6 m, looking straight at the back wall: there a metre is 110 px, and on the walk line, 1.4 m in front of it, 141 px,
+which makes Lux (1.7 m) 240 px tall and a 2.05 m door about 225 px. She is a little taller than a door because she is
+nearer, as in most 2D adventures.
+
+Rooms are built from a blockout: `asset blockout` draws the recipe's `blockout`, boxes in metres, in that perspective,
+and `asset redress --from <recipe dir>/layout.png` paints over it keeping every object where and how big it is, so a
+bench is at hip height and tools are within reach. (Given as a mere layout reference with `generate --layout`, the image
+model re-composes and drifts back to its own scale.) `layout-check.png` shows Lux and the fixer standing in the
+blockout, and the blockout also places hotspots and lights: `toScene` in tools/pipeline/blockout.mjs turns a point
+in metres into scene pixels. A set drawn too big can also be shrunk with `asset reframe`, which keeps what is in it and
+paints the new edges. People in a scene are characters built at
 this scale and placed as layers, never painted into a background; only far-off figures, like a crowd behind the
 street, may be part of the art.
 

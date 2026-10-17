@@ -5,3 +5,4 @@ dist-shot/
 *.local
 shots/
 art/**/candidates/
+art/**/layout-check.png

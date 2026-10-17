@@ -4,7 +4,7 @@
   "kind": "background",
   "interior": true,
   "exists": "both",
-  "prompt": "The inside of a small radio repair shop, its back wall seen straight on, as in the layout. From left to right: an old wooden back door standing ajar; a fuse box and a calendar on the wall above a patch of bare brick; a battered leather sofa with a checked blanket and cushions on a worn rug, a floor lamp beside it; a tall wooden shelf unit crowded with old radios, books and boxes; a pegboard of hand tools; a long, high workbench with an old monitor with a green screen, an oscilloscope and a valve amplifier on it, a shelf of old radios above it and drawers below; pinned schematics, a notice, a wall clock and a framed photograph; a corkboard with a map and notes; a desk lamp on an arm. Brick showing through cracked plaster, a tiled wainscot, worn floorboards. Every radio and device is an old relic patched together over decades: steampunk-like contraptions of riveted grey metal, exposed valves, gauges and tangled cables, dented, rusted and taped. Dust, grime and peeling paint everywhere.",
+  "prompt": "Inside a small radio repair shop, exactly as in the layout, every object at the size and place the layout gives it. In the left wall, the shop's street door. In the back wall: a wooden back door standing ajar on a dark back room; a tall wooden bookshelf with books and old radios; in front of it a battered leather sofa with a checked blanket, and a floor lamp beside it; a long wooden workbench at hip height with drawers, an old monitor with a green screen, an oscilloscope, a valve amplifier, an opened radio being mended and a desk lamp on an arm; above the bench, within reach, a pegboard of ordinary hand tools at their real size, and above that a narrow shelf of radios and a wall clock; pinned paper schematics; a corkboard with a map; a low cabinet with an old visor on a stand; in the right wall, a side door. Two fluorescent tubes on the ceiling. Brick showing through cracked plaster, worn floorboards. Every radio and device is an old relic patched together over decades: steampunk-like contraptions of riveted grey metal, exposed valves, gauges and tangled cables, dented, rusted and taped. Dust, grime and peeling paint everywhere.",
   "concierge": "The Concierge's version of the same shop keeps it retro, like a lovingly kept antique radio shop: the radios restored relics in polished walnut, cream bakelite and brass with warm glowing dials; the shelves, the bench and the door polished dark wood; the sofa supple leather with a soft wool blanket; the monitor and the instruments handsome vintage pieces with soft green screens; warm brick, clean plaster, tidy tools; warm amber lamplight, clean and cosy, glamorous in a nostalgic way. Same layout.",
   "height": 540,
   "position": [
@@ -23,5 +23,699 @@
     "art/reference/Rainy Neon Cyberpunk Concept Sheet.png"
   ],
   "palette": 0.35,
-  "relics": true
+  "relics": true,
+  "blockout": {
+    "camera": {
+      "width": 1016,
+      "height": 540,
+      "wallScale": 110,
+      "charScale": 141,
+      "walkDepth": 1.4,
+      "walkY": 500,
+      "eye": 1.6
+    },
+    "room": {
+      "width": 7.0,
+      "height": 2.8,
+      "colours": {
+        "wall": "#8a7a68",
+        "floor": "#4e4640",
+        "ceiling": "#5e5650",
+        "side": "#76685a"
+      }
+    },
+    "objects": [
+      {
+        "name": "back door",
+        "x": [
+          -3.3,
+          -2.4
+        ],
+        "h": [
+          0,
+          2.05
+        ],
+        "d": [
+          0,
+          0.04
+        ],
+        "colour": "#6a5240",
+        "detail": "ajar",
+        "gap": 0.22
+      },
+      {
+        "name": "shelves",
+        "x": [
+          -2.25,
+          -1.05
+        ],
+        "h": [
+          0,
+          2.2
+        ],
+        "d": [
+          0,
+          0.35
+        ],
+        "colour": "#5a4232",
+        "detail": "shelves",
+        "shelves": 5,
+        "radios": 0.35
+      },
+      {
+        "name": "sofa base",
+        "x": [
+          -2.35,
+          -0.75
+        ],
+        "h": [
+          0,
+          0.45
+        ],
+        "d": [
+          0.45,
+          1.25
+        ],
+        "colour": "#6a3a2a"
+      },
+      {
+        "name": "sofa back",
+        "x": [
+          -2.35,
+          -0.75
+        ],
+        "h": [
+          0.45,
+          0.88
+        ],
+        "d": [
+          0.45,
+          0.68
+        ],
+        "colour": "#6a3a2a"
+      },
+      {
+        "name": "sofa arm left",
+        "x": [
+          -2.35,
+          -2.17
+        ],
+        "h": [
+          0.45,
+          0.66
+        ],
+        "d": [
+          0.68,
+          1.25
+        ],
+        "colour": "#6a3a2a"
+      },
+      {
+        "name": "sofa arm right",
+        "x": [
+          -0.93,
+          -0.75
+        ],
+        "h": [
+          0.45,
+          0.66
+        ],
+        "d": [
+          0.68,
+          1.25
+        ],
+        "colour": "#6a3a2a"
+      },
+      {
+        "name": "floor lamp pole",
+        "x": [
+          -0.56,
+          -0.53
+        ],
+        "h": [
+          0,
+          1.32
+        ],
+        "d": [
+          0.6,
+          0.63
+        ],
+        "colour": "#3a3632"
+      },
+      {
+        "name": "floor lamp shade",
+        "x": [
+          -0.72,
+          -0.37
+        ],
+        "h": [
+          1.32,
+          1.6
+        ],
+        "d": [
+          0.5,
+          0.75
+        ],
+        "colour": "#d8b878",
+        "detail": "shade",
+        "shade": "#e8c888"
+      },
+      {
+        "name": "workbench",
+        "x": [
+          -0.3,
+          2.3
+        ],
+        "h": [
+          0,
+          0.92
+        ],
+        "d": [
+          0,
+          0.7
+        ],
+        "colour": "#6a5240"
+      },
+      {
+        "name": "drawers",
+        "x": [
+          1.4,
+          2.2
+        ],
+        "h": [
+          0.1,
+          0.85
+        ],
+        "d": [
+          0.7,
+          0.72
+        ],
+        "colour": "#5a4232",
+        "detail": "paper",
+        "colour_note": "drawer fronts"
+      },
+      {
+        "name": "pegboard",
+        "x": [
+          -0.15,
+          1.25
+        ],
+        "h": [
+          1.05,
+          1.85
+        ],
+        "d": [
+          0,
+          0.02
+        ],
+        "colour": "#9a7a58",
+        "detail": "pegboard",
+        "tools": [
+          {
+            "x": 0.0,
+            "h": 1.42,
+            "w": 0.022,
+            "l": 0.27,
+            "colour": "#9a8a70"
+          },
+          {
+            "x": 0.07,
+            "h": 1.42,
+            "w": 0.022,
+            "l": 0.27,
+            "colour": "#9a8a70"
+          },
+          {
+            "x": 0.14,
+            "h": 1.42,
+            "w": 0.022,
+            "l": 0.27,
+            "colour": "#9a8a70"
+          },
+          {
+            "x": 0.21,
+            "h": 1.42,
+            "w": 0.022,
+            "l": 0.27,
+            "colour": "#9a8a70"
+          },
+          {
+            "x": 0.33,
+            "h": 1.5,
+            "w": 0.06,
+            "l": 0.2,
+            "colour": "#8a3a30"
+          },
+          {
+            "x": 0.45,
+            "h": 1.5,
+            "w": 0.06,
+            "l": 0.2,
+            "colour": "#3a5a8a"
+          },
+          {
+            "x": 0.62,
+            "h": 1.62,
+            "w": 0.03,
+            "l": 0.16
+          },
+          {
+            "x": 0.7,
+            "h": 1.58,
+            "w": 0.03,
+            "l": 0.2
+          },
+          {
+            "x": 0.78,
+            "h": 1.54,
+            "w": 0.03,
+            "l": 0.24
+          },
+          {
+            "x": 0.86,
+            "h": 1.49,
+            "w": 0.03,
+            "l": 0.29
+          },
+          {
+            "x": 1.0,
+            "h": 1.45,
+            "w": 0.04,
+            "l": 0.3,
+            "colour": "#7a5a3a"
+          }
+        ]
+      },
+      {
+        "name": "radio shelf",
+        "x": [
+          -0.3,
+          2.3
+        ],
+        "h": [
+          1.93,
+          1.97
+        ],
+        "d": [
+          0,
+          0.3
+        ],
+        "colour": "#5a4232"
+      },
+      {
+        "name": "radio 1",
+        "x": [
+          -0.22,
+          0.13
+        ],
+        "h": [
+          1.97,
+          2.23
+        ],
+        "d": [
+          0.04,
+          0.28
+        ],
+        "colour": "#6e6a64",
+        "detail": "radio"
+      },
+      {
+        "name": "radio 2",
+        "x": [
+          0.25,
+          0.5
+        ],
+        "h": [
+          1.97,
+          2.17
+        ],
+        "d": [
+          0.04,
+          0.26
+        ],
+        "colour": "#7a6a52",
+        "detail": "radio"
+      },
+      {
+        "name": "radio 3",
+        "x": [
+          0.62,
+          0.97
+        ],
+        "h": [
+          1.97,
+          2.25
+        ],
+        "d": [
+          0.04,
+          0.28
+        ],
+        "colour": "#6e6a64",
+        "detail": "radio"
+      },
+      {
+        "name": "radio 4",
+        "x": [
+          1.08,
+          1.32
+        ],
+        "h": [
+          1.97,
+          2.15
+        ],
+        "d": [
+          0.04,
+          0.26
+        ],
+        "colour": "#7a6a52",
+        "detail": "radio"
+      },
+      {
+        "name": "radio 5",
+        "x": [
+          1.45,
+          1.82
+        ],
+        "h": [
+          1.97,
+          2.23
+        ],
+        "d": [
+          0.04,
+          0.28
+        ],
+        "colour": "#6e6a64",
+        "detail": "radio"
+      },
+      {
+        "name": "radio 6",
+        "x": [
+          1.92,
+          2.22
+        ],
+        "h": [
+          1.97,
+          2.19
+        ],
+        "d": [
+          0.04,
+          0.26
+        ],
+        "colour": "#7a6a52",
+        "detail": "radio"
+      },
+      {
+        "name": "monitor",
+        "x": [
+          0.05,
+          0.5
+        ],
+        "h": [
+          0.92,
+          1.32
+        ],
+        "d": [
+          0.15,
+          0.55
+        ],
+        "colour": "#8a8478",
+        "detail": "screen"
+      },
+      {
+        "name": "oscilloscope",
+        "x": [
+          0.62,
+          0.95
+        ],
+        "h": [
+          0.92,
+          1.18
+        ],
+        "d": [
+          0.15,
+          0.5
+        ],
+        "colour": "#6a6660",
+        "detail": "scope"
+      },
+      {
+        "name": "valve amplifier",
+        "x": [
+          1.05,
+          1.4
+        ],
+        "h": [
+          0.92,
+          1.1
+        ],
+        "d": [
+          0.2,
+          0.5
+        ],
+        "colour": "#5a5650"
+      },
+      {
+        "name": "valves",
+        "x": [
+          1.12,
+          1.33
+        ],
+        "h": [
+          1.1,
+          1.19
+        ],
+        "d": [
+          0.3,
+          0.4
+        ],
+        "colour": "#b89a60"
+      },
+      {
+        "name": "open radio",
+        "x": [
+          1.55,
+          1.95
+        ],
+        "h": [
+          0.92,
+          1.15
+        ],
+        "d": [
+          0.25,
+          0.6
+        ],
+        "colour": "#7a6a52",
+        "detail": "radio"
+      },
+      {
+        "name": "desk lamp pole",
+        "x": [
+          2.1,
+          2.13
+        ],
+        "h": [
+          0.92,
+          1.45
+        ],
+        "d": [
+          0.35,
+          0.38
+        ],
+        "colour": "#3a3632"
+      },
+      {
+        "name": "desk lamp head",
+        "x": [
+          1.8,
+          2.13
+        ],
+        "h": [
+          1.37,
+          1.46
+        ],
+        "d": [
+          0.3,
+          0.45
+        ],
+        "colour": "#4a4640"
+      },
+      {
+        "name": "schematic 1",
+        "x": [
+          1.38,
+          1.68
+        ],
+        "h": [
+          1.28,
+          1.7
+        ],
+        "d": [
+          0,
+          0.01
+        ],
+        "colour": "#d8d0bc",
+        "detail": "paper"
+      },
+      {
+        "name": "schematic 2",
+        "x": [
+          1.74,
+          2.04
+        ],
+        "h": [
+          1.5,
+          1.82
+        ],
+        "d": [
+          0,
+          0.01
+        ],
+        "colour": "#d8d0bc",
+        "detail": "paper"
+      },
+      {
+        "name": "clock",
+        "x": [
+          1.55,
+          1.85
+        ],
+        "h": [
+          2.32,
+          2.62
+        ],
+        "d": [
+          0,
+          0.04
+        ],
+        "colour": "#5a4232",
+        "detail": "clock"
+      },
+      {
+        "name": "corkboard",
+        "x": [
+          2.5,
+          3.2
+        ],
+        "h": [
+          1.15,
+          1.75
+        ],
+        "d": [
+          0,
+          0.03
+        ],
+        "colour": "#9a7a50"
+      },
+      {
+        "name": "map",
+        "x": [
+          2.56,
+          2.98
+        ],
+        "h": [
+          1.2,
+          1.7
+        ],
+        "d": [
+          0.03,
+          0.04
+        ],
+        "colour": "#d8d0bc",
+        "detail": "paper"
+      },
+      {
+        "name": "cabinet",
+        "x": [
+          2.55,
+          3.2
+        ],
+        "h": [
+          0,
+          0.85
+        ],
+        "d": [
+          0,
+          0.45
+        ],
+        "colour": "#5a4232"
+      },
+      {
+        "name": "visor on a stand",
+        "x": [
+          2.74,
+          3.0
+        ],
+        "h": [
+          0.85,
+          1.12
+        ],
+        "d": [
+          0.2,
+          0.22
+        ],
+        "colour": "#5a4232",
+        "detail": "clock"
+      },
+      {
+        "name": "ceiling tube 1",
+        "x": [
+          -2.0,
+          -0.8
+        ],
+        "h": [
+          2.72,
+          2.78
+        ],
+        "d": [
+          1.2,
+          1.32
+        ],
+        "colour": "#d8dcd8"
+      },
+      {
+        "name": "ceiling tube 2",
+        "x": [
+          0.6,
+          1.8
+        ],
+        "h": [
+          2.72,
+          2.78
+        ],
+        "d": [
+          1.2,
+          1.32
+        ],
+        "colour": "#d8dcd8"
+      },
+      {
+        "name": "street door",
+        "wall": "left",
+        "h": [
+          0,
+          2.05
+        ],
+        "d": [
+          0.5,
+          1.4
+        ],
+        "colour": "#5a4a3a",
+        "detail": "door"
+      },
+      {
+        "name": "side door",
+        "wall": "right",
+        "h": [
+          0,
+          2.05
+        ],
+        "d": [
+          0.7,
+          1.6
+        ],
+        "colour": "#5a5650",
+        "detail": "door"
+      }
+    ]
+  }
 }

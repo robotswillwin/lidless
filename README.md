@@ -90,7 +90,8 @@ npm run asset -- build art/street/dock-worker.json
 4. `import` brings in an image made anywhere else.
 5. `build` makes the sprite in `public/assets/<scene>/<name>/`.
 
-`npm run asset` alone lists every command and option. `touch` changes one marked area of a picked image, `redress`
+`npm run asset` alone lists every command and option. `blockout` draws a room in metres at the game's scale, as the
+guide its painting must follow (see [docs/ASSETS.md](docs/ASSETS.md)); `touch` changes one marked area of a picked image, `redress`
 re-dresses a whole view while keeping its layout, `generate --layout` follows a rough picture's composition (the radio
 repair's inside was laid out from the shop seen through its window), `reframe` shrinks a set to the characters' scale,
 and `parts` makes a character that walks (see [docs/ASSETS.md](docs/ASSETS.md)).

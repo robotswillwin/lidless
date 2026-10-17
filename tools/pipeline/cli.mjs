@@ -10,6 +10,7 @@ import { glowAuto, heightMap, materialMap, metaMap, normalMap } from './derive.m
 import { blank, readRGBA, writePNG } from './image.mjs';
 import { edit, generate } from './openai.mjs';
 import { KINDS, ROOT, loadRecipe, recipeTemplate } from './recipe.mjs';
+import { blockoutPNG, camera as roomCamera } from './blockout.mjs';
 import { conciergePartsPrompt, cut as cutParts, otherSidePrompt, PARTS as PARTS_NAMES, partsPrompt, plant, pointOf, pose as posePartsRig, SHEET, template as partsTemplate, walkAngles } from './parts.mjs';
 import { conciergePrompt, generationPrompt, LAYOUT_NOTE, LAYOUT_REFERENCES_NOTE, LOOKS, redressPrompt, reframePrompt, REFERENCE_NOTE } from './style.mjs';
 
@@ -26,14 +27,19 @@ const HELP = `Asset pipeline: generate art with an image AI, clean it and turn i
       candidates keep: a sketch, or a scene seen elsewhere in the game. --tag adds a word to the candidates' file names.
   npm run asset -- variant <recipe> [--n 2] [--quality medium] [--tag name] [--dry]
       Edit the picked raw image into Concierge-view candidates (GPT Image 2.5 Sunburst).
-  npm run asset -- redress <recipe> --prompt "what to change" [--view raw|concierge] [--n 2] [--quality medium] [--dry]
+  npm run asset -- redress <recipe> --prompt "what to change" [--view raw|concierge] [--from image] [--n 2] [--quality medium] [--dry]
       Edit the picked image of one view into new candidates of the same view: the same layout, every outline in
       place, with surfaces, wear and details changed as the prompt says. Pick one, and remake the other view if the
-      outlines must still match it.
+      outlines must still match it. --from edits another image instead, such as layout.png from blockout: painted
+      this way, a blockout keeps every object exactly where and how big it is.
   npm run asset -- reframe <recipe> --scale 0.8 --floor <y> [--view raw|concierge] [--quality medium] [--dry]
       Shrink the picked image of a view around its floor line (y, in the image's pixels) and have GPT Image 2.5
       Sunburst paint the new edges: a set drawn too big for the characters gets their scale and keeps what is in it.
       Prints how scene coordinates move. Remake the other view with variant afterwards, so the two still match.
+  npm run asset -- blockout <recipe>
+      Draw the recipe's "blockout", a room built from boxes in metres, in true perspective, as layout.png: the guide
+      for generate --layout, so every object comes out at its real size against the characters. layout-check.png
+      shows Lux and the fixer standing in it, to judge the scale by eye. Free.
   npm run asset -- sheet <recipe>
       Lay all candidates side by side at game size, finished as the build would, to choose between them.
   npm run asset -- parts <recipe> [--view raw|concierge] [--quality low|medium] [--dry]
@@ -149,8 +155,9 @@ async function cmdVariant([file], opt) {
 }
 
 async function cmdRedress([file], opt) {
-  const r = await loadRecipe(file), view = opt.view ?? (r.exists === 'concierge' ? 'concierge' : 'raw'), src = join(r.dir, `${view}.png`);
-  if (typeof opt.prompt !== 'string') throw new Error('usage: redress <recipe> --prompt "what to change" [--view raw|concierge]');
+  const r = await loadRecipe(file), view = opt.view ?? (r.exists === 'concierge' ? 'concierge' : 'raw');
+  const src = typeof opt.from === 'string' ? resolve(ROOT, opt.from) : join(r.dir, `${view}.png`);
+  if (typeof opt.prompt !== 'string') throw new Error('usage: redress <recipe> --prompt "what to change" [--view raw|concierge] [--from image]');
   if (!existsSync(src)) throw new Error(`pick or import a ${view} image first (${rel(src)})`);
   const prompt = redressPrompt(r, view, opt.prompt), meta = await sharp(src).metadata(), n = Number(opt.n ?? 2), quality = opt.quality ?? 'medium';
   const size = `${Math.round(meta.width / 16) * 16}x${Math.round(meta.height / 16) * 16}`;
@@ -195,6 +202,24 @@ async function cmdReframe([file], opt) {
   const spent = res.cost == null ? 'Cost: not reported by the API.' : `Cost: $${res.cost.toFixed(4)}`;
   console.log(`  ${rel(out)}\n${spent}\nIn the scene, a point x, y of the old picture is now at ${(left / W).toFixed(4)} × width + ${s} x, ${(top / H).toFixed(4)} × height + ${s} y.`);
   console.log(`Pick it with: npm run asset -- pick ${rel(r.file)} ${basename(name, '.png')}`);
+}
+
+async function cmdBlockout([file]) {
+  const r = await loadRecipe(file);
+  if (!r.blockout) throw new Error(`${r.name} has no "blockout" to draw`);
+  const [W, H] = (r.size ?? r.spec.size).split('x').map(Number), cam = roomCamera(r.blockout.camera), k = W / cam.width;
+  await mkdir(r.dir, { recursive: true });
+  const guide = await blockoutPNG(r.blockout, W, H), out = join(r.dir, 'layout.png');
+  await writeFile(out, guide);
+  // the same, with the characters standing on the walk line: Lux near the left, the fixer at the bench
+  const figure = async (asset, frameW, sceneX) => {
+    const src = resolve(ROOT, 'public/assets', asset, 'albedo.raw.png'), { height } = await sharp(src).metadata();
+    const img = await sharp(src).extract({ left: 0, top: 0, width: frameW, height }).resize(Math.round(frameW * k), Math.round(height * k), { kernel: 'nearest' }).png().toBuffer();
+    return { input: img, left: Math.round((sceneX - frameW / 2) * k), top: Math.round((cam.walkY - height) * k) };
+  };
+  const people = [await figure('cast/hero', 143, 230), await figure('cast/fixer', 106, 600)];
+  await sharp(guide).composite(people).png().toFile(join(r.dir, 'layout-check.png'));
+  console.log(`${r.name}: ${r.blockout.objects.length} objects → ${rel(out)}, and ${rel(join(r.dir, 'layout-check.png'))} with Lux and the fixer in it`);
 }
 
 async function cmdPick([file, cand]) {
@@ -647,6 +672,6 @@ async function cmdTouch([file], opt) {
 }
 
 const [cmd, ...rest] = process.argv.slice(2), { pos, opt } = parse(rest);
-const run = { new: cmdNew, generate: cmdGenerate, variant: cmdVariant, redress: cmdRedress, reframe: cmdReframe, pick: cmdPick, import: cmdImport, sheet: cmdSheet, touch: cmdTouch, erase: cmdErase, parts: cmdParts, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
+const run = { new: cmdNew, generate: cmdGenerate, variant: cmdVariant, redress: cmdRedress, reframe: cmdReframe, blockout: cmdBlockout, pick: cmdPick, import: cmdImport, sheet: cmdSheet, touch: cmdTouch, erase: cmdErase, parts: cmdParts, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
 if (!run) console.log(HELP);
 else run(pos, opt).catch((e) => { console.error(`error: ${e.message}`); process.exit(1); });

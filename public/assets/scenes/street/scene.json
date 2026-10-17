@@ -24,7 +24,7 @@
   {
    "asset": "street/dock-woman",
    "x": 700,
-   "y": 342
+   "y": 350
   }
  ],
  "zoneMap": "street/zone.png",
@@ -714,8 +714,8 @@
    },
    "rect": [
     700,
-    342,
-    92,
+    350,
+    102,
     130
    ],
    "stand": 655,
