@@ -43,11 +43,11 @@ function paint(w: number, h: number, fn: (x: number, y: number) => [number, numb
 }
 
 function backdropSprite(def: Omit<SpriteDef, 'maps' | 'parallax'>, tex: Partial<Record<MapName, WebGLTexture>>): Sprite {
-  const alb = tex['albedo.raw']!;
+  const alb = tex['albedo.raw']!, normal = tex.normal ?? fallback.normal, material = tex.material ?? fallback.material;
   return {
     def: { ...def, maps: [], parallax: 0 },
     hasMeta: !!tex.meta,
-    tex: { 'albedo.raw': alb, 'albedo.concierge': alb, normal: tex.normal ?? fallback.normal, material: tex.material ?? fallback.material, meta: tex.meta ?? fallback.meta, 'glow.raw': fallback.glow, 'glow.concierge': fallback.glow },
+    tex: { 'albedo.raw': alb, 'albedo.concierge': alb, normal, 'normal.concierge': normal, material, 'material.concierge': material, meta: tex.meta ?? fallback.meta, 'glow.raw': fallback.glow, 'glow.concierge': fallback.glow },
   };
 }
 

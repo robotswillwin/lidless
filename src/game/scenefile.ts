@@ -19,6 +19,8 @@ export interface LayerDef {
   depth?: number;
   /** For a character: which way it faces, -1 for left. It plays its idle loop where it stands. */
   facing?: 1 | -1;
+  /** For a character: half the width of its shadow on the ground, in pixels; 0 for none. */
+  footprint?: number;
 }
 
 /** Where a door or an edge leads: a scene, and the place there to arrive at. */
@@ -53,6 +55,8 @@ export interface SceneFile {
    * One number for both views, or one per view, since a dark raw room can be a white one to the Concierge.
    */
   ambient?: number | { raw?: number; concierge?: number };
+  /** Exposure in stops, 0 by default; one number, or one per view. */
+  exposure?: number | { raw?: number; concierge?: number };
   spawns: Record<string, Spawn>;
   hotspots: Hotspot[];
   beacons?: SceneDef['beacons'];
@@ -125,13 +129,13 @@ export async function buildScene(gl: GL, assets: string, file: SceneFile, world:
   const sprites = await Promise.all(file.layers.map(async (layer) => {
     const s = await sprite(layer.asset), d = s.def;
     // each layer has a definition of its own, so the same asset can be placed twice
-    return { ...s, def: { ...d, x: layer.x ?? d.x, y: layer.y ?? d.y, parallax: layer.parallax ?? d.parallax, depth: layer.depth ?? d.depth, facing: layer.facing ?? d.facing } };
+    return { ...s, def: { ...d, x: layer.x ?? d.x, y: layer.y ?? d.y, parallax: layer.parallax ?? d.parallax, depth: layer.depth ?? d.depth, facing: layer.facing ?? d.facing, footprint: layer.footprint ?? d.footprint } };
   }));
   const zone = file.zoneMap ? textureFromImage(gl, await loadImage(`${assets}/${file.zoneMap}`), false) : zoneTexture(gl, file);
   const def: SceneDef = {
     name: file.id, size: file.size, sprites: sprites.map((s) => s.def.name), zone: file.zoneMap ?? '',
     lights: file.lights, beacons: file.beacons ?? [], steam: file.steam ?? [], godrays: file.godrays ?? [],
-    drips: file.drips, mirror: file.mirror ?? file.walk.y - 8, traffic: file.traffic, ambient: file.ambient,
+    drips: file.drips, mirror: file.mirror ?? file.walk.y - 8, traffic: file.traffic, ambient: file.ambient, exposure: file.exposure,
   };
   const level: LevelDef = {
     walk: file.walk,

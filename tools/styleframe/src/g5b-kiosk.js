@@ -14,7 +14,7 @@ function drawKiosk() {
       return mulc(c, 0.7 + 0.3 * smooth((452 - y) / 90));
     },
     h: (x, y) => 0.5 + 0.03 * fbm(x * 0.4, y * 0.4, 2) - (seam(x, y) ? 0.25 : 0), round: 22, rh: 0.7, spec: 0.4, shin: 0.6, dep: 3, occ: 1 });
-  for (const ry of [179, 201]) for (let rx = 375; rx < 424; rx += 6) rivet(rx, ry, P.n4);
+  for (let rx = 375; rx < 424; rx += 6) rivet(rx, 188.5, P.n4);
   // antenna with a beacon, a camera, a speaker
   fill(R(411.6, 122, 0.9, 12), { alb: P.n4, h: 0.6, spec: 0.6, dep: 3, occ: 1 }); fill(E(412, 122.4, 0.8, 0.8), { alb: P.n2, eh: P.m5, dep: 3 }); SC.beacons.push([824, 244, 1.7]);
   fill(E(381, 150, 2.4, 2.4), { alb: P.n3, round: 2, rh: 0.5, h: 0.5, spec: 0.7, shin: 0.8, dep: 3, occ: 1 }); fill(E(381, 150, 1.3, 1.3), { alb: P.n0, h: 0.6, spec: 1, shin: 1, dep: 3 }); fill(E(381.3, 149.8, 0.45, 0.45), { eh: P.m5 });
@@ -31,18 +31,19 @@ function drawKiosk() {
   } });
   fill(E(394.6, 154.2, 1.2, 0.8), { eh: P.cA, ehg: 4 });
   // the screen: black glass; the greeting is only in the eye mod
-  box(378, 180, 40, 16, P.n3, { ...MAT.metal(P.n3, { rust: 0.7 }), bv: 1.2, spec: 0.5, shin: 0.6, occ: 1 });
-  fill(R(379.5, 181.5, 37, 13), { alb: P.n0, h: 0.35, spec: 1, shin: 0.98, dep: 3, eag: 7, ea: (x, y, i) => (i.u < 0.012 || i.u > 0.988 || i.v < 0.04 || i.v > 0.96) ? mulc(P.c7, 0.45) : mulc(P.c2, 0.25 + 0.15 * i.v) });
-  fill(TXT('Good evening.', 398, 187.6, { size: 4.6, weight: 300, track: 0.25, align: 'center' }), { ea: P.cA, eag: 7 });
-  fill(R(390, 189.4, 16, 0.3), { ea: mulc(P.c7, 0.6), eag: 7 });
-  fill(TXT('Dinner is served.', 398, 193, { size: 3.6, weight: 400, track: 0.2, align: 'center' }), { ea: mixc(P.c8, P.cA, 0.5), eag: 7 });
-  // grille, and the dock: rest your wrist in the cradle and it feeds you through the implant it can see
+  box(378, 172, 40, 14, P.n3, { ...MAT.metal(P.n3, { rust: 0.7 }), bv: 1.2, spec: 0.5, shin: 0.6, occ: 1 });
+  fill(R(379.5, 173.5, 37, 11), { alb: P.n0, h: 0.35, spec: 1, shin: 0.98, dep: 3, eag: 7, ea: (x, y, i) => (i.u < 0.012 || i.u > 0.988 || i.v < 0.04 || i.v > 0.96) ? mulc(P.c7, 0.45) : mulc(P.c2, 0.25 + 0.15 * i.v) });
+  fill(TXT('Good evening.', 398, 178.8, { size: 4.6, weight: 300, track: 0.25, align: 'center' }), { ea: P.cA, eag: 7 });
+  fill(R(390, 180.5, 16, 0.3), { ea: mulc(P.c7, 0.6), eag: 7 });
+  fill(TXT('Dinner is served.', 398, 184.2, { size: 3.6, weight: 400, track: 0.2, align: 'center' }), { ea: mixc(P.c8, P.cA, 0.5), eag: 7 });
+  // grille, and the dock: rest your wrist in the cradle and it feeds you through the implant it can see. The cradle is at
+  // the height of a hand reaching out from someone kneeling at the machine, which is how the guests use it
   for (let y = 204; y < 216; y += 3) fill(R(376, y, 12, 1.4), { alb: P.n0, h: 0.25, spec: 0.1, dep: 3 });
-  box(388, 202.5, 21, 5, P.n3, { ...MAT.metal(P.n4, { rust: 0.7 }), bv: 1.2, spec: 0.55, shin: 0.65, occ: 1 });
-  fill(E(398.5, 205.2, 7.6, 1.9), { alb: P.n0, h: 0.22, spec: 0.3, dep: 3 });
-  fill(E(398.5, 205.2, 6.6, 1.5), { useD: true, eh: (x, y, i) => (i.d < 1.1 ? P.c8 : null), ehg: 4 });
-  fill(E(398.5, 205.4, 0.6, 0.5), { eh: P.cA, ehg: 4 });
-  for (const fx of [391, 406]) fill(E(fx, 208.6, 1.2, 1.2), { alb: P.n2, round: 1.2, rh: 0.5, h: 0.5, spec: 0.7, shin: 0.75, dep: 3 });
+  box(388, 191.5, 21, 5, P.n3, { ...MAT.metal(P.n4, { rust: 0.7 }), bv: 1.2, spec: 0.55, shin: 0.65, occ: 1 });
+  fill(E(398.5, 194.2, 7.6, 1.9), { alb: P.n0, h: 0.22, spec: 0.3, dep: 3 });
+  fill(E(398.5, 194.2, 6.6, 1.5), { useD: true, eh: (x, y, i) => (i.d < 1.1 ? P.c8 : null), ehg: 4 });
+  fill(E(398.5, 194.4, 0.6, 0.5), { eh: P.cA, ehg: 4 });
+  for (const fx of [391, 406]) fill(E(fx, 197.6, 1.2, 1.2), { alb: P.n2, round: 1.2, rh: 0.5, h: 0.5, spec: 0.7, shin: 0.75, dep: 3 });
   fill(R(371, 218, 54, 4), { alb: (x, y) => { const s = ((x + y) >> 3) % 2, worn = fbm(x * 0.12, y * 0.3, 3) > 0.62; return worn ? P.n3 : s ? mixc(P.w7, P.w5, fbm(x * 0.2, y * 0.2, 2)) : P.n1; }, h: 0.52, spec: 0.3, dep: 3 });
   fill(PL([[410.6, 210.8], [416.2, 211.3], [415.8, 216.4], [410.9, 216]], false), { alb: mixc(P.n7, P.w8, 0.15), h: 0.56, spec: 0.05, dep: 3 });
   fill(LN(411.6, 212, 415, 215.4, 0.6), { alb: P.w5, h: 0.56 }); fill(LN(415, 212, 411.6, 215.4, 0.6), { alb: P.w5, h: 0.56 });

@@ -5,7 +5,7 @@ import { existsSync } from 'node:fs';
 import { copyFile, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { basename, join, relative, resolve } from 'node:path';
 import sharp from 'sharp';
-import { cleanEdges, contentBox, fillHoles, fitColours, fitToHeight, hardenAlpha, isOpaque, overlay, paletteFit, pixelate, removeFlatBackground, silhouetteMatch, unionBox } from './clean.mjs';
+import { cleanEdges, contentBox, fillHoles, fitColours, fitToHeight, hardenAlpha, isOpaque, paletteFit, pixelate, removeFlatBackground, silhouetteMatch, unionBox } from './clean.mjs';
 import { glowAuto, heightMap, materialMap, metaMap, normalMap } from './derive.mjs';
 import { blank, readRGBA, writePNG } from './image.mjs';
 import { edit, generate } from './openai.mjs';
@@ -278,9 +278,11 @@ async function buildOne(file) {
   if (raw) raw = finish(paletteFit(hardenAlpha(await fitToHeight(raw, box, height)), hexes, strength));
   if (conc) conc = finish(paletteFit(hardenAlpha(await fitToHeight(conc, box, height)), hexes, strength));
 
-  // volume and material come from the outline of both views together; a generated thing has only its Concierge look
-  const shape = raw && conc ? overlay(raw, conc) : raw ?? conc, { w, h } = shape;
-  const H = heightMap(shape, { round: spec.round, rh: spec.rh, detail: spec.detail });
+  // surfaces come from each view's own picture: in the Concierge's view a room is lit by its own walls, not by the cracks
+  // of the real ones under them, and a dressed-up character by its own clothes. A generated thing has only its Concierge look
+  const { w, h } = raw ?? conc;
+  const surface = (img) => { const H = heightMap(img, { round: spec.round, rh: spec.rh, detail: spec.detail }); return [normalMap(H, w, h), materialMap(img, H, r.material ?? spec.material)]; };
+  const [normalR, materialR] = surface(raw ?? conc), [normalC, materialC] = raw && conc ? surface(conc) : [null, null];
   // the view it is not in gets a transparent albedo, so the engine draws nothing there: no shadow, no reflection
   const glowRawSrc = raw;
   if (!raw) raw = blank(w, h);
@@ -289,8 +291,13 @@ async function buildOne(file) {
   await mkdir(out, { recursive: true });
   const maps = ['albedo.raw', 'normal', 'material', 'meta'];
   await writePNG(join(out, 'albedo.raw.png'), raw);
-  await writePNG(join(out, 'normal.png'), normalMap(H, w, h), { rgb: true });
-  await writePNG(join(out, 'material.png'), materialMap(shape, H, r.material ?? spec.material), { rgb: true });
+  await writePNG(join(out, 'normal.png'), normalR, { rgb: true });
+  await writePNG(join(out, 'material.png'), materialR, { rgb: true });
+  if (normalC) {
+    await writePNG(join(out, 'normal.concierge.png'), normalC, { rgb: true });
+    await writePNG(join(out, 'material.concierge.png'), materialC, { rgb: true });
+    maps.push('normal.concierge', 'material.concierge');
+  }
   await writePNG(join(out, 'meta.png'), metaMap(raw, exists === 'both' ? conc : null, {
     occluder: r.occluder ?? spec.occluder, object: r.object ?? 0, depth: r.depth ?? spec.depth, reflectivity: r.reflectivity ?? 0,
     groupRaw: glow.groupRaw ?? 0, groupConcierge: glow.groupConcierge ?? 0, machine: !!glow.machine,
@@ -380,13 +387,16 @@ async function writeAnimated(r, raws, concs, { anchorX, anims }) {
   const add = (name, img) => (maps[name] ??= []).push(img);
   for (let k = 0; k < n; k++) {
     let raw = raws?.[k] ?? null, conc = concs?.[k] ?? null;
-    const shape = raw && conc ? overlay(raw, conc) : raw ?? conc, glowRawSrc = raw;
-    const H = heightMap(shape, { round: spec.round, rh: spec.rh, detail: spec.detail });
+    const glowRawSrc = raw;
+    // each view's own surface, as in buildOne
+    const surface = (img) => { const H = heightMap(img, { round: spec.round, rh: spec.rh, detail: spec.detail }); return [normalMap(H, w, h), materialMap(img, H, r.material ?? spec.material)]; };
+    const [normalR, materialR] = surface(raw ?? conc);
+    add('normal', normalR);
+    add('material', materialR);
+    if (raw && conc) { const [normalC, materialC] = surface(conc); add('normal.concierge', normalC); add('material.concierge', materialC); }
     if (!raw) raw = blank(w, h);
     if (exists === 'raw') conc = blank(w, h);
     add('albedo.raw', raw);
-    add('normal', normalMap(H, w, h));
-    add('material', materialMap(shape, H, r.material ?? spec.material));
     add('meta', metaMap(raw, exists === 'both' ? conc : null, {
       occluder: r.occluder ?? spec.occluder, object: r.object ?? 0, depth: r.depth ?? spec.depth, reflectivity: r.reflectivity ?? 0,
       groupRaw: glow.groupRaw ?? 0, groupConcierge: glow.groupConcierge ?? 0, machine: !!glow.machine,

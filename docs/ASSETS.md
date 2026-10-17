@@ -53,6 +53,7 @@ All maps share the sprite's canvas size. Pixels with alpha below 50% are not dra
 | `albedo.concierge.png` | RGBA | Colour in Concierge view. |
 | `normal.png` | RGB | Surface direction, x and y in red and green (128 = flat), image y pointing down. The pipeline generates this. |
 | `material.png` | RGB | R shine strength, G shine sharpness, B height (for how low lights graze the surface). |
+| `normal.concierge.png`, `material.concierge.png` | RGB | The same for the Concierge's look, when it differs: its smooth white walls are not lit with the cracks of the real ones, nor a dressed-up character with its raw clothes. The pipeline derives each view's surface from that view's own picture. |
 | `meta.png` | RGB | Packed per-pixel flags, see below. Usually generated. |
 | `glow.raw.png` | RGB | Light the surface gives off in raw view, at half intensity (255 = 2× bright). |
 | `glow.concierge.png` | RGB | Light given off in Concierge view: the real glow plus the Concierge's neon. |
@@ -122,11 +123,23 @@ where it is inside (R), outside (G) and how much static shadow there is (B).
 
 Characters walk in front of the set, so lights and characters need to know which is in front of which:
 
-- A light's `layer` says where it is against the characters. 0 means behind them, such as inside a shop or on a facade:
-  a character in front hides its glow in the air, and the light only catches the character's edges, as a rim. 1 means
-  among them, such as a street lamp: most of its glow is hidden behind a character. 2 means in front of them. Inside and
-  facade lights default to 0, the rest to 1.
+- A light's `layer` says where it is against the characters. 0 (the default) means behind them, such as a lamp on the
+  back wall or a facade: a character in front hides its glow in the air, and the light only catches the character's
+  edges, as a rim, with a soft fill. 1 means among them, such as a street lamp or the tubes on a room's ceiling: it lights
+  them like everything else. 2 means in front of them. A room whose only lights are behind its people makes them look cut
+  out: what hangs overhead belongs in layer 1.
 - A sprite's `haze` is how much of the glowing air lies in front of it: 1 for the set, 0.1 for characters by default.
   Light shafts and the wide halo around lights follow it too.
 - A character takes the zone of the ground it stands on, not of the set behind it: standing in the street in front of
   an open shop, it is outside, lit by the street lights and in the rain.
+- People are drawn after the set, the nearest last, by where their feet are: a character standing further back is
+  covered by one walking in front. Someone sitting at a machine on the back wall must sit behind the walk line, so the
+  hero passes in front of them; put the machine where their hands can reach it.
+- Each character casts a soft shadow on the ground under its feet, as wide as its `footprint` (half-width in pixels,
+  0.3 of its width by default; a scene layer can set it, 0 for none). The look's "Shadow under them" sets how dark.
+- Wet ground mirrors the set around the scene's reflection line (`mirror`), and each character around its own feet, so
+  the walk line can run in front of the set's ground line and reflections still start at the boots.
+- The look's "Edges taking the light around" softens a character's outline into what is behind it, so it sits in the
+  picture rather than on it.
+- A scene's `ambient` and `exposure` (stops) can each be one number or one per view: a dark raw room can be a white
+  apartment to the Concierge.

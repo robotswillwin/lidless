@@ -2,7 +2,7 @@
 
 import { solidTexture, textureFromImage, type GL } from './gl';
 
-export type MapName = 'albedo.raw' | 'albedo.concierge' | 'normal' | 'material' | 'meta' | 'glow.raw' | 'glow.concierge';
+export type MapName = 'albedo.raw' | 'albedo.concierge' | 'normal' | 'normal.concierge' | 'material' | 'material.concierge' | 'meta' | 'glow.raw' | 'glow.concierge';
 
 export interface SpriteDef {
   name: string;
@@ -19,6 +19,8 @@ export interface SpriteDef {
   anchor?: [number, number];
   /** Which way a placed character faces: -1 turns it to the left (mirrored, unless it has frames of its own for that). */
   facing?: 1 | -1;
+  /** For a character: half the width of its shadow on the ground, in pixels; 0 for none. By default 0.3 of its width. */
+  footprint?: number;
   /**
    * Which views it is in: both (real), concierge (generated, made up by the Concierge) or raw (real, but the
    * Concierge edits it out). The albedo of a view it is not in is transparent, so this is information for tools.
@@ -96,6 +98,8 @@ export interface SceneDef {
    * One number for both views, or one per view, since a dark raw room can be a white one to the Concierge.
    */
   ambient?: number | { raw?: number; concierge?: number };
+  /** Exposure in stops, over the look's: 0 by default. One number for both views, or one per view (a white room in the Concierge's view). */
+  exposure?: number | { raw?: number; concierge?: number };
   /** Flying traffic far away; ar = only in Concierge view. */
   traffic?: { lanes: number[]; perLane: number; x0: number; span: number; ar?: number };
 }
@@ -146,15 +150,18 @@ export async function loadSprite(gl: GL, base: string, name: string, fallback: R
   const got = new Map<MapName, WebGLTexture>(imgs.map(([m, img]) => [m, textureFromImage(gl, img)]));
   const albR = got.get('albedo.raw');
   if (!albR) throw new Error(`${name} has no albedo.raw map`);
-  const glowR = got.get('glow.raw') ?? fallback.glow;
+  const glowR = got.get('glow.raw') ?? fallback.glow, normal = got.get('normal') ?? fallback.normal, material = got.get('material') ?? fallback.material;
   return {
     def,
     hasMeta: got.has('meta'),
     tex: {
       'albedo.raw': albR,
       'albedo.concierge': got.get('albedo.concierge') ?? albR,
-      normal: got.get('normal') ?? fallback.normal,
-      material: got.get('material') ?? fallback.material,
+      normal,
+      // a thing that looks different to the Concierge has its own surface there; otherwise both views share one
+      'normal.concierge': got.get('normal.concierge') ?? normal,
+      material,
+      'material.concierge': got.get('material.concierge') ?? material,
       meta: got.get('meta') ?? fallback.meta,
       'glow.raw': glowR,
       'glow.concierge': got.get('glow.concierge') ?? glowR,

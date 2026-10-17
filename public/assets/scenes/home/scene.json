@@ -26,8 +26,9 @@
    ],
    "i": 2.0,
    "zone": 0,
-   "haze": 0.3,
-   "shadow": 1
+   "haze": 0.12,
+   "shadow": 1,
+   "layer": 1
   },
   {
    "x": 579,
@@ -41,7 +42,7 @@
    ],
    "i": 0.9,
    "zone": 0,
-   "haze": 0.2
+   "haze": 0.1
   },
   {
    "x": 541,
@@ -291,5 +292,8 @@
  "ambient": {
   "raw": 2.2,
   "concierge": 0.85
+ },
+ "exposure": {
+  "concierge": -0.25
  }
 }

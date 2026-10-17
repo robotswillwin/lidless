@@ -9,8 +9,10 @@
     "albedo.raw",
     "glow.concierge",
     "material",
+    "material.concierge",
     "meta",
-    "normal"
+    "normal",
+    "normal.concierge"
   ],
   "depth": 3,
   "parallax": 1,

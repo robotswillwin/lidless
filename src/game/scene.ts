@@ -1,6 +1,6 @@
 // Turns a loaded scene plus the current state into a frame for the renderer.
 
-import type { LoadedScene } from '../engine/assets';
+import type { LoadedScene, SpriteDef } from '../engine/assets';
 import type { DrawSprite, Frame } from '../engine/renderer';
 import { frameFor, hasLeft } from './anim';
 
@@ -28,6 +28,7 @@ export class SceneRunner {
   private beacons = new Float32Array(128);
   private steam = new Float32Array(16);
   private godrays = new Float32Array(16);
+  private shadows = new Float32Array(32);
   private smokeSlot: number;
 
   /** Sprites named in `dynamic` are left out; the game draws them itself (the hero). */
@@ -48,18 +49,34 @@ export class SceneRunner {
   frame(t: number, v: ViewState, cam: [number, number], actors: DrawSprite[] = [], smoke?: [number, number]): Frame {
     const d = this.scene.def;
     if (smoke && this.smokeSlot >= 0) this.steam.set(smoke, this.smokeSlot * 4);
-    const sprites: DrawSprite[] = this.scene.sprites.filter((s) => !this.dynamic.has(s.def.name)).map((sprite) => {
+    // the set first, in the scene's order; then the people, the nearest last, so whoever stands nearer covers whoever is behind
+    const isPerson = (def: SpriteDef) => def.actor ?? def.kind === 'character';
+    const set: DrawSprite[] = [], people: DrawSprite[] = [];
+    for (const sprite of this.scene.sprites) {
+      if (this.dynamic.has(sprite.def.name)) continue;
       const def = sprite.def, facing = def.facing ?? 1;
       // a character placed in the scene plays its idle loop, facing the way the scene says
-      return {
+      const draw = {
         sprite,
         x: Math.round(def.x - cam[0] * def.parallax),
         y: Math.round(def.y - cam[1] * def.parallax),
         flip: facing < 0 && !hasLeft(def),
         frame: def.frames ? frameFor(def, false, 0, t, facing) : 0,
       };
-    });
-    sprites.push(...actors);
+      (isPerson(def) ? people : set).push(draw);
+    }
+    people.push(...actors);
+    const foot = (d: DrawSprite) => d.y + d.sprite.def.h;
+    people.sort((a, b) => foot(a) - foot(b));
+    const sprites = [...set, ...people];
+    // a shadow on the ground under each of them, centred under the feet (the anchor), as wide as their footprint
+    this.shadows.fill(0);
+    let nShadows = 0;
+    for (const d of people) {
+      const def = d.sprite.def, ax = def.anchor?.[0] ?? def.w / 2, half = def.footprint ?? def.w * 0.3;
+      if (half <= 0 || nShadows >= 8) continue;
+      this.shadows.set([d.x + (d.flip ? def.w - ax : ax), foot(d), half, 0], nShadows++ * 4);
+    }
     let nCars = 0;
     const tr = d.traffic;
     if (tr) {
@@ -93,6 +110,9 @@ export class SceneRunner {
       drips: dr ? [dr.x0, dr.x1, dr.top, dr.bottom] : [0, 0, 0, 0],
       mirror: d.mirror,
       ambient: typeof d.ambient === 'object' ? (d.ambient.raw ?? 1) + ((d.ambient.concierge ?? 1) - (d.ambient.raw ?? 1)) * v.view : d.ambient,
+      exposure: typeof d.exposure === 'object' ? (d.exposure.raw ?? 0) + ((d.exposure.concierge ?? 0) - (d.exposure.raw ?? 0)) * v.view : d.exposure,
+      shadows: this.shadows,
+      nShadows,
     };
   }
 }

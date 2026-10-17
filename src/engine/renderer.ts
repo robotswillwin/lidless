@@ -70,11 +70,16 @@ export interface Frame {
   mirror: number;
   /** The scene's ambient light, over the look's: 1 by default. */
   ambient?: number;
+  /** The scene's exposure in stops, over the look's: 0 by default. */
+  exposure?: number;
+  /** Shadows on the ground under the characters: x and y of the feet on screen, half-width, unused; up to 8. */
+  shadows?: Float32Array;
+  nShadows?: number;
 }
 
 const MAP_ORDER: [MapName, string][] = [
-  ['albedo.raw', 'tAlbR'], ['albedo.concierge', 'tAlbC'], ['normal', 'tNrm'], ['material', 'tMat'],
-  ['meta', 'tMeta'], ['glow.raw', 'tGlowR'], ['glow.concierge', 'tGlowC'],
+  ['albedo.raw', 'tAlbR'], ['albedo.concierge', 'tAlbC'], ['normal', 'tNrm'], ['normal.concierge', 'tNrmC'], ['material', 'tMat'],
+  ['material.concierge', 'tMatC'], ['meta', 'tMeta'], ['glow.raw', 'tGlowR'], ['glow.concierge', 'tGlowC'],
 ];
 
 export class Renderer {
@@ -189,6 +194,7 @@ export class Renderer {
       gl.uniform1f(sp.u.uHasMeta, s.hasMeta ? 1 : 0);
       // a character stands in front of the set: lights behind it rim it, and the set's glow mostly stays behind it
       gl.uniform1f(sp.u.uHaze, def.actor ?? def.kind === 'character' ? (def.haze ?? k.charGlow) : -1);
+      gl.uniform1f(sp.u.uFoot, Math.min(1, Math.max(0, (d.y + def.h) / NH)));
       gl.uniform4f(sp.u.uConst, def.occluder ?? 0, def.depth, def.reflectivity ?? 0, def.object ?? 0);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
     }
@@ -227,6 +233,7 @@ export class Renderer {
       gl.uniform4f(pr.u.uLookL, k.lights, k.ambient * (f.ambient ?? 1), k.haze, k.glow);
       gl.uniform1f(pr.u.uGround, f.mirror);
       gl.uniform1f(pr.u.uFill, k.charFill); gl.uniform1f(pr.u.uRim, k.charRim); gl.uniform1f(pr.u.uRawColour, k.rawColour);
+      gl.uniform4fv(pr.u.uSh, f.shadows ?? new Float32Array(32)); gl.uniform1i(pr.u.uNSh, f.nShadows ?? 0); gl.uniform1f(pr.u.uShadowK, k.charShadow);
     });
 
     // depth of field: background-only blur at half resolution
@@ -244,7 +251,7 @@ export class Renderer {
       this.zoneUniforms(pr, f, 3);
       gl.uniform1f(pr.u.uTime, f.t); gl.uniform1f(pr.u.uDof, q.dof ? 1 : 0); gl.uniform1f(pr.u.uView, f.view);
       gl.uniform4fv(pr.u.uSteam, f.steam); gl.uniform4f(pr.u.uDrips, ...f.drips); gl.uniform1f(pr.u.uMirror, f.mirror);
-      gl.uniform1f(pr.u.uRawFog, k.rawFog);
+      gl.uniform1f(pr.u.uRawFog, k.rawFog); gl.uniform1f(pr.u.uWrap, k.charWrap);
     });
 
     // bloom at a quarter and an eighth of the resolution
@@ -272,7 +279,7 @@ export class Renderer {
       gl.uniform4fv(pr.u.uGR, q.godrays ? f.godrays : new Float32Array(16));
       gl.uniform4f(pr.u.uLookP, k.pixelSize, k.pixelShape, k.shapeAmount, k.colorLevels);
       gl.uniform4f(pr.u.uLookB, k.bloom, k.shafts, k.streaks, k.dither);
-      gl.uniform4f(pr.u.uLookC, k.exposure, k.contrast, k.saturation, k.temperature);
+      gl.uniform4f(pr.u.uLookC, k.exposure + (f.exposure ?? 0), k.contrast, k.saturation, k.temperature);
       gl.uniform4f(pr.u.uLookF, k.tint, k.vignette, k.grain, k.aberration);
     });
   }

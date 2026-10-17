@@ -112,7 +112,8 @@
    "i": 1.3,
    "zone": 0,
    "haze": 0.15,
-   "shadow": 1
+   "shadow": 1,
+   "layer": 1
   },
   {
    "x": 673,
@@ -127,7 +128,8 @@
    "i": 1.3,
    "zone": 0,
    "haze": 0.15,
-   "shadow": 1
+   "shadow": 1,
+   "layer": 1
   },
   {
    "x": 231,

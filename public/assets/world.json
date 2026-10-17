@@ -5,7 +5,7 @@
   },
   "hero": {
     "sprite": "cast/hero",
-    "speed": 118
+    "speed": 170
   },
   "scenes": [
     "street",

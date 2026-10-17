@@ -4,7 +4,8 @@
 //   G0  rgb albedo for the current view      a  height (7 bits) and occluder flag (1 bit)
 //   G1  rg  normal xy                        b  specular         a  shininess
 //   G2  rgb glow / 2 for the current view    a  light group / 15
-//   G3  r   depth layer / 3                  g  reflectivity / 2  b  object id / 63   a  1 where something was drawn
+//   G3  r   depth layer / 3                  g  reflectivity / 2 (a character: its feet's height on screen / 540)
+//       b   object id / 63                   a  1 where something was drawn (a character: its share of the air, below 0.5)
 // Screen-space helpers use image coordinates (y down); P() and T() convert to GL's bottom-up targets.
 
 export const MAX_LIGHTS = 32;
@@ -57,12 +58,13 @@ void main() {
 export const SPRITE_FS = `#version 300 es
 precision highp float;
 in vec2 vUv;
-uniform sampler2D tAlbR, tAlbC, tNrm, tMat, tMeta, tGlowR, tGlowC;
+uniform sampler2D tAlbR, tAlbC, tNrm, tNrmC, tMat, tMatC, tMeta, tGlowR, tGlowC;
 uniform float uView;       // 0 raw, 1 Concierge
 uniform float uFlip;
 uniform vec4 uConst;       // fallbacks when a sprite has no meta map: occluder, depth, reflectivity, object id
 uniform float uHasMeta;
 uniform float uHaze;       // a character: how much of the set's glowing air shows over it, 0 to 1; the set: -1
+uniform float uFoot;       // a character: the height of its feet on screen, 0 at the top to 1 at the bottom
 layout(location = 0) out vec4 o0;
 layout(location = 1) out vec4 o1;
 layout(location = 2) out vec4 o2;
@@ -79,16 +81,20 @@ void main() {
     dep = floor(meta.g / 64.0); refl = floor(mod(meta.g, 64.0) / 16.0); mach = mod(meta.g, 2.0);
     grpR = floor(meta.b / 16.0); grpC = mod(meta.b, 16.0);
   }
-  vec3 n = texture(tNrm, vUv).rgb * 2.0 - 1.0;
+  // each view has its own surface: the Concierge's walls are smooth where the real ones are cracked
+  float cv = step(0.5, uView);
+  vec3 n = mix(texture(tNrm, vUv).rgb, texture(tNrmC, vUv).rgb, cv) * 2.0 - 1.0;
   if (uFlip > 0.5) n.x = -n.x;
-  vec3 m = texture(tMat, vUv).rgb;
+  vec3 m = mix(texture(tMat, vUv).rgb, texture(tMatC, vUv).rgb, cv);
   vec3 gR = texture(tGlowR, vUv).rgb, gC = texture(tGlowC, vUv).rgb;
   vec3 g = uView > 0.5 ? gC : gR;
   float grp = (uView > 0.5 && grpC > 0.5 && dot(abs(gC - gR), vec3(1.0)) > 0.004) ? grpC : grpR;
   o0 = vec4(a.rgb, (floor(m.b * 127.0 + 0.5) * 2.0 + occ) / 255.0);
   o1 = vec4(n.xy * 0.5 + 0.5, m.r, m.g);
   o2 = vec4(g, (grp + 16.0 * mach) / 31.0);
-  o3 = vec4(dep / 3.0, refl / 2.0, obj / 63.0, uHaze < 0.0 ? 1.0 : uHaze * 0.5);
+  // a character is never a reflecting surface, so its reflectivity slot carries where its feet are: wet ground mirrors it
+  // around them, wherever it stands
+  o3 = vec4(dep / 3.0, uHaze < 0.0 ? refl / 2.0 : uFoot, obj / 63.0, uHaze < 0.0 ? 1.0 : uHaze * 0.5);
 }`;
 
 /* ---------- ambient occlusion: occluders, downsampled, then blurred with the shared blur ---------- */
@@ -114,6 +120,9 @@ uniform float uFill;      // the look: how much of a light behind a character re
 uniform float uRim;       // the look: how strongly a light behind a character catches its edges
 uniform float uGround;    // world y of the ground line
 uniform float uRawColour; // the look: how much of a surface's own colour raw view keeps, 0 a cold grey to 1 all of it
+uniform vec4 uSh[8];      // shadows on the ground under the characters: feet x, y on screen, half-width
+uniform int uNSh;
+uniform float uShadowK;   // the look: how dark the ground gets right under a character
 uniform vec4 uCars[16]; uniform int uNC;
 uniform vec4 uBeac[32]; uniform int uNB;
 float facadeW(vec2 w) { return w.y < 104.0 ? 1.0 : w.y > 424.0 ? 0.7 : w.x > 524.0 ? 0.5 : 0.18; }
@@ -176,8 +185,16 @@ void main() {
     float seen = layer < 0.5 ? air : layer < 1.5 ? mix(air, 1.0, 0.25) : 1.0;
     haze += mix(lc, tone(lc, RAW_AIR), raw) * gi * pow(att, LK.z > -1.5 ? 2.0 : 3.0) * cone * LG.w * zh * seen;
   }
+  // the ground under a character's feet gets less of every light, and of the ambient: it stands on it. Not the character
+  // itself, and not anything glowing
+  float ground = 1.0;
+  if (actor < 0.5) for (int s = 0; s < 8; s++) {
+    if (s >= uNSh) break;
+    vec4 sh = uSh[s]; vec2 r = (p - sh.xy) / vec2(sh.z, max(4.0, sh.z * 0.16));
+    ground *= 1.0 - uShadowK * (1.0 - smoothstep(0.1, 1.0, dot(r, r)));
+  }
   // the glowing air around lights: a person in front of it gets only the part between them and the eye (g3.a)
-  vec3 outc = col + spc + haze * mix(0.06, 0.16, z.g) * uLookL.z;
+  vec3 outc = (col + spc) * ground + haze * mix(0.06, 0.16, z.g) * uLookL.z;
   float ge = floor(g2.a * 31.0 + 0.5), machE = step(15.5, ge);
   vec3 em = lin(g2.rgb * 2.0);
   outc += mix(em, tone(em, RAW_LIGHT), raw * (1.0 - machE)) * uGI[int(mod(ge, 16.0))] * uLookL.w;
@@ -195,6 +212,7 @@ void main() {
 export const COMP_FS = HEAD + ZONE + `
 uniform sampler2D tA, tG3, tDof;
 uniform float uTime, uDof, uView, uRawFog;
+uniform float uWrap;      // the look: how much a character's outline softens into the light around it, and takes it on
 uniform vec4 uSteam[4];
 uniform vec4 uDrips;      // world x0, x1, top, bottom of the drip curtain; z <= 0 turns it off
 uniform float uMirror;    // world y of the reflection line
@@ -208,19 +226,40 @@ void main() {
   vec2 p = P(), w = p + uCam;
   vec3 c = T(tA, p).rgb;
   vec4 g3 = T(tG3, p), z = Z(p);
-  float dep = g3.r, refl = g3.g, GY = uMirror - uCam.y;
+  float dep = g3.r, refl = isActor(g3.a) > 0.5 ? 0.0 : g3.g, GY = uMirror - uCam.y;
   // a character takes the zone of the ground it stands on: rain falls in front of it out in the street
   z = mix(z, Z(vec2(p.x, GY)), isActor(g3.a));
   float dk = uDof * (dep < 0.15 ? 0.4 : dep < 0.5 ? 0.85 : dep < 0.8 ? 0.45 : 0.0);
   if (dk > 0.0) { vec4 b = texture(tDof, gl_FragCoord.xy / uRes); if (b.a > 0.02) c = mix(c, b.rgb / b.a, dk * smoothstep(0.02, 0.3, b.a)); }
   float raw = 1.0 - uView;
+  // a character sits in the picture, not on it: its outline softens into what is behind it, and the light around it wraps
+  // a little over its edges. Samples at 3 and 6 pixels that land on the set say how near the edge this pixel is
+  if (uWrap > 0.0 && isActor(g3.a) > 0.5) {
+    vec3 env = vec3(0.0); float n = 0.0;
+    for (int k = 0; k < 8; k++) {
+      vec2 dir = vec2(cos(float(k) * 0.7854), sin(float(k) * 0.7854));
+      for (int j = 1; j <= 2; j++) { vec2 q = p + dir * float(j) * 3.0; if (isActor(T(tG3, q).a) < 0.5) { env += T(tA, q).rgb; n += 1.0; } }
+    }
+    if (n > 0.0) { env /= n; float edge = n / 16.0; c = mix(c, env, min(0.6, edge * 0.5 * uWrap)) + env * edge * 0.5 * uWrap; }
+  }
   if (refl > 0.02) {
     float puddle = step(0.7, refl);
     // rain stirs the puddles in the real world; the Concierge's streets are wet glass
     float rip = (sin(p.y * 0.85 + uTime * 5.0 + w.x * 0.04) * mix(0.5, 1.6, puddle) + (vn(w * 0.08 + uTime) - 0.5) * 2.0 * puddle) * mix(0.25, 1.0, raw);
-    vec2 q = vec2(p.x + rip, 2.0 * GY - p.y);
+    // the set is mirrored around its ground line, and a character around its own feet: look up this column for the nearest
+    // character above this bit of ground. If the set's mirror lands on a character standing elsewhere, take the set beside it
+    vec2 qs = vec2(p.x + rip, 2.0 * GY - p.y), q = qs;
+    float F = -1.0;
+    for (int k = 1; k <= 32; k++) { vec4 ga = T(tG3, vec2(p.x, p.y - float(k) * 3.0)); if (isActor(ga.a) > 0.5) { F = ga.g * uRes.y; break; } }
+    bool mine = false;
+    if (F > 0.0 && p.y > F) { vec2 qa = vec2(p.x + rip, 2.0 * F - p.y); if (isActor(T(tG3, qa).a) > 0.5) { q = qa; mine = true; } }
+    float keep = 1.0;
+    if (!mine && isActor(T(tG3, qs).a) > 0.5) {
+      keep = 0.0;
+      for (int j = 1; j <= 4; j++) for (int s = -1; s <= 1; s += 2) { vec2 b = qs + vec2(float(s * j) * 14.0, 0.0); if (keep < 0.5 && isActor(T(tG3, b).a) < 0.5) { q = b; keep = 1.0; } }
+    }
     vec3 r = (T(tA, q).rgb * 2.0 + T(tA, q + vec2(0.0, 2.0)).rgb + T(tA, q - vec2(0.0, 2.0)).rgb + (T(tA, q + vec2(0.0, 5.0)).rgb + T(tA, q - vec2(0.0, 5.0)).rgb) * 0.6 + T(tA, q - vec2(0.0, 9.0)).rgb * 0.4) / 5.6;
-    float k = mix(0.42, 0.88, puddle) * (0.75 + 0.25 * smoothstep(GY, uRes.y, p.y));
+    float k = mix(0.42, 0.88, puddle) * (0.75 + 0.25 * smoothstep(GY, uRes.y, p.y)) * keep;
     c = c * (1.0 - k * 0.5) + r * k;
   }
   // raw view: the poisonous air between the eye and everything it sees, thicker with distance and outdoors
