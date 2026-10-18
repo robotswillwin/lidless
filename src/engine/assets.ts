@@ -1,6 +1,6 @@
 // Loads scenes and sprites in the asset contract format (see docs/ASSETS.md).
 
-import { solidTexture, textureFromImage, type GL } from './gl';
+import { setFilter, solidTexture, textureFromImage, type GL } from './gl';
 
 export type MapName = 'albedo.raw' | 'albedo.concierge' | 'normal' | 'normal.concierge' | 'material' | 'material.concierge' | 'meta' | 'glow.raw' | 'glow.concierge';
 
@@ -160,6 +160,8 @@ export async function loadSprite(gl: GL, base: string, name: string, fallback: R
   const def = await loadJSON<SpriteDef>(`${base}/${name}/sprite.json${q}`);
   const imgs = await Promise.all(def.maps.map(async (m) => [m, await loadImage(`${base}/${name}/${m}.png${q}`)] as const));
   const got = new Map<MapName, WebGLTexture>(imgs.map(([m, img]) => [m, textureFromImage(gl, img)]));
+  // a character is drawn smaller or larger than it was made, so it is sampled smoothly; its packed flags never are
+  if (def.actor ?? def.kind === 'character') for (const [m, t] of got) if (m !== 'meta') setFilter(gl, t, false);
   const albR = got.get('albedo.raw');
   if (!albR) throw new Error(`${name} has no albedo.raw map`);
   const glowR = got.get('glow.raw') ?? fallback.glow, normal = got.get('normal') ?? fallback.normal, material = got.get('material') ?? fallback.material;

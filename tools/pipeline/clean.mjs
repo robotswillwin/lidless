@@ -56,6 +56,32 @@ export async function fitToHeight(img, box, height) {
 }
 
 /** Hard pixel-art edges: alpha becomes 0 or 255. */
+/**
+ * Spread the colours at a cut-out's edge into the transparent pixels around it, a few pixels deep, alpha unchanged: the
+ * engine samples characters smoothly, and an edge mixed with the black of empty pixels would come out dark.
+ */
+export function bleedEdges(img, depth = 4) {
+  const { w, h, d } = img, have = new Uint8Array(w * h);
+  for (let p = 0; p < w * h; p++) have[p] = d[p * 4 + 3] >= 128 ? 1 : 0;
+  for (let pass = 0; pass < depth; pass++) {
+    const fill = [];
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const p = y * w + x;
+      if (have[p]) continue;
+      let r = 0, g = 0, b = 0, n = 0;
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1]]) {
+        const xx = x + dx, yy = y + dy;
+        if (xx < 0 || yy < 0 || xx >= w || yy >= h || !have[yy * w + xx]) continue;
+        const q = (yy * w + xx) * 4; r += d[q]; g += d[q + 1]; b += d[q + 2]; n++;
+      }
+      if (n) fill.push([p, r / n, g / n, b / n]);
+    }
+    if (!fill.length) break;
+    for (const [p, r, g, b] of fill) { d[p * 4] = r; d[p * 4 + 1] = g; d[p * 4 + 2] = b; have[p] = 1; }
+  }
+  return img;
+}
+
 export function hardenAlpha(img, threshold = 128) {
   for (let i = 3; i < img.d.length; i += 4) img.d[i] = img.d[i] >= threshold ? 255 : 0;
   return img;

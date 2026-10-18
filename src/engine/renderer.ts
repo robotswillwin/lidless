@@ -198,7 +198,7 @@ export class Renderer {
       if (d.x > NW || d.y > NH || d.x + dw < 0 || d.y + dh < 0) continue;
       MAP_ORDER.forEach(([m, u], i) => this.bind(sp, u, s.tex[m], i));
       gl.uniform4f(sp.u.uRect, d.x, d.y, dw, dh);
-      gl.uniform1f(sp.u.uSS, sc < 0.75 ? Math.min(4, Math.ceil(1 / sc)) : 1);
+      gl.uniform1f(sp.u.uSS, sc < 0.9 ? Math.min(4, Math.ceil(1.5 / sc)) : 1);
       gl.uniform1f(sp.u.uFlip, d.flip ? 1 : 0);
       const fr = def.frames, fi = fr ? Math.max(0, Math.min(fr.count - 1, d.frame ?? 0)) : 0, tw = fr ? fr.count * def.w + (fr.count - 1) * fr.gutter : def.w;
       gl.uniform2f(sp.u.uUV, (fi * (def.w + (fr?.gutter ?? 0))) / tw, def.w / tw);

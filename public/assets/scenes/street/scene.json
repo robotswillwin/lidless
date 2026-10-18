@@ -201,11 +201,11 @@
   }
  ],
  "walk": {
-  "y": 416,
+  "y": 470,
   "x0": 30,
   "x1": 798
  },
- "mirror": 404,
+ "mirror": 470,
  "spawns": {
   "start": {
    "x": 420,
@@ -461,7 +461,7 @@
    ]
   ]
  },
- "actorScale": 0.44,
+ "actorScale": 0.58,
  "ambient": {
   "raw": 1.2,
   "concierge": 1.4

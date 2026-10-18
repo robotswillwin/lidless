@@ -5,7 +5,7 @@ import { existsSync } from 'node:fs';
 import { copyFile, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { basename, dirname, join, relative, resolve } from 'node:path';
 import sharp from 'sharp';
-import { cleanEdges, contentBox, fillHoles, fitColours, fitToHeight, hardenAlpha, isOpaque, paletteFit, pixelate, removeFlatBackground, silhouetteMatch, unionBox } from './clean.mjs';
+import { bleedEdges, cleanEdges, contentBox, fillHoles, fitColours, fitToHeight, hardenAlpha, isOpaque, paletteFit, pixelate, removeFlatBackground, silhouetteMatch, unionBox } from './clean.mjs';
 import { glowAuto, heightMap, materialMap, metaMap, normalMap } from './derive.mjs';
 import { blank, crop, readRGBA, resize, writePNG } from './image.mjs';
 import { edit, generate } from './openai.mjs';
@@ -534,7 +534,8 @@ async function writeAnimated(r, raws, concs, { anchorX, anims }) {
   };
   const out = resolve(ROOT, 'public/assets', r.scene, r.name);
   await mkdir(out, { recursive: true });
-  for (const [name, imgs] of Object.entries(maps)) await writePNG(join(out, `${name}.png`), strip(imgs), { rgb: !name.startsWith('albedo') });
+  // a character's colours run on a little past its edge, for the engine's smooth sampling
+  for (const [name, imgs] of Object.entries(maps)) await writePNG(join(out, `${name}.png`), name.startsWith('albedo') ? bleedEdges(strip(imgs)) : strip(imgs), { rgb: !name.startsWith('albedo') });
   const anchor = [anchorX ?? Math.round(w / 2), h], [cx, base] = r.position ?? [480, 464];
   const sprite = {
     name: r.name, x: cx - anchor[0], y: base - h, w, h, maps: Object.keys(maps).sort(),

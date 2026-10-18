@@ -154,8 +154,10 @@ one picture per view with its night light painted in, and the engine adds what m
   mirrored again; only the characters are. The lights are there for the characters: put them on the painted lamps,
   signs and windows, with a soft fill in the scene's colour (layer 1) so the hero reads against the city, and keep
   their `haze` low, or the painted glow doubles up. A lamp keeps the colour it is given in raw view.
-- `actorScale` is how big people are drawn: 0.44 on the street and in her home, the camera pulled back, so Lux is
-  about 106 pixels tall, as tall as the Lux in the concept panel. Her pace on screen goes with its square root. Under 1 the engine averages the sprite's pixels, so she shrinks
+- `actorScale` is how big people are drawn: on the street 0.58, walking at its front edge (walk line 470), so she is in
+  the foreground and not out in the plaza; in her home 0.44, the right size for its door and furniture. Characters are
+  sampled smoothly and shrunk by averaging what each screen pixel covers, their colours bled a few pixels past their
+  edges by the build, so a small figure keeps clean edges and does not sparkle or boil as she walks. Her pace on screen goes with its square root. Under 1 the engine averages the sprite's pixels, so she shrinks
   smoothly; over 1 is a closeup.
 - The look panel (L) tunes painted scenes like any other: its Ambient sets how bright the painted set and its people
   are shown, its Lights what the lamps add, and haze, glow, bloom, light shafts, grain and the rest work as usual. The
@@ -206,5 +208,5 @@ lifted. The world's `hero.cadence` (strides a second, 1.0) sets her pace from he
 the walk never turns into a scurry when she is drawn small.
 
 A character is softened into the scene: the pixels she only partly covers take the rest of their colour from the set
-around her, and the look's "Edges taking the light around" (0.3) and "Glow over them" (0.15) let the city's light wrap
-her outline and its haze lie over her.
+around her. The look's "Edges taking the light around" (0.15) and "Glow over them" (0.03) stay low: more of the scene's
+air over her made her read as far away.
