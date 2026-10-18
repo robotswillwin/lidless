@@ -29,8 +29,9 @@ Then open the address Vite prints.
   raw-view fog, how lights behind characters fill and rim them and how much glow shows over them, exposure,
   contrast, saturation, temperature, tint, vignette, grain and colour fringes, all live. Each setting is shared by
   both views, or split (its **both** button): then raw view and Concierge view have values of their own, and the
-  slider edits the view on screen. Tuning is kept in the browser; **Save** (on the dev server) makes it the game's
-  look, in `public/assets/look.json`.
+  slider edits the view on screen. Tuning is kept in the browser, until the game's look changes: then it is set
+  aside, so a browser never shows the game through settings made for art that is gone. **Save** (on the dev server)
+  makes it the game's look, in `public/assets/look.json`.
 - The game saves as you go. Add `?new` to the address to start over, `?debug` to see the tier and frame rate.
 
 Other commands:

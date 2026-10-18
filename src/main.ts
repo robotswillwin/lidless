@@ -66,6 +66,9 @@ async function boot(): Promise<void> {
     const next = await sceneById(id), sp = at.spawn ? next.file.spawns[at.spawn] : undefined;
     scene = next;
     runner = new SceneRunner(next.loaded);
+    // her pace follows her stride at her size here, so each foot stays where it lands
+    const walk = heroSprite.def.anims?.walk;
+    if (worldFile.hero.cadence && walk?.stride) next.level.hero.speed = worldFile.hero.cadence * walk.stride * (next.file.actorScale ?? 1);
     world = new World(next.level, at.x ?? sp?.x, at.facing ?? sp?.facing);
     camX = camTarget();
     cam[0] = Math.round(camX);

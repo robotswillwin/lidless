@@ -14,7 +14,7 @@
   "rawFog": 1,
   "charFill": 1,
   "charRim": 1,
-  "charGlow": 0.02,
+  "charGlow": 0.15,
   "exposure": 0,
   "contrast": 1,
   "saturation": 1,
@@ -23,7 +23,7 @@
   "vignette": 1,
   "grain": 0.12,
   "aberration": 0,
-  "charWrap": 0.12,
+  "charWrap": 0.3,
   "raw": {
     "rawColour": 1,
     "rawFog": 0.55

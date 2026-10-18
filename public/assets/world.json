@@ -12,7 +12,8 @@
       "matches",
       "cigarettes",
       "map"
-    ]
+    ],
+    "cadence": 1.0
   },
   "scenes": [
     "street",

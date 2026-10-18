@@ -25,7 +25,7 @@ export interface LookPanelOptions {
 const VIEW_LABEL: Record<ViewName, string> = { raw: 'raw view', concierge: 'Concierge view' };
 
 export function createLookPanel(renderer: Renderer, project: LookSet, host: HTMLElement, opts: LookPanelOptions): LookPanel {
-  let set = loadLocalLook() ?? cloneLookSet(project), saved = cloneLookSet(project);
+  let set = loadLocalLook(project) ?? cloneLookSet(project), saved = cloneLookSet(project);
   renderer.setLook(set);
 
   const el = <K extends keyof HTMLElementTagNameMap>(tag: K, className = '', text = '') => {
@@ -48,7 +48,7 @@ export function createLookPanel(renderer: Renderer, project: LookSet, host: HTML
   };
   const changed = () => JSON.stringify(lookSetJSON(set)) !== JSON.stringify(lookSetJSON(saved));
   const status = (text?: string) => { note.textContent = text ?? (changed() ? 'Not saved: kept in this browser only.' : ''); };
-  const keep = () => { renderer.setLook(set); saveLocalLook(set); };
+  const keep = () => { renderer.setLook(set); saveLocalLook(set, saved); };
 
   /** Show every setting as it is in the view on screen. */
   const sync = () => {
@@ -71,7 +71,7 @@ export function createLookPanel(renderer: Renderer, project: LookSet, host: HTML
   const replace = (next: LookSet, kept: boolean) => {
     set = cloneLookSet(next);
     renderer.setLook(set);
-    saveLocalLook(kept ? set : null);
+    saveLocalLook(kept ? set : null, saved);
     sync();
   };
 

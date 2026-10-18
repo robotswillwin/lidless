@@ -72,29 +72,20 @@
     },
     "proportions": {
       "head": 0.15,
-      "torso": 0.305,
-      "coat": 0.33,
+      "torso": 0.3,
+      "coat": 0.335,
       "upperArm": 0.155,
       "forearm": 0.195,
-      "thigh": 0.235,
-      "shin": 0.31,
+      "thigh": 0.24,
+      "shin": 0.315,
       "boot": 0.23
     },
     "gait": {
-      "stride": 0.7,
-      "knee": 0.85,
-      "swing": 0.45,
-      "elbow": 12,
-      "lean": 1,
+      "stride": 1.5,
+      "arms": 10,
       "idle": {
-        "legFarUpper": 7,
-        "legFarLower": -14,
-        "armUpper": -2,
-        "armLower": 10,
-        "armFarUpper": 3,
-        "armFarLower": 12,
-        "torso": 1,
-        "head": -1
+        "step": 0.1,
+        "heel": 14
       }
     }
   },

@@ -154,7 +154,8 @@ one picture per view with its night light painted in, and the engine adds what m
   mirrored again; only the characters are. The lights are there for the characters: put them on the painted lamps,
   signs and windows, with a soft fill in the scene's colour (layer 1) so the hero reads against the city, and keep
   their `haze` low, or the painted glow doubles up. A lamp keeps the colour it is given in raw view.
-- `actorScale` is how big people are drawn: 0.39 on the street, the camera pulled back, so Lux is about 94 pixels tall. Her pace on screen goes with its square root. Under 1 the engine averages the sprite's pixels, so she shrinks
+- `actorScale` is how big people are drawn: 0.44 on the street and in her home, the camera pulled back, so Lux is
+  about 106 pixels tall, as tall as the Lux in the concept panel. Her pace on screen goes with its square root. Under 1 the engine averages the sprite's pixels, so she shrinks
   smoothly; over 1 is a closeup.
 - The look panel (L) tunes painted scenes like any other: its Ambient sets how bright the painted set and its people
   are shown, its Lights what the lamps add, and haze, glow, bloom, light shafts, grain and the rest work as usual. The
@@ -164,8 +165,9 @@ one picture per view with its night light painted in, and the engine adds what m
 - `actorLight` shows the scene's people in their own drawn colours times a tint, one per view (the street: a touch of
   violet in the Concierge's, olive and dimmer in raw), with the lamps near them adding their light. Flat-shaded figures
   then read as in the concept art instead of dimmed by the night.
-- A painted scene's colours are final: the game's built-in grade (cool shadows, warm highlights, less saturated darks)
-  is left out for it, so the street and its people come out as drawn.
+- A painted scene's colours are final: the game's built-in grade and film curve are left out for it, its colours pass
+  straight through with a soft shoulder over the light the game adds, so the street and its people come out as drawn
+  and bloom comes from the lights, not from every bright painted pixel.
 - `dof: false` keeps far shapes sharp; `rain` (0 to 1) sets how hard it rains in raw view, a drizzle at 0.2.
 - A light with `raw: 1` exists only in raw view, as `ar: 1` only in the Concierge's: the moon, a machine's own eye.
 - Its hotspots and lights were placed on the picture by a coordinate grid over the built albedo maps.
@@ -193,6 +195,16 @@ fingertips 0.195, the coat from the hip to the hem 0.34. Baking resizes each par
 knee-high boot, so with `boot` (0.235) the lower leg is built as her trouser leg from the knee, carried on from the
 thigh, into a boot of that height; stretched whole, the boot and foot came out far too big.
 
-`parts.gait` gives the walk its character: shorter steps (`stride` 0.7, `knee` 0.85), arms held closer with a soft
-bend (`swing` 0.45, `elbow` 12), an upright back (`lean` 1), and `idle`, her stance: weight on one leg, the other
-relaxed, arms softly bent. The standard walk read as masculine on her.
+Her walk is built from where her feet go, not from a table of angles. The boot is split at the ankle into a shin and
+a foot, the foot knowing where its heel and toe touch the ground. Each foot is planted for the stance part of the cycle,
+landing on its heel, rolling flat and pushing off from its toe, and swings forward for the rest; the legs reach the
+feet by inverse kinematics, and the hip rides as high as both legs allow, dipping at each heel strike. Baked at 16
+frames a cycle, a planted foot moves back exactly a sixteenth of the stride per frame, so in the game it stays where it
+landed. `parts.gait` changes it (`GAIT` in tools/pipeline/parts.mjs: stride 1.5 leg lengths, arms swinging 10°,
+elbows softly bent, an upright back), and `gait.idle` her stance: weight on the near leg, the far leg free with its heel
+lifted. The world's `hero.cadence` (strides a second, 1.0) sets her pace from her stride at her size in each scene, so
+the walk never turns into a scurry when she is drawn small.
+
+A character is softened into the scene: the pixels she only partly covers take the rest of their colour from the set
+around her, and the look's "Edges taking the light around" (0.3) and "Glow over them" (0.15) let the city's light wrap
+her outline and its haze lie over her.

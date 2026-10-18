@@ -151,21 +151,38 @@ export async function loadProjectLook(base: string): Promise<LookSet> {
   return defaultLookSet();
 }
 
-const LOCAL = 'lidless.look.v1';
+/**
+ * Tuning in progress in this browser is kept with the game's look it was made from. When that look changes (it is
+ * saved, or the art changes and the look with it), tuning made against the old one is set aside, so a browser never
+ * keeps showing the game through settings for art that is gone. The first version of this key had no such stamp.
+ */
+const LOCAL = 'lidless.look.v2', OLD_LOCAL = 'lidless.look.v1';
 
-/** Tuning in progress in this browser, if any. */
-export function loadLocalLook(): LookSet | null {
+/** A short stamp of a look, to tell whether tuning was made against it. */
+const stamp = (set: LookSet): string => {
+  const s = JSON.stringify(lookSetJSON(set));
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = (Math.imul(h, 33) + s.charCodeAt(i)) >>> 0;
+  return h.toString(36);
+};
+
+/** Tuning in progress in this browser, if any, made against the game's look `project`. */
+export function loadLocalLook(project: LookSet): LookSet | null {
   try {
+    localStorage.removeItem(OLD_LOCAL);
     const raw = localStorage.getItem(LOCAL);
-    return raw ? cleanLookSet(JSON.parse(raw)) : null;
+    if (!raw) return null;
+    const { against, look } = JSON.parse(raw) as { against?: string; look?: unknown };
+    if (against !== stamp(project)) { localStorage.removeItem(LOCAL); return null; }
+    return cleanLookSet(look);
   } catch {
     return null;
   }
 }
 
-export function saveLocalLook(set: LookSet | null): void {
+export function saveLocalLook(set: LookSet | null, project?: LookSet): void {
   try {
-    if (set) localStorage.setItem(LOCAL, JSON.stringify(lookSetJSON(set)));
+    if (set && project) localStorage.setItem(LOCAL, JSON.stringify({ against: stamp(project), look: lookSetJSON(set) }));
     else localStorage.removeItem(LOCAL);
   } catch {
     // private windows and blocked storage: tuning still works, it just is not kept

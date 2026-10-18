@@ -7,11 +7,11 @@ import { basename, dirname, join, relative, resolve } from 'node:path';
 import sharp from 'sharp';
 import { cleanEdges, contentBox, fillHoles, fitColours, fitToHeight, hardenAlpha, isOpaque, paletteFit, pixelate, removeFlatBackground, silhouetteMatch, unionBox } from './clean.mjs';
 import { glowAuto, heightMap, materialMap, metaMap, normalMap } from './derive.mjs';
-import { blank, readRGBA, resize, writePNG } from './image.mjs';
+import { blank, crop, readRGBA, resize, writePNG } from './image.mjs';
 import { edit, generate } from './openai.mjs';
 import { KINDS, ROOT, loadRecipe, recipeTemplate } from './recipe.mjs';
 import { blockoutPNG, camera as roomCamera } from './blockout.mjs';
-import { conciergePartsPrompt, cut as cutParts, otherSidePrompt, PARTS as PARTS_NAMES, partsPrompt, plant, pointOf, pose as posePartsRig, SHEET, template as partsTemplate, walkAngles } from './parts.mjs';
+import { conciergePartsPrompt, cut as cutParts, otherSidePrompt, PARTS as PARTS_NAMES, partsPrompt, plant, pointOf, pose as posePartsRig, SHEET, standPose, template as partsTemplate, walkAngles, walkCycle } from './parts.mjs';
 import { conciergePrompt, extendPrompt, generationPrompt, LAYOUT_REFERENCES_NOTE, layoutNote, LOOKS, REDRESS_REFERENCES_NOTE, redressPrompt, reframePrompt, REFERENCE_NOTE, REFERENCE_NOTE_VECTOR, VARIANT_REFERENCES_NOTE } from './style.mjs';
 
 try { process.loadEnvFile(resolve(ROOT, '.env.local')); } catch { /* no .env.local: fine until an API call needs the key */ }
@@ -671,7 +671,7 @@ async function proportion(parts, prop) {
     const w = Math.max(1, Math.round(p.img.w * s)), h = Math.max(1, Math.round(p.img.h * s));
     parts[name] = { img: await resize(p.img, w, h), joints: Object.fromEntries(Object.entries(p.joints).map(([j, [x, y]]) => [j, [(x * w) / p.img.w, (y * h) / p.img.h]])) };
   }
-  if (prop.boot && prop.shin && parts.shin && parts.thigh) parts.shin = await lowerLeg(parts.shin.img, parts.thigh, prop.boot * unit, prop.shin * unit);
+  if (prop.boot && prop.shin && parts.shin && parts.thigh) Object.assign(parts, await lowerLeg(parts.shin.img, parts.thigh, prop.boot * unit, prop.shin * unit));
   return parts;
 }
 
@@ -686,7 +686,8 @@ function span(img, y) {
 /**
  * The lower leg as her design has it: the trouser leg from the knee, carried on from the bottom of her thigh, tucked
  * into a boot of the design's height. An image model draws the shin part as a knee-high boot; stretched to the length
- * of her shin, its foot would come out far too big.
+ * of her shin, its foot would come out far too big. It comes back as two parts, the shin down to the ankle and the foot
+ * below it, overlapping a little so the ankle can bend, the foot knowing where its heel and toe touch the ground.
  */
 async function lowerLeg(bootImg, thigh, bootH, shinLen) {
   const boot = await resize(bootImg, Math.max(1, Math.round((bootImg.w * bootH) / bootImg.h)), Math.max(1, Math.round(bootH)));
@@ -706,7 +707,22 @@ async function lowerLeg(bootImg, thigh, bootH, shinLen) {
   const over4 = (img, ox, oy) => { for (let y = 0; y < img.h; y++) for (let x = 0; x < img.w; x++) { const i = (y * img.w + x) * 4; if (img.d[i + 3] < 128) continue; const X = ox + x, Y = oy + y; if (X >= 0 && Y >= 0 && X < W && Y < H) out.d.set(img.d.subarray(i, i + 4), (Y * W + X) * 4); } };
   over4(tube, tx, 0);
   over4(boot, 0, H - boot.h);
-  return { img: out, joints: { knee: [cx, k0] } };
+  // the ankle: a little above where the boot's front starts reaching forward over the foot, in the middle of the shaft
+  const by = H - boot.h, shaft = top[1] - top[0] + 1;
+  let toeRow = boot.h - 1;
+  for (let y = Math.round(boot.h * 0.4); y < boot.h; y++) { const sp = span(boot, y); if (sp && sp[1] > top[1] + shaft * 0.2) { toeRow = y; break; } }
+  const ankleRow = Math.max(Math.round(boot.h * 0.45), toeRow - Math.round(shaft * 0.3)), at = span(boot, ankleRow) ?? top;
+  const ax = (at[0] + at[1]) / 2, ay = by + ankleRow, lap = Math.max(3, Math.round(shaft * 0.18));
+  const shin = crop(out, 0, 0, W, Math.min(H, ay + lap)), foot = crop(out, 0, ay - lap, W, H - (ay - lap));
+  // the sole's back and front, where the heel and the toe touch the ground
+  let soleY = foot.h - 1;
+  while (soleY > 0 && !span(foot, soleY)) soleY--;
+  let hx = Infinity, fx = -Infinity;
+  for (let y = Math.max(0, soleY - Math.round(foot.h * 0.06)); y <= soleY; y++) { const sp = span(foot, y); if (sp) { hx = Math.min(hx, sp[0]); fx = Math.max(fx, sp[1]); } }
+  return {
+    shin: { img: shin, joints: { knee: [cx, k0], ankle: [ax, ay] } },
+    foot: { img: foot, joints: { ankle: [ax, lap], heel: [hx, soleY], toe: [fx, soleY] } },
+  };
 }
 
 /**
@@ -716,8 +732,8 @@ async function lowerLeg(bootImg, thigh, bootH, shinLen) {
 async function bakeParts(r, dir) {
   const all = JSON.parse(await readFile(join(dir, 'parts.json'), 'utf8')), W = 1600, H = 2000, origin = [800, 900];
   const mirror = (img) => { const out = blank(img.w, img.h); for (let y = 0; y < img.h; y++) for (let x = 0; x < img.w; x++) out.d.set(img.d.subarray((y * img.w + x) * 4, (y * img.w + x) * 4 + 4), (y * img.w + (img.w - 1 - x)) * 4); return out; };
-  let stride = 0;
-  const done = [];
+  let stride = 0, count = 0;
+  const done = [], FAR = [-14, -6];
   for (const side of ['', '-left']) for (const look of ['raw', 'concierge']) {
     const v = look + side;
     if (!existsSync(join(dir, v, 'torso.png'))) continue;
@@ -728,24 +744,32 @@ async function bakeParts(r, dir) {
       parts[name] = left ? { img: mirror(img), joints: Object.fromEntries(Object.entries(info.joints).map(([j, [x, y]]) => [j, [img.w - 1 - x, y]])) } : { img, joints: info.joints };
     }
     await proportion(parts, r.parts?.proportions);
+    // with a foot of its own, the walk is built from where the feet go; without one, from the standard angles
+    const gait = r.parts?.gait ?? {}, cycle = parts.foot ? walkCycle(parts, gait, FAR) : null;
     const foot = [parts.shin.img.w * 0.55, parts.shin.img.h * 0.97];
-    const gait = r.parts?.gait ?? {};
-    if (v === 'raw') stride = 2 * (pointOf(parts, walkAngles(0, gait), 'legLower', foot, { origin })[0] - pointOf(parts, walkAngles(4, gait), 'legLower', foot, { origin })[0]);
+    if (v === 'raw') stride = cycle ? cycle.stride : 2 * (pointOf(parts, walkAngles(0, gait), 'legLower', foot, { origin })[0] - pointOf(parts, walkAngles(4, gait), 'legLower', foot, { origin })[0]);
     const write = async (anim, k, angles) => {
       const d = join(r.dir, 'anims', anim + (left ? 'Left' : ''));
       await mkdir(d, { recursive: true });
       const f = plant([posePartsRig(parts, angles, { w: W, h: H, origin, coatFront: left ? r.parts?.left?.coat === 'front' : r.parts?.coat === 'front' })])[0];
       await writePNG(join(d, `${look}-${String(k).padStart(2, '0')}.png`), left ? mirror(f) : f);
     };
-    // standing: the gait's own stance, such as her weight on one leg and her arms softly bent
-    await write('idle', 0, gait.idle ?? {});
-    for (let k = 0; k < 8; k++) await write('walk', k, walkAngles(k, gait));
+    // the last bake's frames go first, so a shorter cycle leaves none behind
+    for (const anim of ['idle', 'walk']) {
+      const d = join(r.dir, 'anims', anim + (left ? 'Left' : ''));
+      if (existsSync(d)) for (const f of await readdir(d)) if (f.startsWith(`${look}-`) && f.endsWith('.png')) await rm(join(d, f));
+    }
+    // standing: her stance, weight on one leg; then the walk
+    await write('idle', 0, cycle ? standPose(parts, gait.idle, FAR) : gait.idle ?? {});
+    const frames = cycle ? cycle.frames : Array.from({ length: 8 }, (_, k) => walkAngles(k, gait));
+    for (let k = 0; k < frames.length; k++) await write('walk', k, frames[k]);
+    count = frames.length;
     done.push(v);
   }
   await writeFile(join(r.dir, 'anims', 'walk', 'stride.json'), JSON.stringify({ stride }) + '\n');
   // where the hip is in every frame, both ways round: the sprite's anchor
   await writeFile(join(r.dir, 'anims', 'origin.json'), JSON.stringify({ x: origin[0] }) + '\n');
-  console.log(`${r.name}: a standing frame and 8 walk frames for ${done.join(', ')} → ${rel(join(r.dir, 'anims'))}, stride ${stride.toFixed(0)} px`);
+  console.log(`${r.name}: a standing frame and ${count} walk frames for ${done.join(', ')} → ${rel(join(r.dir, 'anims'))}, stride ${stride.toFixed(0)} px`);
 }
 
 /** The parts assembled and walked through the standard cycle, as an animated GIF beside the sheets, for checking. */
@@ -757,8 +781,9 @@ async function previewParts(r, dir) {
     for (const [name, info] of Object.entries(all[v])) parts[name] = { img: await readRGBA(join(dir, v, `${name}.png`)), joints: info.joints };
     await proportion(parts, r.parts?.proportions);
     const W = 1600, H = 2000, origin = [800, 900];
-    const gait = r.parts?.gait ?? {};
-    const frames = [gait.idle ?? {}, ...Array.from({ length: 8 }, (_, k) => walkAngles(k, gait))].map((a) => posePartsRig(parts, a, { w: W, h: H, origin }));
+    const gait = r.parts?.gait ?? {}, cycle = parts.foot ? walkCycle(parts, gait) : null;
+    const poses = cycle ? [standPose(parts, gait.idle), ...cycle.frames] : [gait.idle ?? {}, ...Array.from({ length: 8 }, (_, k) => walkAngles(k, gait))];
+    const frames = poses.map((a) => posePartsRig(parts, a, { w: W, h: H, origin }));
     // feet on one ground line, one crop for all frames, shrunk to game size
     const planted = frames.map((f) => plant([f])[0]), box = planted.map((f) => contentBox(f)).reduce(unionBox);
     rows.push(await Promise.all(planted.map(async (f) => hardenAlpha(await fitToHeight(f, box, height)))));

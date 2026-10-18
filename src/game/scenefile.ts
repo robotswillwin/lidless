@@ -92,7 +92,8 @@ export interface SceneFile {
 
 export interface WorldFile {
   start: Exit;
-  hero: { sprite: string; speed: number; smoke?: [number, number]; items?: string[] };
+  /** cadence: strides (two steps) a second; with a walk that has a stride, her pace follows it, so her feet stay where they land. */
+  hero: { sprite: string; speed: number; cadence?: number; smoke?: [number, number]; items?: string[] };
   scenes: string[];
 }
 

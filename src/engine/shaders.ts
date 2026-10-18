@@ -117,7 +117,8 @@ void main() {
   o2 = vec4(g, (grp + 16.0 * mach) / 31.0);
   // a character is never a reflecting surface, so its reflectivity slot carries where its feet are: wet ground mirrors it
   // around them, wherever it stands
-  o3 = vec4(dep / 3.0, uHaze < 0.0 ? refl / 2.0 : uFoot, obj / 63.0, uHaze < 0.0 ? 1.0 : uHaze * 0.5);
+  // and a character's object slot carries how much of the pixel it covers, for a soft outline
+  o3 = vec4(dep / 3.0, uHaze < 0.0 ? refl / 2.0 : uFoot, uHaze < 0.0 ? obj / 63.0 : a.a, uHaze < 0.0 ? 1.0 : uHaze * 0.5);
 }`;
 
 /* ---------- ambient occlusion: occluders, downsampled, then blurred with the shared blur ---------- */
@@ -153,13 +154,6 @@ uniform vec4 uCars[16]; uniform int uNC;
 uniform vec4 uBeac[32]; uniform int uNB;
 float facadeW(vec2 w) { return w.y < 104.0 ? 1.0 : w.y > 424.0 ? 0.7 : w.x > 524.0 ? 0.5 : 0.18; }
 float occAt(vec2 p) { return mod(floor(T(tG0, p).a * 255.0 + 0.5), 2.0); }
-// the light that the final pass's tone curve (aces of 1.32 times it) turns back into y: art with its light painted in
-// comes out of the grade as it was painted
-vec3 painted(vec3 y) {
-  y = clamp(y, 0.0, 0.98);
-  vec3 a = 2.43 * y - 2.51, b = 0.59 * y - 0.03, c = 0.14 * y;
-  return (-b - sqrt(max(b * b - 4.0 * a * c, 0.0))) / (2.0 * a) / 1.32;
-}
 float shadowMarch(vec2 p, vec2 lp, float self) {
   if (self > 0.5) return 1.0;
   vec2 d = lp - p; float L = length(d); if (L < 6.0) return 1.0;
@@ -176,7 +170,7 @@ void main() {
   z = mix(z, Z(vec2(p.x, uGround - uCam.y)), actor);
   float hv = floor(g0.a * 255.0 + 0.5), occ = mod(hv, 2.0), hz = floor(hv / 2.0) / 127.0 * 22.0;
   vec2 nxy = g1.xy * 2.0 - 1.0; vec3 Nn = vec3(nxy, sqrt(max(0.0, 1.0 - dot(nxy, nxy))));
-  float specS = g1.z, shin = mix(6.0, 120.0, g1.w), dep = g3.r, obj = floor(g3.b * 63.0 + 0.5);
+  float specS = g1.z, shin = mix(6.0, 120.0, g1.w), dep = g3.r, obj = actor > 0.5 ? 0.0 : floor(g3.b * 63.0 + 0.5);
   float raw = 1.0 - uView;
   // raw view: every surface goes cold and muted; the strongest colour left lives in the air. A set with its light
   // painted in is already as raw view sees it
@@ -222,11 +216,11 @@ void main() {
     float seen = layer < 0.5 ? air : layer < 1.5 ? mix(air, 1.0, 0.25) : 1.0;
     haze += mix(lc, tone(lc, RAW_AIR), raw) * gi * pow(att, LK.z > -1.5 ? 2.0 : 3.0) * cone * LG.w * zh * seen;
   }
-  // a set with its light painted in shows as painted, the lights adding a little, and its reflections are painted too:
-  // the lights' glints stay faint on it. The characters stay lit by them
-  col = mix(col, painted(alb) * uPaint + col * 0.35, bk);
+  // a set with its light painted in shows as painted (the final pass leaves its colours alone), the lights adding a
+  // little, and its reflections are painted too: the lights' glints stay faint on it. The characters stay lit by them
+  col = mix(col, alb * uPaint + col * 0.35, bk);
   // and its people in their own flat colours, tinted by the place, the lamps near them adding their light
-  if (uActorLight.a > 0.5 && actor > 0.5) col = painted(alb) * uActorLight.rgb * uPaint + col * 0.25;
+  if (uActorLight.a > 0.5 && actor > 0.5) col = alb * uActorLight.rgb * uPaint + col * 0.25;
   spc *= 1.0 - 0.75 * bk;
   // the ground under a character's feet gets less of every light, and of the ambient: it stands on it. Not the character
   // itself, and not anything glowing
@@ -286,6 +280,12 @@ void main() {
       for (int j = 1; j <= 2; j++) { vec2 q = p + dir * float(j) * 3.0; if (isActor(T(tG3, q).a) < 0.5) { env += T(tA, q).rgb; n += 1.0; } }
     }
     if (n > 0.0) { env /= n; float edge = n / 16.0; c = mix(c, env, min(0.6, edge * 0.5 * uWrap)) + env * edge * 0.5 * uWrap; }
+  }
+  // her outline: a pixel she only partly covers takes the rest of its colour from the set around it
+  if (isActor(g3.a) > 0.5 && g3.b < 0.99) {
+    vec3 env = vec3(0.0); float m = 0.0;
+    for (int k = 0; k < 8; k++) { vec2 q = p + vec2(cos(float(k) * 0.7854), sin(float(k) * 0.7854)) * 1.5; if (isActor(T(tG3, q).a) < 0.5) { env += T(tA, q).rgb; m += 1.0; } }
+    if (m > 0.0) c = mix(env / m, c, g3.b);
   }
   if (refl > 0.02) {
     float puddle = step(0.7, refl);
@@ -418,7 +418,9 @@ void main() {
     bl += mix(acc, tone(acc, RAW_AIR), raw) * g.z * zw / 24.0 * uLookB.y * air;
   }
   c += bl + (texture(tStreak, uv).rgb * vec3(0.5, 0.68, 1.0) * 0.5 * uStreaks * uLookB.z + b1 * mix(vec3(0.22, 0.06, 0.02), tone(vec3(0.22, 0.06, 0.02), RAW_AIR), raw) * uLookB.x) * lens;
-  c = aces(c * 1.32 * exp2(uLookC.x));
+  // the film curve, or for a painted scene (uGradeK 0) its colours as painted, with a soft shoulder over the light added
+  vec3 ex = c * exp2(uLookC.x), sh = mix(ex, 0.8 + 0.2 * (1.0 - exp(-(ex - 0.8) / 0.2)), step(0.8, ex));
+  c = mix(sh, aces(ex * 1.32), uGradeK);
   float l = lum(c);
   // Concierge view: cool shadows, warm highlights. Raw view: a neutral grade, its cold things and yellow-green air are already in the image.
   // A painted scene's colours are final already: the grade is left out (uGradeK 0)

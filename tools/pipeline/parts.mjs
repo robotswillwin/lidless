@@ -213,8 +213,8 @@ const invert = (m) => { const det = m[0] * m[3] - m[2] * m[1]; return [m[3] / de
 const RIG = [
   ['armFarUpper', 'upperArm', 'torso', 'shoulder', 'shoulder', true], ['armFarLower', 'forearm', 'armFarUpper', 'elbow', 'elbow', true],
   ['coat', 'coat', 'torso', 'hip', 'waist', false],
-  ['legFarUpper', 'thigh', 'torso', 'hip', 'hip', true], ['legFarLower', 'shin', 'legFarUpper', 'knee', 'knee', true],
-  ['legUpper', 'thigh', 'torso', 'hip', 'hip', false], ['legLower', 'shin', 'legUpper', 'knee', 'knee', false],
+  ['legFarUpper', 'thigh', 'torso', 'hip', 'hip', true], ['legFarLower', 'shin', 'legFarUpper', 'knee', 'knee', true], ['footFar', 'foot', 'legFarLower', 'ankle', 'ankle', true],
+  ['legUpper', 'thigh', 'torso', 'hip', 'hip', false], ['legLower', 'shin', 'legUpper', 'knee', 'knee', false], ['foot', 'foot', 'legLower', 'ankle', 'ankle', false],
   ['torso', 'torso', null, null, 'hip', false], ['head', 'head', 'torso', 'neck', 'neck', false],
   ['armUpper', 'upperArm', 'torso', 'shoulder', 'shoulder', false], ['armLower', 'forearm', 'armUpper', 'elbow', 'elbow', false],
 ];
@@ -246,7 +246,8 @@ export function pose(parts, angles, { w, h, origin, far = [-14, -6], matrices = 
     M[name] = mul(mul(tr(at[0] + shift[0], at[1] + shift[1]), rot(turn(name))), tr(-p.joints[pivot][0], -p.joints[pivot][1]));
     return M[name];
   };
-  for (const [name] of rig) { place(name); order.push(name); }
+  // a character drawn without a separate foot walks on the boot of its shin
+  for (const [name, part] of rig) if (parts[part]) { place(name); order.push(name); }
   if (matrices) Object.assign(matrices, M);
   for (const name of order) {
     const [, part, , , , isFar] = byName[name], img = parts[part]?.img;
@@ -265,6 +266,108 @@ export function pose(parts, angles, { w, h, origin, far = [-14, -6], matrices = 
     }
   }
   return out;
+}
+
+/* ---------- the walk: feet planted on the ground, legs reaching them ---------- */
+
+/**
+ * How she walks, a recipe's `parts.gait` changing any of it. Lengths are fractions of her leg (hip to ankle).
+ * stride: ground covered in one cycle of two steps; stance: the part of the cycle a foot is on the ground; lift: how
+ * high the ankle rises in the swing; strike and toeOff: the foot's angle as the heel lands and as the toe pushes off
+ * (degrees); flex: how far the hip dips as the leg takes her weight; arms: the swing of the upper arms (degrees);
+ * elbow and elbowSwing: the elbows' bend, and how much more as the arm comes forward; lean: the torso's lean (degrees,
+ * the head staying level); coat: its flutter. `idle` changes the same for her stance: weight on the near leg, the far
+ * leg free with its heel lifted (`heel`, degrees) and its foot a little forward (`step`).
+ */
+export const GAIT = { frames: 16, stride: 1.5, stance: 0.62, lift: 0.12, strike: 16, toeOff: 28, flex: 0.012, arms: 10, elbow: 10, elbowSwing: 10, lean: 1, coat: 2 };
+export const STAND = { step: 0.1, heel: 14, arm: -3, elbow: 9, farArm: 4, farElbow: 12, lean: -0.5 };
+
+const rad = (d) => (d * Math.PI) / 180, deg = (r) => (r * 180) / Math.PI;
+const smooth = (x) => { const t = Math.max(0, Math.min(1, x)); return t * t * (3 - 2 * t); };
+const smoother = (x) => { const t = Math.max(0, Math.min(1, x)); return t * t * t * (t * (t * 6 - 15) + 10); };
+/** A vector turned the way the rig turns its parts: positive swings a hanging limb forward, and lifts a foot's toe. */
+const turnVec = ([x, y], a) => { const c = Math.cos(a), s = Math.sin(a); return [c * x + s * y, -s * x + c * y]; };
+
+/** The leg as the rig sees it: its bones' lengths and the angles they are drawn at, and the foot's heel and toe from its ankle. */
+function legOf(parts) {
+  const t = parts.thigh, sh = parts.shin, f = parts.foot;
+  const v1 = [t.joints.knee[0] - t.joints.hip[0], t.joints.knee[1] - t.joints.hip[1]];
+  const v2 = [sh.joints.ankle[0] - sh.joints.knee[0], sh.joints.ankle[1] - sh.joints.knee[1]];
+  const rel = (j) => [f.joints[j][0] - f.joints.ankle[0], f.joints[j][1] - f.joints.ankle[1]];
+  return { L1: Math.hypot(...v1), L2: Math.hypot(...v2), d1: Math.atan2(v1[0], v1[1]), d2: Math.atan2(v2[0], v2[1]), heel: rel('heel'), toe: rel('toe') };
+}
+
+/** The rig's thigh, knee and foot angles (degrees) that put the ankle at `a` from the hip at `h`, the foot at angle `phi`. The knee bends forward. */
+function reach(leg, h, a, phi) {
+  const vx = a[0] - h[0], vy = a[1] - h[1];
+  const d = Math.max(Math.abs(leg.L1 - leg.L2) + 1e-3, Math.min(leg.L1 + leg.L2 - 1e-3, Math.hypot(vx, vy)));
+  const b = Math.atan2(vx, vy), cos = (x) => Math.acos(Math.max(-1, Math.min(1, x)));
+  const thighAbs = b + cos((leg.L1 ** 2 + d * d - leg.L2 ** 2) / (2 * leg.L1 * d)), shinAbs = b - cos((leg.L2 ** 2 + d * d - leg.L1 ** 2) / (2 * leg.L2 * d));
+  const thigh = thighAbs - leg.d1, shinTurn = shinAbs - leg.d2;
+  return { thigh: deg(thigh), knee: deg(shinTurn - thigh), foot: deg(phi - shinTurn), thighAbs: deg(thighAbs) };
+}
+
+/** How far below the hip at `h` the ground can be for an ankle at x, `oy` above the ground: the leg just reaching. */
+const groundFor = (h, x, oy, R) => h[1] + Math.sqrt(Math.max(0, R * R - (x - h[0]) ** 2)) + oy;
+/** The lower of two values, smoothly: never above either, so neither leg is ever asked to reach too far. */
+const softMin = (a, b, k) => Math.min(a, b) - k * Math.log(1 + Math.exp(-Math.abs(a - b) / k));
+
+/**
+ * One walk cycle for parts that have a foot: the rig's angles for each frame, and the stride (pixels of ground covered
+ * in a cycle) for the game to step her by, so her feet stay where they land. Each foot is on the ground for the stance,
+ * landing on its heel, rolling flat and pushing off from its toe, and swings forward through the air for the rest of the
+ * cycle; the legs reach the feet, and the hip rides as high as both legs allow, so it dips at each heel strike and rises
+ * over the standing leg. `far` is where the far hip sits from the near one.
+ */
+export function walkCycle(parts, gaitIn = {}, far = [-14, -6]) {
+  const g = { ...GAIT, ...gaitIn }, leg = legOf(parts), L = leg.L1 + leg.L2, S = g.stride * L, R = 0.985 * L;
+  const footLen = leg.toe[0] - leg.heel[0], heelOff = g.stance - 0.2;
+  // the heel lands so that the stance is centred under her
+  const hx0 = (S * g.stance) / 2 - leg.heel[0];
+  const stanceAt = (p) => {
+    const phi = p < 0.1 ? rad(g.strike) * (1 - smooth(p / 0.1)) : p < heelOff ? 0 : -rad(g.toeOff) * smooth((p - heelOff) / (g.stance - heelOff));
+    // the foot stays where it landed: its heel's spot moves back under her as she walks on, and it turns on the heel
+    // as it lands and on the toe as it pushes off
+    const hx = hx0 - S * p, [cx, rel] = phi >= 0 ? [hx, leg.heel] : [hx + footLen, leg.toe], v = turnVec(rel, phi);
+    return { x: cx - v[0], oy: v[1], phi };
+  };
+  const legAt = (p) => {
+    p = ((p % 1) + 1) % 1;
+    if (p <= g.stance) return stanceAt(p);
+    const a = stanceAt(g.stance), b = stanceAt(0), u = (p - g.stance) / (1 - g.stance), mid = rad(8);
+    const phi = u < 0.6 ? a.phi + (mid - a.phi) * smooth(u / 0.6) : mid + (b.phi - mid) * smooth((u - 0.6) / 0.4);
+    return { x: a.x + (b.x - a.x) * smoother(u), oy: a.oy + (b.oy - a.oy) * smooth(u) + g.lift * L * Math.sin(Math.PI * Math.pow(u, 0.6)), phi };
+  };
+  const bell = (x) => { const w = ((x % 1) + 1.5) % 1 - 0.5; return Math.exp(-((w / 0.07) ** 2)); };
+  const frames = [];
+  for (let k = 0; k < g.frames; k++) {
+    const p = k / g.frames, n = legAt(p), f = legAt(p + 0.5);
+    // the ground under the hip: as low as the legs reach, a little lower as each leg takes her weight
+    const G = softMin(groundFor([0, 0], n.x, n.oy, R), groundFor(far, f.x, f.oy, R), 0.02 * L) - g.flex * L * (bell(p - 0.08) + bell(p - 0.58));
+    const nl = reach(leg, [0, 0], [n.x, G - n.oy], n.phi), fl = reach(leg, far, [f.x, G - f.oy], f.phi);
+    const arm = (q) => ({ up: -g.arms * Math.cos(2 * Math.PI * (q - 0.05)), low: g.elbow + (g.elbowSwing * (1 - Math.cos(2 * Math.PI * (q - 0.05)))) / 2 });
+    const an = arm(p), af = arm(p + 0.5);
+    frames.push({
+      torso: g.lean, head: -g.lean, coat: -2 + 0.15 * (nl.thighAbs + fl.thighAbs) + g.coat * Math.sin(4 * Math.PI * p + 0.9),
+      legUpper: nl.thigh, legLower: nl.knee, foot: nl.foot, legFarUpper: fl.thigh, legFarLower: fl.knee, footFar: fl.foot,
+      armUpper: an.up, armLower: an.low, armFarUpper: af.up, armFarLower: af.low,
+    });
+  }
+  return { frames, stride: S };
+}
+
+/** Her stance for parts that have a foot: weight on the near leg, its foot flat under her; the far leg free, a little forward, heel lifted. */
+export function standPose(parts, standIn = {}, far = [-14, -6]) {
+  const st = { ...STAND, ...standIn }, leg = legOf(parts), L = leg.L1 + leg.L2, R = 0.975 * L;
+  const ax = 0.02 * L, G = groundFor([0, 0], ax, leg.heel[1], R);
+  const near = reach(leg, [0, 0], [ax, G - leg.heel[1]], 0);
+  const phi = -rad(st.heel), toeX = ax + leg.toe[0] + st.step * L, v = turnVec(leg.toe, phi);
+  const free = reach(leg, far, [toeX - v[0], G - v[1]], phi);
+  return {
+    torso: st.lean, head: -st.lean, coat: 0, legUpper: near.thigh, legLower: near.knee, foot: near.foot,
+    legFarUpper: free.thigh, legFarLower: free.knee, footFar: free.foot,
+    armUpper: st.arm, armLower: st.elbow, armFarUpper: st.farArm, armFarLower: st.farElbow,
+  };
 }
 
 /** The grey shapes' own boxes, measured from the template. */
