@@ -154,11 +154,13 @@ one picture per view with its night light painted in, and the engine adds what m
   mirrored again; only the characters are. The lights are there for the characters: put them on the painted lamps,
   signs and windows, with a soft fill in the scene's colour (layer 1) so the hero reads against the city, and keep
   their `haze` low, or the painted glow doubles up. A lamp keeps the colour it is given in raw view.
-- `actorScale` is how big people are drawn: 0.42 on the street, the camera pulled back, so Lux is about 100 pixels
-  tall, as tall standing as the woman kneeling at the street machine would be. Her pace on screen goes with its square root. Under 1 the engine averages the sprite's pixels, so she shrinks
+- `actorScale` is how big people are drawn: 0.39 on the street, the camera pulled back, so Lux is about 94 pixels tall. Her pace on screen goes with its square root. Under 1 the engine averages the sprite's pixels, so she shrinks
   smoothly; over 1 is a closeup.
-- `look` sets the scene's own look over the project's, for both views or under `raw` and `concierge`: the street keeps
-  grain and colour fringes low and the characters' edge wrap small, which would wash out a small figure.
+- The look panel (L) tunes painted scenes like any other: its Ambient sets how bright the painted set and its people
+  are shown, its Lights what the lamps add, and haze, glow, bloom, light shafts, grain and the rest work as usual. The
+  project look keeps grain and colour fringes low and the characters' edge wrap small, which would wash out a small figure.
+- The painted art's own neon, windows and lamps glow (`glow: auto` in its recipe), so bloom and light shafts have
+  something to work with; the street adds haze under its lamps, light shafts, drips from the shop's awning and steam.
 - `actorLight` shows the scene's people in their own drawn colours times a tint, one per view (the street: a touch of
   violet in the Concierge's, olive and dimmer in raw), with the lamps near them adding their light. Flat-shaded figures
   then read as in the concept art instead of dimmed by the night.
@@ -185,3 +187,7 @@ hip joint 0.295, the thigh 0.24, the shin from the knee to the sole 0.32, the up
 fingertips 0.195, the coat from the hip to the hem 0.34. Baking resizes each part to fit. Her shin part is drawn as a
 knee-high boot, so with `boot` (0.235) the lower leg is built as her trouser leg from the knee, carried on from the
 thigh, into a boot of that height; stretched whole, the boot and foot came out far too big.
+
+`parts.gait` gives the walk its character: shorter steps (`stride` 0.7, `knee` 0.85), arms held closer with a soft
+bend (`swing` 0.45, `elbow` 12), an upright back (`lean` 1), and `idle`, her stance: weight on one leg, the other
+relaxed, arms softly bent. The standard walk read as masculine on her.

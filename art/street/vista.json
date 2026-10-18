@@ -14,9 +14,9 @@
   "depth": 3,
   "material": "stone",
   "glow": {
-    "raw": "none",
-    "concierge": "none",
-    "machine": false
+    "raw": "auto",
+    "concierge": "auto",
+    "machine": true
   },
   "references": [],
   "conciergeReferences": [],

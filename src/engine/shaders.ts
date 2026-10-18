@@ -145,6 +145,7 @@ uniform float uGround;    // world y of the ground line
 uniform float uRawColour; // the look: how much of a surface's own colour raw view keeps, 0 a cold grey to 1 all of it
 uniform float uBaked;     // how much of the set's light is painted into its art: 0 lit by the lights alone, 1 as painted
 uniform vec4 uActorLight;  // in a painted scene, the light its people are shown in: their own colours times rgb; a = 1 on
+uniform float uPaint;     // the look's ambient: how bright a painted set and its people are shown, 1 as painted
 uniform vec4 uSh[8];      // shadows on the ground under the characters: feet x, y on screen, half-width
 uniform int uNSh;
 uniform float uShadowK;   // the look: how dark the ground gets right under a character
@@ -223,9 +224,9 @@ void main() {
   }
   // a set with its light painted in shows as painted, the lights adding a little, and its reflections are painted too:
   // the lights' glints stay faint on it. The characters stay lit by them
-  col = mix(col, painted(alb) + col * 0.35, bk);
+  col = mix(col, painted(alb) * uPaint + col * 0.35, bk);
   // and its people in their own flat colours, tinted by the place, the lamps near them adding their light
-  if (uActorLight.a > 0.5 && actor > 0.5) col = painted(alb) * uActorLight.rgb + col * 0.25;
+  if (uActorLight.a > 0.5 && actor > 0.5) col = painted(alb) * uActorLight.rgb * uPaint + col * 0.25;
   spc *= 1.0 - 0.75 * bk;
   // the ground under a character's feet gets less of every light, and of the ambient: it stands on it. Not the character
   // itself, and not anything glowing

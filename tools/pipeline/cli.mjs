@@ -729,15 +729,17 @@ async function bakeParts(r, dir) {
     }
     await proportion(parts, r.parts?.proportions);
     const foot = [parts.shin.img.w * 0.55, parts.shin.img.h * 0.97];
-    if (v === 'raw') stride = 2 * (pointOf(parts, walkAngles(0), 'legLower', foot, { origin })[0] - pointOf(parts, walkAngles(4), 'legLower', foot, { origin })[0]);
+    const gait = r.parts?.gait ?? {};
+    if (v === 'raw') stride = 2 * (pointOf(parts, walkAngles(0, gait), 'legLower', foot, { origin })[0] - pointOf(parts, walkAngles(4, gait), 'legLower', foot, { origin })[0]);
     const write = async (anim, k, angles) => {
       const d = join(r.dir, 'anims', anim + (left ? 'Left' : ''));
       await mkdir(d, { recursive: true });
       const f = plant([posePartsRig(parts, angles, { w: W, h: H, origin, coatFront: left ? r.parts?.left?.coat === 'front' : r.parts?.coat === 'front' })])[0];
       await writePNG(join(d, `${look}-${String(k).padStart(2, '0')}.png`), left ? mirror(f) : f);
     };
-    await write('idle', 0, {});
-    for (let k = 0; k < 8; k++) await write('walk', k, walkAngles(k));
+    // standing: the gait's own stance, such as her weight on one leg and her arms softly bent
+    await write('idle', 0, gait.idle ?? {});
+    for (let k = 0; k < 8; k++) await write('walk', k, walkAngles(k, gait));
     done.push(v);
   }
   await writeFile(join(r.dir, 'anims', 'walk', 'stride.json'), JSON.stringify({ stride }) + '\n');
@@ -755,7 +757,8 @@ async function previewParts(r, dir) {
     for (const [name, info] of Object.entries(all[v])) parts[name] = { img: await readRGBA(join(dir, v, `${name}.png`)), joints: info.joints };
     await proportion(parts, r.parts?.proportions);
     const W = 1600, H = 2000, origin = [800, 900];
-    const frames = [{}, ...Array.from({ length: 8 }, (_, k) => walkAngles(k))].map((a) => posePartsRig(parts, a, { w: W, h: H, origin }));
+    const gait = r.parts?.gait ?? {};
+    const frames = [gait.idle ?? {}, ...Array.from({ length: 8 }, (_, k) => walkAngles(k, gait))].map((a) => posePartsRig(parts, a, { w: W, h: H, origin }));
     // feet on one ground line, one crop for all frames, shrunk to game size
     const planted = frames.map((f) => plant([f])[0]), box = planted.map((f) => contentBox(f)).reduce(unionBox);
     rows.push(await Promise.all(planted.map(async (f) => hardenAlpha(await fitToHeight(f, box, height)))));

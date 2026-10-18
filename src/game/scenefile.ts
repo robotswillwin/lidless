@@ -3,7 +3,7 @@
 // (built assets, placed), lights, its inside and outside areas, the walk line, places to arrive and hotspots, some of
 // which lead to other scenes.
 
-import { loadSprite, spriteDefaults, type GodrayDef, type LightDef, type LoadedScene, type SceneDef, type SceneLook, type Sprite, type SteamDef } from '../engine/assets';
+import { loadSprite, spriteDefaults, type GodrayDef, type LightDef, type LoadedScene, type SceneDef, type Sprite, type SteamDef } from '../engine/assets';
 import { textureFromImage, type GL } from '../engine/gl';
 import type { Hotspot, LevelDef } from './level';
 
@@ -72,8 +72,6 @@ export interface SceneFile {
    * around a smaller Lux), over 1 a closeup. Her pace on screen goes with the square root of it: smaller, but not a crawl.
    */
   actorScale?: number;
-  /** The scene's own look over the project's (see look.ts): shared settings at the top, one view's under raw or concierge. */
-  look?: SceneLook;
   /** False for flat vector art whose far shapes stay crisp: no depth-of-field blur. */
   dof?: boolean;
   /** How hard it rains in raw view, 0 to 1: 1 by default, a drizzle around 0.3. */
@@ -161,7 +159,7 @@ export async function buildScene(gl: GL, assets: string, file: SceneFile, world:
   const def: SceneDef = {
     name: file.id, size: file.size, sprites: sprites.map((s) => s.def.name), zone: file.zoneMap ?? '',
     lights: file.lights, beacons: file.beacons ?? [], steam: file.steam ?? [], godrays: file.godrays ?? [],
-    drips: file.drips, mirror: file.mirror ?? file.walk.y - 8, traffic: file.traffic, ambient: file.ambient, exposure: file.exposure, baked: file.baked, actorScale: file.actorScale, look: file.look, dof: file.dof, rain: file.rain, actorLight: file.actorLight,
+    drips: file.drips, mirror: file.mirror ?? file.walk.y - 8, traffic: file.traffic, ambient: file.ambient, exposure: file.exposure, baked: file.baked, actorScale: file.actorScale, dof: file.dof, rain: file.rain, actorLight: file.actorLight,
   };
   const level: LevelDef = {
     walk: file.walk,

@@ -1,6 +1,5 @@
 // Loads scenes and sprites in the asset contract format (see docs/ASSETS.md).
 
-import type { Look } from './look';
 import { solidTexture, textureFromImage, type GL } from './gl';
 
 export type MapName = 'albedo.raw' | 'albedo.concierge' | 'normal' | 'normal.concierge' | 'material' | 'material.concierge' | 'meta' | 'glow.raw' | 'glow.concierge';
@@ -83,9 +82,6 @@ export interface LightDef {
 export interface SteamDef { x: number; y: number; height: number; width: number; kind: 'steam' | 'smoke' }
 export interface GodrayDef { x: number; y: number; strength: number; zone: number; ar?: number }
 
-/** Look settings a scene sets for itself: shared ones at the top, one view's under its name. */
-export type SceneLook = Partial<Look> & { raw?: Partial<Look>; concierge?: Partial<Look> };
-
 export interface SceneDef {
   name: string;
   size: [number, number];
@@ -112,8 +108,6 @@ export interface SceneDef {
   baked?: number | { raw?: number; concierge?: number };
   /** How big the people are drawn, 1 by default. */
   actorScale?: number;
-  /** The scene's own look over the project's: settings for both views, and under raw and concierge, for one. */
-  look?: SceneLook;
   /** False to keep far shapes crisp: no depth of field. */
   dof?: boolean;
   /** How hard it rains in raw view, 0 to 1. */

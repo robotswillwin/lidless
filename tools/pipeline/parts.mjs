@@ -183,14 +183,20 @@ export function cut(sheet, at = null, fix = {}, mirrored = false) {
 /* ---------- posing the parts: a 2D rig, for previews and for baking frames ---------- */
 
 
-/** The rig's angles for walk frame k of 8: the near limbs, the far ones half a cycle later, a lean and a coat sway. */
-export function walkAngles(k) {
-  const f = (k + 4) % 8;
+/**
+ * The rig's angles for walk frame k of 8: the near limbs, the far ones half a cycle later, a lean and a coat sway.
+ * A recipe's `parts.gait` gives the walk its character: `stride` and `knee` scale how far the legs swing and bend,
+ * `swing` the arms' swing, `elbow` a constant bend held at the elbows, `lean` how far the torso leans back (degrees;
+ * the head stays level). A shorter step, arms held closer with a soft bend and an upright back read as a lighter,
+ * more feminine walk than the standard one.
+ */
+export function walkAngles(k, gait = {}) {
+  const f = (k + 4) % 8, st = gait.stride ?? 1, kn = gait.knee ?? 1, sw = gait.swing ?? 1, el = gait.elbow ?? 0, lean = gait.lean ?? WALK.lean;
   return {
     // the coat trails a little behind, swinging out with each step
-    torso: WALK.lean, head: -WALK.lean, coat: -7 + 3 * Math.cos((4 * Math.PI * k) / 8),
-    legUpper: WALK.thigh[k], legLower: WALK.knee[k], legFarUpper: WALK.thigh[f], legFarLower: WALK.knee[f],
-    armUpper: WALK.arm[k], armLower: WALK.elbow[k], armFarUpper: WALK.arm[f], armFarLower: WALK.elbow[f],
+    torso: lean, head: -lean, coat: (-7 + 3 * Math.cos((4 * Math.PI * k) / 8)) * st,
+    legUpper: WALK.thigh[k] * st, legLower: WALK.knee[k] * kn, legFarUpper: WALK.thigh[f] * st, legFarLower: WALK.knee[f] * kn,
+    armUpper: WALK.arm[k] * sw, armLower: el + WALK.elbow[k] * sw, armFarUpper: WALK.arm[f] * sw, armFarLower: el + WALK.elbow[f] * sw,
   };
 }
 

@@ -45,7 +45,7 @@
     1,
     0.45
    ],
-   "haze": 0.12
+   "haze": 0.3
   },
   {
    "x": 343,
@@ -65,7 +65,7 @@
     1,
     0.45
    ],
-   "haze": 0.1
+   "haze": 0.3
   },
   {
    "x": 553,
@@ -84,7 +84,8 @@
     0,
     1,
     0.45
-   ]
+   ],
+   "haze": 0.3
   },
   {
    "x": 862,
@@ -104,7 +105,7 @@
     1,
     0.45
    ],
-   "haze": 0.12
+   "haze": 0.3
   },
   {
    "x": 600,
@@ -399,6 +400,13 @@
  ],
  "steam": [
   {
+   "x": 600,
+   "y": 412,
+   "height": 110,
+   "width": 12,
+   "kind": "steam"
+  },
+  {
    "x": 565,
    "y": 249,
    "height": 90,
@@ -406,7 +414,33 @@
    "kind": "smoke"
   }
  ],
- "godrays": [],
+ "godrays": [
+  {
+   "x": 305,
+   "y": 218,
+   "strength": 0.22,
+   "zone": 2
+  },
+  {
+   "x": 862,
+   "y": 232,
+   "strength": 0.22,
+   "zone": 2
+  },
+  {
+   "x": 118,
+   "y": 300,
+   "strength": 0.18,
+   "zone": 1
+  },
+  {
+   "x": 800,
+   "y": 250,
+   "strength": 0.25,
+   "zone": 2,
+   "ar": 1
+  }
+ ],
  "traffic": {
   "lanes": [
    118,
@@ -427,26 +461,14 @@
    ]
   ]
  },
- "actorScale": 0.42,
+ "actorScale": 0.39,
  "ambient": {
   "raw": 1.2,
   "concierge": 1.4
  },
- "look": {
-  "grain": 0.12,
-  "aberration": 0,
-  "bloom": 0.55,
-  "streaks": 0.3,
-  "raw": {
-   "rawColour": 1,
-   "rawFog": 0.5
-  },
-  "charWrap": 0.12,
-  "charGlow": 0.02
- },
  "dof": false,
  "baked": 1,
- "rain": 0.2,
+ "rain": 0.35,
  "actorLight": {
   "concierge": [
    1.04,
@@ -458,5 +480,11 @@
    0.82,
    0.66
   ]
+ },
+ "drips": {
+  "x0": 45,
+  "x1": 210,
+  "top": 268,
+  "bottom": 404
  }
 }

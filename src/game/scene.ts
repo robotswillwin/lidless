@@ -1,7 +1,6 @@
 // Turns a loaded scene plus the current state into a frame for the renderer.
 
-import type { LoadedScene, SceneLook, SpriteDef } from '../engine/assets';
-import type { Look } from '../engine/look';
+import type { LoadedScene, SpriteDef } from '../engine/assets';
 import type { DrawSprite, Frame } from '../engine/renderer';
 import { frameFor, hasLeft } from './anim';
 
@@ -32,9 +31,6 @@ function actorLightOf(a: RGB | { raw?: RGB; concierge?: RGB } | undefined, view:
   const r = a.raw ?? [1, 1, 1], c = a.concierge ?? [1, 1, 1];
   return [r[0] + (c[0] - r[0]) * view, r[1] + (c[1] - r[1]) * view, r[2] + (c[2] - r[2]) * view];
 }
-
-/** A scene's look for one view: its shared settings, then that view's own. */
-const lookOf = ({ raw, concierge, ...shared }: SceneLook, view: 'raw' | 'concierge'): Partial<Look> => ({ ...shared, ...(view === 'raw' ? raw : concierge) });
 
 export class SceneRunner {
   private cars = new Float32Array(64);
@@ -126,7 +122,6 @@ export class SceneRunner {
       ambient: typeof d.ambient === 'object' ? (d.ambient.raw ?? 1) + ((d.ambient.concierge ?? 1) - (d.ambient.raw ?? 1)) * v.view : d.ambient,
       exposure: typeof d.exposure === 'object' ? (d.exposure.raw ?? 0) + ((d.exposure.concierge ?? 0) - (d.exposure.raw ?? 0)) * v.view : d.exposure,
       baked: typeof d.baked === 'object' ? (d.baked.raw ?? 0) + ((d.baked.concierge ?? 0) - (d.baked.raw ?? 0)) * v.view : d.baked,
-      look: d.look ? lookOf(d.look, v.view < 0.5 ? 'raw' : 'concierge') : undefined,
       dof: d.dof,
       rain: d.rain,
       actorLight: actorLightOf(d.actorLight, v.view),

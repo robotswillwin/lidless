@@ -76,8 +76,6 @@ export interface Frame {
   exposure?: number;
   /** How much of the set's light is painted into its art: 0 lit by the lights alone, 1 shown as painted. */
   baked?: number;
-  /** The scene's own look, over the project's for this view: a street graded its own way. */
-  look?: Partial<Look>;
   /** False for a scene whose far shapes stay crisp: no depth of field. */
   dof?: boolean;
   /** How hard it rains in raw view, 0 to 1: 1 by default. */
@@ -179,7 +177,7 @@ export class Renderer {
   }
 
   render(f: Frame): void {
-    const gl = this.gl, q = this.quality, t = this.t, base = f.view >= 0.5 ? this.looks.concierge : this.looks.raw, k = f.look ? { ...base, ...f.look } : base;
+    const gl = this.gl, q = this.quality, t = this.t, k = f.view >= 0.5 ? this.looks.concierge : this.looks.raw;
     gl.disable(gl.BLEND);
 
     // G-buffer: sprites back to front, alpha-tested
@@ -245,7 +243,7 @@ export class Renderer {
       gl.uniform4fv(pr.u.uBeac, f.beacons); gl.uniform1i(pr.u.uNB, f.nBeacons);
       gl.uniform4f(pr.u.uLookL, k.lights, k.ambient * (f.ambient ?? 1), k.haze, k.glow);
       gl.uniform1f(pr.u.uGround, f.mirror);
-      gl.uniform1f(pr.u.uFill, k.charFill); gl.uniform1f(pr.u.uRim, k.charRim); gl.uniform1f(pr.u.uRawColour, k.rawColour); gl.uniform1f(pr.u.uBaked, f.baked ?? 0);
+      gl.uniform1f(pr.u.uFill, k.charFill); gl.uniform1f(pr.u.uRim, k.charRim); gl.uniform1f(pr.u.uRawColour, k.rawColour); gl.uniform1f(pr.u.uBaked, f.baked ?? 0); gl.uniform1f(pr.u.uPaint, k.ambient);
       const al = f.actorLight; gl.uniform4f(pr.u.uActorLight, al?.[0] ?? 1, al?.[1] ?? 1, al?.[2] ?? 1, al ? 1 : 0);
       gl.uniform4fv(pr.u.uSh, f.shadows ?? new Float32Array(32)); gl.uniform1i(pr.u.uNSh, f.nShadows ?? 0); gl.uniform1f(pr.u.uShadowK, k.charShadow);
     });
