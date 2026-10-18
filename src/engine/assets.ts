@@ -118,6 +118,8 @@ export interface SceneDef {
   dof?: boolean;
   /** How hard it rains in raw view, 0 to 1. */
   rain?: number;
+  /** In a painted scene, the light its people are shown in, one colour or one per view. */
+  actorLight?: [number, number, number] | { raw?: [number, number, number]; concierge?: [number, number, number] };
 }
 
 export interface Sprite {

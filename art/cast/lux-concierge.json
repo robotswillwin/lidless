@@ -1,0 +1,19 @@
+{
+  "name": "lux-concierge",
+  "scene": "cast",
+  "kind": "character",
+  "exists": "concierge",
+  "look": "vector",
+  "prompt": "Lux, the hero, as the city AI shows her: a striking cyberpunk woman in her late twenties, slim and confident. An asymmetric undercut, one side shaved, long hair swept over the other side in a few clean locks of neon green fading to purple. Bold make-up with dark lips and sharp eyeliner. Over her right eye a partial helmet: a smooth, seamless white shell with a soft blue light, covering the whole eye. A long, glossy red coat reaching to mid-calf, with a high collar and thin cyan neon trims along its edges, open over a cropped black top; fitted high-waisted black trousers and chunky black platform boots. The coat a bright, saturated red with a deep crimson shadow side; the black clothes near-black with one dark grey lit plane.",
+  "framing": "One full-length figure in exact profile, seen straight from the side and facing right, standing in a neutral pose for animation: arms hanging relaxed and slightly away from the body, hands empty and open, legs straight and a little apart so both are fully visible, nothing held and nothing crossing the body. Feet at the bottom of the frame. Even, soft, frontal lighting with no cast shadows, no rim light and no glow halos. Transparent background, the whole figure in frame with a little space around it, no ground, no text, no border.",
+  "height": 240,
+  "material": "cloth",
+  "glow": {
+    "raw": "none",
+    "concierge": "none",
+    "machine": false
+  },
+  "references": [
+    "art/reference/lux-flat-concierge.png"
+  ]
+}

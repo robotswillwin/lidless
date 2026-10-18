@@ -159,11 +159,21 @@ one picture per view with its night light painted in, and the engine adds what m
   smoothly; over 1 is a closeup.
 - `look` sets the scene's own look over the project's, for both views or under `raw` and `concierge`: the street keeps
   grain and colour fringes low and the characters' edge wrap small, which would wash out a small figure.
+- `actorLight` shows the scene's people in their own drawn colours times a tint, one per view (the street: a touch of
+  violet in the Concierge's, olive and dimmer in raw), with the lamps near them adding their light. Flat-shaded figures
+  then read as in the concept art instead of dimmed by the night.
+- A painted scene's colours are final: the game's built-in grade (cool shadows, warm highlights, less saturated darks)
+  is left out for it, so the street and its people come out as drawn.
 - `dof: false` keeps far shapes sharp; `rain` (0 to 1) sets how hard it rains in raw view, a drizzle at 0.2.
 - A light with `raw: 1` exists only in raw view, as `ar: 1` only in the Concierge's: the moon, a machine's own eye.
 - Its hotspots and lights were placed on the picture by a coordinate grid over the built albedo maps.
 
 How the street was made: `npm run asset -- extend` placed the concept panel of the Concierge's view in a 16:9 frame and
 had the rest painted around it; `touch` took Lux out of the picture, `redress --ref` made the raw view from it with
-the raw panel as reference, and `touch` added the sleeper. Lux was redrawn the same way: `redress --ref` of each of her
-four parts sheets into flat planes, then `parts --recut` and `--bake`.
+the raw panel as reference, and `touch` added the sleeper.
+
+Lux was designed again in the look: `art/cast/lux-concierge.json` generated her Concierge self in profile with the
+flat reference figure from the concept art, and `redress` made her raw self from it, the same outline in her worn
+raincoat, bun and grey eye device. `parts` drew the raw parts sheet from that (its layout in the recipe's `parts.at`),
+`redress --ref` the Concierge sheet from the raw one, `--mirror` and a `touch` of each head the sheets seen from her
+left side; then `parts --recut` and `--bake` made the walk.

@@ -3,8 +3,8 @@
   "scene": "cast",
   "kind": "character",
   "exists": "both",
-  "prompt": "The hero: a woman in her late twenties who runs errands nobody asks about. Thin and pale, tired eyes, dark hair pulled back in a messy bun. Like everyone, she wears a partial helmet over her right eye: a heavy, grey, steampunk-like device of riveted metal plates and a round lens, covering the whole eye and her temple. A long, cheap raincoat in faded grey-maroon, open and hanging loose, over a worn black top and leggings, scuffed boots to the knee.",
-  "concierge": "The Concierge's version of her, a striking cyberpunk look: an asymmetric undercut, one side shaved, long hair swept over the other side in neon green fading to purple. Bold make-up with dark lips and sharp eyeliner, the partial helmet over her right eye a smooth, seamless white shell with a soft blue light, covering the whole eye. A cropped black top, fitted high-waisted black trousers, a long glossy red coat with thin neon trims, chunky black platform boots. Confident, glamorous and attractive. Same pose.",
+  "prompt": "Lux, the hero: a woman in her late twenties who runs errands nobody asks about. Thin and pale, with tired eyes and no make-up, her dark hair pulled back in a messy bun. Like everyone, she wears a partial helmet over her right eye: a heavy, grey, steampunk-like device of riveted metal plates and a round dark lens, covering the whole eye and her temple. A long, cheap raincoat in faded grey-maroon reaching to mid-calf, worn thin and frayed at the hem, open and hanging loose, over a worn black top and black leggings, and scuffed flat boots to the knee.",
+  "concierge": "Lux, the hero, as the city AI shows her: a striking cyberpunk woman in her late twenties, slim and confident. An asymmetric undercut, one side shaved, long hair swept over the other side in a few clean locks of neon green fading to purple. Bold make-up with dark lips and sharp eyeliner. Over her right eye a partial helmet: a smooth, seamless white shell with a soft blue light, covering the whole eye. A long, glossy red coat reaching to mid-calf, with a high collar and thin cyan neon trims along its edges, open over a cropped black top; fitted high-waisted black trousers and chunky black platform boots. The coat a bright, saturated red with a deep crimson shadow side; the black clothes near-black with one dark grey lit plane.",
   "height": 240,
   "position": [
     480,
@@ -17,55 +17,19 @@
     "machine": false
   },
   "references": [
-    "art/reference/Rainy Neon Cyberpunk Concept Sheet.png"
+    "art/reference/lux-flat-concierge.png"
   ],
   "parts": {
-    "from": "profile.png",
-    "at": {
-      "head": [
-        225,
-        165
-      ],
-      "torso": [
-        660,
-        307
-      ],
-      "upperArm": [
-        1057,
-        202
-      ],
-      "forearm": [
-        1312,
-        232
-      ],
-      "coat": [
-        285,
-        667
-      ],
-      "thigh": [
-        997,
-        705
-      ],
-      "shin": [
-        1320,
-        757
-      ]
-    },
+    "from": "raw.png",
     "joints": {
       "torso": {
         "neck": [
-          0.63,
-          0.1
+          0.66,
+          0.07
         ],
         "shoulder": [
-          0.42,
-          0.15
-        ]
-      },
-      "head": {
-        "neck": [
-          0.64,
-          0.92
+          0.38,
+          0.17
         ]
       }
     },
@@ -75,7 +39,38 @@
       "raw": "Seen from her left side, her left eye is uncovered; her eye device is on her right eye, out of sight, with only its strap over her hair.",
       "concierge": "Seen from her left side, her left eye is uncovered and her long green-to-purple hair falls over this side of her head; the device and the shaved side of her undercut are on her right, out of sight."
     },
-    "right": "Seen from her right side, her eye device covers her whole right eye and temple."
+    "right": "Seen from her right side, her eye device covers her whole right eye and temple.",
+    "at": {
+      "head": [
+        282,
+        183
+      ],
+      "torso": [
+        654,
+        299
+      ],
+      "coat": [
+        1124,
+        314
+      ],
+      "upperArm": [
+        263,
+        761
+      ],
+      "forearm": [
+        546,
+        765
+      ],
+      "thigh": [
+        845,
+        752
+      ],
+      "shin": [
+        1189,
+        807
+      ]
+    }
   },
-  "look": "vector"
+  "look": "vector",
+  "framing": "One full-length figure in exact profile, seen straight from the side and facing right, standing in a neutral pose for animation: arms hanging relaxed and slightly away from the body, hands empty and open, legs straight and a little apart so both are fully visible, nothing held and nothing crossing the body. Feet at the bottom of the frame. Even, soft, frontal lighting with no cast shadows, no rim light and no glow halos. Transparent background, the whole figure in frame with a little space around it, no ground, no text, no border."
 }

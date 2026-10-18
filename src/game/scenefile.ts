@@ -78,6 +78,11 @@ export interface SceneFile {
   dof?: boolean;
   /** How hard it rains in raw view, 0 to 1: 1 by default, a drizzle around 0.3. */
   rain?: number;
+  /**
+   * In a painted scene, the light its people are shown in: their own drawn colours times this rgb, one for both views or
+   * one per view, with the scene's lamps adding their light near them. Without it they are lit by the lights alone.
+   */
+  actorLight?: [number, number, number] | { raw?: [number, number, number]; concierge?: [number, number, number] };
   spawns: Record<string, Spawn>;
   hotspots: Hotspot[];
   beacons?: SceneDef['beacons'];
@@ -156,7 +161,7 @@ export async function buildScene(gl: GL, assets: string, file: SceneFile, world:
   const def: SceneDef = {
     name: file.id, size: file.size, sprites: sprites.map((s) => s.def.name), zone: file.zoneMap ?? '',
     lights: file.lights, beacons: file.beacons ?? [], steam: file.steam ?? [], godrays: file.godrays ?? [],
-    drips: file.drips, mirror: file.mirror ?? file.walk.y - 8, traffic: file.traffic, ambient: file.ambient, exposure: file.exposure, baked: file.baked, actorScale: file.actorScale, look: file.look, dof: file.dof, rain: file.rain,
+    drips: file.drips, mirror: file.mirror ?? file.walk.y - 8, traffic: file.traffic, ambient: file.ambient, exposure: file.exposure, baked: file.baked, actorScale: file.actorScale, look: file.look, dof: file.dof, rain: file.rain, actorLight: file.actorLight,
   };
   const level: LevelDef = {
     walk: file.walk,

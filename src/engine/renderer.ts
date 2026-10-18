@@ -82,6 +82,8 @@ export interface Frame {
   dof?: boolean;
   /** How hard it rains in raw view, 0 to 1: 1 by default. */
   rain?: number;
+  /** In a painted scene, the light its people are shown in: their own colours times this. */
+  actorLight?: [number, number, number];
   /** Shadows on the ground under the characters: x and y of the feet on screen, half-width, unused; up to 8. */
   shadows?: Float32Array;
   nShadows?: number;
@@ -244,6 +246,7 @@ export class Renderer {
       gl.uniform4f(pr.u.uLookL, k.lights, k.ambient * (f.ambient ?? 1), k.haze, k.glow);
       gl.uniform1f(pr.u.uGround, f.mirror);
       gl.uniform1f(pr.u.uFill, k.charFill); gl.uniform1f(pr.u.uRim, k.charRim); gl.uniform1f(pr.u.uRawColour, k.rawColour); gl.uniform1f(pr.u.uBaked, f.baked ?? 0);
+      const al = f.actorLight; gl.uniform4f(pr.u.uActorLight, al?.[0] ?? 1, al?.[1] ?? 1, al?.[2] ?? 1, al ? 1 : 0);
       gl.uniform4fv(pr.u.uSh, f.shadows ?? new Float32Array(32)); gl.uniform1i(pr.u.uNSh, f.nShadows ?? 0); gl.uniform1f(pr.u.uShadowK, k.charShadow);
     });
 
@@ -293,6 +296,7 @@ export class Renderer {
       gl.uniform4f(pr.u.uLookB, k.bloom, k.shafts, k.streaks, k.dither);
       gl.uniform4f(pr.u.uLookC, k.exposure + (f.exposure ?? 0), k.contrast, k.saturation, k.temperature);
       gl.uniform4f(pr.u.uLookF, k.tint, k.vignette, k.grain, k.aberration);
+      gl.uniform1f(pr.u.uGradeK, 1 - (f.baked ?? 0));
     });
   }
 }

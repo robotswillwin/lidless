@@ -24,6 +24,15 @@ export function lightGroups(t: number): number[] {
  */
 export const switchFade = (view: number, since: number): number => Math.max(0, 1 - since / (view < 0.5 ? 0.9 : 0.45));
 
+type RGB = [number, number, number];
+/** A painted scene's light on its people for the view on screen, blended across a switch. */
+function actorLightOf(a: RGB | { raw?: RGB; concierge?: RGB } | undefined, view: number): RGB | undefined {
+  if (!a) return undefined;
+  if (Array.isArray(a)) return a;
+  const r = a.raw ?? [1, 1, 1], c = a.concierge ?? [1, 1, 1];
+  return [r[0] + (c[0] - r[0]) * view, r[1] + (c[1] - r[1]) * view, r[2] + (c[2] - r[2]) * view];
+}
+
 /** A scene's look for one view: its shared settings, then that view's own. */
 const lookOf = ({ raw, concierge, ...shared }: SceneLook, view: 'raw' | 'concierge'): Partial<Look> => ({ ...shared, ...(view === 'raw' ? raw : concierge) });
 
@@ -120,6 +129,7 @@ export class SceneRunner {
       look: d.look ? lookOf(d.look, v.view < 0.5 ? 'raw' : 'concierge') : undefined,
       dof: d.dof,
       rain: d.rain,
+      actorLight: actorLightOf(d.actorLight, v.view),
       shadows: this.shadows,
       nShadows,
     };

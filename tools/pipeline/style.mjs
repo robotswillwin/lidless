@@ -2,17 +2,17 @@
 
 /**
  * How it is drawn: "pixel" asks the model for pixel art; "paint" asks for a crisp painting, which the build pixelates;
- * "vector" asks for flat vector art like Another World made modern, the look of
- * art/reference/style-another-world-modern.webp: simple blocky shapes, the drama in light painted in over them.
+ * "vector" asks for the game's look since the main street: a modern flat illustration, simple shapes and soft light, as in
+ * art/reference/street-lighting-variants.webp and style-another-world-modern-2.webp.
  */
 export const LOOKS = {
   pixel: 'High-resolution pixel art for a 2D adventure game, painterly and detailed, with clean pixel clusters.',
   paint: 'A detailed digital painting for a 2D adventure game: crisp edges, clean readable shapes and controlled painterly shading. Not pixel art.',
-  vector: 'A flat 2D vector illustration for a cinematic adventure game, in the style of Another World (1991) by Eric Chahi, modernised: built only from large solid-colour polygons with crisp straight edges, like cut paper or a low-poly, flat-shaded render. Solid fills only: no gradients, no texture, no brush strokes, no noise, no outlines and no small details. Each object is reduced to two to four flat tones, lit side, middle and shadow, as faceted planes. About sixteen colours in all. Depth comes from flat layers that get paler and hazier with distance. Lights are flat shapes of bright colour.',
+  vector: 'A modern flat illustration for a cinematic 2D adventure game, in the style of the attached concept art: clean, simple shapes with crisp edges; every surface a flat colour or a smooth, soft gradient of light; forms shaded with a few flat planes of light and shadow; no texture, no noise, no brush strokes and no fine detail; readable, elegant silhouettes; faces simplified to a few shapes. Not pixel art and not a photo-realistic painting.',
 };
 
 /** Said in every edit of vector art, so the edit keeps the look. */
-const VECTOR_KEEP = 'Keep the style exactly: flat-coloured polygons with crisp straight edges, no gradients inside shapes, no texture, light and shadow as hard-edged bands, a limited palette.';
+const VECTOR_KEEP = 'Keep the style exactly: clean, simple shapes with crisp edges, flat colour and soft planes of light and shadow, no texture and no fine detail.';
 const keepLook = (r) => (r.look === 'vector' ? ` ${VECTOR_KEEP}` : '');
 /** What an edit of a background keeps of its frame and light. */
 const keepFrame = (r) => (r.look === 'vector'

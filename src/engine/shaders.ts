@@ -144,6 +144,7 @@ uniform float uRim;       // the look: how strongly a light behind a character c
 uniform float uGround;    // world y of the ground line
 uniform float uRawColour; // the look: how much of a surface's own colour raw view keeps, 0 a cold grey to 1 all of it
 uniform float uBaked;     // how much of the set's light is painted into its art: 0 lit by the lights alone, 1 as painted
+uniform vec4 uActorLight;  // in a painted scene, the light its people are shown in: their own colours times rgb; a = 1 on
 uniform vec4 uSh[8];      // shadows on the ground under the characters: feet x, y on screen, half-width
 uniform int uNSh;
 uniform float uShadowK;   // the look: how dark the ground gets right under a character
@@ -223,6 +224,8 @@ void main() {
   // a set with its light painted in shows as painted, the lights adding a little, and its reflections are painted too:
   // the lights' glints stay faint on it. The characters stay lit by them
   col = mix(col, painted(alb) + col * 0.35, bk);
+  // and its people in their own flat colours, tinted by the place, the lamps near them adding their light
+  if (uActorLight.a > 0.5 && actor > 0.5) col = painted(alb) * uActorLight.rgb + col * 0.25;
   spc *= 1.0 - 0.75 * bk;
   // the ground under a character's feet gets less of every light, and of the ambient: it stands on it. Not the character
   // itself, and not anything glowing
@@ -369,6 +372,7 @@ uniform vec2 uOut;
 // the look: pixel size, pixel shape, shape strength, colour levels | bloom, shafts, streaks, dither |
 // exposure, contrast, saturation, temperature | tint, vignette, grain, colour fringes
 uniform vec4 uLookP, uLookB, uLookC, uLookF;
+uniform float uGradeK;   // the built-in grade, 1; 0 for a painted scene
 // each source pixel stays a crisp block at any size, with one anti-aliased device pixel at its edges
 vec3 sharpT(vec2 p) { float s = max(1.0, uOut.x / uRes.x); vec2 q = floor(p) + 0.5 + clamp((fract(p) - 0.5) * s, -0.5, 0.5); return T(tB, q).rgb; }
 // a bigger pixel: the average of its block, from four filtered taps
@@ -415,15 +419,16 @@ void main() {
   c += bl + (texture(tStreak, uv).rgb * vec3(0.5, 0.68, 1.0) * 0.5 * uStreaks * uLookB.z + b1 * mix(vec3(0.22, 0.06, 0.02), tone(vec3(0.22, 0.06, 0.02), RAW_AIR), raw) * uLookB.x) * lens;
   c = aces(c * 1.32 * exp2(uLookC.x));
   float l = lum(c);
-  // Concierge view: cool shadows, warm highlights. Raw view: a neutral grade, its cold things and yellow-green air are already in the image
-  c = mix(c, c * mix(vec3(0.84, 0.95, 1.12), vec3(1.0), raw) + vec3(0.0, 0.005, 0.012) * uView, (1.0 - smoothstep(0.0, 0.45, l)) * 0.7);
-  c = mix(c, c * mix(vec3(1.07, 1.0, 0.9), vec3(0.97, 1.0, 1.04), raw), smoothstep(0.45, 1.0, l) * 0.4);
+  // Concierge view: cool shadows, warm highlights. Raw view: a neutral grade, its cold things and yellow-green air are already in the image.
+  // A painted scene's colours are final already: the grade is left out (uGradeK 0)
+  c = mix(c, c * mix(vec3(0.84, 0.95, 1.12), vec3(1.0), raw) + vec3(0.0, 0.005, 0.012) * uView, (1.0 - smoothstep(0.0, 0.45, l)) * 0.7 * uGradeK);
+  c = mix(c, c * mix(vec3(1.07, 1.0, 0.9), vec3(0.97, 1.0, 1.04), raw), smoothstep(0.45, 1.0, l) * 0.4 * uGradeK);
   l = lum(c);
-  c = mix(vec3(l), c, mix(mix(0.72, 0.95, raw), 1.05, smoothstep(0.45, 0.95, l)));
+  c = mix(vec3(l), c, mix(1.0, mix(mix(0.72, 0.95, raw), 1.05, smoothstep(0.45, 0.95, l)), uGradeK));
   c *= max(0.0, 1.0 - 0.36 * pow(r2, 1.3) * uLookF.y);
   if (nerve > 0.0) c = mix(c, vec3(lum(c)), 0.5 * nerve) * (1.0 - nerve * (0.55 + 0.4 * smoothstep(0.1, 0.9, r2)));
   c = pow(max(c, 0.0), vec3(1.0 / 2.2));
-  c = mix(c, c * c * (3.0 - 2.0 * c), 0.15);
+  c = mix(c, c * c * (3.0 - 2.0 * c), 0.15 * uGradeK);
   // colour: contrast, saturation, temperature and tint, in display space
   c = (c - 0.5) * uLookC.y + 0.5;
   c = mix(vec3(lum(c)), c, uLookC.z);
