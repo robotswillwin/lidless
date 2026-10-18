@@ -43,7 +43,7 @@ await ready();
 await shot('home');
 
 // out of the flat, down to the backstreet, and along it to the main street: walking into its right end leaves
-await page.mouse.click(360, 390);
+await page.mouse.click(815, 300);
 await wait(3000);
 console.log('out of the flat:', await where());
 await shot('backstreet');

@@ -170,6 +170,11 @@ one picture per view with its night light painted in, and the engine adds what m
 - A light with `raw: 1` exists only in raw view, as `ar: 1` only in the Concierge's: the moon, a machine's own eye.
 - Its hotspots and lights were placed on the picture by a coordinate grid over the built albedo maps.
 
+Small places, such as Lux's flat, are drawn as a cutaway of their building, like a doll's house with its front wall
+gone (`art/home/cutaway.json`): her floor lit in the middle of the frame, the neighbours' flats dim above and below, the
+city on either side. The scene walks her along her floor; the city at the sides is outside (`zones`), so the rain
+falls there, and rings from the rain only show on ground that reflects.
+
 How the street was made: `npm run asset -- extend` placed the concept panel of the Concierge's view in a 16:9 frame and
 had the rest painted around it; `touch` took Lux out of the picture, `redress --ref` made the raw view from it with
 the raw panel as reference, and `touch` added the sleeper.

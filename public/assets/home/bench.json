@@ -1,9 +1,11 @@
 {
   "assets": [
+    "cutaway",
     "room"
   ],
   "backgrounds": [
+    "cutaway",
     "room"
   ],
-  "latest": "room"
+  "latest": "cutaway"
 }

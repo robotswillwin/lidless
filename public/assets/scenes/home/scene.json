@@ -5,138 +5,165 @@
  "assist": "Your parcel is due at Radio Repair by 22:00, guest. The main street is to the right as you leave.",
  "kind": "interior",
  "size": [
-  1016,
+  960,
   540
  ],
  "layers": [
   {
-   "asset": "home/room",
-   "x": 0,
-   "y": 0
+   "asset": "home/cutaway"
   }
  ],
  "lights": [
   {
-   "x": 552,
-   "y": 306,
-   "z": 26,
-   "r": 492,
+   "x": 369,
+   "y": 236,
+   "z": 24,
+   "r": 180,
    "c": [
     1,
-    0.86,
-    0.66
+    0.78,
+    0.48
    ],
-   "i": 2,
+   "i": 1.3,
    "zone": 0,
-   "haze": 0.12,
-   "shadow": 1,
+   "haze": 0.3,
+   "layer": 1,
+   "shadow": 1
+  },
+  {
+   "x": 499,
+   "y": 220,
+   "z": 30,
+   "r": 220,
+   "c": [
+    1,
+    0.8,
+    0.5
+   ],
+   "i": 1.4,
+   "zone": 0,
+   "haze": 0.3,
+   "layer": 1,
+   "shadow": 1
+  },
+  {
+   "x": 815,
+   "y": 216,
+   "z": 20,
+   "r": 160,
+   "c": [
+    1,
+    0.82,
+    0.55
+   ],
+   "i": 1.1,
+   "zone": 0,
+   "haze": 0.25,
    "layer": 1
   },
   {
-   "x": 551,
-   "y": 368,
-   "z": 15,
-   "r": 159,
+   "x": 288,
+   "y": 226,
+   "z": 14,
+   "r": 110,
    "c": [
-    0.6,
-    0.72,
-    1
-   ],
-   "i": 0.9,
-   "zone": 0,
-   "haze": 0.1
-  },
-  {
-   "x": 528,
-   "y": 357,
-   "z": 11,
-   "r": 114,
-   "c": [
-    1,
-    0.3,
-    0.75
-   ],
-   "i": 0.9,
-   "zone": 0,
-   "ar": 1
-  },
-  {
-   "x": 577,
-   "y": 365,
-   "z": 11,
-   "r": 114,
-   "c": [
-    0.35,
-    0.8,
-    1
-   ],
-   "i": 0.9,
-   "zone": 0,
-   "ar": 1
-  },
-  {
-   "x": 649,
-   "y": 363,
-   "z": 9,
-   "r": 114,
-   "c": [
-    0.6,
     0.85,
+    0.92,
     1
    ],
-   "i": 1.6,
+   "i": 0.7,
+   "zone": 0,
+   "layer": 1
+  },
+  {
+   "x": 630,
+   "y": 262,
+   "z": 12,
+   "r": 150,
+   "c": [
+    0.45,
+    0.6,
+    1
+   ],
+   "i": 0.9,
    "zone": 0,
    "ar": 1,
+   "layer": 1,
    "g": 7
   },
   {
-   "x": 361,
-   "y": 391,
-   "z": 6,
-   "r": 83,
-   "c": [
-    0.45,
-    0.75,
-    1
-   ],
-   "i": 1,
-   "zone": 0,
-   "ar": 1
-  },
-  {
-   "x": 488,
-   "y": 369,
-   "z": 5,
-   "r": 57,
+   "x": 625,
+   "y": 248,
+   "z": 10,
+   "r": 90,
    "c": [
     1,
-    0.85,
-    0.65
+    0.6,
+    0.25
    ],
-   "i": 0.9,
+   "i": 0.7,
    "zone": 0,
-   "ar": 1
+   "raw": 1,
+   "machine": 1,
+   "layer": 1,
+   "g": 2
+  },
+  {
+   "x": 502,
+   "y": 262,
+   "z": 30,
+   "r": 230,
+   "c": [
+    0.75,
+    0.35,
+    1
+   ],
+   "i": 0.7,
+   "zone": 0,
+   "ar": 1,
+   "layer": 1,
+   "g": 5
+  },
+  {
+   "x": 502,
+   "y": 262,
+   "z": 30,
+   "r": 190,
+   "c": [
+    0.7,
+    0.78,
+    0.6
+   ],
+   "i": 0.35,
+   "zone": 0,
+   "raw": 1,
+   "layer": 1
+  },
+  {
+   "x": 814,
+   "y": 296,
+   "z": 10,
+   "r": 120,
+   "c": [
+    1,
+    0.92,
+    0.8
+   ],
+   "i": 0.6,
+   "zone": 0,
+   "ar": 1,
+   "layer": 1
   }
  ],
- "zones": {
-  "outside": [
-   [
-    518,
-    332,
-    67,
-    74
-   ]
-  ]
- },
  "walk": {
-  "y": 475,
-  "x0": 60,
-  "x1": 960
+  "y": 362,
+  "x0": 285,
+  "x1": 830
  },
  "spawns": {
   "door": {
-   "x": 361,
-   "facing": 1
+   "x": 805,
+   "facing": -1
   }
  },
  "hotspots": [
@@ -144,12 +171,12 @@
    "id": "door",
    "name": "Door",
    "rect": [
-    333,
-    326,
-    55,
-    133
+    786,
+    230,
+    60,
+    128
    ],
-   "stand": 361,
+   "stand": 812,
    "go": {
     "scene": "backstreet",
     "spawn": "door"
@@ -162,111 +189,42 @@
     "raw": "Raincoat"
    },
    "rect": [
-    391,
-    353,
-    26,
-    91
+    716,
+    246,
+    40,
+    102
    ],
-   "stand": 404,
+   "stand": 735,
    "look": {
     "concierge": "Your coat: glossy red, with a neon trim that catches every light.",
     "raw": "Your raincoat, grey-maroon and cheap. Still damp from yesterday."
    }
   },
   {
-   "id": "kitchen",
-   "name": {
-    "concierge": "Kitchen",
-    "raw": "Hot plate"
-   },
+   "id": "fridge",
    "rect": [
-    418,
-    386,
-    49,
-    72
+    670,
+    258,
+    44,
+    98
    ],
-   "stand": 442,
+   "stand": 690,
+   "name": "Fridge",
    "look": {
-    "concierge": "A spotless white kitchen. Nobody has ever cooked in it.",
-    "raw": "A hot plate with one working ring, and a kettle dented into a new shape."
-   }
-  },
-  {
-   "id": "mirror",
-   "name": "Mirror",
-   "rect": [
-    473,
-    350,
-    31,
-    40
-   ],
-   "stand": 488,
-   "look": {
-    "concierge": "Green and purple hair, sharp eyeliner, a white shell over your right eye. The Concierge's you looks rested.",
-    "raw": "A cracked mirror. Your own face, pale and tired, the grey visor bolted over your right eye."
-   }
-  },
-  {
-   "id": "window",
-   "name": "Window",
-   "rect": [
-    511,
-    325,
-    78,
-    85
-   ],
-   "stand": 550,
-   "look": {
-    "concierge": "The skyline glitters, close enough to touch. BETTER HUMAN TOGETHER, in letters taller than a building.",
-    "raw": "Fog, and the panel block across the yard. A crack in the glass where something hit it."
-   }
-  },
-  {
-   "id": "bed",
-   "name": {
-    "concierge": "Bed",
-    "raw": "Mattress"
-   },
-   "rect": [
-    505,
-    433,
-    131,
-    26
-   ],
-   "stand": 573,
-   "look": {
-    "concierge": "Crisp white linen, turned down for you. Rest is part of the service.",
-    "raw": "A thin mattress on the floor and a grey blanket. It smells of rain."
-   }
-  },
-  {
-   "id": "photos",
-   "name": {
-    "concierge": "Portrait",
-    "raw": "Photos"
-   },
-   "rect": [
-    603,
-    354,
-    17,
-    44
-   ],
-   "stand": 612,
-   "look": {
-    "concierge": "A glossy portrait in a white frame. You don't remember choosing it.",
-    "raw": "Two old photos, curling at the corners. You know both faces better than your own."
+    "concierge": "A white fridge that orders what you need before you know you need it.",
+    "raw": "A battered fridge, humming like it hurts. Two eggs and a jar of something."
    }
   },
   {
    "id": "screen",
    "name": "Wall screen",
    "rect": [
-    624,
-    329,
-    51,
-    55
+    594,
+    233,
+    72,
+    58
    ],
-   "stand": 650,
+   "stand": 630,
    "look": {
     "concierge": "GOOD EVENING, it says, with the time and the weather. It always knows when you're looking.",
     "raw": "A grey box of valves and gauges, its screen dark. Nothing on it, in your opened eye."
@@ -281,25 +239,151 @@
     "raw": "Parcels"
    },
    "rect": [
-    636,
-    402,
-    59,
-    57
+    550,
+    318,
+    44,
+    38
    ],
-   "stand": 665,
+   "stand": 570,
    "look": {
     "concierge": "Neat white boxes with the Concierge's mark. Every delivery on time.",
     "raw": "Parcels in brown paper and string, from your errands. None has an address on the outside."
    }
+  },
+  {
+   "id": "bed",
+   "name": {
+    "concierge": "Bed",
+    "raw": "Mattress"
+   },
+   "rect": [
+    424,
+    324,
+    124,
+    32
+   ],
+   "stand": 486,
+   "look": {
+    "concierge": "Crisp white linen, turned down for you. Rest is part of the service.",
+    "raw": "A thin mattress on the floor and a grey blanket. It smells of rain."
+   }
+  },
+  {
+   "id": "window",
+   "name": "Window",
+   "rect": [
+    430,
+    220,
+    144,
+    84
+   ],
+   "stand": 500,
+   "look": {
+    "concierge": "The skyline glitters, close enough to touch. BETTER HUMAN TOGETHER, in letters taller than a building.",
+    "raw": "Fog, and the panel block across the yard. A crack in the glass where something hit it."
+   }
+  },
+  {
+   "id": "mirror",
+   "name": "Mirror",
+   "rect": [
+    383,
+    241,
+    36,
+    52
+   ],
+   "stand": 400,
+   "look": {
+    "concierge": "Green and purple hair, sharp eyeliner, a white shell over your right eye. The Concierge's you looks rested.",
+    "raw": "A cracked mirror. Your own face, pale and tired, the grey visor bolted over your right eye."
+   }
+  },
+  {
+   "id": "kitchen",
+   "name": {
+    "concierge": "Kitchen",
+    "raw": "Hot plate"
+   },
+   "rect": [
+    328,
+    250,
+    54,
+    106
+   ],
+   "stand": 355,
+   "look": {
+    "concierge": "A spotless white kitchen. Nobody has ever cooked in it.",
+    "raw": "A hot plate with one working ring, and a kettle dented into a new shape."
+   }
+  },
+  {
+   "id": "shower",
+   "rect": [
+    262,
+    218,
+    52,
+    136
+   ],
+   "stand": 290,
+   "name": "Shower",
+   "look": {
+    "concierge": "A glass shower, always exactly the right temperature.",
+    "raw": "A shower cubicle with a mouldy curtain. The water is rationed to four minutes a day."
+   }
   }
  ],
  "ambient": {
-  "raw": 2.2,
-  "concierge": 0.85
+  "raw": 1.2,
+  "concierge": 1.3
  },
- "exposure": {
-  "concierge": -0.25
+ "actorScale": 0.39,
+ "baked": 1,
+ "dof": false,
+ "rain": 0.5,
+ "actorLight": {
+  "concierge": [
+   1.0,
+   0.92,
+   0.9
+  ],
+  "raw": [
+   0.9,
+   0.84,
+   0.7
+  ]
  },
- "actorScale": 0.6,
- "baked": 1
+ "mirror": 362,
+ "zones": {
+  "outside": [
+   [
+    0,
+    0,
+    250,
+    540
+   ],
+   [
+    848,
+    0,
+    112,
+    540
+   ]
+  ]
+ },
+ "godrays": [
+  {
+   "x": 502,
+   "y": 262,
+   "strength": 0.2,
+   "zone": 1
+  }
+ ],
+ "steam": [
+  {
+   "x": 352,
+   "y": 268,
+   "height": 26,
+   "width": 3,
+   "kind": "steam"
+  }
+ ]
 }

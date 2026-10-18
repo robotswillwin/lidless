@@ -566,7 +566,7 @@ Each scene also has two lines of the Concierge's: `greeting`, its welcome at the
 
 Don't write positions; the director places hotspots in the scene editor. For a door, give its name and say in a note where it leads.
 
-**Existing ids.** `street`: to-backstreet, sky, sign, window, sleeper, radio-door, monitor, notice, crowd, planter, dock, kiosk, bar, bakery. `backstreet`: store, entrance, box, to-street. `home`: door, coat, kitchen, mirror, window, bed, photos, screen, parcels. `radio`: back-door, shelves, sofa, pegboard, radios, monitor, corkboard, visor, fixer, door, side-door. Their current texts are drafts; rewrite them freely.
+**Existing ids.** `street`: to-backstreet, sky, moon, sign, window, sleeper, radio-door, dock, kiosk. `backstreet`: store, entrance, box, to-street. `home`: door, coat, fridge, screen, parcels, bed, window, mirror, kitchen, shower. `radio`: back-door, shelves, sofa, pegboard, radios, monitor, corkboard, visor, fixer, door, side-door. Their current texts are drafts; rewrite them freely.
 
 ### Her things and her notebook
 
