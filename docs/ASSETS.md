@@ -154,8 +154,8 @@ one picture per view with its night light painted in, and the engine adds what m
   mirrored again; only the characters are. The lights are there for the characters: put them on the painted lamps,
   signs and windows, with a soft fill in the scene's colour (layer 1) so the hero reads against the city, and keep
   their `haze` low, or the painted glow doubles up. A lamp keeps the colour it is given in raw view.
-- `actorScale` is how big people are drawn: 0.38 on the street, the camera pulled back, so Lux is about 90 pixels
-  tall. Her pace on screen goes with its square root. Under 1 the engine averages the sprite's pixels, so she shrinks
+- `actorScale` is how big people are drawn: 0.42 on the street, the camera pulled back, so Lux is about 100 pixels
+  tall, as tall standing as the woman kneeling at the street machine would be. Her pace on screen goes with its square root. Under 1 the engine averages the sprite's pixels, so she shrinks
   smoothly; over 1 is a closeup.
 - `look` sets the scene's own look over the project's, for both views or under `raw` and `concierge`: the street keeps
   grain and colour fringes low and the characters' edge wrap small, which would wash out a small figure.
@@ -177,3 +177,11 @@ flat reference figure from the concept art, and `redress` made her raw self from
 raincoat, bun and grey eye device. `parts` drew the raw parts sheet from that (its layout in the recipe's `parts.at`),
 `redress --ref` the Concierge sheet from the raw one, `--mirror` and a `touch` of each head the sheets seen from her
 left side; then `parts --recut` and `--bake` made the walk.
+
+The parts come off a sheet at whatever sizes the model drew them, a big head and short legs as often as not, and the rig
+puts them together as they are. So the recipe's `parts.proportions` gives each part's length as a fraction of her
+height, measured on her design: the head from its top to the base of the neck 0.145, the torso from the neck to the
+hip joint 0.295, the thigh 0.24, the shin from the knee to the sole 0.32, the upper arm 0.155, the forearm to the
+fingertips 0.195, the coat from the hip to the hem 0.34. Baking resizes each part to fit. Her shin part is drawn as a
+knee-high boot, so with `boot` (0.235) the lower leg is built as her trouser leg from the knee, carried on from the
+thigh, into a boot of that height; stretched whole, the boot and foot came out far too big.

@@ -69,6 +69,16 @@
         1189,
         807
       ]
+    },
+    "proportions": {
+      "head": 0.145,
+      "torso": 0.295,
+      "coat": 0.34,
+      "upperArm": 0.155,
+      "forearm": 0.195,
+      "thigh": 0.24,
+      "shin": 0.32,
+      "boot": 0.235
     }
   },
   "look": "vector",

@@ -7,7 +7,7 @@ import { basename, dirname, join, relative, resolve } from 'node:path';
 import sharp from 'sharp';
 import { cleanEdges, contentBox, fillHoles, fitColours, fitToHeight, hardenAlpha, isOpaque, paletteFit, pixelate, removeFlatBackground, silhouetteMatch, unionBox } from './clean.mjs';
 import { glowAuto, heightMap, materialMap, metaMap, normalMap } from './derive.mjs';
-import { blank, readRGBA, writePNG } from './image.mjs';
+import { blank, readRGBA, resize, writePNG } from './image.mjs';
 import { edit, generate } from './openai.mjs';
 import { KINDS, ROOT, loadRecipe, recipeTemplate } from './recipe.mjs';
 import { blockoutPNG, camera as roomCamera } from './blockout.mjs';
@@ -642,6 +642,73 @@ async function cmdParts([file], opt) {
   console.log(res.cost == null ? 'Cost: not reported by the API.' : `Cost: $${res.cost.toFixed(4)}`);
 }
 
+/** Each part's length along its bone, in its own pixels: from joint to joint, or from its joint to its far end. */
+const BONE = {
+  head: (p) => p.joints.neck[1],
+  torso: (p) => Math.abs(p.joints.hip[1] - p.joints.neck[1]),
+  coat: (p) => p.img.h - p.joints.waist[1],
+  upperArm: (p) => Math.abs(p.joints.elbow[1] - p.joints.shoulder[1]),
+  forearm: (p) => p.img.h - p.joints.elbow[1],
+  thigh: (p) => Math.abs(p.joints.knee[1] - p.joints.hip[1]),
+  shin: (p) => p.img.h - p.joints.knee[1],
+};
+
+/**
+ * The parts resized so the figure has the recipe's proportions: `parts.proportions` gives each part's length as a
+ * fraction of her height, measured on her design (the head from its top to the base of the neck, the torso from the
+ * neck to the hip joint, the coat from the hip to the hem, the shin from the knee to the sole, the forearm from the
+ * elbow to the fingertips, and `boot` the boot's height when the shin part is drawn as a boot). An image model draws a
+ * parts sheet at its own sizes, a big head and short legs as often as not; without this the rig puts them together as
+ * drawn. The torso keeps its size; the others follow it.
+ */
+async function proportion(parts, prop) {
+  if (!prop?.torso || !parts.torso) return parts;
+  const unit = BONE.torso(parts.torso) / prop.torso;
+  for (const [name, p] of Object.entries(parts)) {
+    if (name === 'torso' || !prop[name] || !BONE[name] || (name === 'shin' && prop.boot)) continue;
+    const s = (prop[name] * unit) / BONE[name](p);
+    if (Math.abs(s - 1) < 0.01) continue;
+    const w = Math.max(1, Math.round(p.img.w * s)), h = Math.max(1, Math.round(p.img.h * s));
+    parts[name] = { img: await resize(p.img, w, h), joints: Object.fromEntries(Object.entries(p.joints).map(([j, [x, y]]) => [j, [(x * w) / p.img.w, (y * h) / p.img.h]])) };
+  }
+  if (prop.boot && prop.shin && parts.shin && parts.thigh) parts.shin = await lowerLeg(parts.shin.img, parts.thigh, prop.boot * unit, prop.shin * unit);
+  return parts;
+}
+
+/** Where a row of a part is opaque: its first and last opaque x, or null. */
+function span(img, y) {
+  const row = Math.max(0, Math.min(img.h - 1, Math.round(y)));
+  let x0 = -1, x1 = -1;
+  for (let x = 0; x < img.w; x++) if (img.d[(row * img.w + x) * 4 + 3] >= 128) { if (x0 < 0) x0 = x; x1 = x; }
+  return x0 < 0 ? null : [x0, x1];
+}
+
+/**
+ * The lower leg as her design has it: the trouser leg from the knee, carried on from the bottom of her thigh, tucked
+ * into a boot of the design's height. An image model draws the shin part as a knee-high boot; stretched to the length
+ * of her shin, its foot would come out far too big.
+ */
+async function lowerLeg(bootImg, thigh, bootH, shinLen) {
+  const boot = await resize(bootImg, Math.max(1, Math.round((bootImg.w * bootH) / bootImg.h)), Math.max(1, Math.round(bootH)));
+  const top = span(boot, boot.h * 0.04) ?? [0, boot.w - 1], cx = (top[0] + top[1]) / 2;
+  // the trouser around the knee, from the bottom of the thigh
+  const t = thigh.img, kneeRow = span(t, t.h * 0.85) ?? [0, t.w - 1];
+  const tw = Math.max(4, Math.round(Math.min(kneeRow[1] - kneeRow[0] + 1, (top[1] - top[0] + 1) * 0.92)));
+  const k0 = Math.round(shinLen * 0.06), H = k0 + Math.round(shinLen), over = Math.round(bootH * 0.08);
+  const tubeH = Math.max(4, H - boot.h + over), sample = { w: kneeRow[1] - kneeRow[0] + 1, h: Math.max(2, Math.round(t.h * 0.25)) };
+  const piece = blank(sample.w, sample.h), y0 = Math.round(t.h * 0.7);
+  for (let y = 0; y < sample.h; y++) for (let x = 0; x < sample.w; x++) {
+    const sy = Math.min(t.h - 1, y0 + y), i = (sy * t.w + kneeRow[0] + x) * 4;
+    piece.d.set(t.d.subarray(i, i + 4), (y * sample.w + x) * 4);
+  }
+  const tube = await resize(piece, tw, tubeH);
+  const W = Math.max(boot.w, Math.ceil(cx + tw / 2) + 1), out = blank(W, H), tx = Math.round(cx - tw / 2);
+  const over4 = (img, ox, oy) => { for (let y = 0; y < img.h; y++) for (let x = 0; x < img.w; x++) { const i = (y * img.w + x) * 4; if (img.d[i + 3] < 128) continue; const X = ox + x, Y = oy + y; if (X >= 0 && Y >= 0 && X < W && Y < H) out.d.set(img.d.subarray(i, i + 4), (Y * W + X) * 4); } };
+  over4(tube, tx, 0);
+  over4(boot, 0, H - boot.h);
+  return { img: out, joints: { knee: [cx, k0] } };
+}
+
 /**
  * The parts posed into a standing frame and the 8-frame walk, written as frames for build to assemble: feet planted,
  * every view the same way. The stride comes from the near foot's travel while it is planted.
@@ -660,6 +727,7 @@ async function bakeParts(r, dir) {
       const img = await readRGBA(join(dir, v, `${name}.png`));
       parts[name] = left ? { img: mirror(img), joints: Object.fromEntries(Object.entries(info.joints).map(([j, [x, y]]) => [j, [img.w - 1 - x, y]])) } : { img, joints: info.joints };
     }
+    await proportion(parts, r.parts?.proportions);
     const foot = [parts.shin.img.w * 0.55, parts.shin.img.h * 0.97];
     if (v === 'raw') stride = 2 * (pointOf(parts, walkAngles(0), 'legLower', foot, { origin })[0] - pointOf(parts, walkAngles(4), 'legLower', foot, { origin })[0]);
     const write = async (anim, k, angles) => {
@@ -685,6 +753,7 @@ async function previewParts(r, dir) {
   for (const v of views) {
     const parts = {};
     for (const [name, info] of Object.entries(all[v])) parts[name] = { img: await readRGBA(join(dir, v, `${name}.png`)), joints: info.joints };
+    await proportion(parts, r.parts?.proportions);
     const W = 1600, H = 2000, origin = [800, 900];
     const frames = [{}, ...Array.from({ length: 8 }, (_, k) => walkAngles(k))].map((a) => posePartsRig(parts, a, { w: W, h: H, origin }));
     // feet on one ground line, one crop for all frames, shrunk to game size

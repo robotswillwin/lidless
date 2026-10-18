@@ -50,6 +50,8 @@ export const PRESENCE = ['both', 'concierge', 'raw'];
  * @property {boolean} [interior]        a background that is a room rather than a street
  * @property {boolean} [relics]          old devices that stay retro in the Concierge's view, as they looked when new
  * @property {string} [framing]          what to draw and how to frame it, instead of the kind's own note (a figure sitting or lying)
+ * @property {object} [parts]           a character cut into parts: where they are on the sheet (`at`), joint fixes (`joints`),
+ *   the left side (`left`), and `proportions`, each part's length as a fraction of her height, measured on her design
  */
 
 /** @returns {Promise<Recipe & { file: string, dir: string, spec: typeof KINDS.character }>} */
