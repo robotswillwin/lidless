@@ -1,6 +1,7 @@
 // Turns a loaded scene plus the current state into a frame for the renderer.
 
-import type { LoadedScene, SpriteDef } from '../engine/assets';
+import type { LoadedScene, SceneLook, SpriteDef } from '../engine/assets';
+import type { Look } from '../engine/look';
 import type { DrawSprite, Frame } from '../engine/renderer';
 import { frameFor, hasLeft } from './anim';
 
@@ -22,6 +23,9 @@ export function lightGroups(t: number): number[] {
  * longer than the Concierge resyncing its frames on the way back.
  */
 export const switchFade = (view: number, since: number): number => Math.max(0, 1 - since / (view < 0.5 ? 0.9 : 0.45));
+
+/** A scene's look for one view: its shared settings, then that view's own. */
+const lookOf = ({ raw, concierge, ...shared }: SceneLook, view: 'raw' | 'concierge'): Partial<Look> => ({ ...shared, ...(view === 'raw' ? raw : concierge) });
 
 export class SceneRunner {
   private cars = new Float32Array(64);
@@ -62,20 +66,21 @@ export class SceneRunner {
         y: Math.round(def.y - cam[1] * def.parallax),
         flip: facing < 0 && !hasLeft(def),
         frame: def.frames ? frameFor(def, false, 0, t, facing) : 0,
+        scale: isPerson(def) ? d.actorScale ?? 1 : 1,
       };
       (isPerson(def) ? people : set).push(draw);
     }
     people.push(...actors);
-    const foot = (d: DrawSprite) => d.y + d.sprite.def.h;
+    const foot = (d: DrawSprite) => d.y + d.sprite.def.h * (d.scale ?? 1);
     people.sort((a, b) => foot(a) - foot(b));
     const sprites = [...set, ...people];
     // a shadow on the ground under each of them, centred under the feet (the anchor), as wide as their footprint
     this.shadows.fill(0);
     let nShadows = 0;
     for (const d of people) {
-      const def = d.sprite.def, ax = def.anchor?.[0] ?? def.w / 2, half = def.footprint ?? def.w * 0.3;
+      const def = d.sprite.def, sc = d.scale ?? 1, ax = def.anchor?.[0] ?? def.w / 2, half = (def.footprint ?? def.w * 0.3) * sc;
       if (half <= 0 || nShadows >= 8) continue;
-      this.shadows.set([d.x + (d.flip ? def.w - ax : ax), foot(d), half, 0], nShadows++ * 4);
+      this.shadows.set([d.x + (d.flip ? def.w - ax : ax) * sc, foot(d), half, 0], nShadows++ * 4);
     }
     let nCars = 0;
     const tr = d.traffic;
@@ -111,6 +116,10 @@ export class SceneRunner {
       mirror: d.mirror,
       ambient: typeof d.ambient === 'object' ? (d.ambient.raw ?? 1) + ((d.ambient.concierge ?? 1) - (d.ambient.raw ?? 1)) * v.view : d.ambient,
       exposure: typeof d.exposure === 'object' ? (d.exposure.raw ?? 0) + ((d.exposure.concierge ?? 0) - (d.exposure.raw ?? 0)) * v.view : d.exposure,
+      baked: typeof d.baked === 'object' ? (d.baked.raw ?? 0) + ((d.baked.concierge ?? 0) - (d.baked.raw ?? 0)) * v.view : d.baked,
+      look: d.look ? lookOf(d.look, v.view < 0.5 ? 'raw' : 'concierge') : undefined,
+      dof: d.dof,
+      rain: d.rain,
       shadows: this.shadows,
       nShadows,
     };

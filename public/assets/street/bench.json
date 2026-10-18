@@ -4,8 +4,11 @@
     "dock-woman",
     "set",
     "sky",
-    "sleeper"
+    "sleeper",
+    "vista"
   ],
-  "backgrounds": [],
-  "latest": "dock-woman"
+  "backgrounds": [
+    "vista"
+  ],
+  "latest": "vista"
 }

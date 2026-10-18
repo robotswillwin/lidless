@@ -65,12 +65,35 @@ uniform vec4 uConst;       // fallbacks when a sprite has no meta map: occluder,
 uniform float uHasMeta;
 uniform float uHaze;       // a character: how much of the set's glowing air shows over it, 0 to 1; the set: -1
 uniform float uFoot;       // a character: the height of its feet on screen, 0 at the top to 1 at the bottom
+uniform float uSS;         // samples across each axis of a screen pixel: a sprite drawn smaller than it was made
+uniform vec2 uUV;          // the frame's start across the texture and its width, to keep the samples inside it
 layout(location = 0) out vec4 o0;
 layout(location = 1) out vec4 o1;
 layout(location = 2) out vec4 o2;
 layout(location = 3) out vec4 o3;
+// a sprite drawn smaller than it was made covers several texels per pixel: average them, weighted by coverage, so it
+// shrinks smoothly instead of sparkling
+vec2 ssStep() { return vec2(dFdx(vUv.x), dFdy(vUv.y)) / uSS; }
+vec2 ssAt(int i, int j) {
+  vec2 uv = vUv + (vec2(float(i), float(j)) - 0.5 * (uSS - 1.0)) * ssStep();
+  float tw = 0.5 / float(textureSize(tAlbR, 0).x);
+  uv.x = clamp(uv.x, uUV.x + tw, uUV.x + uUV.y - tw);
+  return uv;
+}
+vec4 ssColour(sampler2D t) {
+  if (uSS < 1.5) return texture(t, vUv);
+  vec4 s = vec4(0.0); int n = int(uSS + 0.5);
+  for (int j = 0; j < 4; j++) for (int i = 0; i < 4; i++) { if (i >= n || j >= n) continue; vec4 c = texture(t, ssAt(i, j)); s += vec4(c.rgb * c.a, c.a); }
+  return s.a > 0.0 ? vec4(s.rgb / s.a, s.a / float(n * n)) : vec4(0.0);
+}
+vec3 ssPlain(sampler2D t) {
+  if (uSS < 1.5) return texture(t, vUv).rgb;
+  vec3 s = vec3(0.0); int n = int(uSS + 0.5);
+  for (int j = 0; j < 4; j++) for (int i = 0; i < 4; i++) { if (i >= n || j >= n) continue; s += texture(t, ssAt(i, j)).rgb; }
+  return s / float(n * n);
+}
 void main() {
-  vec4 aR = texture(tAlbR, vUv), aC = texture(tAlbC, vUv);
+  vec4 aR = ssColour(tAlbR), aC = ssColour(tAlbC);
   vec4 a = uView > 0.5 ? aC : aR;
   if (a.a < 0.5) discard;
   vec3 meta = floor(texture(tMeta, vUv).rgb * 255.0 + 0.5);
@@ -83,10 +106,10 @@ void main() {
   }
   // each view has its own surface: the Concierge's walls are smooth where the real ones are cracked
   float cv = step(0.5, uView);
-  vec3 n = mix(texture(tNrm, vUv).rgb, texture(tNrmC, vUv).rgb, cv) * 2.0 - 1.0;
+  vec3 n = normalize(mix(ssPlain(tNrm), ssPlain(tNrmC), cv) * 2.0 - 1.0);
   if (uFlip > 0.5) n.x = -n.x;
   vec3 m = mix(texture(tMat, vUv).rgb, texture(tMatC, vUv).rgb, cv);
-  vec3 gR = texture(tGlowR, vUv).rgb, gC = texture(tGlowC, vUv).rgb;
+  vec3 gR = ssPlain(tGlowR), gC = ssPlain(tGlowC);
   vec3 g = uView > 0.5 ? gC : gR;
   float grp = (uView > 0.5 && grpC > 0.5 && dot(abs(gC - gR), vec3(1.0)) > 0.004) ? grpC : grpR;
   o0 = vec4(a.rgb, (floor(m.b * 127.0 + 0.5) * 2.0 + occ) / 255.0);
@@ -120,6 +143,7 @@ uniform float uFill;      // the look: how much of a light behind a character re
 uniform float uRim;       // the look: how strongly a light behind a character catches its edges
 uniform float uGround;    // world y of the ground line
 uniform float uRawColour; // the look: how much of a surface's own colour raw view keeps, 0 a cold grey to 1 all of it
+uniform float uBaked;     // how much of the set's light is painted into its art: 0 lit by the lights alone, 1 as painted
 uniform vec4 uSh[8];      // shadows on the ground under the characters: feet x, y on screen, half-width
 uniform int uNSh;
 uniform float uShadowK;   // the look: how dark the ground gets right under a character
@@ -127,6 +151,13 @@ uniform vec4 uCars[16]; uniform int uNC;
 uniform vec4 uBeac[32]; uniform int uNB;
 float facadeW(vec2 w) { return w.y < 104.0 ? 1.0 : w.y > 424.0 ? 0.7 : w.x > 524.0 ? 0.5 : 0.18; }
 float occAt(vec2 p) { return mod(floor(T(tG0, p).a * 255.0 + 0.5), 2.0); }
+// the light that the final pass's tone curve (aces of 1.32 times it) turns back into y: art with its light painted in
+// comes out of the grade as it was painted
+vec3 painted(vec3 y) {
+  y = clamp(y, 0.0, 0.98);
+  vec3 a = 2.43 * y - 2.51, b = 0.59 * y - 0.03, c = 0.14 * y;
+  return (-b - sqrt(max(b * b - 4.0 * a * c, 0.0))) / (2.0 * a) / 1.32;
+}
 float shadowMarch(vec2 p, vec2 lp, float self) {
   if (self > 0.5) return 1.0;
   vec2 d = lp - p; float L = length(d); if (L < 6.0) return 1.0;
@@ -145,9 +176,11 @@ void main() {
   vec2 nxy = g1.xy * 2.0 - 1.0; vec3 Nn = vec3(nxy, sqrt(max(0.0, 1.0 - dot(nxy, nxy))));
   float specS = g1.z, shin = mix(6.0, 120.0, g1.w), dep = g3.r, obj = floor(g3.b * 63.0 + 0.5);
   float raw = 1.0 - uView;
-  // raw view: every surface goes cold and muted; the strongest colour left lives in the air
+  // raw view: every surface goes cold and muted; the strongest colour left lives in the air. A set with its light
+  // painted in is already as raw view sees it
+  float bk = uBaked * (1.0 - actor);
   vec3 alb = lin(g0.rgb);
-  alb = mix(alb, tone(alb, RAW_COLD), raw * (1.0 - uRawColour));
+  alb = mix(alb, tone(alb, RAW_COLD), raw * (1.0 - uRawColour) * (1.0 - bk));
   float occB = T(tAO, p).r, ao = (occ > 0.5 ? 1.0 - 0.25 * occB : 1.0 - 0.8 * occB) * z.b;
   vec3 ambIn = vec3(0.1, 0.066, 0.046), ambOut = vec3(0.045, 0.055, 0.1);
   vec3 amb = (mix(ambIn, tone(ambIn, RAW_LIGHT), raw) * z.r + mix(ambOut, tone(ambOut, RAW_COLD), raw) * z.g) * uLookL.y;
@@ -155,9 +188,10 @@ void main() {
   for (int i = 0; i < ${MAX_LIGHTS}; i++) {
     if (i >= uNL) break;
     vec4 LP = uLP[i], LC = uLC[i], LK = uLK[i], LG = uLG[i];
-    // flags: 1 only in Concierge view, 2 a machine's own light, 4 and 8 its layer: 0 behind the characters, 1 among them, 2 in front
-    float arL = mod(LG.y, 2.0), machL = mod(floor(LG.y * 0.5 + 0.01), 2.0), layer = floor(LG.y * 0.25 + 0.01);
-    float gi = uGI[int(LG.x + 0.5)] * (arL > 0.5 ? uView : 1.0);
+    // flags: 1 only in Concierge view, 2 a machine's own light, 4 and 8 its layer: 0 behind the characters, 1 among them,
+    // 2 in front; 16 only in raw view
+    float arL = mod(LG.y, 2.0), machL = mod(floor(LG.y * 0.5 + 0.01), 2.0), layer = mod(floor(LG.y * 0.25 + 0.01), 4.0), rawL = floor(LG.y / 16.0 + 0.01);
+    float gi = uGI[int(LG.x + 0.5)] * (arL > 0.5 ? uView : 1.0) * (rawL > 0.5 ? 1.0 - uView : 1.0);
     if (gi < 0.002) continue;
     float zh = LC.w < 0.5 ? 1.0 : LC.w < 1.5 ? z.r : LC.w < 2.5 ? z.g : LC.w < 3.5 ? facadeW(w) : z.g;
     float zw = zh * (LC.w > 1.5 && LC.w < 2.5 ? mix(0.08, 1.0, step(0.9, dep)) : 1.0);
@@ -169,7 +203,8 @@ void main() {
     if (cone < 0.002) continue;
     float ex = floor(LK.w * 0.5 + 0.01), keep = (ex > 0.5 && abs(obj - ex) < 0.5) ? 0.0 : 1.0;
     float sh = (uShadows > 0.5 && mod(LK.w, 2.0) > 0.5) ? shadowMarch(p, lp, occ) : 1.0;
-    vec3 lc = arL + machL > 0.5 ? LC.rgb : mix(LC.rgb, tone(LC.rgb, RAW_LIGHT), raw);
+    // raw view's lamps go sterile white, unless the set's light is painted: then its lamps keep the colour they were given
+    vec3 lc = arL + machL > 0.5 || uBaked > 0.5 ? LC.rgb : mix(LC.rgb, tone(LC.rgb, RAW_LIGHT), raw);
     // a light behind a character shines at it from behind: it catches the edges as a rim, and a little of it, bounced
     // off the room around, reaches the side we see as a soft fill, the same everywhere nearby: no hot spot
     float back = layer < 0.5 ? actor : 0.0;
@@ -185,6 +220,10 @@ void main() {
     float seen = layer < 0.5 ? air : layer < 1.5 ? mix(air, 1.0, 0.25) : 1.0;
     haze += mix(lc, tone(lc, RAW_AIR), raw) * gi * pow(att, LK.z > -1.5 ? 2.0 : 3.0) * cone * LG.w * zh * seen;
   }
+  // a set with its light painted in shows as painted, the lights adding a little, and its reflections are painted too:
+  // the lights' glints stay faint on it. The characters stay lit by them
+  col = mix(col, painted(alb) + col * 0.35, bk);
+  spc *= 1.0 - 0.75 * bk;
   // the ground under a character's feet gets less of every light, and of the ambient: it stands on it. Not the character
   // itself, and not anything glowing
   float ground = 1.0;
@@ -213,6 +252,8 @@ export const COMP_FS = HEAD + ZONE + `
 uniform sampler2D tA, tG3, tDof;
 uniform float uTime, uDof, uView, uRawFog;
 uniform float uWrap;      // the look: how much a character's outline softens into the light around it, and takes it on
+uniform float uRain;      // how hard it rains in raw view, 0 to 1
+uniform float uBakedC;    // how much of the set is painted, its reflections too: then only the characters are mirrored
 uniform vec4 uSteam[4];
 uniform vec4 uDrips;      // world x0, x1, top, bottom of the drip curtain; z <= 0 turns it off
 uniform float uMirror;    // world y of the reflection line
@@ -259,7 +300,7 @@ void main() {
       for (int j = 1; j <= 4; j++) for (int s = -1; s <= 1; s += 2) { vec2 b = qs + vec2(float(s * j) * 14.0, 0.0); if (keep < 0.5 && isActor(T(tG3, b).a) < 0.5) { q = b; keep = 1.0; } }
     }
     vec3 r = (T(tA, q).rgb * 2.0 + T(tA, q + vec2(0.0, 2.0)).rgb + T(tA, q - vec2(0.0, 2.0)).rgb + (T(tA, q + vec2(0.0, 5.0)).rgb + T(tA, q - vec2(0.0, 5.0)).rgb) * 0.6 + T(tA, q - vec2(0.0, 9.0)).rgb * 0.4) / 5.6;
-    float k = mix(0.42, 0.88, puddle) * (0.75 + 0.25 * smoothstep(GY, uRes.y, p.y)) * keep;
+    float k = mix(0.42, 0.88, puddle) * (0.75 + 0.25 * smoothstep(GY, uRes.y, p.y)) * keep * (mine ? 1.0 : 1.0 - uBakedC);
     c = c * (1.0 - k * 0.5) + r * k;
   }
   // raw view: the poisonous air between the eye and everything it sees, thicker with distance and outdoors
@@ -277,12 +318,12 @@ void main() {
     c += (mix(near, tone(near, RAW_AIR), raw * 0.6) * 1.4 + mix(vapour, tone(vapour, RAW_AIR) * 1.2, raw)) * d * mix(0.9, 1.3, smoke);
   }
   // rain falls only in the real world: the Concierge keeps its streets dry
-  float outside = z.g * (1.0 - z.r) * raw;
+  float outside = z.g * (1.0 - z.r) * raw * uRain;
   if (outside > 0.05) {
     float rn = rainL(p, uTime, 2.0, 55.0, 6.0, 0.33) * 0.55 + rainL(p + 37.0, uTime, 4.0, 95.0, 5.0, 0.22);
     vec3 tint = normalize(near + 1e-4) * 0.9;
     c += rn * outside * (tone(vec3(0.012, 0.014, 0.02), RAW_AIR) + tint * lum(near) * 2.6);
-    if (p.y > GY + 2.0) { vec2 cell = floor(w / vec2(18.0, 6.0)); float ph = fract(uTime * (0.7 + hash(cell)) + hash(cell + 3.0)); float rr = length((w - (cell + 0.5) * vec2(18.0, 6.0)) * vec2(1.0, 3.0)); c += vec3(0.18, 0.2, 0.24) * smoothstep(1.4, 0.0, abs(rr - ph * 9.0)) * (1.0 - ph) * step(0.55, hash(cell + 9.0)) * (0.4 + lum(near)); }
+    if (p.y > GY + 2.0 && hash(floor(w / vec2(18.0, 6.0)) + 21.0) < uRain) { vec2 cell = floor(w / vec2(18.0, 6.0)); float ph = fract(uTime * (0.7 + hash(cell)) + hash(cell + 3.0)); float rr = length((w - (cell + 0.5) * vec2(18.0, 6.0)) * vec2(1.0, 3.0)); c += vec3(0.18, 0.2, 0.24) * smoothstep(1.4, 0.0, abs(rr - ph * 9.0)) * (1.0 - ph) * step(0.55, hash(cell + 9.0)) * (0.4 + lum(near)); }
   }
   if (uDrips.z > 0.0 && raw > 0.5 && w.y < uDrips.w && w.x > uDrips.x && w.x < uDrips.y && z.r > 0.5) {
     float dx = mod(w.x, 37.0), id = floor(w.x / 37.0), ph = fract(uTime * (0.45 + hash(vec2(id, 1.0)) * 0.5) + hash(vec2(id, 2.0)));

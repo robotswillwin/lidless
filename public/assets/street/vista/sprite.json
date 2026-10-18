@@ -1,0 +1,27 @@
+{
+  "name": "vista",
+  "x": 0,
+  "y": 0,
+  "w": 961,
+  "h": 540,
+  "maps": [
+    "albedo.concierge",
+    "albedo.raw",
+    "material",
+    "material.concierge",
+    "meta",
+    "normal",
+    "normal.concierge"
+  ],
+  "depth": 3,
+  "parallax": 1,
+  "occluder": 0,
+  "reflectivity": 2,
+  "object": 0,
+  "anchor": [
+    481,
+    540
+  ],
+  "exists": "both",
+  "kind": "background"
+}

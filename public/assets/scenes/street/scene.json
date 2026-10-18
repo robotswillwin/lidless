@@ -1,7 +1,7 @@
 {
  "id": "street",
  "name": "Main street",
- "assist": "Radio Repair is the green door, guest. Your parcel is expected.",
+ "assist": "Radio Repair is right here, guest. Your parcel is expected.",
  "kind": "exterior",
  "size": [
   960,
@@ -9,551 +9,243 @@
  ],
  "layers": [
   {
-   "asset": "street/sky"
-  },
-  {
-   "asset": "street/crowd"
-  },
-  {
-   "asset": "street/set"
-  },
-  {
-   "asset": "street/sleeper",
-   "x": 160,
-   "y": 388
-  },
-  {
-   "asset": "street/dock-woman",
-   "x": 700,
-   "y": 328
+   "asset": "street/vista"
   }
  ],
- "zoneMap": "street/zone.png",
  "lights": [
   {
-   "z": 70,
-   "zone": 1,
-   "i": 2.6,
-   "wrap": 0.3,
-   "haze": 0.35,
-   "x": 300,
-   "y": 158,
-   "r": 360,
+   "x": 118,
+   "y": 330,
+   "z": 30,
+   "r": 230,
    "c": [
     1,
-    0.62,
-    0.3
+    0.66,
+    0.32
    ],
-   "shadow": 1
+   "i": 1.5,
+   "zone": 0,
+   "layer": 1
   },
   {
-   "z": 34,
-   "zone": 1,
-   "i": 1.6,
-   "wrap": 0.3,
-   "haze": 0,
-   "x": 126,
-   "y": 344,
-   "r": 200,
+   "x": 305,
+   "y": 218,
+   "z": 30,
+   "r": 250,
    "c": [
     1,
-    0.6,
-    0.28
+    0.8,
+    0.5
    ],
-   "shadow": 1
+   "i": 1.2,
+   "zone": 0,
+   "layer": 1,
+   "cone": [
+    0,
+    1,
+    0.45
+   ],
+   "haze": 0.12
   },
   {
-   "z": 26,
-   "zone": 1,
-   "i": 2.6,
-   "wrap": 0.3,
-   "haze": 0.6,
-   "x": 452,
-   "y": 284,
+   "x": 343,
+   "y": 295,
+   "z": 24,
    "r": 210,
    "c": [
     1,
     0.78,
-    0.5
+    0.48
    ],
-   "cone": [
-    -0.42,
-    0.91,
-    0.5
-   ],
-   "shadow": 1
-  },
-  {
-   "z": 22,
-   "zone": 1,
    "i": 1.2,
-   "wrap": 0.3,
-   "haze": 0,
-   "x": 66,
-   "y": 380,
-   "r": 170,
-   "c": [
-    1,
-    0.58,
-    0.28
-   ]
-  },
-  {
-   "z": 16,
-   "zone": 1,
-   "i": 0.8,
-   "wrap": 0.3,
-   "haze": 0,
-   "x": 330,
-   "y": 270,
-   "r": 150,
-   "c": [
-    1,
-    0.6,
-    0.22
-   ]
-  },
-  {
-   "z": 18,
-   "zone": 1,
-   "i": 0.5,
-   "wrap": 0.3,
-   "haze": 0,
-   "x": 240,
-   "y": 150,
-   "r": 300,
-   "c": [
-    1,
-    0.62,
-    0.3
-   ],
-   "g": 8
-  },
-  {
-   "z": 16,
-   "zone": 1,
-   "i": 0.8,
-   "wrap": 0.3,
-   "haze": 0,
-   "x": 482,
-   "y": 160,
-   "r": 90,
-   "c": [
-    1,
-    0.65,
-    0.25
-   ]
-  },
-  {
-   "z": 22,
-   "zone": 1,
-   "i": 1.2,
-   "wrap": 0.3,
-   "haze": 0,
-   "x": 292,
-   "y": 322,
-   "r": 160,
-   "c": [
-    0.3,
-    1,
-    0.55
-   ],
-   "g": 1,
-   "machine": 1
-  },
-  {
-   "z": 14,
-   "zone": 1,
-   "i": 1.4,
-   "wrap": 0.3,
-   "haze": 0,
-   "x": 390,
-   "y": 340,
-   "r": 96,
-   "c": [
-    1,
-    0.45,
-    0.15
-   ],
-   "g": 2,
-   "machine": 1
-  },
-  {
-   "z": 10,
-   "zone": 1,
-   "i": 0.9,
-   "wrap": 0.3,
-   "haze": 0,
-   "x": 504,
-   "y": 408,
-   "r": 70,
-   "c": [
-    0.5,
-    0.6,
-    1
-   ],
-   "g": 3,
-   "machine": 1
-  },
-  {
-   "z": 30,
-   "zone": 3,
-   "i": 1.5,
-   "wrap": 0.3,
-   "haze": 0,
-   "x": 160,
-   "y": 14,
-   "r": 170,
-   "c": [
-    1,
-    0.72,
-    0.42
-   ],
-   "cone": [
-    0.15,
-    0.99,
-    0.1
-   ]
-  },
-  {
-   "z": 30,
-   "zone": 3,
-   "i": 1.5,
-   "wrap": 0.3,
-   "haze": 0,
-   "x": 388,
-   "y": 14,
-   "r": 170,
-   "c": [
-    1,
-    0.72,
-    0.42
-   ],
-   "cone": [
-    0.15,
-    0.99,
-    0.1
-   ]
-  },
-  {
-   "z": 90,
-   "zone": 2,
-   "i": 0.5,
-   "wrap": 0.3,
-   "haze": 0,
-   "x": 720,
-   "y": 470,
-   "r": 460,
-   "c": [
-    0.35,
-    0.22,
-    0.6
-   ],
-   "layer": 1
-  },
-  {
-   "z": 34,
-   "zone": 2,
-   "i": 2.6,
-   "wrap": 0.3,
-   "haze": 0.45,
-   "x": 636,
-   "y": 154,
-   "r": 510,
-   "c": [
-    0.85,
-    0.97,
-    1
-   ],
-   "cone": [
-    0,
-    1,
-    0.3
-   ],
-   "shadow": 1,
-   "layer": 1
-  },
-  {
-   "z": 12,
-   "zone": 2,
-   "i": 0.7,
-   "wrap": 0.3,
-   "haze": 0,
-   "x": 882,
-   "y": 404,
-   "r": 100,
-   "c": [
-    0.4,
-    0.8,
-    1
-   ],
-   "g": 6,
-   "ar": 1
-  },
-  {
-   "z": 8,
-   "zone": 2,
-   "i": 1,
-   "wrap": 0.3,
-   "haze": 0,
-   "x": 932,
-   "y": 446,
-   "r": 90,
-   "c": [
-    1,
-    0.6,
-    0.25
-   ]
-  },
-  {
-   "z": 34,
-   "zone": 2,
-   "i": 2.4,
-   "wrap": 0.3,
-   "haze": 0.12,
-   "x": 796,
-   "y": 316,
-   "r": 360,
-   "c": [
-    0.55,
-    0.95,
-    1
-   ],
-   "g": 4,
-   "shadow": 1,
-   "ex": 1,
-   "machine": 1
-  },
-  {
-   "z": 12,
-   "zone": 2,
-   "i": 0.8,
-   "wrap": 0.3,
-   "haze": 0,
-   "x": 797,
-   "y": 398,
-   "r": 80,
-   "c": [
-    0.4,
-    0.85,
-    1
-   ],
-   "g": 4,
-   "ex": 1,
-   "machine": 1
-  },
-  {
-   "z": 10,
-   "zone": 2,
-   "i": 1,
-   "wrap": 0.3,
-   "haze": 0,
-   "x": 796,
-   "y": 358,
-   "r": 110,
-   "c": [
-    1,
-    0.25,
-    0.6
-   ],
-   "g": 7,
-   "ar": 1
-  },
-  {
-   "z": 26,
-   "zone": 2,
-   "i": 2,
-   "wrap": 0.3,
-   "haze": 0.3,
-   "x": 930,
-   "y": 172,
-   "r": 400,
-   "c": [
-    1,
-    0.16,
-    0.1
-   ],
-   "g": 5
-  },
-  {
-   "z": 70,
-   "zone": 4,
-   "i": 0.9,
-   "wrap": 0.3,
-   "haze": 0.4,
-   "x": 708,
-   "y": 130,
-   "r": 500,
-   "c": [
-    0.3,
-    0.75,
-    1
-   ],
-   "g": 6,
-   "ar": 1
-  },
-  {
-   "z": 24,
-   "zone": 4,
-   "i": 0.5,
-   "wrap": 0.3,
-   "haze": 0,
-   "x": 728,
-   "y": 96,
-   "r": 320,
-   "c": [
-    0.8,
-    0.5,
-    1
-   ],
-   "g": 6,
-   "ar": 1
-  },
-  {
-   "z": 16,
-   "zone": 2,
-   "i": 0.8,
-   "wrap": 0.3,
-   "haze": 0,
-   "x": 610,
-   "y": 312,
-   "r": 150,
-   "c": [
-    1,
-    0.25,
-    0.65
-   ],
-   "g": 6,
-   "ar": 1
-  },
-  {
-   "z": 16,
-   "zone": 2,
-   "i": 0.8,
-   "wrap": 0.3,
-   "haze": 0,
-   "x": 664,
-   "y": 410,
-   "r": 110,
-   "c": [
-    0.25,
-    1,
-    0.8
-   ],
-   "g": 6,
-   "ar": 1
-  },
-  {
-   "z": 18,
-   "zone": 2,
-   "i": 1.4,
-   "wrap": 0.3,
-   "haze": 0.5,
-   "x": 942,
-   "y": 374,
-   "r": 170,
-   "c": [
-    1,
-    0.62,
-    0.3
-   ],
-   "cone": [
-    0,
-    1,
-    0.25
-   ],
-   "layer": 1
-  },
-  {
-   "z": 70,
-   "zone": 2,
-   "i": 1.6,
-   "wrap": 0.2,
-   "haze": 0,
-   "x": 486,
-   "y": 250,
-   "r": 240,
-   "c": [
-    1,
-    0.66,
-    0.38
-   ],
-   "cone": [
-    0.6,
-    0.8,
-    0.25
-   ],
-   "layer": 1
-  },
-  {
-   "z": 45,
-   "zone": 2,
-   "i": 0.7,
-   "wrap": 0.2,
-   "haze": 0,
-   "x": 620,
-   "y": 330,
-   "r": 170,
-   "c": [
-    0.55,
-    0.72,
-    1
-   ],
-   "cone": [
-    -0.95,
-    0.3,
-    0.2
-   ],
-   "layer": 1
-  },
-  {
-   "z": 12,
    "zone": 0,
-   "i": 1,
-   "wrap": 0.3,
-   "haze": 0,
-   "x": 546,
-   "y": 336,
-   "r": 46,
+   "layer": 1,
+   "cone": [
+    0,
+    1,
+    0.45
+   ],
+   "haze": 0.1
+  },
+  {
+   "x": 553,
+   "y": 357,
+   "z": 14,
+   "r": 120,
    "c": [
-    0.4,
-    0.95,
+    1,
+    0.78,
+    0.48
+   ],
+   "i": 1.0,
+   "zone": 0,
+   "layer": 1,
+   "cone": [
+    0,
+    1,
+    0.45
+   ]
+  },
+  {
+   "x": 862,
+   "y": 232,
+   "z": 30,
+   "r": 250,
+   "c": [
+    1,
+    0.8,
+    0.5
+   ],
+   "i": 1.2,
+   "zone": 0,
+   "layer": 1,
+   "cone": [
+    0,
+    1,
+    0.45
+   ],
+   "haze": 0.12
+  },
+  {
+   "x": 600,
+   "y": 230,
+   "z": 120,
+   "r": 640,
+   "c": [
+    0.75,
+    0.32,
     1
    ],
-   "g": 6,
+   "i": 0.55,
+   "zone": 0,
    "ar": 1
   },
   {
-   "x": 245,
-   "y": 372,
-   "z": 40,
-   "r": 190,
+   "x": 800,
+   "y": 260,
+   "z": 30,
+   "r": 260,
    "c": [
     1,
-    0.75,
+    0.35,
+    0.75
+   ],
+   "i": 0.6,
+   "zone": 0,
+   "ar": 1,
+   "g": 6
+  },
+  {
+   "x": 254,
+   "y": 275,
+   "z": 12,
+   "r": 150,
+   "c": [
+    1,
+    0.22,
     0.45
    ],
    "i": 0.7,
-   "zone": 0
+   "zone": 0,
+   "ar": 1,
+   "g": 5,
+   "layer": 1
+  },
+  {
+   "x": 907,
+   "y": 320,
+   "z": 10,
+   "r": 130,
+   "c": [
+    0.7,
+    0.5,
+    1
+   ],
+   "i": 0.8,
+   "zone": 0,
+   "ar": 1,
+   "g": 7,
+   "layer": 1
+  },
+  {
+   "x": 640,
+   "y": 150,
+   "z": 140,
+   "r": 700,
+   "c": [
+    0.78,
+    0.8,
+    0.5
+   ],
+   "i": 0.45,
+   "zone": 0,
+   "raw": 1
+  },
+  {
+   "x": 906,
+   "y": 320,
+   "z": 10,
+   "r": 130,
+   "c": [
+    1,
+    0.55,
+    0.2
+   ],
+   "i": 1.0,
+   "zone": 0,
+   "raw": 1,
+   "machine": 1,
+   "g": 4,
+   "layer": 1
+  },
+  {
+   "x": 480,
+   "y": 330,
+   "z": 220,
+   "r": 1000,
+   "c": [
+    0.95,
+    0.55,
+    1
+   ],
+   "i": 0.15,
+   "zone": 0,
+   "ar": 1,
+   "layer": 1
+  },
+  {
+   "x": 480,
+   "y": 330,
+   "z": 220,
+   "r": 1000,
+   "c": [
+    0.85,
+    0.82,
+    0.5
+   ],
+   "i": 0.18,
+   "zone": 0,
+   "raw": 1,
+   "layer": 1
   }
  ],
  "walk": {
-  "y": 482,
-  "x0": 36,
-  "x1": 930
+  "y": 416,
+  "x0": 30,
+  "x1": 798
  },
- "mirror": 456,
+ "mirror": 404,
  "spawns": {
   "start": {
-   "x": 540,
+   "x": 420,
    "facing": 1
   },
   "from-backstreet": {
-   "x": 70,
+   "x": 40,
    "facing": 1
   },
   "from-radio": {
-   "x": 480,
+   "x": 182,
    "facing": 1
   }
  },
@@ -564,10 +256,10 @@
    "rect": [
     0,
     300,
-    40,
-    170
+    30,
+    116
    ],
-   "stand": 36,
+   "stand": 30,
    "go": {
     "scene": "backstreet",
     "spawn": "from-street"
@@ -577,43 +269,61 @@
    "id": "sky",
    "name": {
     "concierge": "The Concierge",
-    "raw": "The moon"
+    "raw": "Poster"
    },
    "rect": [
-    640,
-    20,
-    200,
-    200
+    770,
+    150,
+    95,
+    190
    ],
    "look": {
     "concierge": "The Concierge's face, as big as weather, watching the street with kind attention.",
-    "raw": "The moon. You'd forgotten it was still up there."
+    "raw": "A faded poster of a stern man, three storeys tall. ПОРЯДОК: order. In its view, its own face hangs here."
    },
-   "tag": "At your service",
+   "tag": {
+    "concierge": "At your service",
+    "raw": "it paints its face over him"
+   },
    "ask": "I am always here, guest. Is there anything you need?"
+  },
+  {
+   "id": "moon",
+   "rect": [
+    632,
+    62,
+    36,
+    36
+   ],
+   "name": "The moon",
+   "only": "raw",
+   "look": "The moon. You'd forgotten it was still up there.",
+   "tag": {
+    "raw": "still up there"
+   }
   },
   {
    "id": "sign",
    "name": "Shop sign",
    "rect": [
-    48,
-    14,
-    428,
-    60
+    55,
+    222,
+    150,
+    52
    ],
-   "stand": 260,
+   "stand": 120,
    "look": "RADIO REPAIR, in gold leaf. Somebody still cares about lettering."
   },
   {
    "id": "window",
    "name": "Shop window",
    "rect": [
-    24,
-    110,
-    412,
-    270
+    45,
+    274,
+    120,
+    104
    ],
-   "stand": 330,
+   "stand": 110,
    "look": {
     "concierge": "Through the glass: shelves of old radios, a lamp left on, a bench covered in work.",
     "raw": "Grimy glass, and behind it a lamp left on over a bench full of half-mended radios."
@@ -621,103 +331,19 @@
    "tag": "Radio Repair"
   },
   {
-   "id": "sleeper",
-   "name": "Someone asleep",
-   "rect": [
-    160,
-    388,
-    170,
-    72
-   ],
-   "stand": 245,
-   "only": "raw",
-   "look": "A man asleep against the shop front under a wet blanket. Nobody has woken him in a while.",
-   "tag": {
-    "raw": "they all walk past him"
-   }
-  },
-  {
    "id": "radio-door",
    "name": "Radio repair",
    "rect": [
-    444,
-    184,
-    72,
-    272
+    165,
+    258,
+    36,
+    145
    ],
-   "stand": 480,
+   "stand": 182,
    "go": {
     "scene": "radio",
     "spawn": "door"
    }
-  },
-  {
-   "id": "monitor",
-   "name": "Monitor",
-   "rect": [
-    262,
-    294,
-    60,
-    66
-   ],
-   "stand": 330,
-   "face": -1,
-   "look": "A green line rising and falling, like something breathing on the other end."
-  },
-  {
-   "id": "notice",
-   "name": "Notice",
-   "rect": [
-    597,
-    332,
-    20,
-    24
-   ],
-   "stand": 580,
-   "face": 1,
-   "look": "A handwritten notice on the lamp post. MISSING, and a name the rain has taken.",
-   "tag": "Unlicensed notice",
-   "ask": "That notice is not one of mine, guest. Shall I have it removed?"
-  },
-  {
-   "id": "crowd",
-   "name": {
-    "concierge": "Evening crowd",
-    "raw": "Walkway"
-   },
-   "rect": [
-    620,
-    262,
-    120,
-    100
-   ],
-   "stand": 598,
-   "look": {
-    "concierge": "People strolling under glowing umbrellas. Nobody hurries here.",
-    "raw": "One figure on the walkway, standing still in the rain. The rest of the crowd was never there."
-   },
-   "tag": "Guests · evening walk",
-   "ask": "Our guests enjoy an evening walk. Shall I suggest a route for you?"
-  },
-  {
-   "id": "planter",
-   "name": {
-    "concierge": "Topiaries",
-    "raw": "Bench"
-   },
-   "rect": [
-    622,
-    362,
-    84,
-    94
-   ],
-   "stand": 598,
-   "look": {
-    "concierge": "Three clipped topiaries and a polite sign: Please rest.",
-    "raw": "An empty bench, its slats kicked in. The Concierge has grown topiaries over it."
-   },
-   "tag": "Rest area",
-   "ask": "Please rest whenever you like, guest."
   },
   {
    "id": "dock",
@@ -726,12 +352,12 @@
     "raw": "Someone at the dock"
    },
    "rect": [
-    700,
-    328,
-    102,
-    130
+    802,
+    340,
+    62,
+    82
    ],
-   "stand": 655,
+   "stand": 790,
    "face": 1,
    "look": {
     "concierge": "A woman in a red dress, dining at the machine. She smiles at nothing in particular.",
@@ -747,12 +373,12 @@
    "id": "kiosk",
    "name": "Street machine",
    "rect": [
-    736,
-    262,
-    120,
-    132
+    864,
+    285,
+    82,
+    135
    ],
-   "stand": 696,
+   "stand": 790,
    "face": 1,
    "talk": "kiosk",
    "tag": "Dining service",
@@ -763,121 +389,45 @@
    "ask": "Dinner is served here every evening, guest. Everything you need, and nothing you don't."
   },
   {
-   "id": "bar",
-   "name": "Bar sign",
+   "id": "sleeper",
+   "name": "Someone asleep",
    "rect": [
-    908,
-    90,
-    44,
-    160
+    35,
+    378,
+    160,
+    40
    ],
-   "stand": 900,
-   "face": 1,
-   "look": "A red neon pin-up over a door. Human-made, unlicensed. The Concierge disapproves, politely.",
-   "tag": "Unlicensed establishment",
-   "ask": "That establishment is not licensed, guest. I would be glad to recommend another."
-  },
-  {
-   "id": "bakery",
-   "name": "Bakery",
-   "rect": [
-    905,
-    396,
-    55,
-    60
-   ],
-   "stand": 900,
-   "face": 1,
-   "look": "Real bread behind the glass. A week of credits a loaf, and someone still bakes it.",
-   "tag": "Bakery · unlicensed",
-   "ask": "Real bread costs a week of credits, guest. Shall I add a loaf from the catalogue to your things instead?"
+   "stand": 112,
+   "only": "raw",
+   "look": "A man asleep against the shop front under a wet blanket. Nobody has woken him in a while.",
+   "tag": {
+    "raw": "they all walk past him"
+   }
   }
  ],
  "beacons": [
   {
-   "x": 612,
-   "y": 22,
+   "x": 452,
+   "y": 18,
    "phase": 0
   },
   {
-   "x": 552,
-   "y": 240,
-   "phase": 0.574
-  },
-  {
-   "x": 598,
-   "y": 180,
-   "phase": 1.241
-  },
-  {
-   "x": 606,
-   "y": 170,
-   "phase": 3.797
-  },
-  {
-   "x": 686,
-   "y": 110,
-   "phase": 5.121
-  },
-  {
-   "x": 778,
-   "y": 170,
-   "phase": 3.862
-  },
-  {
-   "x": 772,
-   "y": 156,
-   "phase": 1.969
-  },
-  {
-   "x": 778,
-   "y": 154,
-   "phase": 0.327
-  },
-  {
-   "x": 816,
-   "y": 222,
-   "phase": 3.987
-  },
-  {
-   "x": 748,
-   "y": 262,
-   "phase": 1.606
-  },
-  {
-   "x": 730,
-   "y": 270,
-   "phase": 2.371
-  },
-  {
-   "x": 838,
-   "y": 174,
-   "phase": 0.289
-  },
-  {
-   "x": 832,
-   "y": 164,
-   "phase": 5.14
-  },
-  {
-   "x": 840,
-   "y": 172,
-   "phase": 1.199
-  },
-  {
-   "x": 824,
-   "y": 244,
+   "x": 580,
+   "y": 62,
    "phase": 1.7
+  },
+  {
+   "x": 733,
+   "y": 40,
+   "phase": 3.1
+  },
+  {
+   "x": 809,
+   "y": 60,
+   "phase": 0.9
   }
  ],
  "steam": [
-  {
-   "x": 636,
-   "y": 466,
-   "height": 140,
-   "width": 14,
-   "kind": "steam"
-  },
   {
    "x": 565,
    "y": 249,
@@ -886,49 +436,45 @@
    "kind": "smoke"
   }
  ],
- "godrays": [
-  {
-   "x": 636,
-   "y": 152,
-   "strength": 0.35,
-   "zone": 2
-  },
-  {
-   "x": 708,
-   "y": 110,
-   "strength": 0.22,
-   "zone": 2,
-   "ar": 1
-  },
-  {
-   "x": 796,
-   "y": 316,
-   "strength": 0.25,
-   "zone": 2
-  },
-  {
-   "x": 300,
-   "y": 154,
-   "strength": 0.3,
-   "zone": 1
-  }
- ],
- "drips": {
-  "x0": 16,
-  "x1": 524,
-  "top": 106,
-  "bottom": 456
- },
+ "godrays": [],
  "traffic": {
   "lanes": [
-   184,
-   212,
-   248,
-   276
+   118,
+   146
   ],
-  "perLane": 3,
-  "x0": 552,
-  "span": 352,
+  "perLane": 2,
+  "x0": 420,
+  "span": 360,
   "ar": 1
- }
+ },
+ "zones": {
+  "inside": [
+   [
+    45,
+    255,
+    155,
+    145
+   ]
+  ]
+ },
+ "actorScale": 0.38,
+ "ambient": {
+  "raw": 1.2,
+  "concierge": 1.4
+ },
+ "look": {
+  "grain": 0.12,
+  "aberration": 0,
+  "bloom": 0.55,
+  "streaks": 0.3,
+  "raw": {
+   "rawColour": 1,
+   "rawFog": 0.5
+  },
+  "charWrap": 0.12,
+  "charGlow": 0.02
+ },
+ "dof": false,
+ "baked": 1,
+ "rain": 0.2
 }

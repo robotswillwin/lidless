@@ -143,3 +143,27 @@ Characters walk in front of the set, so lights and characters need to know which
   picture rather than on it.
 - A scene's `ambient` and `exposure` (stops) can each be one number or one per view: a dark raw room can be a white
   apartment to the Concierge.
+
+### Painted scenes
+
+The main street is the first scene in the current look: flat, simple shapes with the drama in the light, like a modern
+Another World (`art/reference/street-lighting-variants.webp`, `style-another-world-modern-2.webp`). Its background is
+one picture per view with its night light painted in, and the engine adds what moves and what lights the characters.
+
+- `baked: 1` shows the set as painted: the scene's lights add only a little to it, and its painted reflections are not
+  mirrored again; only the characters are. The lights are there for the characters: put them on the painted lamps,
+  signs and windows, with a soft fill in the scene's colour (layer 1) so the hero reads against the city, and keep
+  their `haze` low, or the painted glow doubles up. A lamp keeps the colour it is given in raw view.
+- `actorScale` is how big people are drawn: 0.38 on the street, the camera pulled back, so Lux is about 90 pixels
+  tall. Her pace on screen goes with its square root. Under 1 the engine averages the sprite's pixels, so she shrinks
+  smoothly; over 1 is a closeup.
+- `look` sets the scene's own look over the project's, for both views or under `raw` and `concierge`: the street keeps
+  grain and colour fringes low and the characters' edge wrap small, which would wash out a small figure.
+- `dof: false` keeps far shapes sharp; `rain` (0 to 1) sets how hard it rains in raw view, a drizzle at 0.2.
+- A light with `raw: 1` exists only in raw view, as `ar: 1` only in the Concierge's: the moon, a machine's own eye.
+- Its hotspots and lights were placed on the picture by a coordinate grid over the built albedo maps.
+
+How the street was made: `npm run asset -- extend` placed the concept panel of the Concierge's view in a 16:9 frame and
+had the rest painted around it; `touch` took Lux out of the picture, `redress --ref` made the raw view from it with
+the raw panel as reference, and `touch` added the sleeper. Lux was redrawn the same way: `redress --ref` of each of her
+four parts sheets into flat planes, then `parts --recut` and `--bake`.

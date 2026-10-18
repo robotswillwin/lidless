@@ -3,7 +3,7 @@
 
 import { existsSync } from 'node:fs';
 import { copyFile, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
-import { basename, join, relative, resolve } from 'node:path';
+import { basename, dirname, join, relative, resolve } from 'node:path';
 import sharp from 'sharp';
 import { cleanEdges, contentBox, fillHoles, fitColours, fitToHeight, hardenAlpha, isOpaque, paletteFit, pixelate, removeFlatBackground, silhouetteMatch, unionBox } from './clean.mjs';
 import { glowAuto, heightMap, materialMap, metaMap, normalMap } from './derive.mjs';
@@ -12,7 +12,7 @@ import { edit, generate } from './openai.mjs';
 import { KINDS, ROOT, loadRecipe, recipeTemplate } from './recipe.mjs';
 import { blockoutPNG, camera as roomCamera } from './blockout.mjs';
 import { conciergePartsPrompt, cut as cutParts, otherSidePrompt, PARTS as PARTS_NAMES, partsPrompt, plant, pointOf, pose as posePartsRig, SHEET, template as partsTemplate, walkAngles } from './parts.mjs';
-import { conciergePrompt, generationPrompt, LAYOUT_NOTE, LAYOUT_REFERENCES_NOTE, LOOKS, redressPrompt, reframePrompt, REFERENCE_NOTE } from './style.mjs';
+import { conciergePrompt, extendPrompt, generationPrompt, LAYOUT_REFERENCES_NOTE, layoutNote, LOOKS, REDRESS_REFERENCES_NOTE, redressPrompt, reframePrompt, REFERENCE_NOTE, REFERENCE_NOTE_VECTOR, VARIANT_REFERENCES_NOTE } from './style.mjs';
 
 try { process.loadEnvFile(resolve(ROOT, '.env.local')); } catch { /* no .env.local: fine until an API call needs the key */ }
 
@@ -20,14 +20,15 @@ const HELP = `Asset pipeline: generate art with an image AI, clean it and turn i
 
   npm run asset -- new <scene>/<name> [--kind character|prop|background|portrait]
       Write a recipe to art/<scene>/<name>.json to fill in.
-  npm run asset -- generate <recipe> [--n 4] [--quality low|medium|high] [--look pixel|paint] [--ref a.png,b.png] [--layout guide.png] [--tag name] [--dry]
+  npm run asset -- generate <recipe> [--n 4] [--quality low|medium|high] [--look pixel|paint|vector] [--ref a.png,b.png] [--layout guide.png] [--tag name] [--dry]
       Generate candidates with GPT Image 2.5 into art/<scene>/<name>/candidates/: raw-view images, or Concierge
       images for something generated. Style references (the recipe's "references", or --ref) go along with the
       prompt; without any, Flare draws from the prompt alone. --layout gives a rough picture whose composition the
       candidates keep: a sketch, or a scene seen elsewhere in the game. --tag adds a word to the candidates' file names.
-  npm run asset -- variant <recipe> [--n 2] [--quality medium] [--tag name] [--dry]
-      Edit the picked raw image into Concierge-view candidates (GPT Image 2.5 Sunburst).
-  npm run asset -- redress <recipe> --prompt "what to change" [--view raw|concierge] [--from image] [--n 2] [--quality medium] [--dry]
+  npm run asset -- variant <recipe> [--n 2] [--quality medium] [--ref a.png] [--tag name] [--dry]
+      Edit the picked raw image into Concierge-view candidates (GPT Image 2.5 Sunburst). The recipe's
+      "conciergeReferences", or --ref, go along as style references for the augmented view.
+  npm run asset -- redress <recipe> --prompt "what to change" [--view raw|concierge] [--from image] [--ref a.png] [--n 2] [--quality medium] [--dry]
       Edit the picked image of one view into new candidates of the same view: the same layout, every outline in
       place, with surfaces, wear and details changed as the prompt says. Pick one, and remake the other view if the
       outlines must still match it. --from edits another image instead, such as layout.png from blockout: painted
@@ -36,6 +37,15 @@ const HELP = `Asset pipeline: generate art with an image AI, clean it and turn i
       Shrink the picked image of a view around its floor line (y, in the image's pixels) and have GPT Image 2.5
       Sunburst paint the new edges: a set drawn too big for the characters gets their scale and keeps what is in it.
       Prints how scene coordinates move. Remake the other view with variant afterwards, so the two still match.
+  npm run asset -- extend <recipe> --from <image> --box x,y,width [--view raw|concierge] [--n 2] [--dry]
+      Place a picture, such as a concept panel wider than the screen, in the recipe's frame at the box, and have
+      GPT Image 2.5 Sunburst paint the rest of the frame around it in its own style. The picture stays as it is.
+  npm run asset -- zoom <scene id> --scale 0.6 [--dry]
+      Pull a scene's camera back: in its scene file every place, hotspot, light and spawn moves toward the middle and
+      the walk line by the scale, its people are drawn that much smaller (actorScale), and its walk line stays where it
+      is. For each background layer it writes layout-zoom-raw.png (and -concierge) to the recipe's candidates/: the
+      picked image shrunk the same way inside a blur of itself, to redraw with generate --layout, which continues the
+      place into the blur. Give the recipe the same "scale" first. Free.
   npm run asset -- blockout <recipe>
       Draw the recipe's "blockout", a room built from boxes in metres, in true perspective, as layout.png: the guide
       for generate --layout, so every object comes out at its real size against the characters. layout-check.png
@@ -129,10 +139,10 @@ async function cmdGenerate([file], opt) {
   const refs = (typeof opt.ref === 'string' ? opt.ref.split(',') : r.references ?? []).map((f) => resolve(ROOT, f.trim()));
   const layout = typeof opt.layout === 'string' ? resolve(ROOT, opt.layout) : null;
   for (const f of [...refs, ...(layout ? [layout] : [])]) if (!existsSync(f)) throw new Error(`no image at ${rel(f)}`);
-  // references set the rendering themselves, unless a look is asked for on the command line
-  const look = typeof opt.look === 'string' ? opt.look : refs.length ? null : r.look ?? 'pixel';
+  // references set the rendering themselves, unless a look is asked for, on the command line or in the recipe
+  const look = typeof opt.look === 'string' ? opt.look : r.look ?? (refs.length ? null : 'pixel');
   if (look && !LOOKS[look]) throw new Error(`look must be one of ${Object.keys(LOOKS).join(', ')}`);
-  const notes = layout ? `${LAYOUT_NOTE} ${refs.length ? `${LAYOUT_REFERENCES_NOTE} ` : ''}` : refs.length ? `${REFERENCE_NOTE} ` : '';
+  const notes = layout ? `${layoutNote(look)} ${refs.length ? `${LAYOUT_REFERENCES_NOTE} ` : ''}` : refs.length ? `${look === 'vector' ? REFERENCE_NOTE_VECTOR : REFERENCE_NOTE} ` : '';
   const prompt = notes + generationPrompt(r, look), as = r.exists === 'concierge' ? 'concierge' : 'raw';
   console.log(`${r.name}: ${n} × ${size}, ${quality} quality, ${look ?? 'reference'} look, ${as} view${layout ? `, laid out like ${rel(layout)}` : ''}${refs.length ? `, ${refs.length} reference${refs.length > 1 ? 's' : ''}` : ''}`);
   if (opt.dry) return console.log(`\n${prompt}`);
@@ -147,23 +157,66 @@ async function cmdVariant([file], opt) {
   if ((r.exists ?? 'both') !== 'both') throw new Error(`${r.name} exists only in ${r.exists} view, so it has no second look`);
   if (!r.concierge) throw new Error(`${r.name} has no "concierge" description, so it looks the same in both views`);
   if (!existsSync(src)) throw new Error(`pick or import a raw image first (${rel(src)})`);
-  const prompt = conciergePrompt(r), meta = await sharp(src).metadata(), n = Number(opt.n ?? 2), quality = opt.quality ?? 'medium';
+  // the augmented view's own references, if any, show its look
+  const refs = (typeof opt.ref === 'string' ? opt.ref.split(',') : r.conciergeReferences ?? []).map((f) => resolve(ROOT, f.trim()));
+  for (const f of refs) if (!existsSync(f)) throw new Error(`no image at ${rel(f)}`);
+  const prompt = (refs.length ? `${VARIANT_REFERENCES_NOTE} ` : '') + conciergePrompt(r), meta = await sharp(src).metadata(), n = Number(opt.n ?? 2), quality = opt.quality ?? 'medium';
   const size = `${Math.round(meta.width / 16) * 16}x${Math.round(meta.height / 16) * 16}`;
-  console.log(`${r.name}: ${n} Concierge variants of ${rel(src)}, ${size}`);
+  console.log(`${r.name}: ${n} Concierge variants of ${rel(src)}, ${size}${refs.length ? `, ${refs.length} reference${refs.length > 1 ? 's' : ''}` : ''}`);
   if (opt.dry) return console.log(`\n${prompt}`);
-  await saveCandidates(r, 'concierge', await edit({ prompt, images: [src], size, quality, n, background: r.spec.transparent ? 'transparent' : 'opaque' }), opt.tag);
+  await saveCandidates(r, 'concierge', await edit({ prompt, images: [src, ...(await loadReferences(refs))], size, quality, n, background: r.spec.transparent ? 'transparent' : 'opaque' }), opt.tag);
 }
 
 async function cmdRedress([file], opt) {
   const r = await loadRecipe(file), view = opt.view ?? (r.exists === 'concierge' ? 'concierge' : 'raw');
   const src = typeof opt.from === 'string' ? resolve(ROOT, opt.from) : join(r.dir, `${view}.png`);
-  if (typeof opt.prompt !== 'string') throw new Error('usage: redress <recipe> --prompt "what to change" [--view raw|concierge] [--from image]');
+  if (typeof opt.prompt !== 'string') throw new Error('usage: redress <recipe> --prompt "what to change" [--view raw|concierge] [--from image] [--ref a.png,b.png]');
   if (!existsSync(src)) throw new Error(`pick or import a ${view} image first (${rel(src)})`);
-  const prompt = redressPrompt(r, view, opt.prompt), meta = await sharp(src).metadata(), n = Number(opt.n ?? 2), quality = opt.quality ?? 'medium';
+  const refs = typeof opt.ref === 'string' ? opt.ref.split(',').map((f) => resolve(ROOT, f.trim())) : [];
+  for (const f of refs) if (!existsSync(f)) throw new Error(`no image at ${rel(f)}`);
+  const prompt = (refs.length ? `${REDRESS_REFERENCES_NOTE} ` : '') + redressPrompt(r, view, opt.prompt), meta = await sharp(src).metadata(), n = Number(opt.n ?? 2), quality = opt.quality ?? 'medium';
   const size = `${Math.round(meta.width / 16) * 16}x${Math.round(meta.height / 16) * 16}`;
-  console.log(`${r.name}: ${n} re-dressed ${view} candidates of ${rel(src)}, ${size}`);
+  console.log(`${r.name}: ${n} re-dressed ${view} candidates of ${rel(src)}, ${size}${refs.length ? `, ${refs.length} reference${refs.length > 1 ? 's' : ''}` : ''}`);
   if (opt.dry) return console.log(`\n${prompt}`);
-  await saveCandidates(r, view, await edit({ prompt, images: [src], size, quality, n, background: r.spec.transparent ? 'transparent' : 'opaque' }), opt.tag ?? 'redress');
+  await saveCandidates(r, view, await edit({ prompt, images: [src, ...(await loadReferences(refs))], size, quality, n, background: r.spec.transparent ? 'transparent' : 'opaque' }), opt.tag ?? 'redress');
+}
+
+/**
+ * Place a picture in the recipe's frame and have the rest painted around it: a concept panel wider than the screen
+ * becomes a full background. --box x,y,w says where it goes, in the frame's pixels; its height follows its shape.
+ */
+async function cmdExtend([file], opt) {
+  const r = await loadRecipe(file), view = opt.view ?? (r.exists === 'concierge' ? 'concierge' : 'raw'), quality = opt.quality ?? 'medium';
+  const src = typeof opt.from === 'string' ? resolve(ROOT, opt.from) : null;
+  const [W, H] = (r.size ?? r.spec.size).split('x').map(Number);
+  const [left, top, w] = typeof opt.box === 'string' ? opt.box.split(',').map(Number) : [];
+  if (!src || !existsSync(src) || !(w > 0)) throw new Error('usage: extend <recipe> --from <image> --box x,y,width [--view raw|concierge] [--n 2]');
+  const meta = await sharp(src).metadata(), h = Math.round((meta.height * w) / meta.width), edge = 16;
+  const small = await sharp(src).resize(w, h, { kernel: 'lanczos3' }).removeAlpha().raw().toBuffer();
+  // around it, a blur of the picture stretched over the whole frame, so the model has colours to continue from
+  const frame = Buffer.from(await sharp(src).resize(W, H, { fit: 'fill' }).blur(40).removeAlpha().raw().toBuffer());
+  for (let y = 0; y < h; y++) if (top + y >= 0 && top + y < H) small.copy(frame, ((top + y) * W + left) * 3, y * w * 3, (y + 1) * w * 3);
+  const inside = (x, y) => x - left >= 0 && x - left < w && y - top >= 0 && y - top < h;
+  const depth = (x, y) => Math.min(x - left + edge, left + w - 1 - x + edge, y - top, top + h - 1 - y);
+  const m = Buffer.alloc(W * H * 4, 255);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (!inside(x, y) || depth(x, y) < edge) m[(y * W + x) * 4 + 3] = 0;
+  const prompt = extendPrompt(r, view), n = Number(opt.n ?? 2);
+  console.log(`${r.name}: ${rel(src)} at ${left},${top} ${w}×${h} in ${W}×${H}, the rest painted, ${n} ${view} candidates`);
+  if (opt.dry) return console.log(`\n${prompt}`);
+  const res = await edit({ prompt, images: [{ name: 'frame.png', data: await sharp(frame, { raw: { width: W, height: H, channels: 3 } }).png().toBuffer() }], mask: await sharp(m, { raw: { width: W, height: H, channels: 4 } }).png().toBuffer(), size: `${W}x${H}`, quality, n, background: 'opaque' });
+  // the picture goes back over what was painted, blended into it over its top and bottom edge
+  const images = [];
+  for (const png of res.images) {
+    const { data } = await sharp(png).resize(W, H, { fit: 'fill' }).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const X = left + x, Y = top + y;
+      if (Y < 0 || Y >= H) continue;
+      const k = Math.min(1, Math.max(0, Math.min(y, h - 1 - y) / edge)), i = (Y * W + X) * 3, j = (y * w + x) * 3;
+      for (let c = 0; c < 3; c++) data[i + c] = Math.round(data[i + c] * (1 - k) + small[j + c] * k);
+    }
+    images.push(await sharp(data, { raw: { width: W, height: H, channels: 3 } }).png().toBuffer());
+  }
+  await saveCandidates(r, view, { ...res, images }, opt.tag ?? 'extend');
 }
 
 async function cmdReframe([file], opt) {
@@ -202,6 +255,72 @@ async function cmdReframe([file], opt) {
   const spent = res.cost == null ? 'Cost: not reported by the API.' : `Cost: $${res.cost.toFixed(4)}`;
   console.log(`  ${rel(out)}\n${spent}\nIn the scene, a point x, y of the old picture is now at ${(left / W).toFixed(4)} × width + ${s} x, ${(top / H).toFixed(4)} × height + ${s} y.`);
   console.log(`Pick it with: npm run asset -- pick ${rel(r.file)} ${basename(name, '.png')}`);
+}
+
+/** Every place in a scene file, moved by the camera pulling back: toward x = cx and y = fy by s. */
+function zoomScene(file, s, anchors) {
+  const cx = file.size[0] / 2, fy = file.walk.y, X = (x) => Math.round(cx + s * (x - cx)), Y = (y) => Math.round(fy + s * (y - fy)), L = (v) => Math.round(v * s);
+  const rect = ([x, y, w, h]) => [X(x), Y(y), L(w), L(h)];
+  file.walk.x0 = X(file.walk.x0);
+  file.walk.x1 = X(file.walk.x1);
+  if (file.mirror != null) file.mirror = Y(file.mirror);
+  for (const sp of Object.values(file.spawns)) sp.x = X(sp.x);
+  for (const h of file.hotspots) { h.rect = rect(h.rect); if (h.stand != null) h.stand = X(h.stand); }
+  for (const l of file.lights) { l.x = X(l.x); l.y = Y(l.y); l.z = L(l.z); l.r = L(l.r); }
+  for (const k of ['inside', 'outside']) if (file.zones?.[k]) file.zones[k] = file.zones[k].map(rect);
+  for (const b of file.beacons ?? []) { b.x = X(b.x); b.y = Y(b.y); }
+  for (const e of file.steam ?? []) { e.x = X(e.x); e.y = Y(e.y); e.height = L(e.height); e.width = L(e.width); }
+  for (const g of file.godrays ?? []) { g.x = X(g.x); g.y = Y(g.y); }
+  if (file.drips) Object.assign(file.drips, { x0: X(file.drips.x0), x1: X(file.drips.x1), top: Y(file.drips.top), bottom: Y(file.drips.bottom) });
+  if (file.traffic) file.traffic.lanes = file.traffic.lanes.map(Y);
+  // a person keeps standing where they stood, at the new size: their feet move like everything else
+  for (const l of file.layers) {
+    const a = anchors[l.asset];
+    if (!a) continue;
+    const [ax, ay] = a, fx = X(l.x + ax), fyy = Y(l.y + ay), sc = (file.actorScale ?? 1) * s;
+    l.x = Math.round(fx - ax * sc); l.y = Math.round(fyy - ay * sc);
+  }
+  file.actorScale = +((file.actorScale ?? 1) * s).toFixed(3);
+  return file;
+}
+
+async function cmdZoom([id], opt) {
+  const s = Number(opt.scale);
+  if (!id || !(s > 0.2 && s < 1)) throw new Error('usage: zoom <scene id> --scale 0.6');
+  const path = resolve(ROOT, 'public/assets/scenes', id, 'scene.json');
+  if (!existsSync(path)) throw new Error(`no scene at ${rel(path)}`);
+  const file = JSON.parse(await readFile(path, 'utf8')), walkY = file.walk.y;
+  if (file.zoneMap) console.log(`warning: ${file.zoneMap} is a picture of the zones and does not move; redraw it.`);
+  // the people among the layers, by their feet
+  const anchors = {}, backgrounds = [];
+  for (const l of file.layers) {
+    const sj = resolve(ROOT, 'public/assets', l.asset, 'sprite.json');
+    if (!existsSync(sj)) continue;
+    const def = JSON.parse(await readFile(sj, 'utf8'));
+    if (def.kind === 'character' || def.actor) anchors[l.asset] = def.anchor ?? [def.w / 2, def.h];
+    else if (def.kind === 'background') backgrounds.push(l.asset);
+  }
+  // each background's picked images, shrunk around the walk line inside a blur of themselves
+  for (const asset of backgrounds) {
+    const recipe = resolve(ROOT, 'art', `${asset}.json`);
+    if (!existsSync(recipe)) continue;
+    const r = await loadRecipe(recipe);
+    for (const view of ['raw', 'concierge']) {
+      const src = join(r.dir, `${view}.png`);
+      if (!existsSync(src)) continue;
+      const { width: W, height: H } = await sharp(src).metadata();
+      const floor = (walkY / 540) * H, w = Math.round(W * s), h = Math.round(H * s), left = Math.round((W - w) / 2), top = Math.round(floor * (1 - s));
+      const small = await sharp(src).resize(w, h, { kernel: 'lanczos3' }).removeAlpha().png().toBuffer();
+      const out = join(r.dir, 'candidates', `layout-zoom-${view}.png`);
+      await mkdir(dirname(out), { recursive: true });
+      if (!opt.dry) await sharp(src).resize(W, H).removeAlpha().blur(40).composite([{ input: small, left, top }]).png().toFile(out);
+      console.log(`  ${rel(out)}`);
+    }
+  }
+  zoomScene(file, s, anchors);
+  if (opt.dry) return console.log(JSON.stringify({ walk: file.walk, spawns: file.spawns, actorScale: file.actorScale }));
+  await writeFile(path, JSON.stringify(file, null, 1) + '\n');
+  console.log(`${id}: zoomed out to ${s}, people drawn at ${file.actorScale}. Redraw its backgrounds with: npm run asset -- generate <recipe> --layout <layout-zoom-raw.png>`);
 }
 
 async function cmdBlockout([file]) {
@@ -682,6 +801,6 @@ async function cmdTouch([file], opt) {
 }
 
 const [cmd, ...rest] = process.argv.slice(2), { pos, opt } = parse(rest);
-const run = { new: cmdNew, generate: cmdGenerate, variant: cmdVariant, redress: cmdRedress, reframe: cmdReframe, blockout: cmdBlockout, pick: cmdPick, import: cmdImport, sheet: cmdSheet, touch: cmdTouch, erase: cmdErase, parts: cmdParts, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
+const run = { new: cmdNew, zoom: cmdZoom, extend: cmdExtend, generate: cmdGenerate, variant: cmdVariant, redress: cmdRedress, reframe: cmdReframe, blockout: cmdBlockout, pick: cmdPick, import: cmdImport, sheet: cmdSheet, touch: cmdTouch, erase: cmdErase, parts: cmdParts, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
 if (!run) console.log(HELP);
 else run(pos, opt).catch((e) => { console.error(`error: ${e.message}`); process.exit(1); });

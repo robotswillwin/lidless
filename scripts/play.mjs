@@ -43,7 +43,7 @@ await ready();
 await shot('home');
 
 // out of the flat, down to the backstreet, and along it to the main street: walking into its right end leaves
-await page.mouse.click(260, 330);
+await page.mouse.click(360, 390);
 await wait(3000);
 console.log('out of the flat:', await where());
 await shot('backstreet');
@@ -52,17 +52,17 @@ console.log('along the backstreet:', await where());
 
 // something far away: the face in the sky. In the Concierge's view it has two uses, looking and asking it, so a click
 // fans them out; a second click on it does the default, looking, from where she stands
-await page.mouse.click(740, 120);
+await page.mouse.click(810, 240);
 await wait(250);
 console.log('ring:', await page.$$eval('.hud-slot', (b) => b.map((e) => e.getAttribute('aria-label')).join(', ')));
 await shot('ring-sky');
-await page.mouse.click(740, 120);
+await page.mouse.click(810, 240);
 await wait(300);
 console.log('caption:', await text('.caption'));
 await shot('look-sky');
 
 // into the radio repair, through its door on the street, and talk to the fixer at his bench
-await page.mouse.click(480, 300);
+await page.mouse.click(182, 330);
 await wait(5000);
 console.log('through the shop door:', await where());
 await shot('shop');
@@ -95,7 +95,7 @@ await hold('ArrowLeft', 7000);
 console.log('back out:', await where());
 await page.keyboard.press('e');
 await wait(600);
-await page.mouse.click(770, 430);
+await page.mouse.click(830, 385);
 await wait(600);
 console.log('caption:', await text('.caption'), '| attention:', await page.$eval('.hud-eye', (e) => e.dataset.level));
 await shot('raw-dock');

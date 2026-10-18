@@ -286,12 +286,13 @@ async function boot(): Promise<void> {
     if (wasMoving && !world.moving) persist();
     state.sinceSwitch = reduceMotion ? 10 : t - switchedAt;
     // facing left: the sprite's own left-facing frames, or its right-facing ones mirrored
-    const flip = world.facing < 0 && !hasLeft(heroSprite.def), [ax, ay] = heroAnchor, w = heroSprite.def.w, bob = heroBob(), hs = worldFile.hero.smoke;
-    const walkY = scene.file.walk.y, hx = Math.round(world.heroX - cam[0] - (flip ? w - ax : ax)), hy = Math.round(walkY - cam[1] - ay + bob);
+    // she is drawn at the scene's scale: smaller where the camera is further back
+    const sc = scene.file.actorScale ?? 1, flip = world.facing < 0 && !hasLeft(heroSprite.def), [ax, ay] = heroAnchor, w = heroSprite.def.w, bob = heroBob() * sc, hs = worldFile.hero.smoke;
+    const walkY = scene.file.walk.y, hx = Math.round(world.heroX - cam[0] - (flip ? w - ax : ax) * sc), hy = Math.round(walkY - cam[1] - ay * sc + bob);
     // the scene's smoke emitter follows her cigarette, or goes off screen when she has none
-    const smoke: [number, number] = hs ? [world.heroX + hs[0] * world.facing, walkY + hs[1] + bob] : [-1000, -1000];
+    const smoke: [number, number] = hs ? [world.heroX + hs[0] * sc * world.facing, walkY + hs[1] * sc + bob] : [-1000, -1000];
     fitCanvas(canvas);
-    renderer.render(runner.frame(t, state, cam, [{ sprite: heroSprite, x: hx, y: hy, flip, frame: frameFor(heroSprite.def, world.moving, world.walked, t, world.facing) }], smoke));
+    renderer.render(runner.frame(t, state, cam, [{ sprite: heroSprite, x: hx, y: hy, flip, scale: sc, frame: frameFor(heroSprite.def, world.moving, world.walked / sc, t, world.facing) }], smoke));
     frames++;
     const now = performance.now();
     if (now - fpsAt > 500) { fps = (frames * 1000) / (now - fpsAt); frames = 0; fpsAt = now; }

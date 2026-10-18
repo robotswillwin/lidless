@@ -14,11 +14,17 @@
   "material": "stone",
   "glow": {
     "raw": "none",
-    "concierge": "auto",
+    "concierge": "none",
     "machine": false
   },
   "references": [
-    "art/reference/Rainy Neon Cyberpunk Concept Sheet.png"
+    "art/reference/silhouette-medical-raw.png"
   ],
-  "palette": 0.35
+  "palette": 0,
+  "look": "vector",
+  "conciergeReferences": [
+    "art/reference/silhouette-medical-concierge.png",
+    "art/reference/silhouette-nightclub-concierge.png"
+  ],
+  "scale": 0.6
 }

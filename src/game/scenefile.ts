@@ -3,7 +3,7 @@
 // (built assets, placed), lights, its inside and outside areas, the walk line, places to arrive and hotspots, some of
 // which lead to other scenes.
 
-import { loadSprite, spriteDefaults, type GodrayDef, type LightDef, type LoadedScene, type SceneDef, type Sprite, type SteamDef } from '../engine/assets';
+import { loadSprite, spriteDefaults, type GodrayDef, type LightDef, type LoadedScene, type SceneDef, type SceneLook, type Sprite, type SteamDef } from '../engine/assets';
 import { textureFromImage, type GL } from '../engine/gl';
 import type { Hotspot, LevelDef } from './level';
 
@@ -61,6 +61,23 @@ export interface SceneFile {
   assist?: string;
   /** Exposure in stops, 0 by default; one number, or one per view. */
   exposure?: number | { raw?: number; concierge?: number };
+  /**
+   * How much of the set's light is painted into its art, 0 to 1; one number, or one per view. 0 (the default) lights the
+   * set with the scene's lights alone, as art drawn flat needs; 1 shows art with its night painted in as painted, the
+   * lights only adding a little. The characters are lit by the lights either way.
+   */
+  baked?: number | { raw?: number; concierge?: number };
+  /**
+   * How big the people are drawn here, 1 by default: under 1 the camera is further back (0.6 shows more of the place
+   * around a smaller Lux), over 1 a closeup. Her pace on screen goes with the square root of it: smaller, but not a crawl.
+   */
+  actorScale?: number;
+  /** The scene's own look over the project's (see look.ts): shared settings at the top, one view's under raw or concierge. */
+  look?: SceneLook;
+  /** False for flat vector art whose far shapes stay crisp: no depth-of-field blur. */
+  dof?: boolean;
+  /** How hard it rains in raw view, 0 to 1: 1 by default, a drizzle around 0.3. */
+  rain?: number;
   spawns: Record<string, Spawn>;
   hotspots: Hotspot[];
   beacons?: SceneDef['beacons'];
@@ -139,11 +156,11 @@ export async function buildScene(gl: GL, assets: string, file: SceneFile, world:
   const def: SceneDef = {
     name: file.id, size: file.size, sprites: sprites.map((s) => s.def.name), zone: file.zoneMap ?? '',
     lights: file.lights, beacons: file.beacons ?? [], steam: file.steam ?? [], godrays: file.godrays ?? [],
-    drips: file.drips, mirror: file.mirror ?? file.walk.y - 8, traffic: file.traffic, ambient: file.ambient, exposure: file.exposure,
+    drips: file.drips, mirror: file.mirror ?? file.walk.y - 8, traffic: file.traffic, ambient: file.ambient, exposure: file.exposure, baked: file.baked, actorScale: file.actorScale, look: file.look, dof: file.dof, rain: file.rain,
   };
   const level: LevelDef = {
     walk: file.walk,
-    hero: { sprite: world.hero.sprite, x: Object.values(file.spawns)[0]?.x ?? file.size[0] / 2, speed: world.hero.speed, smoke: world.hero.smoke },
+    hero: { sprite: world.hero.sprite, x: Object.values(file.spawns)[0]?.x ?? file.size[0] / 2, speed: world.hero.speed * Math.sqrt(file.actorScale ?? 1), smoke: world.hero.smoke },
     hotspots: file.hotspots,
   };
   return { file, loaded: { def, sprites, zone }, level };

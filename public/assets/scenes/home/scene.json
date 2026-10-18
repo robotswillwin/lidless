@@ -17,26 +17,26 @@
  ],
  "lights": [
   {
-   "x": 582,
-   "y": 193,
-   "z": 44,
-   "r": 820,
+   "x": 552,
+   "y": 306,
+   "z": 26,
+   "r": 492,
    "c": [
     1,
     0.86,
     0.66
    ],
-   "i": 2.0,
+   "i": 2,
    "zone": 0,
    "haze": 0.12,
    "shadow": 1,
    "layer": 1
   },
   {
-   "x": 579,
-   "y": 297,
-   "z": 25,
-   "r": 265,
+   "x": 551,
+   "y": 368,
+   "z": 15,
+   "r": 159,
    "c": [
     0.6,
     0.72,
@@ -47,10 +47,10 @@
    "haze": 0.1
   },
   {
-   "x": 541,
-   "y": 279,
-   "z": 19,
-   "r": 190,
+   "x": 528,
+   "y": 357,
+   "z": 11,
+   "r": 114,
    "c": [
     1,
     0.3,
@@ -61,10 +61,10 @@
    "ar": 1
   },
   {
-   "x": 623,
-   "y": 291,
-   "z": 19,
-   "r": 190,
+   "x": 577,
+   "y": 365,
+   "z": 11,
+   "r": 114,
    "c": [
     0.35,
     0.8,
@@ -75,10 +75,10 @@
    "ar": 1
   },
   {
-   "x": 743,
-   "y": 288,
-   "z": 15,
-   "r": 190,
+   "x": 649,
+   "y": 363,
+   "z": 9,
+   "r": 114,
    "c": [
     0.6,
     0.85,
@@ -90,24 +90,24 @@
    "g": 7
   },
   {
-   "x": 263,
-   "y": 335,
-   "z": 10,
-   "r": 139,
+   "x": 361,
+   "y": 391,
+   "z": 6,
+   "r": 83,
    "c": [
     0.45,
     0.75,
     1
    ],
-   "i": 1.0,
+   "i": 1,
    "zone": 0,
    "ar": 1
   },
   {
-   "x": 475,
-   "y": 299,
-   "z": 8,
-   "r": 95,
+   "x": 488,
+   "y": 369,
+   "z": 5,
+   "r": 57,
    "c": [
     1,
     0.85,
@@ -121,21 +121,21 @@
  "zones": {
   "outside": [
    [
-    525,
-    237,
-    111,
-    123
+    518,
+    332,
+    67,
+    74
    ]
   ]
  },
  "walk": {
   "y": 475,
-  "x0": 120,
-  "x1": 830
+  "x0": 60,
+  "x1": 960
  },
  "spawns": {
   "door": {
-   "x": 263,
+   "x": 361,
    "facing": 1
   }
  },
@@ -144,12 +144,12 @@
    "id": "door",
    "name": "Door",
    "rect": [
-    217,
-    227,
-    91,
-    221
+    333,
+    326,
+    55,
+    133
    ],
-   "stand": 263,
+   "stand": 361,
    "go": {
     "scene": "backstreet",
     "spawn": "door"
@@ -162,12 +162,12 @@
     "raw": "Raincoat"
    },
    "rect": [
-    313,
-    272,
-    43,
-    152
+    391,
+    353,
+    26,
+    91
    ],
-   "stand": 335,
+   "stand": 404,
    "look": {
     "concierge": "Your coat: glossy red, with a neon trim that catches every light.",
     "raw": "Your raincoat, grey-maroon and cheap. Still damp from yesterday."
@@ -180,12 +180,12 @@
     "raw": "Hot plate"
    },
    "rect": [
-    358,
-    326,
-    81,
-    120
+    418,
+    386,
+    49,
+    72
    ],
-   "stand": 398,
+   "stand": 442,
    "look": {
     "concierge": "A spotless white kitchen. Nobody has ever cooked in it.",
     "raw": "A hot plate with one working ring, and a kettle dented into a new shape."
@@ -195,12 +195,12 @@
    "id": "mirror",
    "name": "Mirror",
    "rect": [
-    449,
-    266,
-    51,
-    66
+    473,
+    350,
+    31,
+    40
    ],
-   "stand": 475,
+   "stand": 488,
    "look": {
     "concierge": "Green and purple hair, sharp eyeliner, a white shell over your right eye. The Concierge's you looks rested.",
     "raw": "A cracked mirror. Your own face, pale and tired, the grey visor bolted over your right eye."
@@ -210,12 +210,12 @@
    "id": "window",
    "name": "Window",
    "rect": [
-    513,
-    225,
-    130,
-    142
+    511,
+    325,
+    78,
+    85
    ],
-   "stand": 578,
+   "stand": 550,
    "look": {
     "concierge": "The skyline glitters, close enough to touch. BETTER HUMAN TOGETHER, in letters taller than a building.",
     "raw": "Fog, and the panel block across the yard. A crack in the glass where something hit it."
@@ -228,12 +228,12 @@
     "raw": "Mattress"
    },
    "rect": [
-    503,
-    405,
-    218,
-    44
+    505,
+    433,
+    131,
+    26
    ],
-   "stand": 617,
+   "stand": 573,
    "look": {
     "concierge": "Crisp white linen, turned down for you. Rest is part of the service.",
     "raw": "A thin mattress on the floor and a grey blanket. It smells of rain."
@@ -246,12 +246,12 @@
     "raw": "Photos"
    },
    "rect": [
-    666,
-    273,
-    29,
-    73
+    603,
+    354,
+    17,
+    44
    ],
-   "stand": 681,
+   "stand": 612,
    "look": {
     "concierge": "A glossy portrait in a white frame. You don't remember choosing it.",
     "raw": "Two old photos, curling at the corners. You know both faces better than your own."
@@ -261,12 +261,12 @@
    "id": "screen",
    "name": "Wall screen",
    "rect": [
-    702,
-    231,
-    85,
-    92
+    624,
+    329,
+    51,
+    55
    ],
-   "stand": 744,
+   "stand": 650,
    "look": {
     "concierge": "GOOD EVENING, it says, with the time and the weather. It always knows when you're looking.",
     "raw": "A grey box of valves and gauges, its screen dark. Nothing on it, in your opened eye."
@@ -281,12 +281,12 @@
     "raw": "Parcels"
    },
    "rect": [
-    721,
-    354,
-    98,
-    95
+    636,
+    402,
+    59,
+    57
    ],
-   "stand": 770,
+   "stand": 665,
    "look": {
     "concierge": "Neat white boxes with the Concierge's mark. Every delivery on time.",
     "raw": "Parcels in brown paper and string, from your errands. None has an address on the outside."
@@ -299,5 +299,7 @@
  },
  "exposure": {
   "concierge": -0.25
- }
+ },
+ "actorScale": 0.6,
+ "baked": 1
 }

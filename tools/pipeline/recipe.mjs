@@ -18,6 +18,13 @@ export const KINDS = {
   portrait: { size: '1024x1024', height: 360, round: 0, rh: 0, detail: 0.1, occluder: false, depth: 3, material: 'skin', transparent: true, pixel: { colors: 48 } },
 };
 
+/**
+ * What flat vector art changes in a kind's defaults: its flat colours give the light almost no relief to catch, and it
+ * keeps the model's own colours, since reducing them bands its soft gradients into blotches. A recipe can still ask for a
+ * colour finish of its own.
+ */
+const VECTOR = { detail: 0.03, pixel: {} };
+
 /** Which views a thing exists in: real, made up by the Concierge, or real but edited out by it. */
 export const PRESENCE = ['both', 'concierge', 'raw'];
 
@@ -37,8 +44,9 @@ export const PRESENCE = ['both', 'concierge', 'raw'];
  *   machine: a machine's own light (a screen, an indicator) keeps its colour in raw view; other glow turns sterile white
  * @property {number} [palette]           0 to 1: how strongly to pull colours toward the house palette
  * @property {string[]} [references]      images sent along as style references, relative to the project folder
- * @property {{ colors?: number, cleanup?: boolean } | false} [pixel]  pixel-art finish (default by kind), or false for none
- * @property {'pixel'|'paint'} [look]     ask for pixel art, or a painting that the build pixelates
+ * @property {string[]} [conciergeReferences]  style references for the Concierge variant, the augmented view's look
+ * @property {{ colors?: number, cleanup?: boolean } | false} [pixel]  the colour finish (default by kind), or false for none
+ * @property {'pixel'|'paint'|'vector'} [look]  ask for pixel art, a painting that the build pixelates, or flat vector art
  * @property {boolean} [interior]        a background that is a room rather than a street
  * @property {boolean} [relics]          old devices that stay retro in the Concierge's view, as they looked when new
  * @property {string} [framing]          what to draw and how to frame it, instead of the kind's own note (a figure sitting or lying)
@@ -52,7 +60,7 @@ export async function loadRecipe(file) {
   for (const k of ['name', 'scene', 'kind', 'prompt']) if (!r[k]) throw new Error(`${file} needs "${k}"`);
   if (!KINDS[r.kind]) throw new Error(`${file}: kind must be one of ${Object.keys(KINDS).join(', ')}`);
   if (r.exists && !PRESENCE.includes(r.exists)) throw new Error(`${file}: exists must be one of ${PRESENCE.join(', ')}`);
-  return { ...r, file: path, dir: join(dirname(path), basename(path, '.json')), spec: { ...KINDS[r.kind] } };
+  return { ...r, file: path, dir: join(dirname(path), basename(path, '.json')), spec: { ...KINDS[r.kind], ...(r.look === 'vector' ? VECTOR : {}) } };
 }
 
 export function recipeTemplate(name, scene, kind) {

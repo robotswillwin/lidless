@@ -1,0 +1,27 @@
+{
+  "name": "vista",
+  "scene": "street",
+  "kind": "background",
+  "exists": "both",
+  "look": "vector",
+  "prompt": "A night street seen from the side. On the left, a building corner with a wide glowing amber shop window, the dark silhouette of a man working at a bench inside, a faded sign above it reading РЕМОНТ РАДИО, and a door; a figure asleep on the pavement under the window. In the middle, a street lamp throwing a pool of light, and an empty bench. On the right, a boxy street machine with one round orange eye and a thin figure kneeling at it, and further right a red neon sign reading БАР over a lit doorway. Behind, a viaduct with a lit train, flat tower silhouettes in yellow-green smog, and a round moon. Along the bottom fifth, a flat wet road with simple vertical reflections of the lights. Rain.",
+  "concierge": "The Concierge's version of the same street, in the same flat polygon style. The shop restored and glowing warm, its sign reading RADIO REPAIR, the man at his bench neat and smiling. The figure asleep under the window is not there. The lamp sleek and white; the bench gone, three clipped topiaries in square planters and a small sign: Please rest. The street machine a smooth white dining kiosk with a blue eye, and the kneeling figure a woman in a red dress, in exactly the same pose, dining. The bar sign reads BAR in pink neon. Behind, the towers glow in magenta, violet and blue neon with signs in English, Chinese and Japanese, the train sleek and lit, flying cars, a crowd of silhouettes under glowing umbrellas on the viaduct, and in the sky, where the moon was, the vast calm face of the Concierge, drawn in a few flat planes of soft violet light. The road dry and glossy, mirroring the neon.",
+  "height": 540,
+  "position": [
+    480,
+    540
+  ],
+  "depth": 3,
+  "material": "stone",
+  "glow": {
+    "raw": "none",
+    "concierge": "none",
+    "machine": false
+  },
+  "references": [],
+  "conciergeReferences": [],
+  "palette": 0,
+  "framing": "A wide cinematic side view at street level, the camera pulled back: a standing adult is about a quarter of the image height. A flat, wet walkway runs along the bottom fifth of the image across the whole width, and the street continues past both edges. Lit at night by its own lights. People appear only as flat dark silhouettes standing still, and the walkway in front stays clear. No border, no caption.",
+  "size": "1936x1088",
+  "reflectivity": 2
+}

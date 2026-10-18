@@ -109,8 +109,8 @@ function draw(): void {
   if (!scene || !runner) return;
   const t = (performance.now() - t0) / 1000, actors: DrawSprite[] = [];
   if (hero && lux.show) {
-    const d = hero.def, [ax, ay] = d.anchor ?? [d.w / 2, d.h];
-    actors.push({ sprite: hero, x: Math.round(lux.x - camX - ax), y: Math.round(file.walk.y - ay), frame: frameFor(d, false, 0, t, lux.facing) });
+    const d = hero.def, [ax, ay] = d.anchor ?? [d.w / 2, d.h], sc = file.actorScale ?? 1;
+    actors.push({ sprite: hero, x: Math.round(lux.x - camX - ax * sc), y: Math.round(file.walk.y - ay * sc), scale: sc, frame: frameFor(d, false, 0, t, lux.facing) });
   }
   renderer.render(runner.frame(t, { view, sinceSwitch: t - switchedAt }, [camX, 0], actors, [-1000, -1000]));
 }
@@ -486,6 +486,8 @@ function sceneSide(): void {
     num('Walk line y', file.walk.y, (v) => { file.walk.y = v; }, { after: refresh }),
     num('Walk from x', file.walk.x0, (v) => { file.walk.x0 = v; }), num('Walk to x', file.walk.x1, (v) => { file.walk.x1 = v; }),
     num('Reflection line y', file.mirror ?? file.walk.y - 8, (v) => { file.mirror = v; }, { after: refresh }),
+    num('People’s size (1 standard, under 1 further back)', file.actorScale ?? 1, (v) => { if (v === 1) delete file.actorScale; else file.actorScale = v; }, { step: 0.05, min: 0.3, max: 3, after: refresh }),
+    num('Light painted into the art (0 to 1)', typeof file.baked === 'number' ? file.baked : 0, (v) => { if (v) file.baked = v; else delete file.baked; }, { step: 0.05, min: 0, max: 1, after: refresh }),
     str('The Concierge’s greeting', file.greeting ?? '', (v) => { if (v) file.greeting = v; else delete file.greeting; }),
     str('Its answer to Ring for assistance', file.assist ?? '', (v) => { if (v) file.assist = v; else delete file.assist; }, { area: true }),
   );

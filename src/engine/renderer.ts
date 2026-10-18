@@ -46,6 +46,8 @@ export interface DrawSprite {
   flip?: boolean;
   /** Which animation frame, for sprites that have frames. */
   frame?: number;
+  /** Drawn at this size, 1 as built: a character in a scene seen from further back, or closer. */
+  scale?: number;
 }
 
 export interface Frame {
@@ -72,6 +74,14 @@ export interface Frame {
   ambient?: number;
   /** The scene's exposure in stops, over the look's: 0 by default. */
   exposure?: number;
+  /** How much of the set's light is painted into its art: 0 lit by the lights alone, 1 shown as painted. */
+  baked?: number;
+  /** The scene's own look, over the project's for this view: a street graded its own way. */
+  look?: Partial<Look>;
+  /** False for a scene whose far shapes stay crisp: no depth of field. */
+  dof?: boolean;
+  /** How hard it rains in raw view, 0 to 1: 1 by default. */
+  rain?: number;
   /** Shadows on the ground under the characters: x and y of the feet on screen, half-width, unused; up to 8. */
   shadows?: Float32Array;
   nShadows?: number;
@@ -161,13 +171,13 @@ export class Renderer {
   /** Pick the lights that matter most on screen, up to the tier's budget. */
   private cullLights(f: Frame): LightDef[] {
     const [cx, cy] = f.cam;
-    const visible = f.lights.filter((l) => l.x + l.r > cx && l.x - l.r < cx + NW && l.y + l.r > cy && l.y - l.r < cy + NH && !(l.ar && f.view < 0.5));
+    const visible = f.lights.filter((l) => l.x + l.r > cx && l.x - l.r < cx + NW && l.y + l.r > cy && l.y - l.r < cy + NH && !(l.ar && f.view < 0.5) && !(l.raw && f.view > 0.5));
     if (visible.length <= this.quality.maxLights) return visible;
     return [...visible].sort((a, b) => b.i * b.r - a.i * a.r).slice(0, this.quality.maxLights);
   }
 
   render(f: Frame): void {
-    const gl = this.gl, q = this.quality, t = this.t, k = f.view >= 0.5 ? this.looks.concierge : this.looks.raw;
+    const gl = this.gl, q = this.quality, t = this.t, base = f.view >= 0.5 ? this.looks.concierge : this.looks.raw, k = f.look ? { ...base, ...f.look } : base;
     gl.disable(gl.BLEND);
 
     // G-buffer: sprites back to front, alpha-tested
@@ -184,17 +194,18 @@ export class Renderer {
     gl.uniform1f(sp.u.uView, f.view);
     gl.bindVertexArray(this.geo.quad);
     for (const d of f.sprites) {
-      const s = d.sprite, def = s.def;
-      if (d.x > NW || d.y > NH || d.x + def.w < 0 || d.y + def.h < 0) continue;
+      const s = d.sprite, def = s.def, sc = d.scale ?? 1, dw = def.w * sc, dh = def.h * sc;
+      if (d.x > NW || d.y > NH || d.x + dw < 0 || d.y + dh < 0) continue;
       MAP_ORDER.forEach(([m, u], i) => this.bind(sp, u, s.tex[m], i));
-      gl.uniform4f(sp.u.uRect, d.x, d.y, def.w, def.h);
+      gl.uniform4f(sp.u.uRect, d.x, d.y, dw, dh);
+      gl.uniform1f(sp.u.uSS, sc < 0.75 ? Math.min(4, Math.ceil(1 / sc)) : 1);
       gl.uniform1f(sp.u.uFlip, d.flip ? 1 : 0);
       const fr = def.frames, fi = fr ? Math.max(0, Math.min(fr.count - 1, d.frame ?? 0)) : 0, tw = fr ? fr.count * def.w + (fr.count - 1) * fr.gutter : def.w;
       gl.uniform2f(sp.u.uUV, (fi * (def.w + (fr?.gutter ?? 0))) / tw, def.w / tw);
       gl.uniform1f(sp.u.uHasMeta, s.hasMeta ? 1 : 0);
       // a character stands in front of the set: lights behind it rim it, and the set's glow mostly stays behind it
       gl.uniform1f(sp.u.uHaze, def.actor ?? def.kind === 'character' ? (def.haze ?? k.charGlow) : -1);
-      gl.uniform1f(sp.u.uFoot, Math.min(1, Math.max(0, (d.y + def.h) / NH)));
+      gl.uniform1f(sp.u.uFoot, Math.min(1, Math.max(0, (d.y + dh) / NH)));
       gl.uniform4f(sp.u.uConst, def.occluder ?? 0, def.depth, def.reflectivity ?? 0, def.object ?? 0);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
     }
@@ -217,7 +228,7 @@ export class Renderer {
       LK.set([...(l.cone ?? [0, 0, -2]), (l.shadow ? 1 : 0) + 2 * (l.ex ?? 0)], i * 4);
       // layer against the characters: set lights are behind them unless the light says it hangs among them or in front
       const layer = l.layer ?? 0;
-      LG.set([l.g ?? 0, (l.ar ? 1 : 0) + (l.machine ? 2 : 0) + 4 * layer, l.wrap ?? 0.3, l.haze ?? 0], i * 4);
+      LG.set([l.g ?? 0, (l.ar ? 1 : 0) + (l.machine ? 2 : 0) + 4 * layer + (l.raw ? 16 : 0), l.wrap ?? 0.3, l.haze ?? 0], i * 4);
     });
     this.pass(this.prog.light, t.fa, (pr) => {
       t.gbuf.tex.forEach((tx, i) => this.bind(pr, `tG${i}`, tx, i));
@@ -232,12 +243,13 @@ export class Renderer {
       gl.uniform4fv(pr.u.uBeac, f.beacons); gl.uniform1i(pr.u.uNB, f.nBeacons);
       gl.uniform4f(pr.u.uLookL, k.lights, k.ambient * (f.ambient ?? 1), k.haze, k.glow);
       gl.uniform1f(pr.u.uGround, f.mirror);
-      gl.uniform1f(pr.u.uFill, k.charFill); gl.uniform1f(pr.u.uRim, k.charRim); gl.uniform1f(pr.u.uRawColour, k.rawColour);
+      gl.uniform1f(pr.u.uFill, k.charFill); gl.uniform1f(pr.u.uRim, k.charRim); gl.uniform1f(pr.u.uRawColour, k.rawColour); gl.uniform1f(pr.u.uBaked, f.baked ?? 0);
       gl.uniform4fv(pr.u.uSh, f.shadows ?? new Float32Array(32)); gl.uniform1i(pr.u.uNSh, f.nShadows ?? 0); gl.uniform1f(pr.u.uShadowK, k.charShadow);
     });
 
     // depth of field: background-only blur at half resolution
-    if (q.dof) {
+    const dof = q.dof && f.dof !== false;
+    if (dof) {
       this.pass(this.prog.dofdown, t.d1, (pr) => { this.bind(pr, 'tSrc', t.fa.tex[0], 0); this.bind(pr, 'tG3', t.gbuf.tex[3], 1); gl.uniform2f(pr.u.uSrcRes, NW, NH); });
       for (let n = 0; n < 2; n++) {
         this.pass(this.prog.blur, t.d2, (pr) => { this.bind(pr, 'tSrc', t.d1.tex[0], 0); gl.uniform2f(pr.u.uDir, 1, 0); });
@@ -249,9 +261,9 @@ export class Renderer {
     this.pass(this.prog.comp, t.fb, (pr) => {
       this.bind(pr, 'tA', t.fa.tex[0], 0); this.bind(pr, 'tG3', t.gbuf.tex[3], 1); this.bind(pr, 'tDof', t.d1.tex[0], 2);
       this.zoneUniforms(pr, f, 3);
-      gl.uniform1f(pr.u.uTime, f.t); gl.uniform1f(pr.u.uDof, q.dof ? 1 : 0); gl.uniform1f(pr.u.uView, f.view);
+      gl.uniform1f(pr.u.uTime, f.t); gl.uniform1f(pr.u.uDof, dof ? 1 : 0); gl.uniform1f(pr.u.uView, f.view);
       gl.uniform4fv(pr.u.uSteam, f.steam); gl.uniform4f(pr.u.uDrips, ...f.drips); gl.uniform1f(pr.u.uMirror, f.mirror);
-      gl.uniform1f(pr.u.uRawFog, k.rawFog); gl.uniform1f(pr.u.uWrap, k.charWrap);
+      gl.uniform1f(pr.u.uRawFog, k.rawFog); gl.uniform1f(pr.u.uWrap, k.charWrap); gl.uniform1f(pr.u.uRain, f.rain ?? 1); gl.uniform1f(pr.u.uBakedC, f.baked ?? 0);
     });
 
     // bloom at a quarter and an eighth of the resolution

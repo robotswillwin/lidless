@@ -1,5 +1,6 @@
 // Loads scenes and sprites in the asset contract format (see docs/ASSETS.md).
 
+import type { Look } from './look';
 import { solidTexture, textureFromImage, type GL } from './gl';
 
 export type MapName = 'albedo.raw' | 'albedo.concierge' | 'normal' | 'normal.concierge' | 'material' | 'material.concierge' | 'meta' | 'glow.raw' | 'glow.concierge';
@@ -65,6 +66,8 @@ export interface LightDef {
   g?: number;
   /** Exists only in Concierge view. */
   ar?: number;
+  /** Exists only in raw view: the moon behind the Concierge's face, a machine's eye it dresses up as something else. */
+  raw?: number;
   /** A machine's own light (a monitor, an indicator, the kiosk's eye): keeps its colour in raw view, where main lighting goes sterile white. */
   machine?: number;
   /**
@@ -79,6 +82,9 @@ export interface LightDef {
 
 export interface SteamDef { x: number; y: number; height: number; width: number; kind: 'steam' | 'smoke' }
 export interface GodrayDef { x: number; y: number; strength: number; zone: number; ar?: number }
+
+/** Look settings a scene sets for itself: shared ones at the top, one view's under its name. */
+export type SceneLook = Partial<Look> & { raw?: Partial<Look>; concierge?: Partial<Look> };
 
 export interface SceneDef {
   name: string;
@@ -102,6 +108,16 @@ export interface SceneDef {
   exposure?: number | { raw?: number; concierge?: number };
   /** Flying traffic far away; ar = only in Concierge view. */
   traffic?: { lanes: number[]; perLane: number; x0: number; span: number; ar?: number };
+  /** How much of the set's light is painted into its art, 0 to 1; one number, or one per view. */
+  baked?: number | { raw?: number; concierge?: number };
+  /** How big the people are drawn, 1 by default. */
+  actorScale?: number;
+  /** The scene's own look over the project's: settings for both views, and under raw and concierge, for one. */
+  look?: SceneLook;
+  /** False to keep far shapes crisp: no depth of field. */
+  dof?: boolean;
+  /** How hard it rains in raw view, 0 to 1. */
+  rain?: number;
 }
 
 export interface Sprite {

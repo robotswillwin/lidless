@@ -1,10 +1,23 @@
 // The house style, written into every request so separate generations look like one game.
 
-/** How it is drawn: "pixel" asks the model for pixel art; "paint" asks for a crisp painting, which the build pixelates. */
+/**
+ * How it is drawn: "pixel" asks the model for pixel art; "paint" asks for a crisp painting, which the build pixelates;
+ * "vector" asks for flat vector art like Another World made modern, the look of
+ * art/reference/style-another-world-modern.webp: simple blocky shapes, the drama in light painted in over them.
+ */
 export const LOOKS = {
   pixel: 'High-resolution pixel art for a 2D adventure game, painterly and detailed, with clean pixel clusters.',
   paint: 'A detailed digital painting for a 2D adventure game: crisp edges, clean readable shapes and controlled painterly shading. Not pixel art.',
+  vector: 'A flat 2D vector illustration for a cinematic adventure game, in the style of Another World (1991) by Eric Chahi, modernised: built only from large solid-colour polygons with crisp straight edges, like cut paper or a low-poly, flat-shaded render. Solid fills only: no gradients, no texture, no brush strokes, no noise, no outlines and no small details. Each object is reduced to two to four flat tones, lit side, middle and shadow, as faceted planes. About sixteen colours in all. Depth comes from flat layers that get paler and hazier with distance. Lights are flat shapes of bright colour.',
 };
+
+/** Said in every edit of vector art, so the edit keeps the look. */
+const VECTOR_KEEP = 'Keep the style exactly: flat-coloured polygons with crisp straight edges, no gradients inside shapes, no texture, light and shadow as hard-edged bands, a limited palette.';
+const keepLook = (r) => (r.look === 'vector' ? ` ${VECTOR_KEEP}` : '');
+/** What an edit of a background keeps of its frame and light. */
+const keepFrame = (r) => (r.look === 'vector'
+  ? 'Keep the full frame, the layout, every silhouette and the depth; the light, the haze and the colours become this view\'s own.'
+  : 'Keep the full frame, the layout and the flat, even lighting; only neon signs and screens may glow.');
 
 export const HOUSE_STYLE = 'Adult noir mood in a rain-soaked future city. Realistic proportions, a clear readable silhouette.';
 
@@ -12,6 +25,9 @@ export const HOUSE_STYLE = 'Adult noir mood in a rain-soaked future city. Realis
  * The two worlds: what is really there, and what the Concierge shows everyone. Its world must look just as real.
  * People, and the electronics they use, differ the most.
  */
+const RAW_COLOURS = 'Muted, faded colours that lean cold: concrete grey, slate blue-grey, dirty white tile, rust, and peeling paint in washed-out greens, browns and reds. Nothing bright or saturated, except small lights on machines: indicators, old screens.';
+/** Vector art paints its air in: the raw world's colour is its poisonous smog, as in the references. */
+const RAW_COLOURS_VECTOR = 'Sick, muted colours drowned in a poisonous yellow-green smog that glows where the light falls; nothing bright except lamps and the small lights of machines.';
 const RAW_WORLD = [
   'This is the raw, unedited world: poisonous, cheap and post-Soviet.',
   'Concrete panel blocks, cheap plastic, corrugated metal, rust, peeling paint, stained tiles.',
@@ -19,7 +35,7 @@ const RAW_WORLD = [
   'Electronics that people use are grey and steampunk-like: dull grey metal casings, exposed valves, tubes, gauges, cables and rivets, patched together. No brass.',
   'Everyone wears a partial helmet that covers one whole eye: here a heavy, grey, steampunk-like device of riveted metal plates, a round lens and small tubes.',
   'Hardly any text: old signs have peeled away or faded almost to nothing, and what little lettering survives is faint, in Russian or an invented script.',
-  'Muted, faded colours that lean cold: concrete grey, slate blue-grey, dirty white tile, rust, and peeling paint in washed-out greens, browns and reds. Nothing bright or saturated, except small lights on machines: indicators, old screens.',
+  RAW_COLOURS,
 ].join(' ');
 const CONCIERGE_ELECTRONICS = 'Electronics that people use look futuristic: smooth white shells and blue light.';
 /**
@@ -37,16 +53,36 @@ const CONCIERGE_WORLD = [
 ].join(' ');
 const conciergeWorld = (r) => (r.relics ? CONCIERGE_WORLD.replace(CONCIERGE_ELECTRONICS, CONCIERGE_RELICS) : CONCIERGE_WORLD);
 
+/** Art the game lights itself is lit flat; vector art has its night light painted in, and the game adds what moves. */
+const FLAT_LIGHT = 'Flat, even, neutral lighting like an overcast day, no shadows and nothing glowing: this is the colour of every surface, and the game adds the night and its lights.';
+const PAINTED_LIGHT = 'Lit at night by its own light sources and strongly backlit, the haze glowing behind: the floor and the nearest things are dark silhouettes against brighter depth.';
+
 /** What to draw and how to frame it. The game lights everything itself, so the art is lit flat. */
 const KIND_NOTES = {
   character: 'One full-length figure standing, seen from the side in a three-quarter view facing right, feet at the bottom of the frame. Even, soft, frontal lighting with no cast shadows, no rim light and no glow halos. Transparent background, the whole figure in frame with a little space around it, no ground, no text, no border.',
   prop: 'One object on its own, seen straight from the front at eye level, as it would stand on a street. Even, soft, frontal lighting with no cast shadows and no glow halos. Transparent background, the whole object in frame, no ground, no text, no border.',
-  background: 'A wide backdrop seen straight on, filling the whole frame edge to edge, the pavement along the bottom sixth of the image and the street running off the frame left and right. Flat, even, neutral lighting like an overcast day, no shadows and nothing glowing: this is the colour of every surface, and the game adds the night and its lights. No people, no border.',
+  background: `A wide backdrop seen straight on, filling the whole frame edge to edge, the pavement along the bottom sixth of the image and the street running off the frame left and right. ${FLAT_LIGHT} No people, no border.`,
   portrait: 'A dialogue portrait: head and shoulders, three-quarter view, filling the frame, more detail in the face. Even, soft, frontal lighting with no rim light. Transparent background, no text, no border.',
 };
 
 /** A background that is a room: the same flat, side-on framing as a street, with the floor where the pavement would be. */
-const INTERIOR_NOTE = 'A wide room seen straight on from the side, like a stage set: the back wall fills the frame, the floor runs along the bottom sixth of the image, and the room continues past the left and right edges. Drawn at the game\'s scale: a doorway is about two fifths of the image height, and a standing adult is a little taller than a doorway. Flat, even, neutral lighting like an overcast day, no shadows and nothing glowing: this is the colour of every surface, and the game adds the night and its lights. No people, no border.';
+const INTERIOR_NOTE = `A wide room seen straight on from the side, like a stage set: the back wall fills the frame, the floor runs along the bottom sixth of the image, and the room continues past the left and right edges. Drawn at the game's scale: a doorway is about two fifths of the image height, and a standing adult is a little taller than a doorway. ${FLAT_LIGHT} No people, no border.`;
+
+/**
+ * A recipe's scale is how big people are in its place against the game's standard framing: 0.6 is the camera pulled
+ * back, so a standing adult fills 27% of the image height instead of 44%, and more of the place shows around them.
+ */
+const pct = (f) => `${Math.round(f * 100)}%`;
+function frameNote(r, look) {
+  let note = r.kind === 'background' && r.interior ? INTERIOR_NOTE : KIND_NOTES[r.kind];
+  if (r.kind !== 'background') return note;
+  const s = r.scale ?? 1;
+  if (s !== 1) {
+    note = note.replace('Drawn at the game\'s scale: a doorway is about two fifths of the image height, and a standing adult is a little taller than a doorway.', '');
+    note += ` Seen from further back than a close stage set: a standing adult is about ${pct(0.44 * s)} of the image height and a doorway a little taller, with plenty of the place above and around them.`;
+  }
+  return look === 'vector' ? note.replace(FLAT_LIGHT, PAINTED_LIGHT) : note;
+}
 
 /** A character that will be cut into parts and animated needs every limb clear of the body. */
 const RIG_POSE = 'A neutral standing pose for animation: arms hanging relaxed and slightly away from the body, hands empty and open, legs straight and slightly apart so both are fully visible, nothing held and nothing crossing the body.';
@@ -55,15 +91,23 @@ export function generationPrompt(r, look = r.look ?? 'pixel') {
   const world = r.exists === 'concierge'
     ? `This does not exist: the city AI made it up and shows it in everyone's eye. Its world is ${conciergeWorld(r)}`
     : RAW_WORLD;
-  return `${look ? `${LOOKS[look]} ` : ''}${HOUSE_STYLE} ${r.framing ?? (r.kind === 'background' && r.interior ? INTERIOR_NOTE : KIND_NOTES[r.kind])}${r.rig ? ` ${RIG_POSE}` : ''} ${world} Subject: ${r.prompt}`;
+  return `${look ? `${LOOKS[look]} ` : ''}${HOUSE_STYLE} ${r.framing ?? frameNote(r, look)}${r.rig ? ` ${RIG_POSE}` : ''} ${look === 'vector' ? world.replace(RAW_COLOURS, RAW_COLOURS_VECTOR) : world} Subject: ${r.prompt}`;
 }
 
 /** Put in front of the prompt when a layout image goes first: it sets the composition, the references the rendering. */
 export const LAYOUT_NOTE = 'The first attached image is the layout to follow: keep its composition and every object in its place, shape and size, but paint it over completely, with far more detail, in the style and world described below. Where it is only a blur, continue the scene naturally.';
-export const LAYOUT_REFERENCES_NOTE = 'The other attached images are style references for this game: match their rendering, palette, contrast, mood and level of detail, but not their layout.';
+/** The same for vector art, which a detailed layout must lose detail to reach. */
+const LAYOUT_NOTE_VECTOR = 'The first attached image is the layout to follow: keep its composition and every object in its place, shape and size, but redraw it completely in the flat vector style and the world described below, simplifying its detail into a few clean flat shapes. Where it is only a blur, continue the scene naturally.';
+export const layoutNote = (look) => (look === 'vector' ? LAYOUT_NOTE_VECTOR : LAYOUT_NOTE);
+
+/** Put in front of the Concierge variant's prompt when references go with it. */
+export const VARIANT_REFERENCES_NOTE = 'The first attached image is the one to edit. The other attached images are style references for the augmented view: match their rendering, palette and mood, but not their layout, their objects or their people.';
+export const LAYOUT_REFERENCES_NOTE = 'The other attached images are style references for this game: match their rendering, palette, contrast, mood and level of detail, but not their layout, their objects or their people.';
 
 /** Put in front of the prompt when reference images go with it. */
 export const REFERENCE_NOTE = 'The attached images are style references for this game: match their rendering, palette, contrast, mood and level of detail, and keep any character from them that matches the description. Do not copy their layout or lighting: draw only what is described below.';
+/** The same for vector art, whose light is its style: take it from the references too. */
+export const REFERENCE_NOTE_VECTOR = 'The attached images are style references for this game: match their rendering, palette, contrast, lighting, mood and simplicity exactly. Do not copy their layout or their people: draw only what is described below.';
 
 export function conciergePrompt(r) {
   return [
@@ -71,23 +115,33 @@ export function conciergePrompt(r) {
     'Keep the pose, the framing and the outline exactly the same, aligned pixel for pixel; change only surfaces, colours and details.',
     `The augmented world is ${conciergeWorld(r)}`,
     `Change: ${r.concierge}`,
-    r.kind === 'background'
-      ? 'Keep the full frame, the layout and the flat, even lighting; only neon signs and screens may glow.'
-      : 'Keep the transparent background and the even frontal lighting.',
-  ].join(' ');
+    r.kind === 'background' ? keepFrame(r) : 'Keep the transparent background and the even frontal lighting.',
+  ].join(' ') + keepLook(r);
 }
 
 /** The world a view of the asset is in, for edits of an image that is already one view or the other. */
 const worldOf = (r, view) => (view === 'concierge' ? `It shows the city AI's augmented view, whose world is ${conciergeWorld(r)}` : RAW_WORLD);
 
 /** Re-dress the picked image of one view: the same picture, every outline in place, its surfaces changed as asked. */
+/** Put in front of a re-dress's prompt when references go with it. */
+export const REDRESS_REFERENCES_NOTE = 'The first attached image is the one to edit. The other attached images are style references for the result: match their rendering, palette, contrast, lighting and mood, but not their layout, their objects or their people.';
+
 export function redressPrompt(r, view, change) {
   return [
     'Edit this image. Keep the layout, the framing and every outline exactly the same, aligned pixel for pixel, and every object where it is; change only surfaces, materials, wear, colours and details.',
     worldOf(r, view),
     `Change: ${change}`,
-    r.kind === 'background' ? 'Keep the full frame and the flat, even lighting; only neon signs and screens may glow.' : 'Keep the transparent background and the even frontal lighting.',
-  ].join(' ');
+    r.kind === 'background' ? keepFrame(r) : 'Keep the transparent background and the even frontal lighting.',
+  ].join(' ') + keepLook(r);
+}
+
+/** Paint the rest of the frame around a picture placed in it: more of the same place, in the picture's own style. */
+export function extendPrompt(r, view) {
+  return [
+    `Extend this picture into the transparent area of the mask: continue the same ${r.interior ? 'room' : 'street'} outward naturally, with more sky and buildings above and more of the wet ground below, at the same scale and in exactly the same style, colours, lighting, contrast and level of detail as the picture.`,
+    'Keep everything that is already there exactly as it is. No new people, no text, no captions, no border.',
+    worldOf(r, view),
+  ].join(' ') + keepLook(r);
 }
 
 /** Paint the new edges around a set that was shrunk to the characters' scale: more of the same place, nothing new in it. */
@@ -96,5 +150,5 @@ export function reframePrompt(r, view) {
     `Extend this picture into the transparent area of the mask: continue the same ${r.interior ? 'room' : 'place'} outward naturally, with more of its walls, ceiling, floor and fittings, at the same scale and in exactly the same style, colours, flat lighting and level of detail.`,
     'Keep everything that is already there. No people.',
     worldOf(r, view),
-  ].join(' ');
+  ].join(' ') + keepLook(r);
 }
