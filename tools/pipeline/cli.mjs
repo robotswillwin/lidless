@@ -430,7 +430,11 @@ async function buildOne(file) {
   const glow = r.glow ?? {}, out = resolve(ROOT, 'public/assets', r.scene, r.name);
   await mkdir(out, { recursive: true });
   const maps = ['albedo.raw'];
-  await writePNG(join(out, 'albedo.raw.png'), raw);
+  // colours run on a little past a cut-out's edges, as for characters: art sampled between pixels (a layer the camera
+  // moves by fractions of one, art at more than one texel per level pixel) would otherwise mix its edges with the black
+  // of empty pixels and draw dark lines around them
+  const bled = (img) => bleedEdges({ w: img.w, h: img.h, d: new Uint8ClampedArray(img.d) });
+  await writePNG(join(out, 'albedo.raw.png'), bled(raw));
   // flat art has no relief or shine of its own to light, and one set of flags for all of it: the engine's defaults and
   // the sprite's own values stand in for those maps, at a fraction of the memory
   if (!flat) {
@@ -450,7 +454,7 @@ async function buildOne(file) {
   const glowRaw = glow.raw === 'auto' && glowRawSrc ? glowAuto(glowRawSrc) : null;
   if (glowRaw) { await writePNG(join(out, 'glow.raw.png'), glowRaw, { rgb: true }); maps.push('glow.raw'); }
   if (conc) {
-    await writePNG(join(out, 'albedo.concierge.png'), conc);
+    await writePNG(join(out, 'albedo.concierge.png'), bled(conc));
     maps.push('albedo.concierge');
     const gc = exists === 'raw' ? null : (glow.concierge ?? 'auto') === 'auto' ? glowAuto(conc) : glowRaw;
     if (gc) { await writePNG(join(out, 'glow.concierge.png'), gc, { rgb: true }); maps.push('glow.concierge'); }
@@ -1068,7 +1072,7 @@ async function cmdSplit([file], opt) {
     const depth = new Float32Array(W * H);
     for (let i = 0; i < depth.length; i++) depth[i] = deps.reduce((a, d) => a + d.d[i], 0) / deps.length;
     const layerOf = (n) => { const k = names.indexOf(n); if (k < 0) throw new Error(`no layer called ${n}`); return k; };
-    const fixes = (cfg.fixes ?? []).map((f) => ({ to: layerOf(f.to), from: f.from?.map(layerOf), rect: f.rect.map((v) => Math.round(v * res)) }));
+    const fixes = (cfg.fixes ?? []).map((f) => ({ to: layerOf(f.to), from: f.from?.map(layerOf), rect: f.rect?.map((v) => Math.round(v * res)), poly: f.poly?.map(([x, y]) => [x * res, y * res]) }));
     const L = draftLayerMap(depth, W, H, { n: N, ground: Math.round((cfg.ground ?? H / res) * res), fixes });
     await writePNG(mapFile, layerMapImage(L, W, H), { rgb: true });
     await writePNG(join(r.dir, 'layers-preview.png'), layerPreview(L, pics[views.at(-1)]), { rgb: true });
@@ -1129,40 +1133,65 @@ async function cmdSplit([file], opt) {
       const { data } = await sharp(filled).resize(CW, EH, { fit: 'fill' }).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
       // what it painted goes in where nearer layers hide this one: everywhere for the furthest layer, which nothing is
       // behind; for the others only a band behind the nearer ones' edges, as far as they can ever slide apart
-      // and past the edges, this layer's rows of the margins, and the rows of nearer layers as behind them
+      // a nearer thing's soft edge is part of the picture's pixels around it: in this layer those would be a faint copy of
+      // its outline, which slides away from it. So this layer's pixels that close to a nearer layer take the colours of
+      // its clean pixels next to them instead, from any side; one with none near keeps its own
+      const dNear = distanceFrom(hidden, CW, EH), soft = Math.round((cfg.soft ?? 1.5) * res), edge = new Uint8Array(CW * EH);
+      for (let i = 0; i < own.length; i++) if (own[i] && dNear[i] <= soft) edge[i] = 1;
+      for (let pass = 0; pass <= soft + 1; pass++) {
+        const done = [];
+        for (let y = 0; y < H; y++) for (let x = 0; x < CW; x++) {
+          const i = y * CW + x;
+          if (edge[i] !== 1) continue;
+          let r = 0, g = 0, b = 0, n = 0;
+          for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+            const xx = x + dx, yy = y + dy, j = yy * CW + xx;
+            if (xx < 0 || yy < 0 || xx >= CW || yy >= H || !own[j] || edge[j] === 1) continue;
+            r += img.d[j * 4]; g += img.d[j * 4 + 1]; b += img.d[j * 4 + 2]; n++;
+          }
+          if (n) done.push([i, r / n, g / n, b / n]);
+        }
+        for (const [i, r, g, b] of done) { img.d[i * 4] = r; img.d[i * 4 + 1] = g; img.d[i * 4 + 2] = b; edge[i] = 2; }
+      }
+      // the model's painting goes past the picture's edges: this layer's rows of the margins, and near this layer the rows
+      // of nearer layers as behind them. Inside the picture only the furthest layer, which nothing is behind, takes it
+      // where nearer layers hide it: the model's guess there can be anything, even black, and the others need it less
       const near = k === 0 ? null : distanceFrom(own, CW, EH);
       for (let y = 0; y < H; y++) for (let x = 0; x < CW; x++) {
-        const i = y * CW + x, behind = hidden[i] || past[i] === 2;
-        if (!(past[i] === 1 || (behind && !(near && near[i] > band)))) continue;
+        const i = y * CW + x, use = past[i] === 1 || (past[i] === 2 && !(near && near[i] > band)) || (k === 0 && hidden[i]);
+        if (!use) continue;
         img.d.set(data.subarray(i * 4, i * 4 + 3), i * 4);
         img.d[i * 4 + 3] = 255;
       }
-      // something narrow in front, a post or a pole, is bridged from this layer's own pixels on either side instead:
-      // behind a thing that thin, the model tends to paint the thing again, and its double shows as the layers slide
-      // across first, for something upright; then up and down, for something lying across, such as a lamp's head or a sign
-      const thin = Math.round((cfg.thin ?? 24) * res), bridged = new Uint8Array(CW * H);
-      const bridge = (at, step, count) => {
-        let last = -1;
-        for (let n = 0; n < count; n++) {
-          const i = at + n * step;
-          if (!own[i]) continue;
-          if (last >= 0 && n - last > 1 && n - last - 1 <= thin) {
-            let behind = true;
-            for (let m = last + 1; m < n && behind; m++) behind = !!hidden[at + m * step];
-            // what is bridged already, across, stays as it is
-            if (behind) for (let m = last + 1; m < n; m++) {
-              if (bridged[at + m * step]) continue;
-              const t = (m - last) / (n - last), a0 = (at + last * step) * 4, a1 = i * 4, o = (at + m * step) * 4;
-              for (let c = 0; c < 3; c++) img.d[o + c] = Math.round(img.d[a0 + c] * (1 - t) + img.d[a1 + c] * t);
-              img.d[o + 3] = 255;
-              bridged[at + m * step] = 1;
-            }
+      // behind nearer things, row by row: the layers only ever slide sideways, and only a little against each other, so
+      // what shows from behind a nearer thing as it slides is the rest of its row. Something narrow (a post, a lamp's head)
+      // is bridged from this layer's colours on either side; something wide has the colours of its sides carried in, as
+      // far as the layers can slide (the margin), and where it stands against something further away, only half way, the
+      // rest left to the layer behind; the furthest layer keeps the model's painting there. Colours are taken a pixel or two
+      // out from the edge.
+      const thin = Math.round((cfg.thin ?? 24) * res), reach = m, rim = 2;
+      for (let y = 0; y < H; y++) {
+        const row = y * CW, x0 = m, x1 = m + W - 1;
+        const from = (x, dir) => { let s = x; for (let r = 0; r < rim && s + dir >= x0 && s + dir <= x1 && own[row + s + dir]; r++) s += dir; return (row + s) * 4; };
+        const paint = (x, a, b, t) => { const o = (row + x) * 4; for (let c = 0; c < 3; c++) img.d[o + c] = Math.round(img.d[a + c] * (1 - t) + img.d[b + c] * t); img.d[o + 3] = 255; };
+        for (let x = x0; x <= x1; x++) {
+          if (!hidden[row + x]) continue;
+          let e = x;
+          while (e + 1 <= x1 && hidden[row + e + 1]) e++;
+          const len = e - x + 1, left = x > x0 && own[row + x - 1], right = e < x1 && own[row + e + 1];
+          // what is past each end: this layer, the picture's edge (the margin carries on), or something further away
+          const leftEdge = x === x0, rightEdge = e === x1;
+          if (left && right && len <= thin) {
+            const a = from(x - 1, -1), b = from(e + 1, 1);
+            for (let j = 0; j < len; j++) paint(x + j, a, b, (j + 1) / (len + 1));
+          } else if (k > 0) {
+            const share = (otherOwn, otherEdge) => Math.min(reach, otherOwn ? Math.ceil(len / 2) : otherEdge ? len : Math.ceil(len / 2));
+            if (left) { const a = from(x - 1, -1), n = share(right, rightEdge); for (let j = 0; j < n; j++) paint(x + j, a, a, 0); }
+            if (right) { const b = from(e + 1, 1), n = share(left, leftEdge); for (let j = 0; j < n; j++) paint(e - j, b, b, 0); }
           }
-          last = n;
+          x = e;
         }
-      };
-      for (let y = 0; y < H; y++) bridge(y * CW, 1, CW);
-      for (let x = 0; x < CW; x++) bridge(x, CW, H);
+      }
       if (!opt.dry) await writePNG(join(out, `${v}.png`), img);
     }
     if (opt.dry) continue;

@@ -322,20 +322,31 @@ directions.
 
 **Splitting a picture into layers.** A background drawn as one picture is cut into layers with `split`, by the
 recipe's `split`: its `layers`, far to near, each with its `parallax` (and `depth`, and what to `fill` behind nearer
-things with); `ground`, the walk line, below which everything is the street; `fixes`, rectangles moved to a layer;
-`margin`, how far past the screen's edges the sliding layers reach; `thin`, the widest thing in front bridged across.
-All in level pixels. The street's is an example (`art/street/vista.json`).
+things with); `ground`, the walk line, below which everything is the street; `fixes`, rectangles (`rect`) or polygons
+(`poly`) moved to a layer, all of what is in them or only what is in the layers `from`; `margin`, how far past the
+screen's edges the layers reach; `thin`, the widest thing in front bridged across; `soft`, how wide a nearer thing's
+soft edge is. All in level pixels. The street's is an example (`art/street/vista.json`).
 
 1. `npm run asset -- split <recipe> --map` judges the depth of both views with a model that runs on this machine
    (Depth Anything V2 Small, downloaded once into `node_modules/.cache/lidless`, about 100 MB; nothing of it ships),
    groups everything above the ground into as many bands as there are layers, applies the fixes, and writes
    `layers.png`: one colour per layer, far to near blue, green, red, yellow, magenta, cyan. `layers-preview.png` lays
    it over the picture. Depth judges things by their surface, so a room seen through a window comes out further than
-   its wall: that is what the fixes are for, or paint over the map in any paint program.
-2. `npm run asset -- split <recipe> --scene <id>` cuts each layer out of both views by the map. For each layer the image
-   model paints the margins past the screen's edges, each row of a margin belonging to the layer the picture's edge
-   is in there, and, behind the nearer layers, what they hide; something narrow in front (a post, a lamp's head) is
-   bridged from either side of it instead, since the model tends to paint the thing itself again behind it. Each layer becomes an asset of its own, `<name>-<layer>`, with its own recipe,
-   built at once; `--scene` puts them in that scene's file in place of the picture. A fill made from the same picture,
-   mask and prompt is used again rather than paid for twice. From then on the picture is only the source of its
-   layers: `build` and `touch` leave it unbuilt, and after changing it, `split` it again.
+   its wall, and it blurs thin things into what is around them: that is what the fixes are for. Trace something with
+   a shape of its own, such as the street lamp, with a polygon: a rectangle around it takes the lit air along, and
+   that slides with it as a box. A map painted over by hand works too, but `--map` makes it again from the recipe.
+2. `npm run asset -- split <recipe> --scene <id>` cuts each layer out of both views by the map, with what each one
+   needs behind the nearer ones as the camera moves:
+   - The layers only ever slide sideways, and only a little against each other, so what shows from behind a nearer
+     thing is the rest of its row: something narrow (a post, a lamp's head) is bridged from the colours on either side
+     of it, something wide has the colours of its sides carried in as far as the layers can slide, and where it stands
+     against something further away, only half way. The image model's painting is used past the screen's edges, and
+     behind things in the furthest layer, which nothing is behind; nearer in, its guesses could be anything, even black.
+   - A nearer thing's soft edge is part of the picture's pixels around it. In a layer behind it, those would be a faint
+     copy of its outline sliding away from it, so they take the colours of the clean pixels next to them.
+   - A cut-out's colours run on a little past its edges, so it can be drawn between pixels without dark lines.
+
+   Each layer becomes an asset of its own, `<name>-<layer>`, with its own recipe, built at once; `--scene` puts them in
+   that scene's file in place of the picture. A fill made from the same picture, mask and prompt is used again rather
+   than paid for twice (`--reuse` keeps the ones there whatever they were made from). From then on the picture is only
+   the source of its layers: `build` and `touch` leave it unbuilt, and after changing it, `split` it again.

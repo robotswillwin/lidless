@@ -11,8 +11,10 @@ export const LAYER_COLOUR_NAMES = ['blue', 'green', 'red', 'yellow', 'magenta', 
 /**
  * A first map from the picture's depth (0 far to 1 near, see depth.mjs): everything below `ground` (the walk line, in
  * the picture's pixels) is the nearest layer, as the street she walks on; above it the depth falls into `n` bands, found
- * by clustering. Then `fixes`, rectangles in the picture's pixels, move what is in them to a layer (`to`), all of it or
- * only what is in the layers `from`; and specks smaller than `speck` pixels join the layer around them.
+ * by clustering. Then `fixes`, rectangles (`rect`) or polygons (`poly`) in the picture's pixels, move what is in them to
+ * a layer (`to`), all of it or only what is in the layers `from`; and specks smaller than `speck` pixels join the layer
+ * around them. A polygon is traced around something with a shape of its own, such as a street lamp: rectangles around
+ * one take the lit air around it along, and that slides with it as a box.
  */
 export function draftLayerMap(depth, w, h, { n, ground, fixes = [], speck = 400 }) {
   // the bands: k-means over the depth above the ground
@@ -29,14 +31,30 @@ export function draftLayerMap(depth, w, h, { n, ground, fixes = [], speck = 400 
   const L = new Uint8Array(w * h);
   for (let i = 0; i < L.length; i++) L[i] = Math.floor(i / w) >= ground ? n - 1 : nearestCentre(depth[i]);
   for (const f of fixes) {
-    const [fx, fy, fw, fh] = f.rect;
+    // a rectangle, or a polygon traced around something with a shape of its own, such as a street lamp
+    const [fx, fy, fw, fh] = f.rect ?? boundsOf(f.poly);
     for (let y = Math.max(0, fy); y < Math.min(h, fy + fh); y++) for (let x = Math.max(0, fx); x < Math.min(w, fx + fw); x++) {
       const i = y * w + x;
+      if (f.poly && !insidePoly(f.poly, x + 0.5, y + 0.5)) continue;
       if (!f.from || f.from.includes(L[i])) L[i] = f.to;
     }
   }
   mergeSpecks(L, w, h, n, speck);
   return L;
+}
+
+const boundsOf = (poly) => {
+  const xs = poly.map((p) => p[0]), ys = poly.map((p) => p[1]), x = Math.floor(Math.min(...xs)), y = Math.floor(Math.min(...ys));
+  return [x, y, Math.ceil(Math.max(...xs)) - x + 1, Math.ceil(Math.max(...ys)) - y + 1];
+};
+
+function insidePoly(poly, x, y) {
+  let c = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [xi, yi] = poly[i], [xj, yj] = poly[j];
+    if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c;
+  }
+  return c;
 }
 
 /** Regions of one layer smaller than `min` pixels take the layer most of their neighbours are in. */
