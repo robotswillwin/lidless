@@ -1051,9 +1051,10 @@ async function cmdTouch([file], opt) {
 const [cmd, ...rest] = process.argv.slice(2), { pos, opt } = parse(rest);
 /**
  * A background split into layers that move at their own speed. The recipe's "split" names them, far to near, with their
- * parallax; "ground" is the walk line (everything under it is the street, the nearest layer); "fixes" move rectangles of
- * the map to a layer; "margin" is how far past the screen's edges the layers that slide reach, "band" how far behind
- * nearer layers each one is painted, and "thin" how narrow a thing in front is bridged across instead, in level pixels.
+ * parallax; "ground" is the walk line (everything under it is the street, the nearest layer); "fixes" move rectangles or
+ * polygons of the map to a layer; "margin" is how far past the screen's edges the layers reach, "thin" how narrow a
+ * thing in front is bridged across, "soft" how wide a nearer thing's soft edge is, all in level pixels; "marginMatch" how
+ * close (0 to 255) the model's painting past an edge must come to the picture's edge for the furthest layer to use it.
  */
 async function cmdSplit([file], opt) {
   const r = await loadRecipe(file), cfg = r.split;
@@ -1081,7 +1082,7 @@ async function cmdSplit([file], opt) {
 
   if (!existsSync(mapFile)) throw new Error(`${r.name}: no layer map yet; make one with: npm run asset -- split ${rel(r.file)} --map`);
   const L = readLayerMap(await readRGBA(mapFile), N);
-  const margin = Math.round((cfg.margin ?? 20) * res), band = Math.round((cfg.band ?? 2 * (cfg.margin ?? 20)) * res), quality = opt.quality ?? 'medium';
+  const margin = Math.round((cfg.margin ?? 20) * res), quality = opt.quality ?? 'medium';
   const recipe = JSON.parse(await readFile(r.file, 'utf8'));
   const layers = [];
   let cost = 0;
@@ -1131,8 +1132,6 @@ async function cmdSplit([file], opt) {
         await writeFile(keyFile, key + '\n');
       }
       const { data } = await sharp(filled).resize(CW, EH, { fit: 'fill' }).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
-      // what it painted goes in where nearer layers hide this one: everywhere for the furthest layer, which nothing is
-      // behind; for the others only a band behind the nearer ones' edges, as far as they can ever slide apart
       // a nearer thing's soft edge is part of the picture's pixels around it: in this layer those would be a faint copy of
       // its outline, which slides away from it. So this layer's pixels that close to a nearer layer take the colours of
       // its clean pixels next to them instead, from any side; one with none near keeps its own
@@ -1153,15 +1152,33 @@ async function cmdSplit([file], opt) {
         }
         for (const [i, r, g, b] of done) { img.d[i * 4] = r; img.d[i * 4 + 1] = g; img.d[i * 4 + 2] = b; edge[i] = 2; }
       }
-      // the model's painting goes past the picture's edges: this layer's rows of the margins, and near this layer the rows
-      // of nearer layers as behind them. Inside the picture only the furthest layer, which nothing is behind, takes it
-      // where nearer layers hide it: the model's guess there can be anything, even black, and the others need it less
-      const near = k === 0 ? null : distanceFrom(own, CW, EH);
-      for (let y = 0; y < H; y++) for (let x = 0; x < CW; x++) {
-        const i = y * CW + x, use = past[i] === 1 || (past[i] === 2 && !(near && near[i] > band)) || (k === 0 && hidden[i]);
-        if (!use) continue;
-        img.d.set(data.subarray(i * 4, i * 4 + 3), i * 4);
-        img.d[i * 4 + 3] = 255;
+      // inside the picture, only the furthest layer, which nothing is behind, takes the model's painting where nearer
+      // layers hide it: its guess there can be anything, even black, and the others need little behind them (below)
+      if (k === 0) for (let i = 0; i < hidden.length && i < CW * H; i++) if (hidden[i]) { img.d.set(data.subarray(i * 4, i * 4 + 3), i * 4); img.d[i * 4 + 3] = 255; }
+      // past the picture's edges, each side's runs of rows whose edge pixel is in this layer: the edge's own colours carried
+      // out, which is all the nearer layers show of their margins as the camera moves (it painted black there, or a
+      // border); for the furthest layer, the model's painting where it carries on the picture there. Rows whose edge is in
+      // another layer stay empty here: that layer's margin covers them
+      for (const side of [-1, 1]) {
+        const edgeOf = (y) => L[y * W + (side < 0 ? 0 : W - 1)];
+        for (let y = 0; y < H; y++) {
+          if (edgeOf(y) !== k) continue;
+          let y2 = y;
+          while (y2 + 1 < H && edgeOf(y2 + 1) === k) y2++;
+          let diff = 0, n = 0;
+          for (let yy = y; yy <= y2; yy++) for (let j = 0; j < 3; j++) {
+            const mi = (yy * CW + (side < 0 ? m - 1 - j : m + W + j)) * 4, pi = (yy * W + (side < 0 ? j : W - 1 - j)) * 4;
+            for (let c = 0; c < 3; c++) diff += Math.abs(data[mi + c] - pic.d[pi + c]);
+            n += 3;
+          }
+          const carries = k === 0 && diff / n < (cfg.marginMatch ?? 16);
+          for (let yy = y; yy <= y2; yy++) for (let j = 0; j < m; j++) {
+            const i = yy * CW + (side < 0 ? m - 1 - j : m + W + j), pi = (yy * W + (side < 0 ? 2 : W - 3)) * 4;
+            img.d.set(carries ? data.subarray(i * 4, i * 4 + 3) : pic.d.subarray(pi, pi + 3), i * 4);
+            img.d[i * 4 + 3] = 255;
+          }
+          y = y2;
+        }
       }
       // behind nearer things, row by row: the layers only ever slide sideways, and only a little against each other, so
       // what shows from behind a nearer thing as it slides is the rest of its row. Something narrow (a post, a lamp's head)

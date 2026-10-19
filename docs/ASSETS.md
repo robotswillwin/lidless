@@ -305,7 +305,9 @@ with the street Lux walks on, under 1 further away (0 stays put, like a sky), ov
 - **Overscan:** every layer that moves needs art past the screen's edges, as far as it moves: the street the whole
   drift, a layer at 0.3 a third of it. `split` gives every layer its `margin`.
 - Pixel art is placed at whole pixels of the render, to stay crisp; flat art and characters, sampled smoothly, move by
-  fractions of a pixel, so a slow camera glides instead of stepping.
+  fractions of a pixel, so a slow camera glides instead of stepping. Flat layers over the first one blend their edges
+  by how much of each pixel they cover, so a thin thing such as the lamp's pole slides smoothly instead of its edges
+  jumping a pixel at a time (which flickers). A set with anything else in it stays cut out.
 
 **Movers.** Things that move through a scene on their own go in the scene file's `movers`: an `asset`; the layer it
 is drawn `after`, by its asset, so the nearer layers cover it and it moves with that layer's parallax; where it can be
@@ -340,8 +342,11 @@ soft edge is. All in level pixels. The street's is an example (`art/street/vista
    - The layers only ever slide sideways, and only a little against each other, so what shows from behind a nearer
      thing is the rest of its row: something narrow (a post, a lamp's head) is bridged from the colours on either side
      of it, something wide has the colours of its sides carried in as far as the layers can slide, and where it stands
-     against something further away, only half way. The image model's painting is used past the screen's edges, and
-     behind things in the furthest layer, which nothing is behind; nearer in, its guesses could be anything, even black.
+     against something further away, only half way. The image model's painting is used behind things only in the
+     furthest layer, which nothing is behind; nearer in, its guesses could be anything, even black.
+   - Past the picture's edges, each row belongs to the layer its edge pixel is in. The nearer layers carry their edge
+     colours out there, which is all the camera ever shows of them; the furthest layer uses the model's painting where
+     it carries on the picture's edge (it painted black past the street's middle layer, which showed as a crack).
    - A nearer thing's soft edge is part of the picture's pixels around it. In a layer behind it, those would be a faint
      copy of its outline sliding away from it, so they take the colours of the clean pixels next to them.
    - A cut-out's colours run on a little past its edges, so it can be drawn between pixels without dark lines.

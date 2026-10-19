@@ -55,6 +55,12 @@ export interface DrawSprite {
   scale?: number;
   /** Only drawn between these x on screen: something that comes out from behind one thing and goes behind another. */
   clip?: [number, number];
+  /**
+   * A flat layer over flat layers behind it: its edges blend by how much of each pixel it covers, so they move smoothly
+   * by fractions of a pixel instead of jumping a whole one. Only for art without a meta map drawn over art that has
+   * already set the flags its pixels share (the scene runner decides).
+   */
+  blend?: boolean;
 }
 
 export interface Frame {
@@ -232,6 +238,7 @@ export class Renderer {
       const dens = (def.res ?? 1) / (sc * this.rs);
       gl.uniform1f(sp.u.uSS, dens > 1.11 ? Math.min(4, Math.ceil(1.5 * dens)) : 1);
       gl.uniform1f(sp.u.uFlip, d.flip ? 1 : 0);
+      gl.uniform1f(sp.u.uBlend, d.blend ? 1 : 0);
       // the frame's place in the texture: frames run in rows of `cols`, with a gutter of g texels between them
       const fr = def.frames, fi = fr ? Math.max(0, Math.min(fr.count - 1, d.frame ?? 0)) : 0, g = fr?.gutter ?? 0;
       const cols = fr ? Math.min(fr.count, fr.cols ?? fr.count) : 1, rows = fr ? Math.ceil(fr.count / cols) : 1;
@@ -249,7 +256,9 @@ export class Renderer {
         gl.enable(gl.SCISSOR_TEST);
         gl.scissor(c0, 0, c1 - c0, t.gbuf.h);
       }
+      if (d.blend) { gl.enable(gl.BLEND); gl.blendFuncSeparate(gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ZERO, gl.ONE); }
       gl.drawArrays(gl.TRIANGLES, 0, 6);
+      if (d.blend) gl.disable(gl.BLEND);
       if (d.clip) gl.disable(gl.SCISSOR_TEST);
     }
 

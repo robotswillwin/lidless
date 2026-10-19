@@ -1,6 +1,6 @@
 // Turns a loaded scene plus the current state into a frame for the renderer.
 
-import type { LoadedScene, MoverDef, SpriteDef } from '../engine/assets';
+import { smoothSampled, type LoadedScene, type MoverDef, type SpriteDef } from '../engine/assets';
 import type { DrawSprite, Frame } from '../engine/renderer';
 import { frameFor, hasLeft } from './anim';
 
@@ -97,6 +97,10 @@ export class SceneRunner {
       // what moves through the scene behind the nearer layers goes right after its own
       this.scene.movers?.forEach((m, k) => { if (m.after === i) { const md = this.mover(k, t, cam, def.parallax); if (md) set.push(md); } });
     });
+    // flat layers over the first one blend their edges, so a moving camera slides them smoothly; it has set the flags
+    // every flat layer shares. With anything else in the set, all of it stays cut out
+    const flat = (s: DrawSprite) => smoothSampled(s.sprite.def) && !s.sprite.hasMeta;
+    if (set.length > 1 && set.every(flat)) for (const s of set.slice(1)) s.blend = true;
     people.push(...actors);
     const foot = (d: DrawSprite) => d.y + d.sprite.def.h * (d.scale ?? 1);
     people.sort((a, b) => foot(a) - foot(b));

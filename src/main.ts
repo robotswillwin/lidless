@@ -61,6 +61,8 @@ async function boot(): Promise<void> {
   let scene!: Scene, runner: SceneRunner, world: World;
   const cam: [number, number] = [0, 0];
   let camX = 0;
+  // for tests: the camera held where the address says, in level pixels from the scene's start (?cam=12.25)
+  const fixedCam = params.has('cam') ? Number(params.get('cam')) : null;
   /**
    * Where the camera wants to be. Across a scene wider than the screen: her in the middle, the scene's ends never past
    * the screen's. In one no wider: a little way toward her, the scene's drift at the ends of the walk line and none in
@@ -81,7 +83,7 @@ async function boot(): Promise<void> {
     if (worldFile.hero.cadence && walk?.stride) next.level.hero.speed = worldFile.hero.cadence * walk.stride * (next.file.actorScale ?? 1);
     world = new World(next.level, at.x ?? sp?.x, at.facing ?? sp?.facing);
     camX = camTarget();
-    cam[0] = camX;
+    cam[0] = fixedCam ?? camX;
   };
   // the scene to start in: asked for in the address, or the saved one, or where the world starts
   const askedScene = params.get('scene');
@@ -303,7 +305,9 @@ async function boot(): Promise<void> {
     // the camera follows her: briskly across a wide scene, gently in one that only drifts. It moves by fractions of a
     // pixel, so a slow camera glides; the renderer puts pixel art on whole pixels
     camX += (camTarget() - camX) * Math.min(1, dt * (scene.file.size[0] > NW ? 5 : 1.5));
-    cam[0] = camX;
+    // and settles: an easing that never quite arrives would keep the layers creeping by fractions of a pixel
+    if (Math.abs(camTarget() - camX) < 0.01) camX = camTarget();
+    cam[0] = fixedCam ?? camX;
     if (wasMoving && !world.moving) persist();
     state.sinceSwitch = reduceMotion ? 10 : t - switchedAt;
     // facing left: the sprite's own left-facing frames, or its right-facing ones mirrored

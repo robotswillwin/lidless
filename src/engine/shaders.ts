@@ -70,6 +70,7 @@ uniform float uHasMeta;
 uniform float uHaze;       // a character: how much of the set's glowing air shows over it, 0 to 1; the set: -1
 uniform float uFoot;       // a character: the height of its feet on screen, 0 at the top to 1 at the bottom
 uniform float uSS;         // samples across each axis of a screen pixel: a sprite drawn smaller than it was made
+uniform float uBlend;      // 1: a flat layer over the set behind it, its edges blended by how much of each pixel it covers
 uniform vec4 uUV;          // the frame's place in the texture, to keep the samples inside it
 layout(location = 0) out vec4 o0;
 layout(location = 1) out vec4 o1;
@@ -101,7 +102,8 @@ vec3 ssPlain(sampler2D t) {
 void main() {
   vec4 aR = ssColour(tAlbR), aC = ssColour(tAlbC);
   vec4 a = uView > 0.5 ? aC : aR;
-  if (a.a < 0.5) discard;
+  // a cut-out's edge is either drawn or not; a blended one covers its edge pixels in part, so it moves smoothly
+  if (a.a < (uBlend > 0.5 ? 0.004 : 0.5)) discard;
   vec3 meta = floor(texture(tMeta, vUv).rgb * 255.0 + 0.5);
   // the Concierge's additions are lit exactly like the real world: nothing in its view may look projected
   float occ = uConst.x, dep = uConst.y, refl = uConst.z, obj = uConst.w, grpR = uConstG.x, grpC = uConstG.y, mach = uConstG.z;
@@ -125,6 +127,9 @@ void main() {
   // around them, wherever it stands
   // and a character's object slot carries how much of the pixel it covers, for a soft outline
   o3 = vec4(dep / 3.0, uHaze < 0.0 ? refl / 2.0 : uFoot, uHaze < 0.0 ? obj / 63.0 : a.a, uHaze < 0.0 ? 1.0 : uHaze * 0.5);
+  // blended: every value weighed by the coverage, over what is there (premultiplied); the packed flags in the alpha
+  // channels stay those of the layer behind, which flat layers share
+  if (uBlend > 0.5) { float c = a.a; o0 = vec4(o0.rgb * c, c); o1 = vec4(o1.rgb * c, c); o2 = vec4(o2.rgb * c, c); o3 = vec4(o3.rgb * c, c); }
 }`;
 
 /* ---------- ambient occlusion: occluders, downsampled, then blurred with the shared blur ---------- */
