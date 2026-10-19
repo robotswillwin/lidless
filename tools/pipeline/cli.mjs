@@ -384,22 +384,30 @@ async function updateBenchList(scene, name, kind) {
   list.backgrounds = (list.backgrounds ?? []).filter((n) => n !== name);
   if (kind === 'background') list.backgrounds.push(name);
   list.backgrounds.sort();
-  // the bench lists every scene: keep an index of them, and of what was built last
+  // the bench lists every scene: keep an index of them
   const indexFile = resolve(ROOT, 'public/assets/bench.json'), index = existsSync(indexFile) ? JSON.parse(await readFile(indexFile, 'utf8')) : { scenes: [] };
   if (!index.scenes.includes(scene)) index.scenes.push(scene);
   index.scenes.sort();
-  index.latest = `${scene}/${name}`;
+  delete index.latest;
+  delete list.latest;
   await writeFile(indexFile, JSON.stringify(index, null, 2) + '\n');
-  list.latest = name; // the bench opens the asset built last
   await writeFile(file, JSON.stringify(list, null, 2) + '\n');
+  // and the bench opens the asset built last: noted where git does not see it, as it changes with every build
+  await writeFile(resolve(ROOT, 'public/assets/latest.json'), JSON.stringify({ latest: `${scene}/${name}` }) + '\n');
 }
+
+/**
+ * Where a character's animation frames are: rendered by its Blender rig into rig/anims, which can be rendered again and
+ * is not kept in git; otherwise anims, made frame by frame (touch --frame) or baked from its parts, which is.
+ */
+const framesDir = (r) => (existsSync(join(r.dir, 'rig', 'rig.json')) ? join(r.dir, 'rig', 'anims') : join(r.dir, 'anims'));
 
 async function buildOne(file) {
   const r = await loadRecipe(file), spec = r.spec, exists = r.exists ?? 'both', rawPath = join(r.dir, 'raw.png'), concPath = join(r.dir, 'concierge.png');
   // a picture split into layers is built as its layers, by split; a sprite of the whole picture would only take room
   if (r.split?.layers?.length) return console.log(`${r.name}: split into layers (${r.split.layers.map((l) => `${r.name}-${l.name}`).join(', ')}), so not built as a sprite of its own; after changing its pictures, split it again: npm run asset -- split ${rel(r.file)} --scene <scene id>`);
   // frames baked from parts, or touched up one by one, make an animated sprite
-  if (existsSync(join(r.dir, 'anims'))) return assembleOne(r);
+  if (existsSync(framesDir(r))) return assembleOne(r);
   const main = exists === 'concierge' ? concPath : rawPath;
   if (!existsSync(main)) throw new Error(`${r.name}: no ${exists === 'concierge' ? 'Concierge' : 'raw'} image yet. Generate and pick one, or import one.`);
   let raw = exists === 'concierge' ? null : await readRGBA(rawPath);
@@ -489,7 +497,7 @@ const flatFlags = (r) => {
  * and planted on the ground.
  */
 async function assembleOne(r) {
-  const res = r.res ?? 1, height = Math.round((r.height ?? r.spec.height) * res), dir = join(r.dir, 'anims');
+  const res = r.res ?? 1, height = Math.round((r.height ?? r.spec.height) * res), dir = framesDir(r);
   const load = async (anim, view) => {
     const d = join(dir, anim);
     if (!existsSync(d)) return [];
@@ -909,18 +917,18 @@ async function cmdRig([file], opt) {
     const look = s.name.replace('-left', ''), sfx = s.left ? 'Left' : '';
     const files = (await readdir(join(tmp, s.name))).filter((f) => f.endsWith('.png')).sort();
     for (const anim of ['idle', 'walk']) {
-      const d = join(r.dir, 'anims', anim + sfx);
+      const d = join(out, 'anims', anim + sfx);
       await mkdir(d, { recursive: true });
       for (const f of await readdir(d)) if (f.startsWith(`${look}-`) && f.endsWith('.png')) await rm(join(d, f));
     }
     for (const [i, f] of files.entries()) {
-      const idle = i < nIdle, dst = join(r.dir, 'anims', (idle ? 'idle' : 'walk') + sfx, `${look}-${String(idle ? i : i - nIdle).padStart(2, '0')}.png`);
+      const idle = i < nIdle, dst = join(out, 'anims', (idle ? 'idle' : 'walk') + sfx, `${look}-${String(idle ? i : i - nIdle).padStart(2, '0')}.png`);
       await (s.left ? sharp(join(tmp, s.name, f)).flop() : sharp(join(tmp, s.name, f))).png().toFile(dst);
     }
   }
-  await writeFile(join(r.dir, 'anims', 'walk', 'stride.json'), JSON.stringify({ stride: (rig.walk.stride * PERCENT) / 100 }) + '\n');
-  await writeFile(join(r.dir, 'anims', 'origin.json'), JSON.stringify({ x: (800 * PERCENT) / 100 }) + '\n');
-  console.log(`${r.name}: rigged in Blender (${rel(join(out, rig.blend))}), ${nIdle} idle and ${rig.walk.frames.length} walk frames for ${rig.sets.map((s) => s.name).join(', ')} → ${rel(join(r.dir, 'anims'))}. Build it with: npm run asset -- build ${rel(r.file)}`);
+  await writeFile(join(out, 'anims', 'walk', 'stride.json'), JSON.stringify({ stride: (rig.walk.stride * PERCENT) / 100 }) + '\n');
+  await writeFile(join(out, 'anims', 'origin.json'), JSON.stringify({ x: (800 * PERCENT) / 100 }) + '\n');
+  console.log(`${r.name}: rigged in Blender (${rel(join(out, rig.blend))}), ${nIdle} idle and ${rig.walk.frames.length} walk frames for ${rig.sets.map((s) => s.name).join(', ')} → ${rel(join(out, 'anims'))}. Build it with: npm run asset -- build ${rel(r.file)}`);
 }
 
 /** The parts assembled and walked through the standard cycle, as an animated GIF beside the sheets, for checking. */

@@ -7,8 +7,12 @@ shots/
 art/**/candidates/
 art/**/layout-check.png
 art/**/rig/frames/
+# a rigged character's frames, rendered from its .blend: render them again with asset rig --render-only
+art/**/rig/anims/
 *.blend1
 # what split had the image model paint behind nearer layers, and the map laid over the picture: made again on demand
 art/**/*-fill.png
 art/**/*-fill.key
 art/**/layers-preview.png
+# the asset the bench opens: the one built last
+public/assets/latest.json

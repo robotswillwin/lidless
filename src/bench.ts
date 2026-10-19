@@ -233,7 +233,8 @@ async function loadList(): Promise<void> {
   backdropSel.value = [...backdropSel.options].some((o) => o.value === keep) ? keep : 'plain';
   // an address may name the asset as scene/name, or the old way with a separate scene
   const asked = params.get('asset'), legacy = asked && !asked.includes('/') && params.get('scene') ? `${params.get('scene')}/${asked}` : asked;
-  const want = [assetPath, legacy, index.latest].find((p) => p && paths.includes(p)) ?? paths[0];
+  const latest = (await getJSON<{ latest?: string }>(`${base}/latest.json`))?.latest ?? index.latest;
+  const want = [assetPath, legacy, latest].find((p) => p && paths.includes(p)) ?? paths[0];
   if (want && want !== assetPath) await selectAsset(want, false);
 }
 

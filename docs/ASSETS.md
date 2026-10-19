@@ -181,12 +181,12 @@ A character that walks is built from parts, so a person can take over any step l
 | `art/cast/<name>/parts/<set>-sheet.png` | the parts sheet of each set (an outfit seen from one side) | `parts` |
 | `art/cast/<name>/parts/<set>/` | the parts cut from it, with their joints in `parts.json` | `parts --recut` |
 | `art/cast/<name>/rig/` | the parts as the rig uses them (to the recipe's proportions, the foot split from the shin), `rig.json`, and `<name>.blend` | `rig` |
-| `art/cast/<name>/anims/` | the rendered frames: `idle/`, `walk/`, and `idleLeft/`, `walkLeft/`, one PNG per view and frame | `rig` |
+| `art/cast/<name>/rig/anims/` | the rendered frames: `idle/`, `walk/`, and `idleLeft/`, `walkLeft/`, one PNG per view and frame. Not kept in git: `rig --render-only` makes them again from the .blend | `rig` |
 | `public/assets/cast/<name>/` | the sprite the game loads | `build` |
 
 `npm run asset -- rig <recipe>` rigs the parts in Blender (tools/blender/rig.py): one skeleton for both outfits and
 both sides, the walk keyed from the gait (feet planted, the legs reaching them), the coat as two chains of springs
-the legs push and drag, the forearms trailing the upper arms, and every set rendered to anims/. Joints are meshes
+the legs push and drag, the forearms trailing the upper arms, and every set rendered to rig/anims/. Joints are meshes
 blended into the next bone, so knees, elbows and ankles bend instead of breaking.
 
 The ponytail is a part of its own (`parts.extra: ["ponytail"]` in the recipe): drawn as a separate piece on the

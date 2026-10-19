@@ -113,6 +113,11 @@ repair's inside was laid out from the shop seen through its window), `reframe` s
 
 The image AI needs an OpenAI API key in `.env.local` as `OPENAI_API_KEY=...`. That file is never committed.
 
+Git keeps the sources of the art (pictures, parts, rigs, layer maps and cut layers) and the built sprites the game
+loads, but not what the tools can make again without a paid call: candidates, a rig's rendered frames, the image
+model's layer fills and previews. Built sprites change with every rebuild, so rebuild when the art changes, not to
+check something.
+
 **The asset bench** shows a built sprite lit by the game's own renderer, next to its maps:
 open `/bench.html` on the dev server. It lists everything built, scene by scene, opens on the newest, and reloads by
 itself whenever `build` runs.
