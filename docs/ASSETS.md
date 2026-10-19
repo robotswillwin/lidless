@@ -267,10 +267,12 @@ always, each around its own feet, and the set where the art has no reflections p
 scene and per view, in the panel's Reflections group: **Reflections** (`reflect`), how strongly; **Mirror the set**
 (`mirrorSet`), 1 for a painted scene whose ground had its reflections taken out; **Reach up** (`reflectReach`), 1 a
 mirror, more showing taller things squeezed into the ground, as a low camera over a wet street sees them; **Streaks**
-(`reflectStreak`), how far the reflected lights smear down, in pixels. Live reflections are made from the picture as
-it is on screen, so they follow each layer's parallax: painted ones stayed put while what they reflected slid. The
-street mirrors its set (reach 3.5, streaks 40), strongly in raw view, where it rains, and softly in the Concierge's,
-whose streets are dry and glossy. `npm run asset -- ground <recipe> --from <y>` takes painted reflections out of a
+(`reflectStreak`) and **Diffuse** (`reflectDiffuse`), how far the reflections are smeared up and down (a wet street)
+and sideways (polished stone), in pixels: the set is softened at half resolution, the people over their own pixels.
+Live reflections are made from the picture as it is on screen, so they follow each layer's parallax: painted ones
+stayed put while what they reflected slid. The street mirrors its set (reach 3.5): in raw view a wet street in the
+rain (strength 0.9, streaks 28, diffuse 3), in the Concierge's a dry floor of polished stone (strength 0.3, streaks
+12, diffuse 14). Sharp mirrors with ripples broke into horizontal lines; soft ones only waver. `npm run asset -- ground <recipe> --from <y>` takes painted reflections out of a
 picture's ground below the line, in both views: each stretch of each row keeps the colour of its darkest pixels,
 smoothed, so the broad pools of light stay and the streaks go. Then split or build again.
 

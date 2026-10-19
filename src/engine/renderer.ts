@@ -102,8 +102,8 @@ const MAP_ORDER: [MapName, string][] = [
 export class Renderer {
   readonly gl: GL;
   private geo: ReturnType<typeof createGeometry>;
-  private prog: Record<'sprite' | 'occ' | 'light' | 'comp' | 'bright' | 'blur' | 'dofdown' | 'streak' | 'final', Program>;
-  private t: Record<'gbuf' | 'ao1' | 'ao2' | 'fa' | 'fb' | 'd1' | 'd2' | 'q1' | 'q2' | 'e1' | 'e2' | 'a1' | 'a2', Target>;
+  private prog: Record<'sprite' | 'occ' | 'light' | 'comp' | 'bright' | 'blur' | 'dofdown' | 'refldown' | 'streak' | 'final', Program>;
+  private t: Record<'gbuf' | 'ao1' | 'ao2' | 'fa' | 'fb' | 'd1' | 'd2' | 'r1' | 'r2' | 'q1' | 'q2' | 'e1' | 'e2' | 'a1' | 'a2', Target>;
   private black: WebGLTexture;
   private q!: Quality;
   /** Image pixels per level pixel for the full-size images: the quality's render scale. */
@@ -136,6 +136,7 @@ export class Renderer {
       bright: createProgram(gl, S.BRIGHT_FS),
       blur: createProgram(gl, S.BLUR_FS),
       dofdown: createProgram(gl, S.DOFDOWN_FS),
+      refldown: createProgram(gl, S.REFLDOWN_FS),
       streak: createProgram(gl, S.STREAK_FS),
       final: createProgram(gl, S.FINAL_FS),
     };
@@ -147,6 +148,7 @@ export class Renderer {
       ...this.fullTargets(this.rs),
       ao1: createTarget(gl, half.w, half.h), ao2: createTarget(gl, half.w, half.h),
       d1: createTarget(gl, half.w, half.h, { format: 'hdr' }), d2: createTarget(gl, half.w, half.h, { format: 'hdr' }),
+      r1: createTarget(gl, half.w, half.h, { format: 'hdr' }), r2: createTarget(gl, half.w, half.h, { format: 'hdr' }),
       q1: createTarget(gl, quarter.w, quarter.h, { format: 'hdr' }), q2: createTarget(gl, quarter.w, quarter.h, { format: 'hdr' }),
       e1: createTarget(gl, eighth.w, eighth.h, { format: 'hdr' }), e2: createTarget(gl, eighth.w, eighth.h, { format: 'hdr' }),
       a1: createTarget(gl, quarter.w, quarter.h, { format: 'hdr' }), a2: createTarget(gl, quarter.w, quarter.h, { format: 'hdr' }),
@@ -310,14 +312,34 @@ export class Renderer {
       }
     }
 
+    // the set for its reflections, softened at half resolution: sideways for diffuse ones, up and down for streaks. Each
+    // pass of the shared blur reaches about 6.4 of its pixels each way at most without gaps, so longer ones take more
+    const reflBlur = k.mirrorSet > 0 && (k.reflectStreak > 0 || k.reflectDiffuse > 0);
+    let refl = t.r1;
+    if (reflBlur) {
+      this.pass(this.prog.refldown, t.r1, (pr) => { this.bind(pr, 'tSrc', t.fa.tex[0], 0); this.bind(pr, 'tG3', t.gbuf.tex[3], 1); gl.uniform2f(pr.u.uSrcRes, NW, NH); });
+      let other = t.r2;
+      for (const [px, dx, dy] of [[k.reflectDiffuse, 1, 0], [k.reflectStreak, 0, 1]] as const) {
+        // in its own pixels, two level pixels each; passes add up like the spreads of a bell curve
+        const reach = px / 2, n = Math.ceil(reach / 9.6), s = reach / Math.sqrt(Math.max(1, n)) / 6.4;
+        for (let i = 0; i < n; i++) {
+          const from = refl;
+          this.pass(this.prog.blur, other, (pr) => { this.bind(pr, 'tSrc', from.tex[0], 0); gl.uniform2f(pr.u.uDir, dx * s, dy * s); });
+          [refl, other] = [other, refl];
+        }
+      }
+    }
+
     // composite: reflections, steam, rain, drips
     this.pass(this.prog.comp, t.fb, (pr) => {
       this.bind(pr, 'tA', t.fa.tex[0], 0); this.bind(pr, 'tG3', t.gbuf.tex[3], 1); this.bind(pr, 'tDof', t.d1.tex[0], 2);
+      this.bind(pr, 'tRefl', reflBlur ? refl.tex[0] : this.black, 7); gl.uniform1f(pr.u.uReflBlur, reflBlur ? 1 : 0);
       this.zoneUniforms(pr, f, 3);
       gl.uniform1f(pr.u.uTime, f.t); gl.uniform1f(pr.u.uDof, dof ? 1 : 0); gl.uniform1f(pr.u.uView, f.view);
       gl.uniform4fv(pr.u.uSteam, f.steam); gl.uniform4f(pr.u.uDrips, ...f.drips); gl.uniform1f(pr.u.uMirror, f.mirror);
       gl.uniform1f(pr.u.uRawFog, k.rawFog); gl.uniform1f(pr.u.uWrap, k.charWrap); gl.uniform1f(pr.u.uRain, k.rain); gl.uniform1f(pr.u.uBakedC, f.baked ?? 0);
       gl.uniform4f(pr.u.uRefl, k.reflect, k.reflectReach, k.reflectStreak, k.mirrorSet);
+      gl.uniform2f(pr.u.uReflSoft, k.reflectDiffuse, k.reflectStreak);
     });
 
     // bloom at a quarter and an eighth of the resolution

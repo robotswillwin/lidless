@@ -478,18 +478,21 @@
    "actorRed": 0.92,
    "actorGreen": 0.82,
    "actorBlue": 0.66,
-   "reflect": 1
+   "reflect": 0.9,
+   "reflectStreak": 28,
+   "reflectDiffuse": 3
   },
   "concierge": {
    "actorRed": 0.97,
    "actorGreen": 1,
    "actorBlue": 1.08,
    "rawColour": 0.45,
-   "reflect": 0.4
+   "reflect": 0.3,
+   "reflectStreak": 12,
+   "reflectDiffuse": 14
   },
   "mirrorSet": 1,
-  "reflectReach": 3.5,
-  "reflectStreak": 40
+  "reflectReach": 3.5
  },
  "drift": 18,
  "movers": [

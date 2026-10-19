@@ -259,6 +259,9 @@ void main() {
 
 export const COMP_FS = HEAD + ZONE + `
 uniform sampler2D tA, tG3, tDof;
+uniform sampler2D tRefl;  // the set without its people, blurred for its reflections (when uReflBlur is on)
+uniform float uReflBlur;  // 1: the set's reflection comes from tRefl, soft and streaked; 0: from the sharp picture
+uniform vec2 uReflSoft;   // the look: how far reflections smear sideways and up and down, in level pixels
 uniform float uTime, uDof, uView, uRawFog;
 uniform float uWrap;      // the look: how much a character's outline softens into the light around it, and takes it on
 uniform float uRain;      // how hard it rains in raw view, 0 to 1
@@ -302,8 +305,11 @@ void main() {
   }
   if (refl > 0.02) {
     float puddle = step(0.7, refl);
-    // rain stirs the puddles in the real world; the Concierge's streets are wet glass
-    float rip = (sin(p.y * 0.85 + uTime * 5.0 + w.x * 0.04) * mix(0.5, 1.6, puddle) + (vn(w * 0.08 + uTime) - 0.5) * 2.0 * puddle) * mix(0.25, 1.0, raw);
+    // rain stirs the puddles in the real world; the Concierge's streets are still. Softened reflections get long, slow
+    // swells, so their edges waver instead of breaking into bands
+    float rip = uReflBlur > 0.5
+      ? (sin(p.y * 0.32 + uTime * 2.0 + w.x * 0.025) * 0.8 + (vn(w * vec2(0.03, 0.12) + uTime * 0.4) - 0.5) * 1.6 * puddle) * mix(0.15, 1.0, raw)
+      : (sin(p.y * 0.85 + uTime * 5.0 + w.x * 0.04) * mix(0.5, 1.6, puddle) + (vn(w * 0.08 + uTime) - 0.5) * 2.0 * puddle) * mix(0.25, 1.0, raw);
     // the set is mirrored around its ground line, and a character around its own feet: look up this column for the nearest
     // character above this bit of ground. If the set's mirror lands on a character standing elsewhere, take the set beside it
     // the set's reflection reaches uRefl.y times as far up as the pixel is below the line: a low camera over wet ground
@@ -319,19 +325,22 @@ void main() {
       for (int j = 1; j <= 4; j++) for (int s = -1; s <= 1; s += 2) { vec2 b = qs + vec2(float(s * j) * 14.0, 0.0); if (keep < 0.5 && isActor(T(tG3, b).a) < 0.5) { q = b; keep = 1.0; } }
     }
     vec3 r = (T(tA, q).rgb * 2.0 + T(tA, q + vec2(0.0, 2.0)).rgb + T(tA, q - vec2(0.0, 2.0)).rgb + (T(tA, q + vec2(0.0, 5.0)).rgb + T(tA, q - vec2(0.0, 5.0)).rgb) * 0.6 + T(tA, q - vec2(0.0, 9.0)).rgb * 0.4) / 5.6;
-    // streaks: what is above smears down the wet ground for uRefl.z pixels, its lights the most, as in the painted streets
-    float below = step(GY + 0.5, p.y);
-    if (!mine && uRefl.z > 0.5) {
-      vec3 acc = vec3(0.0); float ws = 0.0;
-      for (int i = 0; i < 12; i++) {
-        float t = float(i) / 11.0;
-        vec3 cs = T(tA, vec2(q.x, min(GY - 1.0, q.y + t * uRefl.z * uRefl.y))).rgb;
-        float wt = (1.0 - 0.7 * t) * (0.15 + lum(cs));
-        acc += cs * wt; ws += wt;
+    // a character's reflection softens as the set's does: averaged over her own pixels around the mirrored point, and
+    // fading at her edges by how much of her is there
+    float cover = 1.0;
+    if (mine && uReflSoft.x + uReflSoft.y > 0.5) {
+      vec3 acc = vec3(0.0); float n = 0.0;
+      for (int j = -1; j <= 1; j++) for (int i = -2; i <= 2; i++) {
+        vec2 o = q + vec2(float(i) * 0.25 * uReflSoft.x, float(j) * 0.35 * uReflSoft.y);
+        if (isActor(T(tG3, o).a) > 0.5) { acc += T(tA, o).rgb; n += 1.0; }
       }
-      r = acc / max(1e-4, ws);
+      if (n > 0.0) r = acc / n;
+      cover = n / 15.0;
     }
-    float k = mix(0.42, 0.88, puddle) * (0.75 + 0.25 * smoothstep(GY, uRes.y, p.y)) * keep * (mine ? 1.0 : max(1.0 - uBakedC, uRefl.w * below)) * uRefl.x;
+    // the set, softened: blurred sideways (diffuse, as in polished stone) and up and down (streaks, as in a wet street)
+    float below = step(GY + 0.5, p.y);
+    if (!mine && uReflBlur > 0.5) { vec4 b = T(tRefl, vec2(q.x, min(GY - 1.0, q.y))); if (b.a > 0.02) r = b.rgb / b.a; }
+    float k = mix(0.42, 0.88, puddle) * (0.75 + 0.25 * smoothstep(GY, uRes.y, p.y)) * keep * (mine ? cover : max(1.0 - uBakedC, uRefl.w * below)) * uRefl.x;
     c = c * (1.0 - k * 0.5) + r * k;
   }
   // raw view: the poisonous air between the eye and everything it sees, thicker with distance and outdoors
@@ -381,6 +390,16 @@ export const DOFDOWN_FS = HEAD + `
 uniform sampler2D tSrc, tG3; uniform vec2 uSrcRes;
 void main() { vec2 base = floor(gl_FragCoord.xy) * 2.0; vec4 acc = vec4(0.0);
   for (int j = 0; j < 2; j++) for (int i = 0; i < 2; i++) { vec2 q = (base + vec2(float(i), float(j)) + 0.5) / uSrcRes; float w = texture(tG3, q).r < 0.9 ? 1.0 : 0.0; acc += vec4(texture(tSrc, q).rgb * w, w); }
+  o = acc * 0.25; }`;
+
+/**
+ * The set for its reflections, at half the level's resolution: four samples of each two by two level pixels, without the
+ * people (they are mirrored around their own feet), premultiplied by how much of the set there is, to be blurred.
+ */
+export const REFLDOWN_FS = HEAD + `
+uniform sampler2D tSrc, tG3; uniform vec2 uSrcRes;
+void main() { vec2 base = floor(gl_FragCoord.xy) * 2.0; vec4 acc = vec4(0.0);
+  for (int j = 0; j < 2; j++) for (int i = 0; i < 2; i++) { vec2 q = (base + vec2(float(i), float(j)) + 0.5) / uSrcRes; float w = 1.0 - isActor(texture(tG3, q).a); acc += vec4(texture(tSrc, q).rgb * w, w); }
   o = acc * 0.25; }`;
 
 /** Anamorphic streaks: a long horizontal blur of the brightest light. */
