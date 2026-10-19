@@ -3,7 +3,8 @@
 // (built assets, placed), lights, its inside and outside areas, the walk line, places to arrive and hotspots, some of
 // which lead to other scenes.
 
-import { loadSprite, spriteDefaults, type GodrayDef, type LightDef, type LoadedScene, type MoverDef, type SceneDef, type Sprite, type SteamDef } from '../engine/assets';
+import { loadSprite, spriteDefaults, type GodrayDef, type LoadedScene, type MoverDef, type SceneDef, type Sprite, type SteamDef } from '../engine/assets';
+import { presets, type PlacedLight } from '../engine/presets';
 import { textureFromImage, type GL } from '../engine/gl';
 import type { Hotspot, LevelDef } from './level';
 
@@ -45,7 +46,8 @@ export interface SceneFile {
   /** In level pixels; wider than 960 scrolls. */
   size: [number, number];
   layers: LayerDef[];
-  lights: LightDef[];
+  /** Each its place and, if it is one of a kind, its preset, with what it does its own way (see presets.ts). */
+  lights: PlacedLight[];
   /** Areas of the other kind than the scene: a shop's inside seen from the street, a window to the outside in a room. */
   zones?: { inside?: Rect[]; outside?: Rect[] };
   /** Or a painted zone map, an asset path (r inside, g outside, b static shade), for scenes made by hand. */
@@ -157,9 +159,12 @@ export function checkSceneFile(data: unknown, id?: string): string[] {
   else layers.forEach((l, i) => { if (!l || !isStr(l.asset)) out.push(`layers[${i}] has no asset`); });
   if (!Array.isArray(f.lights)) out.push('lights must be a list (it can be empty)');
   else (f.lights as Record<string, unknown>[]).forEach((l, i) => {
-    const missing = ['x', 'y', 'z', 'r', 'i', 'zone'].filter((k) => !isNum(l?.[k]));
+    // one of a kind needs only its place: its preset has the rest; one of its own needs everything
+    const kinds = presets().lights, preset = l?.preset;
+    if (preset !== undefined && (!isStr(preset) || (Object.keys(kinds).length && !kinds[preset]))) out.push(`lights[${i}]: there is no preset ${String(preset)} (public/assets/presets.json)`);
+    const missing = (preset === undefined ? ['x', 'y', 'z', 'r', 'i', 'zone'] : ['x', 'y']).filter((k) => !isNum(l?.[k]));
     if (missing.length) out.push(`lights[${i}] needs ${missing.join(', ')}`);
-    if (!nums(l?.c, 3)) out.push(`lights[${i}].c must be [r, g, b]`);
+    if (preset === undefined ? !nums(l?.c, 3) : l?.c !== undefined && l.c !== null && !nums(l.c, 3)) out.push(`lights[${i}].c must be [r, g, b]`);
   });
   const spawns = f.spawns as Record<string, Record<string, unknown>> | undefined;
   if (!spawns || typeof spawns !== 'object' || !Object.keys(spawns).length) out.push('spawns must name at least one place to arrive at');

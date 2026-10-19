@@ -14,7 +14,10 @@
     <label class="ed-scene">Scene <select id="scene"></select></label>
     <button id="new-scene" type="button" title="A new scene from a built background">New scene</button>
     <span class="ed-sep"></span>
-    <button data-add="light" type="button" title="Add a light in the middle of the view">+ Light</button>
+    <select id="add-light" class="ed-add" title="Add a light in the middle of the view: one of its own, or one of a kind (a preset)">
+      <option value="">+ Light</option>
+      <option value="light">A light of its own</option>
+    </select>
     <button data-add="hotspot" type="button">+ Hotspot</button>
     <button data-add="exit" type="button" title="A hotspot that leads to another scene">+ Exit</button>
     <button data-add="spawn" type="button" title="A place to arrive at">+ Spawn</button>

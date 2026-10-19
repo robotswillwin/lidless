@@ -1,0 +1,215 @@
+{
+  "lights": {
+    "street-lamp": {
+      "label": "Street lamp",
+      "light": {
+        "z": 30,
+        "r": 250,
+        "c": [
+          1,
+          0.8,
+          0.5
+        ],
+        "i": 1.2,
+        "zone": 0,
+        "layer": 1,
+        "cone": [
+          0,
+          1,
+          0.45
+        ],
+        "haze": 0.3
+      },
+      "with": {
+        "godray": {
+          "strength": 0.22,
+          "zone": 2
+        }
+      }
+    },
+    "shop-window": {
+      "label": "Shop window",
+      "light": {
+        "z": 30,
+        "r": 230,
+        "c": [
+          1,
+          0.66,
+          0.32
+        ],
+        "i": 1.5,
+        "zone": 0,
+        "layer": 1
+      },
+      "with": {
+        "godray": {
+          "strength": 0.18,
+          "zone": 1
+        }
+      }
+    },
+    "bare-bulb": {
+      "label": "Bare bulb",
+      "light": {
+        "z": 40,
+        "r": 220,
+        "c": [
+          1,
+          0.72,
+          0.42
+        ],
+        "i": 1.3,
+        "zone": 0,
+        "layer": 1,
+        "haze": 0.25
+      }
+    },
+    "neon": {
+      "label": "Neon sign (Concierge view)",
+      "light": {
+        "z": 12,
+        "r": 150,
+        "c": [
+          1,
+          0.22,
+          0.35
+        ],
+        "i": 0.7,
+        "zone": 0,
+        "ar": 1,
+        "g": 5,
+        "layer": 1
+      }
+    },
+    "billboard": {
+      "label": "Billboard hologram (Concierge view)",
+      "light": {
+        "z": 30,
+        "r": 260,
+        "c": [
+          0.9,
+          0.45,
+          1
+        ],
+        "i": 0.6,
+        "zone": 0,
+        "ar": 1,
+        "g": 6
+      }
+    },
+    "screen": {
+      "label": "Screen (Concierge view)",
+      "light": {
+        "z": 10,
+        "r": 130,
+        "c": [
+          0.6,
+          0.5,
+          1
+        ],
+        "i": 0.8,
+        "zone": 0,
+        "ar": 1,
+        "g": 7,
+        "layer": 1
+      }
+    },
+    "monitor": {
+      "label": "Old monitor",
+      "light": {
+        "z": 12,
+        "r": 120,
+        "c": [
+          0.62,
+          0.85,
+          1
+        ],
+        "i": 0.8,
+        "zone": 0,
+        "g": 1,
+        "layer": 1,
+        "machine": 1
+      }
+    },
+    "machine-eye": {
+      "label": "A machine's eye (raw view)",
+      "light": {
+        "z": 10,
+        "r": 130,
+        "c": [
+          1,
+          0.55,
+          0.2
+        ],
+        "i": 1,
+        "zone": 0,
+        "raw": 1,
+        "machine": 1,
+        "g": 4,
+        "layer": 1
+      }
+    },
+    "fire": {
+      "label": "Fire",
+      "light": {
+        "z": 10,
+        "r": 170,
+        "c": [
+          1,
+          0.5,
+          0.18
+        ],
+        "i": 1.4,
+        "zone": 0,
+        "g": 3,
+        "layer": 1,
+        "haze": 0.3
+      }
+    },
+    "city-glow": {
+      "label": "City glow (Concierge view)",
+      "light": {
+        "z": 120,
+        "r": 640,
+        "c": [
+          0.75,
+          0.32,
+          1
+        ],
+        "i": 0.55,
+        "zone": 0,
+        "ar": 1
+      }
+    },
+    "smog-glow": {
+      "label": "Smog glow (raw view)",
+      "light": {
+        "z": 140,
+        "r": 700,
+        "c": [
+          0.9,
+          0.78,
+          0.5
+        ],
+        "i": 0.45,
+        "zone": 0,
+        "raw": 1
+      }
+    },
+    "moonlight": {
+      "label": "Moonlight (raw view)",
+      "light": {
+        "z": 300,
+        "r": 900,
+        "c": [
+          0.78,
+          0.84,
+          1
+        ],
+        "i": 0.3,
+        "zone": 4,
+        "raw": 1
+      }
+    }
+  }
+}

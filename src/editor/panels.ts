@@ -2,6 +2,8 @@
 
 import { NW } from '../engine/renderer';
 import { loadSceneFile, type Rect } from '../game/scenefile';
+import type { LightDef } from '../engine/assets';
+import { presets, resolveLight } from '../engine/presets';
 import { deleteSelected, pickAsset } from './edit';
 import { rebuild, refresh, syncEffects, syncScroll, updatePlay } from './files';
 import { buttons, check, choice, colour, heading, labelFields, num, str, viewText } from './form';
@@ -14,29 +16,51 @@ const side = (...nodes: Node[]) => dom.side.append(...nodes);
 const reselect = () => { redraw.overlay(); drawSide(); };
 
 function lightSide(i: number): void {
-  const file = ed.file, l = file.lights[i], deg = (r: number) => Math.round((r * 180) / Math.PI);
-  side(heading(`Light ${i + 1}`, 'Drag the dot to move it. Height is how far in front of the wall it hangs: low lights graze, high ones light flat.'));
+  const file = ed.file, l = file.lights[i], kinds = presets().lights, kind = l.preset ? kinds[l.preset] : undefined;
+  const eff = resolveLight(l), deg = (r: number) => Math.round((r * 180) / Math.PI);
+  // a setting changed here is the light's own; the same as its preset's, it follows the preset again. Off is written out
+  // where the preset has it on (0 for a flag, null for a cone); a flag that is off is otherwise left out
+  const own = <K extends keyof LightDef>(k: K, v: LightDef[K] | undefined) => {
+    const from = kind?.light[k], o = l as Record<string, unknown>, flag = ['ar', 'raw', 'machine', 'shadow', 'g'].includes(k);
+    if (kind && JSON.stringify(v ?? null) === JSON.stringify(from ?? null)) delete o[k];
+    else if (v === undefined) { if (kind && from !== undefined) o[k] = null; else delete o[k]; }
+    else if (v === 0 && flag && !(kind && from)) delete o[k];
+    else o[k] = v;
+  };
+  side(heading(kind ? kind.label : `Light ${i + 1}`, `${kind ? 'One of a kind: change the preset (public/assets/presets.json) to change every light of this kind; what you change here is this light’s own.' : 'A light of its own.'} Drag the dot to move it. Height is how far in front of the wall it hangs: low lights graze, high ones light flat.`));
+  if (l.suggested) side(heading('', 'Suggested from the art: keep it, move it, or discard it.'), buttons(['Keep', () => { const before = snapshot(); delete l.suggested; remember(before); reselect(); }], ['Discard', () => deleteSelected(), 'danger']));
   side(
+    choice('Preset', l.preset ?? '', [['', 'None: its own settings'], ...Object.entries(kinds).map(([k, p]) => [k, p.label] as [string, string])], (v) => {
+      const o = l as Record<string, unknown>;
+      // taking a preset takes all of it; leaving one keeps how the light looks, as its own settings
+      if (v) { for (const k of Object.keys(o)) if (!['x', 'y', 'parallax', 'suggested'].includes(k)) delete o[k]; l.preset = v; }
+      else { Object.assign(o, resolveLight(l)); delete l.preset; }
+      reselect();
+    }),
     num('x', l.x, (v) => { l.x = v; }), num('y', l.y, (v) => { l.y = v; }),
-    num('Height', l.z, (v) => { l.z = v; }, { min: 0, max: 400 }), num('Reach', l.r, (v) => { l.r = v; }, { min: 10, max: 2000, step: 10 }),
-    colour('Colour', l.c, (v) => { l.c = v; }), num('Strength', l.i, (v) => { l.i = v; }, { step: 0.05, min: 0, max: 12 }),
-    num('Wrap (soft)', l.wrap ?? 0.3, (v) => { l.wrap = v; }, { step: 0.05, min: 0, max: 1 }), num('Haze in the air', l.haze ?? 0, (v) => { l.haze = v; }, { step: 0.05, min: 0, max: 3 }),
-    check('Casts shadows', !!l.shadow, (v) => { if (v) l.shadow = 1; else delete l.shadow; }),
-    choice('Against characters', String(l.layer ?? 0), [['0', 'Behind them (part of the set)'], ['1', 'Among them (in the street)'], ['2', 'In front of them']], (v) => { l.layer = Number(v); }),
-    choice('Lights', String(l.zone), ZONES, (v) => { l.zone = Number(v); }),
-    check('Concierge view only', !!l.ar, (v) => { if (v) l.ar = 1; else delete l.ar; }),
-    check('A machine’s light (keeps its colour in raw view)', !!l.machine, (v) => { if (v) l.machine = 1; else delete l.machine; }),
-    choice('Flicker', String(l.g ?? 0), GROUPS, (v) => { const g = Number(v); if (g) l.g = g; else delete l.g; }),
-    check('Cone', !!l.cone, (v) => { if (v) l.cone = [0, 1, 0.4]; else delete l.cone; drawSide(); }),
+    num('Height', eff.z, (v) => own('z', v), { min: 0, max: 400 }), num('Reach', eff.r, (v) => own('r', v), { min: 10, max: 2000, step: 10 }),
+    colour('Colour', eff.c, (v) => own('c', v)), num('Strength', eff.i, (v) => own('i', v), { step: 0.05, min: 0, max: 12 }),
+    num('Wrap (soft)', eff.wrap ?? 0.3, (v) => own('wrap', v), { step: 0.05, min: 0, max: 1 }), num('Haze in the air', eff.haze ?? 0, (v) => own('haze', v), { step: 0.05, min: 0, max: 3 }),
+    check('Casts shadows', !!eff.shadow, (v) => own('shadow', v ? 1 : 0)),
+    choice('Against characters', String(eff.layer ?? 0), [['0', 'Behind them (part of the set)'], ['1', 'Among them (in the street)'], ['2', 'In front of them']], (v) => own('layer', Number(v))),
+    choice('Lights', String(eff.zone), ZONES, (v) => own('zone', Number(v))),
+    check('Concierge view only', !!eff.ar, (v) => own('ar', v ? 1 : 0)),
+    check('Raw view only', !!eff.raw, (v) => own('raw', v ? 1 : 0)),
+    check('A machine’s light (keeps its colour in raw view)', !!eff.machine, (v) => own('machine', v ? 1 : 0)),
+    choice('Flicker', String(eff.g ?? 0), GROUPS, (v) => own('g', Number(v))),
+    num('Parallax (on a far layer: its parallax)', l.parallax ?? 1, (v) => { if (v === 1) delete l.parallax; else l.parallax = v; }, { step: 0.05, min: 0, max: 2 }),
+    check('Cone', !!eff.cone, (v) => { own('cone', v ? (kind?.light.cone ?? [0, 1, 0.4]) : undefined); drawSide(); }),
   );
-  if (l.cone) {
-    const cone = l.cone;
+  if (eff.cone) {
+    const cone: [number, number, number] = [...eff.cone];
     side(
-      num('Cone direction (90 = down)', deg(Math.atan2(cone[1], cone[0])), (v) => { const a = (v * Math.PI) / 180; cone[0] = +Math.cos(a).toFixed(3); cone[1] = +Math.sin(a).toFixed(3); }, { min: -180, max: 360 }),
-      num('Cone half-angle', deg(Math.acos(Math.max(-1, Math.min(1, cone[2])))), (v) => { cone[2] = +Math.cos((Math.min(179, Math.max(1, v)) * Math.PI) / 180).toFixed(3); }, { min: 1, max: 179 }),
+      num('Cone direction (90 = down)', deg(Math.atan2(cone[1], cone[0])), (v) => { const a = (v * Math.PI) / 180; cone[0] = +Math.cos(a).toFixed(3); cone[1] = +Math.sin(a).toFixed(3); own('cone', [...cone]); }, { min: -180, max: 360 }),
+      num('Cone half-angle', deg(Math.acos(Math.max(-1, Math.min(1, cone[2])))), (v) => { cone[2] = +Math.cos((Math.min(179, Math.max(1, v)) * Math.PI) / 180).toFixed(3); own('cone', [...cone]); }, { min: 1, max: 179 }),
     );
   }
+  const ownSettings = Object.keys(l).filter((k) => !['x', 'y', 'preset', 'parallax', 'suggested'].includes(k));
   side(buttons(
+    ...(kind && ownSettings.length ? [['Back to the preset', () => { const before = snapshot(), o = l as Record<string, unknown>; for (const k of ownSettings) delete o[k]; remember(before); reselect(); }] as [string, () => void]] : []),
     ['Duplicate', () => { const before = snapshot(); file.lights.push({ ...structuredClone(l), x: l.x + 20, y: l.y + 20 }); ed.sel = { kind: 'light', i: file.lights.length - 1 }; remember(before); reselect(); }],
     ['Delete', () => deleteSelected(), 'danger'],
   ));

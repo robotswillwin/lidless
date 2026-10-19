@@ -1,5 +1,6 @@
 // Adding and deleting: lights, hotspots, exits, places, areas, layers, and new scenes.
 
+import { presets } from '../engine/presets';
 import { NH, NW } from '../engine/renderer';
 import type { Hotspot } from '../game/level';
 import { rebuild, refresh, syncEffects, updatePlay } from './files';
@@ -14,6 +15,17 @@ const uniqueId = (stem: string, taken: string[]) => { let n = 1; while (taken.in
 export async function add(kind: string): Promise<void> {
   const file = ed.file, before = snapshot(), [cx, cy] = centre();
   if (kind === 'light') { file.lights.push({ x: cx, y: cy - 100, z: 40, r: 300, c: [0.85, 0.93, 1], i: 1.5, zone: 0, haze: 0.2 }); ed.sel = { kind: 'light', i: file.lights.length - 1 }; }
+  else if (kind.startsWith('light:')) {
+    // one of a kind, and the effects it brings along, at its place
+    const key = kind.slice(6), p = presets().lights[key], x = cx, y = cy - 100;
+    if (!p) return;
+    file.lights.push({ x, y, preset: key });
+    const shaft = p.with?.godray, steam = p.with?.steam;
+    if (shaft && (file.godrays ?? []).length < LIMITS.godrays) (file.godrays ??= []).push({ x, y, ...shaft });
+    if (steam && (file.steam ?? []).length < LIMITS.steam) (file.steam ??= []).push({ x, y: file.walk.y - 4, ...steam });
+    if (shaft || steam) syncEffects();
+    ed.sel = { kind: 'light', i: file.lights.length - 1 };
+  }
   else if (kind === 'hotspot' || kind === 'exit') {
     const id = uniqueId(kind, file.hotspots.map((h) => h.id));
     const h: Hotspot = { id, name: kind === 'exit' ? 'Exit' : 'Something', rect: [cx - 40, file.walk.y - 160, 80, 150], stand: cx };

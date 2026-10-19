@@ -1,6 +1,7 @@
 // Turns a loaded scene plus the current state into a frame for the renderer.
 
 import { smoothSampled, type LoadedScene, type MoverDef, type SpriteDef } from '../engine/assets';
+import { resolveLight } from '../engine/presets';
 import type { DrawSprite, Frame } from '../engine/renderer';
 import { frameFor, hasLeft } from './anim';
 
@@ -143,7 +144,8 @@ export class SceneRunner {
       level: d.size,
       zone: this.scene.zone,
       sprites,
-      lights: d.lights.some((l) => (l.parallax ?? 1) !== 1) ? d.lights.map((l) => ((l.parallax ?? 1) === 1 ? l : { ...l, x: l.x + along(l.parallax) })) : d.lights,
+      // each light with its preset, and on a far layer where that layer is
+      lights: d.lights.map((placed) => { const l = resolveLight(placed); return (l.parallax ?? 1) === 1 ? l : { ...l, x: l.x + along(l.parallax) }; }),
       gi: lightGroups(t),
       cars: this.cars,
       nCars,

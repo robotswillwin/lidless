@@ -6,6 +6,7 @@
 import '../style.css';
 import { loadSprite, spriteDefaults } from '../engine/assets';
 import { loadProjectLook } from '../engine/look';
+import { loadPresets, presets } from '../engine/presets';
 import { fitCanvas, type DrawSprite } from '../engine/renderer';
 import { frameFor } from '../game/anim';
 import { heroDrawing } from '../game/hero';
@@ -44,6 +45,8 @@ function toggleView(): void {
 
 bindOverlay();
 document.querySelectorAll<HTMLButtonElement>('[data-add]').forEach((b) => b.addEventListener('click', () => void add(b.dataset.add!).catch(showError)));
+const addLight = document.getElementById('add-light') as HTMLSelectElement;
+addLight.addEventListener('change', () => { const kind = addLight.value; addLight.value = ''; if (kind) void add(kind).catch(showError); });
 const addEffect = document.getElementById('add-effect') as HTMLSelectElement;
 addEffect.addEventListener('change', () => { const kind = addEffect.value; addEffect.value = ''; if (kind) void add(kind).catch(showError); });
 dom.button('new-scene').addEventListener('click', () => void newScene().catch(showError));
@@ -92,9 +95,11 @@ document.addEventListener('keydown', (e) => {
 
 async function start(): Promise<void> {
   ed.world = await loadWorld(base);
-  const [project, list] = await Promise.all([loadProjectLook(base), listAssets()]);
+  const [project, list] = await Promise.all([loadProjectLook(base), listAssets(), loadPresets(base)]);
   ed.assets = list;
   for (const id of ed.world.scenes) dom.sceneSel.add(new Option(id, id));
+  // the kinds of light, after a light of its own
+  for (const [key, p] of Object.entries(presets().lights)) addLight.add(new Option(p.label, `light:${key}`));
   const heroPath = ed.world.hero.sprite, cut = heroPath.lastIndexOf('/');
   ed.hero = await loadSprite(gl, `${base}/${heroPath.slice(0, cut)}`, heroPath.slice(cut + 1), spriteDefaults(gl)).catch(() => null);
   ed.look = createLookPanel(renderer, project, dom.stage, {

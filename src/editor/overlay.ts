@@ -1,5 +1,6 @@
 // The overlay: the scene's lights, hotspots, places, areas, walk and reflection lines drawn over it, to select and drag.
 
+import { resolveLight } from '../engine/presets';
 import { NH, NW } from '../engine/renderer';
 import type { ViewText } from '../game/level';
 import { refresh, syncEffects } from './files';
@@ -37,9 +38,10 @@ export function drawOverlay(): void {
     const s = isSel({ kind: 'spawn', id }), y = file.walk.y, d = sp.facing;
     out.push(`<g class="spawn${s ? ' sel' : ''}" data-k="spawn" data-id="${esc(id)}"><line x1="${sp.x}" y1="${y}" x2="${sp.x}" y2="${y - 34}"/><path d="M ${sp.x} ${y - 34} L ${sp.x + 14 * d} ${y - 28} L ${sp.x} ${y - 22} Z"/><text x="${sp.x + 4 * d}" y="${y - 38}" text-anchor="${d > 0 ? 'start' : 'end'}">${esc(id)}</text><rect class="hit" x="${sp.x - 8}" y="${y - 40}" width="16" height="44"/></g>`);
   }
-  // lights: a dot in their colour; the selected one shows its reach and its cone
-  file.lights.forEach((l0, i) => {
-    const s = isSel({ kind: 'light', i }), l = { ...l0, x: onLayer(l0.x, l0.parallax) };
+  // lights: a dot in their colour, each as it shines (with its preset); the selected one shows its reach and its cone.
+  // A suggested one has a dashed ring until it is kept
+  file.lights.forEach((placed, i) => {
+    const s = isSel({ kind: 'light', i }), r0 = resolveLight(placed), l = { ...r0, x: onLayer(r0.x, r0.parallax) };
     if (s) {
       out.push(`<circle class="reach" cx="${l.x}" cy="${l.y}" r="${l.r}"/>`);
       if (l.cone) {
@@ -49,7 +51,8 @@ export function drawOverlay(): void {
       }
     }
     const tags = [l.ar ? 'Concierge view only' : '', l.machine ? 'machine' : '', ['behind characters', 'among characters', 'in front of characters'][l.layer ?? 0]].filter(Boolean).join(', ');
-    out.push(`<g class="light${s ? ' sel' : ''}${l.ar ? ' ar' : ''}" data-k="light" data-i="${i}"><circle class="ring" cx="${l.x}" cy="${l.y}" r="9"/><circle cx="${l.x}" cy="${l.y}" r="5.5" fill="${css(l.c)}"/><title>Light ${i + 1}: ${tags}</title></g>`);
+    const name = placed.preset ? `${placed.preset} (preset)` : `Light ${i + 1}`;
+    out.push(`<g class="light${s ? ' sel' : ''}${l.ar ? ' ar' : ''}${placed.suggested ? ' suggested' : ''}" data-k="light" data-i="${i}"><circle class="ring" cx="${l.x}" cy="${l.y}" r="9"/><circle cx="${l.x}" cy="${l.y}" r="5.5" fill="${css(l.c)}"/><title>${esc(name)}${placed.suggested ? ', suggested' : ''}: ${tags}</title></g>`);
   });
   // effects: steam and smoke, light shafts, blinking beacons, the drip curtain, and where movers run
   (file.steam ?? []).forEach((e, i) => {

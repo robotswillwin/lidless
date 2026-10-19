@@ -138,6 +138,24 @@ and its glow the machine flag in `meta.png`.
 - **Cyan and violet** are the Concierge: its signs, its eye, the crowd it paints. Concierge view only. Many neon signs on the buildings are its too.
 - **Red** is human-made and illegal: the bar, the black market, hacked hardware. Lit in both views; pale white in raw view.
 
+### Kinds of light: presets
+
+Lights of the same kind share their settings: `public/assets/presets.json` has the kinds (a street lamp, a shop window,
+a bare bulb, a neon sign, a billboard hologram, a screen, an old monitor, a machine's eye, fire, the city's glow, the
+smog's glow, moonlight), each with its height, reach, colour, strength, zone, layer against the characters, cone, haze,
+flicker and the views it shines in, and the effects it brings along when it is placed (a street lamp its light shaft).
+A light in a scene names its kind and keeps only what it does its own way:
+
+```json
+{ "x": 444, "y": 291, "preset": "street-lamp" },
+{ "x": 570, "y": 380, "preset": "street-lamp", "parallax": 0.6, "z": 14, "r": 110, "i": 1 }
+```
+
+Changing a kind in `presets.json` changes every light of that kind in every scene. `null` turns off something the kind
+has (`"cone": null`). A light with no preset has all its settings itself. In the scene editor, **+ Light** places a
+light of its own or one of a kind; a light's panel shows the kind it is, what it does its own way and **Back to the
+preset**. The main street's lights are all of a kind.
+
 ## Scenes
 
 A scene folder holds the sprite sets plus `scene.json` (sprite order back to front, lights, beacons,

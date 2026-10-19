@@ -99,6 +99,8 @@ export interface LightDef {
   ex?: number;
 }
 
+import type { PlacedLight } from './presets';
+
 export interface SteamDef { x: number; y: number; height: number; width: number; kind: 'steam' | 'smoke' }
 /** `parallax` for things on a layer that is not the street's: they move with that layer, as lights and beacons can. */
 export interface GodrayDef { x: number; y: number; strength: number; zone: number; ar?: number; parallax?: number }
@@ -109,7 +111,8 @@ export interface SceneDef {
   sprites: string[];
   /** World-space zone map: r inside, g outside, b static ambient occlusion. */
   zone: string;
-  lights: LightDef[];
+  /** As placed: each resolved with its preset as it is drawn (see presets.ts). */
+  lights: PlacedLight[];
   beacons: { x: number; y: number; phase: number; parallax?: number }[];
   steam: SteamDef[];
   godrays: GodrayDef[];
