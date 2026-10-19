@@ -47,6 +47,7 @@ function backdropSprite(def: Omit<SpriteDef, 'maps' | 'parallax'>, tex: Partial<
   return {
     def: { ...def, maps: [], parallax: 0 },
     hasMeta: !!tex.meta,
+    size: [def.w, def.h],
     tex: { 'albedo.raw': alb, 'albedo.concierge': alb, normal, 'normal.concierge': normal, material, 'material.concierge': material, meta: tex.meta ?? fallback.meta, 'glow.raw': fallback.glow, 'glow.concierge': fallback.glow },
   };
 }

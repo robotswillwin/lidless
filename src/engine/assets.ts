@@ -41,6 +41,11 @@ export interface SpriteDef {
    */
   frames?: { count: number; gutter: number; cols?: number };
   /**
+   * Texels per level pixel, 1 by default: art built at 2 has twice the detail, and shows it at a render scale of 2. Every
+   * other size and place here (w, h, x, y, anchor, strides) is in level pixels; the frames' gutter is in texels.
+   */
+  res?: number;
+  /**
    * Named runs of frames. A walk has a stride: how far the body moves in one cycle, so the planted foot does not
    * slide. A loop has a speed in frames per second, and can give the order to play its frames in (repeats hold one).
    */
@@ -49,6 +54,10 @@ export interface SpriteDef {
   occluder?: number;
   reflectivity?: number;
   object?: number;
+  /** Also used when it has no meta map: its glow's group in each view, and 1 if its glow is a machine's own light. */
+  groupRaw?: number;
+  groupConcierge?: number;
+  machine?: number;
 }
 
 export interface LightDef {
@@ -123,6 +132,8 @@ export interface Sprite {
   def: SpriteDef;
   tex: Record<MapName, WebGLTexture>;
   hasMeta: boolean;
+  /** The size of its textures in texels: all the frames, with their gutters. */
+  size: [number, number];
 }
 
 export interface LoadedScene {
@@ -163,14 +174,16 @@ export async function loadSprite(gl: GL, base: string, name: string, fallback: R
   const def = await loadJSON<SpriteDef>(`${base}/${name}/sprite.json${q}`);
   const imgs = await Promise.all(def.maps.map(async (m) => [m, await loadImage(`${base}/${name}/${m}.png${q}`)] as const));
   const got = new Map<MapName, WebGLTexture>(imgs.map(([m, img]) => [m, textureFromImage(gl, img)]));
-  // a character is drawn smaller or larger than it was made, so it is sampled smoothly; its packed flags never are
-  if (def.actor ?? def.kind === 'character') for (const [m, t] of got) if (m !== 'meta') setFilter(gl, t, false);
-  const albR = got.get('albedo.raw');
-  if (!albR) throw new Error(`${name} has no albedo.raw map`);
+  // a character is drawn smaller or larger than it was made, and art with more than one texel per level pixel is
+  // drawn at its own scale or shrunk, so both are sampled smoothly; packed flags never are
+  if ((def.actor ?? def.kind === 'character') || (def.res ?? 1) > 1) for (const [m, t] of got) if (m !== 'meta') setFilter(gl, t, false);
+  const albR = got.get('albedo.raw'), albImg = imgs.find(([m]) => m === 'albedo.raw')?.[1];
+  if (!albR || !albImg) throw new Error(`${name} has no albedo.raw map`);
   const glowR = got.get('glow.raw') ?? fallback.glow, normal = got.get('normal') ?? fallback.normal, material = got.get('material') ?? fallback.material;
   return {
     def,
     hasMeta: got.has('meta'),
+    size: [albImg.width, albImg.height],
     tex: {
       'albedo.raw': albR,
       'albedo.concierge': got.get('albedo.concierge') ?? albR,

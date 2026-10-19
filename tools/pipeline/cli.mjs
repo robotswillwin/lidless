@@ -396,7 +396,8 @@ async function buildOne(file) {
     const { data } = await sharp(Buffer.from(conc.d.buffer, conc.d.byteOffset, conc.d.length), { raw: { width: conc.w, height: conc.h, channels: 4 } }).resize(raw.w, raw.h, { fit: 'fill' }).raw().toBuffer({ resolveWithObject: true });
     conc = { w: raw.w, h: raw.h, d: new Uint8ClampedArray(data.buffer, data.byteOffset, data.length) };
   }
-  const first = raw ?? conc, height = r.height ?? spec.height, strength = r.palette ?? 0.35;
+  // res: texels per level pixel, so art can carry more detail than the level's 960 by 540 for a render scale of 2
+  const res = r.res ?? 1, flat = isFlat(r), first = raw ?? conc, height = Math.round((r.height ?? spec.height) * res), strength = r.palette ?? 0.35;
   const box = spec.transparent ? [raw, conc].filter(Boolean).map((img) => contentBox(img)).reduce(unionBox) : { x: 0, y: 0, w: first.w, h: first.h };
   const hexes = await palette();
   const finish = finishFor(r);
@@ -414,19 +415,24 @@ async function buildOne(file) {
   if (exists === 'raw') conc = blank(w, h);
   const glow = r.glow ?? {}, out = resolve(ROOT, 'public/assets', r.scene, r.name);
   await mkdir(out, { recursive: true });
-  const maps = ['albedo.raw', 'normal', 'material', 'meta'];
+  const maps = ['albedo.raw'];
   await writePNG(join(out, 'albedo.raw.png'), raw);
-  await writePNG(join(out, 'normal.png'), normalR, { rgb: true });
-  await writePNG(join(out, 'material.png'), materialR, { rgb: true });
-  if (normalC) {
-    await writePNG(join(out, 'normal.concierge.png'), normalC, { rgb: true });
-    await writePNG(join(out, 'material.concierge.png'), materialC, { rgb: true });
-    maps.push('normal.concierge', 'material.concierge');
+  // flat art has no relief or shine of its own to light, and one set of flags for all of it: the engine's defaults and
+  // the sprite's own values stand in for those maps, at a fraction of the memory
+  if (!flat) {
+    maps.push('normal', 'material', 'meta');
+    await writePNG(join(out, 'normal.png'), normalR, { rgb: true });
+    await writePNG(join(out, 'material.png'), materialR, { rgb: true });
+    if (normalC) {
+      await writePNG(join(out, 'normal.concierge.png'), normalC, { rgb: true });
+      await writePNG(join(out, 'material.concierge.png'), materialC, { rgb: true });
+      maps.push('normal.concierge', 'material.concierge');
+    }
+    await writePNG(join(out, 'meta.png'), metaMap(raw, exists === 'both' ? conc : null, {
+      occluder: r.occluder ?? spec.occluder, object: r.object ?? 0, depth: r.depth ?? spec.depth, reflectivity: r.reflectivity ?? 0,
+      groupRaw: glow.groupRaw ?? 0, groupConcierge: glow.groupConcierge ?? 0, machine: !!glow.machine,
+    }), { rgb: true });
   }
-  await writePNG(join(out, 'meta.png'), metaMap(raw, exists === 'both' ? conc : null, {
-    occluder: r.occluder ?? spec.occluder, object: r.object ?? 0, depth: r.depth ?? spec.depth, reflectivity: r.reflectivity ?? 0,
-    groupRaw: glow.groupRaw ?? 0, groupConcierge: glow.groupConcierge ?? 0, machine: !!glow.machine,
-  }), { rgb: true });
   const glowRaw = glow.raw === 'auto' && glowRawSrc ? glowAuto(glowRawSrc) : null;
   if (glowRaw) { await writePNG(join(out, 'glow.raw.png'), glowRaw, { rgb: true }); maps.push('glow.raw'); }
   if (conc) {
@@ -435,19 +441,29 @@ async function buildOne(file) {
     const gc = exists === 'raw' ? null : (glow.concierge ?? 'auto') === 'auto' ? glowAuto(conc) : glowRaw;
     if (gc) { await writePNG(join(out, 'glow.concierge.png'), gc, { rgb: true }); maps.push('glow.concierge'); }
   }
-  const [cx, base] = r.position ?? [480, 464];
+  const [cx, base] = r.position ?? [480, 464], lw = toLevel(w, res), lh = toLevel(h, res);
   const sprite = {
-    name: r.name, x: Math.round(cx - w / 2), y: Math.round(base - h), w, h, maps: maps.sort(),
+    name: r.name, x: Math.round(cx - lw / 2), y: Math.round(base - lh), w: lw, h: lh, maps: maps.sort(),
     depth: r.depth ?? spec.depth, parallax: r.parallax ?? 1, occluder: (r.occluder ?? spec.occluder) ? 1 : 0, reflectivity: r.reflectivity ?? 0, object: r.object ?? 0,
-    anchor: [Math.round(w / 2), h], exists, kind: r.kind,
+    ...(flat ? flatFlags(r) : {}), anchor: [Math.round(lw / 2), lh], exists, kind: r.kind, ...(res !== 1 ? { res } : {}),
   };
   await writeFile(join(out, 'sprite.json'), JSON.stringify(sprite, null, 2) + '\n');
   // maps an earlier build wrote that this one did not
   for (const f of await readdir(out)) if (f.endsWith('.png') && !maps.includes(f.slice(0, -4))) await rm(join(out, f));
   await updateBenchList(r.scene, r.name, r.kind);
   const match = exists === 'both' && conc ? ` · outline match ${(silhouetteMatch(raw, conc) * 100).toFixed(0)}%` : exists === 'both' ? '' : ` · ${exists} view only`;
-  console.log(`${r.name}: ${w}×${h} → ${rel(out)} (${maps.length} maps)${match}`);
+  console.log(`${r.name}: ${w}×${h}${res !== 1 ? ` texels, ${res} per level pixel` : ''} → ${rel(out)} (${maps.length} maps)${match}`);
 }
+
+/** Flat vector art: lit by the game's light alone, without relief, shine or per-pixel flags. A recipe can say otherwise. */
+const isFlat = (r) => r.flatMaps ?? r.look === 'vector';
+/** Texels to level pixels, to a hundredth. */
+const toLevel = (v, res) => Math.round((v / res) * 100) / 100;
+/** The flags a flat sprite's meta map would have carried, for the engine to use instead. */
+const flatFlags = (r) => {
+  const glow = r.glow ?? {};
+  return { ...(glow.groupRaw ? { groupRaw: glow.groupRaw } : {}), ...(glow.groupConcierge ? { groupConcierge: glow.groupConcierge } : {}), ...(glow.machine ? { machine: 1 } : {}) };
+};
 
 /**
  * An animated character: frames baked from its parts (parts --bake), or loops touched up frame by frame (touch
@@ -455,7 +471,7 @@ async function buildOne(file) {
  * and planted on the ground.
  */
 async function assembleOne(r) {
-  const height = r.height ?? r.spec.height, dir = join(r.dir, 'anims');
+  const res = r.res ?? 1, height = Math.round((r.height ?? r.spec.height) * res), dir = join(r.dir, 'anims');
   const load = async (anim, view) => {
     const d = join(dir, anim);
     if (!existsSync(d)) return [];
@@ -481,7 +497,7 @@ async function assembleOne(r) {
   for (const run of RUNS) {
     const count = a[run].length;
     if (!count) continue;
-    anims[run] = run.startsWith('walk') ? { from, count, stride: Math.round(stride) } : { from, count };
+    anims[run] = run.startsWith('walk') ? { from, count, stride: toLevel(stride, res) } : { from, count };
     from += count;
   }
   // the anchor: the rig's hip if the frames were baked from parts; otherwise writeAnimated centres it
@@ -498,6 +514,7 @@ async function assembleOne(r) {
  */
 async function writeAnimated(r, raws, concs, { anchorX, anims }) {
   const spec = r.spec, exists = r.exists ?? 'both', hexes = await palette(), strength = r.palette ?? 0.35, G = 2, n = (raws ?? concs).length;
+  const res = r.res ?? 1, flat = isFlat(r);
   const px = r.pixel === false ? null : { ...spec.pixel, ...(r.pixel ?? {}) };
   for (const fs of [raws, concs]) if (fs) {
     // small seams where cut-out parts meet would let the set behind show through
@@ -513,16 +530,18 @@ async function writeAnimated(r, raws, concs, { anchorX, anims }) {
   for (let k = 0; k < n; k++) {
     let raw = raws?.[k] ?? null, conc = concs?.[k] ?? null;
     const glowRawSrc = raw;
-    // each view's own surface, as in buildOne
-    const surface = (img) => { const H = heightMap(img, { round: spec.round, rh: spec.rh, detail: spec.detail }); return [normalMap(H, w, h), materialMap(img, H, r.material ?? spec.material)]; };
-    const [normalR, materialR] = surface(raw ?? conc);
-    add('normal', normalR);
-    add('material', materialR);
-    if (raw && conc) { const [normalC, materialC] = surface(conc); add('normal.concierge', normalC); add('material.concierge', materialC); }
+    // each view's own surface, as in buildOne; flat art has none, and one set of flags for all of it
+    if (!flat) {
+      const surface = (img) => { const H = heightMap(img, { round: spec.round, rh: spec.rh, detail: spec.detail }); return [normalMap(H, w, h), materialMap(img, H, r.material ?? spec.material)]; };
+      const [normalR, materialR] = surface(raw ?? conc);
+      add('normal', normalR);
+      add('material', materialR);
+      if (raw && conc) { const [normalC, materialC] = surface(conc); add('normal.concierge', normalC); add('material.concierge', materialC); }
+    }
     if (!raw) raw = blank(w, h);
     if (exists === 'raw') conc = blank(w, h);
     add('albedo.raw', raw);
-    add('meta', metaMap(raw, exists === 'both' ? conc : null, {
+    if (!flat) add('meta', metaMap(raw, exists === 'both' ? conc : null, {
       occluder: r.occluder ?? spec.occluder, object: r.object ?? 0, depth: r.depth ?? spec.depth, reflectivity: r.reflectivity ?? 0,
       groupRaw: glow.groupRaw ?? 0, groupConcierge: glow.groupConcierge ?? 0, machine: !!glow.machine,
     }));
@@ -547,16 +566,17 @@ async function writeAnimated(r, raws, concs, { anchorX, anims }) {
   await mkdir(out, { recursive: true });
   // a character's colours run on a little past its edge, for the engine's smooth sampling
   for (const [name, imgs] of Object.entries(maps)) await writePNG(join(out, `${name}.png`), name.startsWith('albedo') ? bleedEdges(strip(imgs)) : strip(imgs), { rgb: !name.startsWith('albedo') });
-  const anchor = [anchorX ?? Math.round(w / 2), h], [cx, base] = r.position ?? [480, 464];
+  // sizes and places in level pixels; the frames' texels are res to each
+  const lw = toLevel(w, res), lh = toLevel(h, res), anchor = [toLevel(anchorX ?? w / 2, res), lh], [cx, base] = r.position ?? [480, 464];
   const sprite = {
-    name: r.name, x: cx - anchor[0], y: base - h, w, h, maps: Object.keys(maps).sort(),
+    name: r.name, x: Math.round(cx - anchor[0]), y: Math.round(base - lh), w: lw, h: lh, maps: Object.keys(maps).sort(),
     depth: r.depth ?? spec.depth, parallax: r.parallax ?? 1, occluder: (r.occluder ?? spec.occluder) ? 1 : 0, reflectivity: r.reflectivity ?? 0, object: r.object ?? 0,
-    anchor, exists, kind: r.kind, frames: { count: n, gutter: G, cols }, anims,
+    ...(flat ? flatFlags(r) : {}), anchor, exists, kind: r.kind, frames: { count: n, gutter: G, cols }, anims, ...(res !== 1 ? { res } : {}),
   };
   await writeFile(join(out, 'sprite.json'), JSON.stringify(sprite, null, 2) + '\n');
   for (const f of await readdir(out)) if (f.endsWith('.png') && !sprite.maps.includes(f.slice(0, -4))) await rm(join(out, f));
   await updateBenchList(r.scene, r.name, r.kind);
-  console.log(`${r.name}: ${n} frames of ${w}×${h}${anims.walk ? `, walk stride ${anims.walk.stride} px` : ''} → ${rel(out)} (${sprite.maps.length} maps)`);
+  console.log(`${r.name}: ${n} frames of ${w}×${h}${res !== 1 ? ` texels, ${res} per level pixel` : ''}${anims.walk ? `, walk stride ${anims.walk.stride} px` : ''} → ${rel(out)} (${sprite.maps.length} maps)`);
 }
 
 /** Every candidate cleaned and sized as the build would, side by side and feet level, at twice game size. */

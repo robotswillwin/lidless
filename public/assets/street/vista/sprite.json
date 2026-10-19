@@ -8,22 +8,19 @@
     "albedo.concierge",
     "albedo.raw",
     "glow.concierge",
-    "glow.raw",
-    "material",
-    "material.concierge",
-    "meta",
-    "normal",
-    "normal.concierge"
+    "glow.raw"
   ],
   "depth": 3,
   "parallax": 1,
   "occluder": 0,
   "reflectivity": 2,
   "object": 0,
+  "machine": 1,
   "anchor": [
     481,
     540
   ],
   "exists": "both",
-  "kind": "background"
+  "kind": "background",
+  "res": 2
 }

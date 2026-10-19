@@ -4,7 +4,8 @@ Every visual in Lidless is a **sprite set**: a folder with a `sprite.json` and u
 Only `albedo.raw.png` is required. The engine fills in sensible defaults for anything left out,
 so a first asset can be a single image and gain maps as the pipeline matures.
 
-The game renders at **960×540** and scales up with sharp pixels. A standing adult is about **240 px** tall.
+A level is **960×540** level pixels, drawn at twice that on desktops (see Resolution). A standing adult is about
+**240 px** tall, drawn smaller in the painted scenes (`actorScale`).
 
 ## The two views
 
@@ -43,6 +44,23 @@ paints the new edges. People in a scene are characters built at
 this scale and placed as layers, never painted into a background; only far-off figures, like a crowd behind the
 street, may be part of the art.
 
+## Resolution
+
+A level is 960 by 540 level pixels, and every place and size in a scene or a `sprite.json` is in level pixels. The
+engine draws it at a render scale: 1 on the low and medium tiers (phones, 960 by 540), 2 on high (desktops, 1920 by
+1080), and the browser fits that to the screen. `?q=medium` or `?q=high` forces a tier.
+
+Art can carry more detail than a level pixel: a recipe's `res` is texels per level pixel, written into the
+`sprite.json`. The street and Lux's home are built at 2 and Lux at 1.25 (her 64 frames then fit in 2048 by 2048,
+drawn at about one texel per screen pixel on the street at render scale 2). The size and place of the sprite stay in
+level pixels whatever its `res`; the build divides the texels by it. At render scale 1, art at 2 is shrunk by
+averaging, so phones show the same picture, only softer, from the same files.
+
+Flat vector art (`look: vector`, or `flatMaps` in the recipe) has only colour and glow maps: it has no relief or shine
+of its own to light, and one set of flags for all of it, so its `sprite.json` carries the flags instead of a
+`meta.png`. That is three or four maps instead of eight or nine, which pays for the extra resolution: Lux at 1.25 takes
+less memory than she did at 1 with all her maps.
+
 ## Maps
 
 All maps share the sprite's canvas size. Pixels with alpha below 50% are not drawn (hard pixel-art edges).
@@ -64,7 +82,8 @@ All maps share the sprite's canvas size. Pixels with alpha below 50% are not dra
 - **G**: depth layer × 64 (0 sky, 1 far, 2 middle, 3 near) + reflectivity × 16 (0 dry, 1 wet, 2 puddle) + 1 if its glow is a machine's own light, which keeps its colour in raw view (the recipe's `glow.machine`).
 - **B**: light group in raw view × 16 + light group in Concierge view. Groups animate glow and lights: 0 steady, 1 monitor flicker, 2 valves, 3 fire, 4 the machine's eye, 5 neon flicker, 6 hologram, 7 screen, 8 string lights.
 
-Without a `meta.png`, the sprite uses `occluder`, `depth`, `reflectivity` and `object` from `sprite.json`.
+Without a `meta.png`, the sprite uses `occluder`, `depth`, `reflectivity`, `object`, `groupRaw`, `groupConcierge`
+and `machine` (1 for a machine's own light) from `sprite.json`.
 
 ## sprite.json
 
@@ -74,7 +93,8 @@ Without a `meta.png`, the sprite uses `occluder`, `depth`, `reflectivity` and `o
   "anchor": [51, 248], "exists": "both" }
 ```
 
-- `x` and `y` place the sprite in the level, in pixels.
+- `x` and `y` place the sprite in the level, `w` and `h` are its size, in level pixels.
+- `res` is texels per level pixel, 1 if left out (see Resolution).
 - `parallax` is how fast it moves with the camera: 1 moves with the street, 0 is a fixed sky.
 - `anchor` is the point inside the sprite that stands on the ground, for anything placed by its feet.
 - `exists` says which views it is in. It is information for tools; the albedo alpha decides what is drawn.
@@ -82,8 +102,9 @@ Without a `meta.png`, the sprite uses `occluder`, `depth`, `reflectivity` and `o
 ## Animated sprites
 
 A sprite with `frames` has every map laid out as a grid: the frames in rows of `frames.cols` (all in one row without
-it), at most 2048 pixels wide so phones can load them, `w` and `h` being one frame, with a transparent gutter of
-`frames.gutter` pixels between them. `anims` names runs of frames:
+it), at most 2048 texels wide so phones can load them, `w` and `h` being one frame, with a transparent gutter of
+`frames.gutter` texels between them. The engine finds each frame from the size of the texture itself. `anims` names
+runs of frames:
 
 ```json
 "frames": { "count": 9, "gutter": 2 },

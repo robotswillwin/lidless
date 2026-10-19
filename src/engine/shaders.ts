@@ -6,15 +6,18 @@
 //   G2  rgb glow / 2 for the current view    a  light group / 15
 //   G3  r   depth layer / 3                  g  reflectivity / 2 (a character: its feet's height on screen / 540)
 //       b   object id / 63                   a  1 where something was drawn (a character: its share of the air, below 0.5)
-// Screen-space helpers use image coordinates (y down); P() and T() convert to GL's bottom-up targets.
+// Screen-space helpers use image coordinates (y down); P() and T() convert to GL's bottom-up targets. A full-size pass
+// works in level pixels (960 by 540) whatever the render scale: uRes is the level's size and uRS image pixels per level
+// pixel, so P() can fall between whole pixels, and every distance in pixels below is a level distance.
 
 export const MAX_LIGHTS = 32;
 
 const HEAD = `#version 300 es
 precision highp float;
 uniform vec2 uRes;
+uniform float uRS;
 out vec4 o;
-vec2 P() { return vec2(gl_FragCoord.x, uRes.y - gl_FragCoord.y); }
+vec2 P() { return vec2(gl_FragCoord.x, uRes.y * uRS - gl_FragCoord.y) / uRS; }
 vec4 T(sampler2D t, vec2 p) { return texture(t, vec2(p.x, uRes.y - p.y) / uRes); }
 float lum(vec3 c) { return dot(c, vec3(0.2126, 0.7152, 0.0722)); }
 // G-buffer 3's alpha: 1 for the set; for a character, half its share of the glowing air in front of it (so below 0.5)
@@ -62,6 +65,7 @@ uniform sampler2D tAlbR, tAlbC, tNrm, tNrmC, tMat, tMatC, tMeta, tGlowR, tGlowC;
 uniform float uView;       // 0 raw, 1 Concierge
 uniform float uFlip;
 uniform vec4 uConst;       // fallbacks when a sprite has no meta map: occluder, depth, reflectivity, object id
+uniform vec3 uConstG;      // and for its glow: its group in raw view, in the Concierge's, 1 for a machine's own light
 uniform float uHasMeta;
 uniform float uHaze;       // a character: how much of the set's glowing air shows over it, 0 to 1; the set: -1
 uniform float uFoot;       // a character: the height of its feet on screen, 0 at the top to 1 at the bottom
@@ -100,7 +104,7 @@ void main() {
   if (a.a < 0.5) discard;
   vec3 meta = floor(texture(tMeta, vUv).rgb * 255.0 + 0.5);
   // the Concierge's additions are lit exactly like the real world: nothing in its view may look projected
-  float occ = uConst.x, dep = uConst.y, refl = uConst.z, obj = uConst.w, grpR = 0.0, grpC = 0.0, mach = 0.0;
+  float occ = uConst.x, dep = uConst.y, refl = uConst.z, obj = uConst.w, grpR = uConstG.x, grpC = uConstG.y, mach = uConstG.z;
   if (uHasMeta > 0.5) {
     occ = step(127.5, meta.r); obj = mod(meta.r, 64.0);
     dep = floor(meta.g / 64.0); refl = floor(mod(meta.g, 64.0) / 16.0); mach = mod(meta.g, 2.0);
@@ -271,7 +275,7 @@ void main() {
   // a character takes the zone of the ground it stands on: rain falls in front of it out in the street
   z = mix(z, Z(vec2(p.x, GY)), isActor(g3.a));
   float dk = uDof * (dep < 0.15 ? 0.4 : dep < 0.5 ? 0.85 : dep < 0.8 ? 0.45 : 0.0);
-  if (dk > 0.0) { vec4 b = texture(tDof, gl_FragCoord.xy / uRes); if (b.a > 0.02) c = mix(c, b.rgb / b.a, dk * smoothstep(0.02, 0.3, b.a)); }
+  if (dk > 0.0) { vec4 b = T(tDof, p); if (b.a > 0.02) c = mix(c, b.rgb / b.a, dk * smoothstep(0.02, 0.3, b.a)); }
   float raw = 1.0 - uView;
   // a character sits in the picture, not on it: its outline softens into what is behind it, and the light around it wraps
   // a little over its edges. Samples at 3 and 6 pixels that land on the set say how near the edge this pixel is
@@ -377,7 +381,9 @@ uniform vec2 uOut;
 uniform vec4 uLookP, uLookB, uLookC, uLookF;
 uniform float uGradeK;   // the built-in grade, 1; 0 for a painted scene
 // each source pixel stays a crisp block at any size, with one anti-aliased device pixel at its edges
-vec3 sharpT(vec2 p) { float s = max(1.0, uOut.x / uRes.x); vec2 q = floor(p) + 0.5 + clamp((fract(p) - 0.5) * s, -0.5, 0.5); return T(tB, q).rgb; }
+// the image's own pixels, each a crisp square with a soft edge one screen pixel wide: at a render scale of 2 they are
+// half a level pixel
+vec3 sharpT(vec2 p) { vec2 b = p * uRS; float s = max(1.0, uOut.x / (uRes.x * uRS)); vec2 q = floor(b) + 0.5 + clamp((fract(b) - 0.5) * s, -0.5, 0.5); return T(tB, q / uRS).rgb; }
 // a bigger pixel: the average of its block, from four filtered taps
 vec3 blockT(vec2 centre, float ps) { float o = ps * 0.25; return (T(tB, centre + vec2(-o, -o)).rgb + T(tB, centre + vec2(o, -o)).rgb + T(tB, centre + vec2(-o, o)).rgb + T(tB, centre + vec2(o, o)).rgb) * 0.25; }
 vec3 pixelT(vec2 p, float ps) { return ps > 1.0 ? blockT((floor(p / ps) + 0.5) * ps, ps) : sharpT(p); }

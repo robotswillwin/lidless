@@ -2,7 +2,7 @@
 
 import type { LightDef, MapName, Sprite } from './assets';
 import { defaultLookSet, lookFor, type Look, type LookSet } from './look';
-import { createGeometry, createProgram, createTarget, solidTexture, type GL, type Program, type Target } from './gl';
+import { createGeometry, createProgram, createTarget, deleteTarget, solidTexture, type GL, type Program, type Target } from './gl';
 import * as S from './shaders';
 
 export const NW = 960;
@@ -12,6 +12,11 @@ export type Tier = 'low' | 'medium' | 'high';
 
 export interface Quality {
   tier: Tier;
+  /**
+   * Render scale: image pixels per level pixel. The level is always 960 by 540; at 2 the set, the characters and their
+   * light are rendered at 1920 by 1080, so a screen that big shows art drawn at that size as crisp as it was drawn.
+   */
+  scale: number;
   maxLights: number;
   shadows: boolean;
   ao: boolean;
@@ -21,9 +26,9 @@ export interface Quality {
 }
 
 export const QUALITY: Record<Tier, Quality> = {
-  low: { tier: 'low', maxLights: 10, shadows: false, ao: false, dof: false, streaks: false, godrays: false },
-  medium: { tier: 'medium', maxLights: 18, shadows: true, ao: true, dof: false, streaks: false, godrays: true },
-  high: { tier: 'high', maxLights: S.MAX_LIGHTS, shadows: true, ao: true, dof: true, streaks: true, godrays: true },
+  low: { tier: 'low', scale: 1, maxLights: 10, shadows: false, ao: false, dof: false, streaks: false, godrays: false },
+  medium: { tier: 'medium', scale: 1, maxLights: 18, shadows: true, ao: true, dof: false, streaks: false, godrays: true },
+  high: { tier: 'high', scale: 2, maxLights: S.MAX_LIGHTS, shadows: true, ao: true, dof: true, streaks: true, godrays: true },
 };
 
 /** Match the canvas to the device pixels it covers, so the sharp upscale has real pixels to work with. */
@@ -98,7 +103,15 @@ export class Renderer {
   private prog: Record<'sprite' | 'occ' | 'light' | 'comp' | 'bright' | 'blur' | 'dofdown' | 'streak' | 'final', Program>;
   private t: Record<'gbuf' | 'ao1' | 'ao2' | 'fa' | 'fb' | 'd1' | 'd2' | 'q1' | 'q2' | 'e1' | 'e2' | 'a1' | 'a2', Target>;
   private black: WebGLTexture;
-  quality: Quality;
+  private q!: Quality;
+  /** Image pixels per level pixel for the full-size images: the quality's render scale. */
+  private rs = 1;
+  get quality(): Quality { return this.q; }
+  /** A tier with another render scale makes the full-size images again at its size. */
+  set quality(q: Quality) {
+    this.q = q;
+    if (this.t && q.scale !== this.rs) this.makeFull(q.scale);
+  }
   /** The look in each view: pixels, light, characters, colour and film, changed live by the look panel. */
   private looks: { raw: Look; concierge: Look } = { raw: lookFor(defaultLookSet(), 'raw'), concierge: lookFor(defaultLookSet(), 'concierge') };
 
@@ -111,7 +124,7 @@ export class Renderer {
     if (!gl) throw new Error('WebGL 2 is not available');
     if ((gl.getParameter(gl.MAX_DRAW_BUFFERS) as number) < 4) throw new Error('this GPU cannot write four render targets at once');
     this.gl = gl;
-    this.quality = quality;
+    this.q = quality;
     this.geo = createGeometry(gl);
     this.prog = {
       sprite: createProgram(gl, S.SPRITE_FS, S.SPRITE_VS),
@@ -124,17 +137,33 @@ export class Renderer {
       streak: createProgram(gl, S.STREAK_FS),
       final: createProgram(gl, S.FINAL_FS),
     };
+    // the blurred images (ambient occlusion, depth of field, bloom, streaks) stay at the level's size: they gain nothing
+    // from more pixels. The full-size ones follow the render scale
     const half = { w: NW >> 1, h: NH >> 1 }, quarter = { w: NW >> 2, h: NH >> 2 }, eighth = { w: NW >> 3, h: NH >> 3 };
+    this.rs = quality.scale;
     this.t = {
-      gbuf: createTarget(gl, NW, NH, { count: 4, nearest: true }),
+      ...this.fullTargets(this.rs),
       ao1: createTarget(gl, half.w, half.h), ao2: createTarget(gl, half.w, half.h),
-      fa: createTarget(gl, NW, NH, { format: 'hdr', nearest: true }), fb: createTarget(gl, NW, NH, { format: 'hdr' }),
       d1: createTarget(gl, half.w, half.h, { format: 'hdr' }), d2: createTarget(gl, half.w, half.h, { format: 'hdr' }),
       q1: createTarget(gl, quarter.w, quarter.h, { format: 'hdr' }), q2: createTarget(gl, quarter.w, quarter.h, { format: 'hdr' }),
       e1: createTarget(gl, eighth.w, eighth.h, { format: 'hdr' }), e2: createTarget(gl, eighth.w, eighth.h, { format: 'hdr' }),
       a1: createTarget(gl, quarter.w, quarter.h, { format: 'hdr' }), a2: createTarget(gl, quarter.w, quarter.h, { format: 'hdr' }),
     };
     this.black = solidTexture(gl, [0, 0, 0, 0]);
+  }
+
+  private fullTargets(s: number) {
+    const gl = this.gl, w = NW * s, h = NH * s;
+    return {
+      gbuf: createTarget(gl, w, h, { count: 4, nearest: true }),
+      fa: createTarget(gl, w, h, { format: 'hdr', nearest: true }), fb: createTarget(gl, w, h, { format: 'hdr' }),
+    };
+  }
+
+  private makeFull(s: number): void {
+    for (const k of ['gbuf', 'fa', 'fb'] as const) deleteTarget(this.gl, this.t[k]);
+    Object.assign(this.t, this.fullTargets(s));
+    this.rs = s;
   }
 
   private bind(pr: Program, name: string, tex: WebGLTexture, unit: number): void {
@@ -149,13 +178,16 @@ export class Renderer {
     const gl = this.gl;
     gl.useProgram(pr.p);
     gl.bindFramebuffer(gl.FRAMEBUFFER, target ? target.fb : null);
-    const w = target ? target.w : NW, h = target ? target.h : NH;
-    if (target) gl.viewport(0, 0, w, h);
+    if (target) gl.viewport(0, 0, target.w, target.h);
     else {
       gl.viewport(0, 0, this.canvas.width, this.canvas.height);
       if (pr.u.uOut) gl.uniform2f(pr.u.uOut, this.canvas.width, this.canvas.height);
     }
-    if (pr.u.uRes) gl.uniform2f(pr.u.uRes, w, h);
+    // a full-size pass works in level pixels whatever its image's size: uRes is the level's size, uRS image pixels per
+    // level pixel. A smaller image's pass works in its own pixels
+    const full = !target || target.w === NW * this.rs;
+    if (pr.u.uRes) gl.uniform2f(pr.u.uRes, full ? NW : target!.w, full ? NH : target!.h);
+    if (pr.u.uRS) gl.uniform1f(pr.u.uRS, full ? this.rs : 1);
     setup(pr);
     gl.bindVertexArray(this.geo.full);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
@@ -182,7 +214,7 @@ export class Renderer {
 
     // G-buffer: sprites back to front, alpha-tested
     gl.bindFramebuffer(gl.FRAMEBUFFER, t.gbuf.fb);
-    gl.viewport(0, 0, NW, NH);
+    gl.viewport(0, 0, t.gbuf.w, t.gbuf.h);
     gl.clearBufferfv(gl.COLOR, 0, [0, 0, 0, 0]);
     gl.clearBufferfv(gl.COLOR, 1, [0.5, 0.5, 0, 0]);
     gl.clearBufferfv(gl.COLOR, 2, [0, 0, 0, 0]);
@@ -198,18 +230,21 @@ export class Renderer {
       if (d.x > NW || d.y > NH || d.x + dw < 0 || d.y + dh < 0) continue;
       MAP_ORDER.forEach(([m, u], i) => this.bind(sp, u, s.tex[m], i));
       gl.uniform4f(sp.u.uRect, d.x, d.y, dw, dh);
-      gl.uniform1f(sp.u.uSS, sc < 0.9 ? Math.min(4, Math.ceil(1.5 / sc)) : 1);
+      // texels per pixel of the buffer: past about one, several samples per pixel keep it from sparkling
+      const dens = (def.res ?? 1) / (sc * this.rs);
+      gl.uniform1f(sp.u.uSS, dens > 1.11 ? Math.min(4, Math.ceil(1.5 * dens)) : 1);
       gl.uniform1f(sp.u.uFlip, d.flip ? 1 : 0);
-      // the frame's place in the texture: frames run in rows of `cols`
+      // the frame's place in the texture: frames run in rows of `cols`, with a gutter of g texels between them
       const fr = def.frames, fi = fr ? Math.max(0, Math.min(fr.count - 1, d.frame ?? 0)) : 0, g = fr?.gutter ?? 0;
       const cols = fr ? Math.min(fr.count, fr.cols ?? fr.count) : 1, rows = fr ? Math.ceil(fr.count / cols) : 1;
-      const tw = cols * def.w + (cols - 1) * g, th = rows * def.h + (rows - 1) * g;
-      gl.uniform4f(sp.u.uUV, ((fi % cols) * (def.w + g)) / tw, def.w / tw, (Math.floor(fi / cols) * (def.h + g)) / th, def.h / th);
+      const [tw, th] = s.size, fw = (tw - (cols - 1) * g) / cols, fh = (th - (rows - 1) * g) / rows;
+      gl.uniform4f(sp.u.uUV, ((fi % cols) * (fw + g)) / tw, fw / tw, (Math.floor(fi / cols) * (fh + g)) / th, fh / th);
       gl.uniform1f(sp.u.uHasMeta, s.hasMeta ? 1 : 0);
       // a character stands in front of the set: lights behind it rim it, and the set's glow mostly stays behind it
       gl.uniform1f(sp.u.uHaze, def.actor ?? def.kind === 'character' ? (def.haze ?? k.charGlow) : -1);
       gl.uniform1f(sp.u.uFoot, Math.min(1, Math.max(0, (d.y + dh) / NH)));
       gl.uniform4f(sp.u.uConst, def.occluder ?? 0, def.depth, def.reflectivity ?? 0, def.object ?? 0);
+      gl.uniform3f(sp.u.uConstG, def.groupRaw ?? 0, def.groupConcierge ?? 0, def.machine ?? 0);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
     }
 

@@ -72,6 +72,12 @@ export interface Target {
 export type TargetFormat = 'rgba8' | 'hdr' | 'r8';
 
 /** A framebuffer with one or more colour attachments of the same size and format. */
+/** Free a render target's textures and framebuffer. */
+export function deleteTarget(gl: GL, t: Target): void {
+  for (const tex of t.tex) gl.deleteTexture(tex);
+  gl.deleteFramebuffer(t.fb);
+}
+
 export function createTarget(gl: GL, w: number, h: number, opts: { count?: number; format?: TargetFormat; nearest?: boolean } = {}): Target {
   const count = opts.count ?? 1, format = opts.format ?? 'rgba8';
   const halfFloat = format === 'hdr' && !!gl.getExtension('EXT_color_buffer_float');
