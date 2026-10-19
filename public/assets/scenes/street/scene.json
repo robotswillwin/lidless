@@ -413,7 +413,9 @@
    "wet": 0,
    "polish": 1,
    "wear": 0.15,
-   "reflectFade": 50
+   "reflectFade": 50,
+   "groundPaint": 0,
+   "groundTone": 0.25
   },
   "mirrorSet": 1
  },

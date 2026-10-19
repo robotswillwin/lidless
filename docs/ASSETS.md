@@ -334,10 +334,15 @@ How the ground is, per view and per scene, is in the look panel's Reflections gr
   are each laid a little askew, so each mirrors a little differently, and its polish is uneven: duller in patches,
   drawn into streaks by fine scratches.
 - **Wear** (`wear`): stains, slabs of uneven tone, patched asphalt.
+- **Painted colour** (`groundPaint`, 1 all of it): how much of the art's painted floor shows. That floor is the
+  reflections once painted into the art, smoothed, so its colours stay put as the camera moves. Less fades it out for
+  plain stone as light as **Stone lightness** (`groundTone`), lit by the scene's own lights as a floor is, each lamp's
+  pool brightest right under it, so the floor's colour is only what it mirrors and what shines on it.
 
 Reflections are stronger far off, where the eye looks along the ground, than near, where it looks down at it. The
-street in raw view is wet, worn concrete with puddles (wet 1, shine 0.15, wear 1); in the Concierge's, dry polished
-stone (wet 0, shine 1, wear 0.15). The ground keeps to the flat look: its slabs, stains and puddles are simple shapes.
+street in raw view is wet, worn concrete with puddles (wet 1, shine 0.15, wear 1, its painted floor kept); in the
+Concierge's, dry, dark polished stone with none of the painted floor (wet 0, shine 1, wear 0.15, painted colour 0,
+stone 0.25). The ground keeps to the flat look: its slabs, stains and puddles are simple shapes.
 In the scene editor, its settings are under Ground in the scene's settings. Scenes without a `ground` reflect as before.
 
 On the street, Lux walks on the pavement 18 pixels in front of the line its buildings stand on (walk line 470,

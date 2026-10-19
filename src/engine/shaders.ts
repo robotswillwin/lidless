@@ -34,6 +34,8 @@ float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
 float vn(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y); }
 float fbm(vec2 p) { float s = 0.0, a = 0.5; for (int i = 0; i < 4; i++) { s += a * vn(p); p *= 2.03; a *= 0.5; } return s / 0.9375; }
 vec3 lin(vec3 c) { return pow(max(c, 0.0), vec3(2.2)); }
+// the eye's focal length in level pixels (about 50 degrees across the screen), for the ground the engine draws
+const float FOCAL = 1000.0;
 `;
 
 /** World-space zone map: r = inside, g = outside, b = static ambient occlusion. */
@@ -164,6 +166,8 @@ uniform float uShadowK;   // the look: how dark the ground gets right under a ch
 uniform vec4 uCars[16]; uniform int uNC;
 uniform vec4 uBeac[32]; uniform int uNB;
 uniform float uLightView;  // 1: the lighting view (scene editor): everything a flat grey, so only what the lights do shows
+uniform vec4 uFloor;      // the ground the engine draws: 1 when there is one; how much of the painted floor shows (the
+                          // look, 1 all of it); the lightness of the stone that shows instead; the horizon's world y
 float facadeW(vec2 w) { return w.y < 104.0 ? 1.0 : w.y > 424.0 ? 0.7 : w.x > 524.0 ? 0.5 : 0.18; }
 float occAt(vec2 p) { return mod(floor(T(tG0, p).a * 255.0 + 0.5), 2.0); }
 float shadowMarch(vec2 p, vec2 lp, float self) {
@@ -189,6 +193,14 @@ void main() {
   float bk = uBaked * (1.0 - actor);
   vec3 alb = mix(lin(g0.rgb), vec3(0.3), uLightView);
   bk *= 1.0 - uLightView;
+  // the floor the engine draws: as the painted one fades out, stone shows instead, lit by the scene's own lights from
+  // above (it faces up, not the eye) and by its ambient. The set's floor is what reflects below the ground line
+  float fl = uFloor.x * (1.0 - uFloor.y) * (1.0 - actor) * step(0.01, g3.g) * step(uGround + 0.5, w.y) * (1.0 - uLightView);
+  if (fl > 0.0) {
+    alb = mix(alb, lin(vec3(uFloor.z)), fl);
+    bk *= 1.0 - fl;
+    Nn = normalize(mix(Nn, vec3(0.0, -0.94, 0.34), fl));
+  }
   alb = mix(alb, tone(alb, RAW_COLD), raw * (1.0 - uRawColour) * (1.0 - bk));
   float occB = T(tAO, p).r, ao = (occ > 0.5 ? 1.0 - 0.25 * occB : 1.0 - 0.8 * occB) * z.b;
   vec3 ambIn = vec3(0.1, 0.066, 0.046), ambOut = vec3(0.045, 0.055, 0.1);
@@ -228,6 +240,31 @@ void main() {
     // its glow in the air: hidden behind a character when the light is behind it, mostly hidden among them
     float seen = layer < 0.5 ? air : layer < 1.5 ? mix(air, 1.0, 0.25) : 1.0;
     haze += mix(lc, tone(lc, RAW_AIR), raw) * gi * pow(att, LK.z > -1.5 ? 2.0 : 3.0) * cone * LG.w * zh * seen;
+  }
+  // the floor the engine draws is lit as a floor: each light from where it hangs, above it and in front of the wall,
+  // its pool brightest right under it. The ground's coordinates as the composite draws it: pixels at the walk line,
+  // along the street and out from it towards the eye
+  if (fl > 0.0) {
+    float GYl = uGround - uCam.y, Hz = min(uFloor.w - uCam.y, GYl - 8.0), zr = (GYl - Hz) / max(p.y - Hz, 1.0);
+    vec2 g = vec2(uCam.x + uRes.x * 0.5 + (p.x - uRes.x * 0.5) * zr, FOCAL * (1.0 - zr));
+    vec3 fcol = vec3(0.0);
+    for (int i = 0; i < ${MAX_LIGHTS}; i++) {
+      if (i >= uNL) break;
+      vec4 LP = uLP[i], LC = uLC[i], LK = uLK[i], LG = uLG[i];
+      float arL = mod(LG.y, 2.0), machL = mod(floor(LG.y * 0.5 + 0.01), 2.0), rawL = floor(LG.y / 16.0 + 0.01);
+      float gi = uGI[int(LG.x + 0.5)] * (arL > 0.5 ? uView : 1.0) * (rawL > 0.5 ? 1.0 - uView : 1.0);
+      float zh = LC.w < 0.5 ? 1.0 : LC.w < 1.5 ? z.r : LC.w < 2.5 ? z.g : LC.w < 3.5 ? facadeW(w) : z.g;
+      // a light below the ground line lights none of it
+      if (gi * zh < 0.002 || LP.y >= uGround) continue;
+      vec3 dv = vec3(g.x - LP.x, uGround - LP.y, g.y - LP.z);
+      float dl = length(dv), a = max(0.0, 1.0 - dl / (LP.w * 1.4)); a *= a;
+      if (a <= 0.0) continue;
+      vec3 dn = dv / dl;
+      float cone = LK.z > -1.5 ? smoothstep(LK.z, LK.z + 0.18, dot(dn.xy, LK.xy)) : 1.0;
+      vec3 lc = arL + machL > 0.5 || uBaked > 0.5 ? LC.rgb : mix(LC.rgb, tone(LC.rgb, RAW_LIGHT), raw);
+      fcol += lc * gi * zh * a * cone * dn.y * uLookL.x * 2.5;
+    }
+    col = mix(col, alb * amb * mix(0.4, 1.0, ao) * (0.85 - 0.3 * Nn.y) + alb * fcol, fl);
   }
   // a set with its light painted in shows as painted (the final pass leaves its colours alone), the lights adding a
   // little, and its reflections are painted too: the lights' glints stay faint on it. The characters stay lit by them
@@ -285,7 +322,6 @@ uniform vec3 uState;      // the look: how wet the ground is (0 dry, 1 soaked), 
  * eye at the horizon's height. Its coordinates are pixels at the walk line, along the street and out from the walk line
  * towards the eye, so it moves under the camera as a floor does, the near ground faster than the far.
  */
-const float FOCAL = 1000.0;  // the eye's focal length in level pixels: about 50 degrees across the screen
 const float KERB = 7.0;      // the kerb's height, in pixels at the walk line
 struct Ground {
   vec3 tint;    // what it does to the painted floor's colour

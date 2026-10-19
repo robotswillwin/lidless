@@ -311,6 +311,7 @@ export class Renderer {
       gl.uniform4fv(pr.u.uBeac, f.beacons); gl.uniform1i(pr.u.uNB, f.nBeacons);
       gl.uniform4f(pr.u.uLookL, k.lights, k.ambient * (f.ambient ?? 1), k.haze, k.glow);
       gl.uniform1f(pr.u.uGround, f.mirror);
+      gl.uniform4f(pr.u.uFloor, f.ground ? 1 : 0, k.groundPaint, k.groundTone, f.ground?.horizon ?? 0);
       gl.uniform1f(pr.u.uFill, k.charFill); gl.uniform1f(pr.u.uRim, k.charRim); gl.uniform1f(pr.u.uRawColour, k.rawColour); gl.uniform1f(pr.u.uBaked, baked); gl.uniform1f(pr.u.uLightView, this.lightView ? 1 : 0); gl.uniform1f(pr.u.uPaint, k.ambient);
       gl.uniform4f(pr.u.uActorLight, k.actorRed, k.actorGreen, k.actorBlue, k.actorPaint);
       gl.uniform4fv(pr.u.uSh, f.shadows ?? new Float32Array(32)); gl.uniform1i(pr.u.uNSh, f.nShadows ?? 0); gl.uniform1f(pr.u.uShadowK, k.charShadow);

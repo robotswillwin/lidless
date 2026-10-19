@@ -52,6 +52,13 @@ export interface Look {
   polish: number;
   /** How worn and grimy that ground is, 0 new to 1: stains, grain, patched asphalt, slabs of uneven tone. */
   wear: number;
+  /**
+   * How much of the art's painted floor shows under that ground, 1 all of it. Less fades it out for plain stone lit by
+   * the scene's own lights, so the floor's colour is only what it reflects and what shines on it.
+   */
+  groundPaint: number;
+  /** How light that stone is, 0 black to 1 white. */
+  groundTone: number;
   /** How much of a surface's own colour raw view keeps: 0 a cold grey, 1 all of it. Muted by default. */
   rawColour: number;
   /** How much of a light behind a character reaches the side we see, bounced off the surroundings. */
@@ -90,7 +97,7 @@ export interface Look {
 export const LOOK_DEFAULTS: Look = {
   pixelSize: 1, pixelShape: 0, shapeAmount: 0.5, colorLevels: 0, dither: 0.5,
   lights: 1, ambient: 1, haze: 1, glow: 1, bloom: 1, shafts: 1, streaks: 1, rawFog: 1, rawColour: 0.5, rain: 1,
-  reflect: 1, mirrorSet: 0, reflectReach: 1, reflectStreak: 0, reflectDiffuse: 0, reflectFade: 0, wet: 0, polish: 0.5, wear: 0.5,
+  reflect: 1, mirrorSet: 0, reflectReach: 1, reflectStreak: 0, reflectDiffuse: 0, reflectFade: 0, wet: 0, polish: 0.5, wear: 0.5, groundPaint: 1, groundTone: 0.25,
   charFill: 1, charRim: 1, charGlow: 0.05, charShadow: 0.55, charWrap: 0.6, actorPaint: 0, actorRed: 1, actorGreen: 1, actorBlue: 1,
   exposure: 0, contrast: 1, saturation: 1, temperature: 0, tint: 0,
   vignette: 1, grain: 1, aberration: 1, depthOfField: 1,
@@ -142,6 +149,8 @@ export const LOOK_CONTROLS: LookControl[] = [
   { key: 'wet', label: 'Ground: wet (0 dry, 1 soaked)', group: 'Reflections', min: 0, max: 1, step: 0.05 },
   { key: 'polish', label: 'Ground: shine when dry', group: 'Reflections', min: 0, max: 1, step: 0.05 },
   { key: 'wear', label: 'Ground: wear and grime', group: 'Reflections', min: 0, max: 1, step: 0.05 },
+  { key: 'groundPaint', label: 'Ground: painted colour (0 plain stone)', group: 'Reflections', min: 0, max: 1, step: 0.05 },
+  { key: 'groundTone', label: 'Ground: stone lightness', group: 'Reflections', min: 0, max: 1, step: 0.01 },
   { key: 'charFill', label: 'Fill from lights behind', group: 'Characters', min: 0, max: 2, step: 0.05 },
   { key: 'charRim', label: 'Rim from lights behind', group: 'Characters', min: 0, max: 3, step: 0.05 },
   { key: 'charGlow', label: 'Glow showing over them', group: 'Characters', min: 0, max: 1, step: 0.01 },
