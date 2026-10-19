@@ -123,8 +123,8 @@
    "layer": 1
   },
   {
-   "x": 925,
-   "y": 352,
+   "x": 930,
+   "y": 376,
    "z": 10,
    "r": 130,
    "c": [
@@ -153,8 +153,8 @@
    "raw": 1
   },
   {
-   "x": 925,
-   "y": 352,
+   "x": 930,
+   "y": 376,
    "z": 10,
    "r": 130,
    "c": [
@@ -173,7 +173,7 @@
  "walk": {
   "y": 452,
   "x0": 30,
-  "x1": 790
+  "x1": 820
  },
  "mirror": 452,
  "spawns": {
@@ -295,12 +295,12 @@
     "raw": "Someone at the dock"
    },
    "rect": [
-    806,
-    358,
-    74,
-    94
+    838,
+    380,
+    62,
+    72
    ],
-   "stand": 790,
+   "stand": 816,
    "face": 1,
    "look": {
     "concierge": "A woman in a red dress, dining at the machine. She smiles at nothing in particular.",
@@ -316,12 +316,12 @@
    "id": "kiosk",
    "name": "Street machine",
    "rect": [
-    886,
-    318,
-    70,
-    134
+    902,
+    347,
+    54,
+    105
    ],
-   "stand": 790,
+   "stand": 816,
    "face": 1,
    "talk": "kiosk",
    "tag": "Dining service",
@@ -477,14 +477,19 @@
    "rawFog": 1.05,
    "actorRed": 0.92,
    "actorGreen": 0.82,
-   "actorBlue": 0.66
+   "actorBlue": 0.66,
+   "reflect": 1
   },
   "concierge": {
    "actorRed": 0.97,
    "actorGreen": 1,
    "actorBlue": 1.08,
-   "rawColour": 0.45
-  }
+   "rawColour": 0.45,
+   "reflect": 0.4
+  },
+  "mirrorSet": 1,
+  "reflectReach": 3.5,
+  "reflectStreak": 40
  },
  "drift": 18,
  "movers": [

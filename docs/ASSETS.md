@@ -215,7 +215,8 @@ later be split into layers that move at their own speed. Its background is one p
 painted in, and the engine adds what moves and what lights the characters.
 
 - `baked: 1` shows the set as painted: the scene's lights add only a little to it, and its painted reflections are not
-  mirrored again; only the characters are. The lights are there for the characters: put them on the painted lamps,
+  mirrored again; only the characters are, unless its look mirrors the set (see Reflections, below). The lights are
+  there for the characters: put them on the painted lamps,
   signs and windows, with a soft fill in the scene's colour (layer 1) so the hero reads against the city, and keep
   their `haze` low, or the painted glow doubles up. A lamp keeps the colour it is given in raw view.
 - `actorScale` is how big people are drawn: on the street 0.46, walking along the bollards (walk line 452) at the size
@@ -254,6 +255,24 @@ concierge.png`: the same shapes, lined up within a pixel, dim and worn in amber-
 РЕМОНТ РАДИО, a faded ОТЕЛЬ, a poster where the face hangs and the woman wire-thin at the machine; `touch` added the
 sleeper. The proposed raw picture itself, with its grime and pipes, had far too much detail for the look. The earlier
 streets are in git's history.
+
+Later, for the moving camera: the painted reflections were taken out of the wet ground (`asset ground`, below) for
+the engine's live ones, and the woman at the dining machine and the machine itself were shrunk to Lux's scale. They
+had been painted about a third too big for someone kneeling on her walk line: `touch` painted the corner without them,
+and the two were cut out of the pictures from before by traced outlines, shrunk by 0.78 around the machine's foot and
+laid back, with the hotspots, the machine's lights and the end of the walk line moved to match.
+
+**Reflections.** Wet ground mirrors what is above it around the scene's reflection line (`mirror`): the characters
+always, each around its own feet, and the set where the art has no reflections painted in. The look sets it, per
+scene and per view, in the panel's Reflections group: **Reflections** (`reflect`), how strongly; **Mirror the set**
+(`mirrorSet`), 1 for a painted scene whose ground had its reflections taken out; **Reach up** (`reflectReach`), 1 a
+mirror, more showing taller things squeezed into the ground, as a low camera over a wet street sees them; **Streaks**
+(`reflectStreak`), how far the reflected lights smear down, in pixels. Live reflections are made from the picture as
+it is on screen, so they follow each layer's parallax: painted ones stayed put while what they reflected slid. The
+street mirrors its set (reach 3.5, streaks 40), strongly in raw view, where it rains, and softly in the Concierge's,
+whose streets are dry and glossy. `npm run asset -- ground <recipe> --from <y>` takes painted reflections out of a
+picture's ground below the line, in both views: each stretch of each row keeps the colour of its darkest pixels,
+smoothed, so the broad pools of light stay and the streaks go. Then split or build again.
 
 In flat art, raw view is as simple as the Concierge's: age and dirt are duller colours and a few simple shapes, never
 texture. The pipeline's description of the raw world says so for `look: vector`, and a recipe's `rawAir` names the
@@ -327,14 +346,18 @@ recipe's `split`: its `layers`, far to near, each with its `parallax` (and `dept
 things with); `ground`, the walk line, below which everything is the street; `fixes`, rectangles (`rect`) or polygons
 (`poly`) moved to a layer, all of what is in them or only what is in the layers `from`; `margin`, how far past the
 screen's edges the layers reach; `thin`, the widest thing in front bridged across; `soft`, how wide a nearer thing's
-soft edge is. All in level pixels. The street's is an example (`art/street/vista.json`).
+soft edge is; `rim`, how wide a ring of a middle layer around a near thing may be and still join it. All in level
+pixels. The street's is an example (`art/street/vista.json`).
 
 1. `npm run asset -- split <recipe> --map` judges the depth of both views with a model that runs on this machine
    (Depth Anything V2 Small, downloaded once into `node_modules/.cache/lidless`, about 100 MB; nothing of it ships),
    groups everything above the ground into as many bands as there are layers, applies the fixes, and writes
    `layers.png`: one colour per layer, far to near blue, green, red, yellow, magenta, cyan. `layers-preview.png` lays
    it over the picture. Depth judges things by their surface, so a room seen through a window comes out further than
-   its wall, and it blurs thin things into what is around them: that is what the fixes are for. Trace something with
+   its wall, and it blurs thin things into what is around them: that is what the fixes are for. A near thing's soft
+   edge comes out as a thin ring of a layer in between, which would slide out from behind it as its ghost; such rings
+   join the near thing (`rim`). The map must not cut through one flat shape, such as a building half in one layer and
+   half in another: it tears open as the layers slide. Trace something with
    a shape of its own, such as the street lamp, with a polygon: a rectangle around it takes the lit air along, and
    that slides with it as a box. A map painted over by hand works too, but `--map` makes it again from the recipe.
 2. `npm run asset -- split <recipe> --scene <id>` cuts each layer out of both views by the map, with what each one
@@ -342,8 +365,9 @@ soft edge is. All in level pixels. The street's is an example (`art/street/vista
    - The layers only ever slide sideways, and only a little against each other, so what shows from behind a nearer
      thing is the rest of its row: something narrow (a post, a lamp's head) is bridged from the colours on either side
      of it, something wide has the colours of its sides carried in as far as the layers can slide, and where it stands
-     against something further away, only half way. The image model's painting is used behind things only in the
-     furthest layer, which nothing is behind; nearer in, its guesses could be anything, even black.
+     against something further away, only half way. The furthest layer does the same: the camera never shows more
+     than that behind an edge, and the image model's painting there could be anything, even black. Its painting is
+     kept only deeper in, which is never seen, and past the screen's edges (below).
    - Past the picture's edges, each row belongs to the layer its edge pixel is in. The nearer layers carry their edge
      colours out there, which is all the camera ever shows of them; the furthest layer uses the model's painting where
      it carries on the picture's edge (it painted black past the street's middle layer, which showed as a crack).

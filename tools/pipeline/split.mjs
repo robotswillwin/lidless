@@ -14,9 +14,10 @@ export const LAYER_COLOUR_NAMES = ['blue', 'green', 'red', 'yellow', 'magenta', 
  * by clustering. Then `fixes`, rectangles (`rect`) or polygons (`poly`) in the picture's pixels, move what is in them to
  * a layer (`to`), all of it or only what is in the layers `from`; and specks smaller than `speck` pixels join the layer
  * around them. A polygon is traced around something with a shape of its own, such as a street lamp: rectangles around
- * one take the lit air around it along, and that slides with it as a box.
+ * one take the lit air around it along, and that slides with it as a box. `rim` (pixels) cleans up the thin rings the
+ * depth leaves around near things' soft edges.
  */
-export function draftLayerMap(depth, w, h, { n, ground, fixes = [], speck = 400 }) {
+export function draftLayerMap(depth, w, h, { n, ground, fixes = [], speck = 400, rim = 0 }) {
   // the bands: k-means over the depth above the ground
   const vals = [];
   for (let y = 0; y < Math.min(h, ground); y += 2) for (let x = 0; x < w; x += 2) vals.push(depth[y * w + x]);
@@ -30,6 +31,15 @@ export function draftLayerMap(depth, w, h, { n, ground, fixes = [], speck = 400 
   }
   const L = new Uint8Array(w * h);
   for (let i = 0; i < L.length; i++) L[i] = Math.floor(i / w) >= ground ? n - 1 : nearestCentre(depth[i]);
+  // a near thing's soft edge has a depth between it and what is behind it, so it comes out as a thin ring of a layer in
+  // between, which would slide out from behind it as its ghost: a band of a middle layer no wider than `rim` with a nearer
+  // layer on one side and a further one on the other joins the nearer
+  if (rim > 0) for (let k = 1; k < n - 1; k++) {
+    const nearer = new Uint8Array(w * h), further = new Uint8Array(w * h);
+    for (let i = 0; i < L.length; i++) { nearer[i] = L[i] > k ? 1 : 0; further[i] = L[i] < k ? 1 : 0; }
+    const dn = distanceFrom(nearer, w, h), df = distanceFrom(further, w, h);
+    for (let i = 0; i < L.length; i++) if (L[i] === k && dn[i] <= rim && df[i] <= rim) L[i] = k + 1;
+  }
   for (const f of fixes) {
     // a rectangle, or a polygon traced around something with a shape of its own, such as a street lamp
     const [fx, fy, fw, fh] = f.rect ?? boundsOf(f.poly);

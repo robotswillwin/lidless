@@ -62,7 +62,9 @@ city and the sky (parallax 0.3); the viaduct, its train and the buildings at its
 walks on, with the shop, the lamp, the bollards, the dining machine and the wet ground (1). As she walks, the camera
 follows her up to 18 pixels each way: the street moves the most, the city behind it the least. An artist can replace
 any plane on its own. The train on the viaduct is an asset of its own that drives by every 10 to 25 seconds, each way
-in turn, in both views.
+in turn, in both views. The wet ground's reflections are made live, so they move with what they reflect: wet and rippled
+by rain in raw view, a soft gloss in the Concierge's, where it never rains. The woman at the dining machine and the
+machine are at Lux's scale, on her walk line.
 
 ## Change log
 

@@ -8,7 +8,7 @@ import { ROOT } from './recipe.mjs';
 import { buildOne } from './build.mjs';
 import { cmdParts, cmdRig } from './characters.mjs';
 import { cmdErase, cmdExtend, cmdGenerate, cmdImport, cmdNew, cmdPick, cmdRedress, cmdReframe, cmdSheet, cmdTouch, cmdVariant } from './images.mjs';
-import { cmdBlockout, cmdSplit, cmdZoom } from './scenes.mjs';
+import { cmdBlockout, cmdGround, cmdSplit, cmdZoom } from './scenes.mjs';
 
 try { process.loadEnvFile(resolve(ROOT, '.env.local')); } catch { /* no .env.local: fine until an API call needs the key */ }
 
@@ -65,6 +65,10 @@ const HELP = `Asset pipeline: generate art with an image AI, clean it and turn i
       image's pixels. Only a window around it is sent, and only the box is pasted back; the old image is kept
       in candidates/. With --frame, the result becomes that animation frame instead (art/<scene>/<name>/anims/),
       the picked image staying frame 0: everything outside the box is identical in every frame.
+  npm run asset -- ground <recipe> --from <y>
+      Take the painted reflections out of a picture's wet ground, below the reflection line y (level pixels), in both
+      views, so the engine's live ones (the look's "Mirror the set") are the only ones: painted reflections stay put
+      while what they reflect slides with the camera. The old pictures are kept in candidates/. Free.
   npm run asset -- split <recipe> --map
   npm run asset -- split <recipe> [--scene <id>] [--quality medium] [--reuse] [--dry]
       Split a background into layers that move at their own speed (the recipe's "split": its layers, far to near, each
@@ -100,6 +104,6 @@ function parse(argv) {
 }
 
 const [cmd, ...rest] = process.argv.slice(2), { pos, opt } = parse(rest);
-const run = { new: cmdNew, rig: cmdRig, zoom: cmdZoom, extend: cmdExtend, generate: cmdGenerate, variant: cmdVariant, redress: cmdRedress, reframe: cmdReframe, blockout: cmdBlockout, pick: cmdPick, import: cmdImport, sheet: cmdSheet, touch: cmdTouch, split: cmdSplit, erase: cmdErase, parts: cmdParts, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
+const run = { new: cmdNew, rig: cmdRig, zoom: cmdZoom, extend: cmdExtend, generate: cmdGenerate, variant: cmdVariant, redress: cmdRedress, reframe: cmdReframe, blockout: cmdBlockout, pick: cmdPick, import: cmdImport, sheet: cmdSheet, touch: cmdTouch, split: cmdSplit, ground: cmdGround, erase: cmdErase, parts: cmdParts, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
 if (!run) console.log(HELP);
 else run(pos, opt).catch((e) => { console.error(`error: ${e.message}`); process.exit(1); });

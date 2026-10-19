@@ -30,6 +30,8 @@ Then open the address Vite prints.
   they are shown in, exposure, contrast, saturation, temperature, tint, vignette, grain, colour fringes and depth of
   field, all live. Each setting is shared by both views, or split (its **both** button): then raw view and Concierge
   view have values of their own, and the slider edits the view on screen.
+- Its **Reflections** group sets how wet ground mirrors the set and the people: strength, mirroring a painted set,
+  how far up the reflection reaches and how far lights streak (see [docs/ASSETS.md](docs/ASSETS.md), Reflections).
 - The panel edits the game's look (**All scenes**) or the scene on screen (**This scene**): a scene sets some settings
   its own way over the game's look, marked with a dot, and × takes one back to the game's value. Tuning is kept in
   the browser until what it was made against changes, so a browser never shows the game through settings made for

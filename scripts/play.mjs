@@ -95,7 +95,7 @@ await hold('ArrowLeft', 7000);
 console.log('back out:', await where());
 await page.keyboard.press('e');
 await wait(600);
-await page.mouse.click(830, 385);
+await page.mouse.click(865, 420);
 await wait(600);
 console.log('caption:', await text('.caption'), '| attention:', await page.$eval('.hud-eye', (e) => e.dataset.level));
 await shot('raw-dock');

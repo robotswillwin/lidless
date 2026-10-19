@@ -25,6 +25,17 @@ export interface Look {
   rawFog: number;
   /** How hard it rains in raw view, 0 to 1: a drizzle around 0.3. Rain falls outside only. */
   rain: number;
+  /** How strongly wet ground mirrors what is above it: the set and the people. */
+  reflect: number;
+  /**
+   * In a scene with its light painted in, how much the set is mirrored in its wet ground as the camera moves, 0 to 1:
+   * 0 where the art has its reflections painted in, 1 where they were taken out (asset ground) for the engine to make.
+   */
+  mirrorSet: number;
+  /** How far up the set's reflection reaches: 1 a mirror; more shows taller things, squeezed, as a low camera sees them. */
+  reflectReach: number;
+  /** How far the set's reflected lights streak down the wet ground, in pixels: 0 a clean mirror. */
+  reflectStreak: number;
   /** How much of a surface's own colour raw view keeps: 0 a cold grey, 1 all of it. Muted by default. */
   rawColour: number;
   /** How much of a light behind a character reaches the side we see, bounced off the surroundings. */
@@ -63,6 +74,7 @@ export interface Look {
 export const LOOK_DEFAULTS: Look = {
   pixelSize: 1, pixelShape: 0, shapeAmount: 0.5, colorLevels: 0, dither: 0.5,
   lights: 1, ambient: 1, haze: 1, glow: 1, bloom: 1, shafts: 1, streaks: 1, rawFog: 1, rawColour: 0.5, rain: 1,
+  reflect: 1, mirrorSet: 0, reflectReach: 1, reflectStreak: 0,
   charFill: 1, charRim: 1, charGlow: 0.05, charShadow: 0.55, charWrap: 0.6, actorPaint: 0, actorRed: 1, actorGreen: 1, actorBlue: 1,
   exposure: 0, contrast: 1, saturation: 1, temperature: 0, tint: 0,
   vignette: 1, grain: 1, aberration: 1, depthOfField: 1,
@@ -77,7 +89,7 @@ export interface LookSet {
   concierge: Partial<Look>;
 }
 
-export const LOOK_GROUPS = ['Pixels', 'Light', 'Characters', 'Colour', 'Film'] as const;
+export const LOOK_GROUPS = ['Pixels', 'Light', 'Reflections', 'Characters', 'Colour', 'Film'] as const;
 
 export interface LookControl {
   key: keyof Look;
@@ -105,6 +117,10 @@ export const LOOK_CONTROLS: LookControl[] = [
   { key: 'streaks', label: 'Lens streaks', group: 'Light', min: 0, max: 4, step: 0.05 },
   { key: 'rawFog', label: 'Raw view fog', group: 'Light', min: 0, max: 3, step: 0.05 },
   { key: 'rain', label: 'Rain in raw view', group: 'Light', min: 0, max: 1, step: 0.05 },
+  { key: 'reflect', label: 'Reflections', group: 'Reflections', min: 0, max: 2, step: 0.05 },
+  { key: 'mirrorSet', label: 'Mirror the set (painted scenes)', group: 'Reflections', min: 0, max: 1, step: 0.05 },
+  { key: 'reflectReach', label: 'Reach up (1 a mirror)', group: 'Reflections', min: 1, max: 6, step: 0.1 },
+  { key: 'reflectStreak', label: 'Streaks, px', group: 'Reflections', min: 0, max: 120, step: 1 },
   { key: 'charFill', label: 'Fill from lights behind', group: 'Characters', min: 0, max: 2, step: 0.05 },
   { key: 'charRim', label: 'Rim from lights behind', group: 'Characters', min: 0, max: 3, step: 0.05 },
   { key: 'charGlow', label: 'Glow showing over them', group: 'Characters', min: 0, max: 1, step: 0.01 },

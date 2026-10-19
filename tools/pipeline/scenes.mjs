@@ -3,7 +3,7 @@
 
 import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import sharp from 'sharp';
 import { blockoutPNG, camera as roomCamera } from './blockout.mjs';
@@ -12,7 +12,7 @@ import { depthOf } from './depth.mjs';
 import { blank, readRGBA, writePNG } from './image.mjs';
 import { edit, generate } from './openai.mjs';
 import { loadRecipe, ROOT } from './recipe.mjs';
-import { rel } from './shared.mjs';
+import { nextName, rel } from './shared.mjs';
 import { distanceFrom, draftLayerMap, LAYER_COLOUR_NAMES, layerMapImage, layerPreview, readLayerMap } from './split.mjs';
 
 /** Every place in a scene file, moved by the camera pulling back: toward x = cx and y = fy by s. */
@@ -124,7 +124,7 @@ export async function cmdSplit([file], opt) {
     for (let i = 0; i < depth.length; i++) depth[i] = deps.reduce((a, d) => a + d.d[i], 0) / deps.length;
     const layerOf = (n) => { const k = names.indexOf(n); if (k < 0) throw new Error(`no layer called ${n}`); return k; };
     const fixes = (cfg.fixes ?? []).map((f) => ({ to: layerOf(f.to), from: f.from?.map(layerOf), rect: f.rect?.map((v) => Math.round(v * res)), poly: f.poly?.map(([x, y]) => [x * res, y * res]) }));
-    const L = draftLayerMap(depth, W, H, { n: N, ground: Math.round((cfg.ground ?? H / res) * res), fixes });
+    const L = draftLayerMap(depth, W, H, { n: N, ground: Math.round((cfg.ground ?? H / res) * res), fixes, rim: Math.round((cfg.rim ?? 3) * res) });
     await writePNG(mapFile, layerMapImage(L, W, H), { rgb: true });
     await writePNG(join(r.dir, 'layers-preview.png'), layerPreview(L, pics[views.at(-1)]), { rgb: true });
     return console.log(`${r.name}: layer map → ${rel(mapFile)}: ${names.map((n, k) => `${n} ${LAYER_COLOUR_NAMES[k]}`).join(', ')}. See it over the picture in layers-preview.png, paint over the map to fix it, then split without --map.`);
@@ -152,8 +152,12 @@ export async function cmdSplit([file], opt) {
         else if (l === k) { own[i] = 1; img.d.set(pic.d.subarray((y * W + sx) * 4, (y * W + sx) * 4 + 4), (y * CW + x) * 4); }
         else if (l > k) hidden[i] = 1;
       }
-      // the model sees this layer and what is further away as they are, and paints what nearer layers and the margins
-      // hide, over a plain fill of the layer's own average colour so nothing of what stood there leads it astray
+      // only the furthest layer needs the image model's painting, behind nearer things and past the edges: the nearer layers
+      // fill behind things from their own rows and carry their edges out (below). The model sees this layer and what is
+      // further away as they are, and paints what nearer layers and the margins hide, over a plain fill of the layer's own
+      // average colour so nothing of what stood there leads it astray
+      let data = null;
+      if (k === 0) {
       const avg = [0, 0, 0];
       let n = 0;
       for (let i = 0; i < own.length; i++) if (own[i]) { const j = i * 4; avg[0] += img.d[j]; avg[1] += img.d[j + 1]; avg[2] += img.d[j + 2]; n++; }
@@ -181,7 +185,8 @@ export async function cmdSplit([file], opt) {
         await writeFile(fillFile, filled);
         await writeFile(keyFile, key + '\n');
       }
-      const { data } = await sharp(filled).resize(CW, EH, { fit: 'fill' }).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+      ({ data } = await sharp(filled).resize(CW, EH, { fit: 'fill' }).ensureAlpha().raw().toBuffer({ resolveWithObject: true }));
+      } else if (opt.dry) continue;
       // a nearer thing's soft edge is part of the picture's pixels around it: in this layer those would be a faint copy of
       // its outline, which slides away from it. So this layer's pixels that close to a nearer layer take the colours of
       // its clean pixels next to them instead, from any side; one with none near keeps its own
@@ -216,12 +221,12 @@ export async function cmdSplit([file], opt) {
           let y2 = y;
           while (y2 + 1 < H && edgeOf(y2 + 1) === k) y2++;
           let diff = 0, n = 0;
-          for (let yy = y; yy <= y2; yy++) for (let j = 0; j < 3; j++) {
+          if (data) for (let yy = y; yy <= y2; yy++) for (let j = 0; j < 3; j++) {
             const mi = (yy * CW + (side < 0 ? m - 1 - j : m + W + j)) * 4, pi = (yy * W + (side < 0 ? j : W - 1 - j)) * 4;
             for (let c = 0; c < 3; c++) diff += Math.abs(data[mi + c] - pic.d[pi + c]);
             n += 3;
           }
-          const carries = k === 0 && diff / n < (cfg.marginMatch ?? 16);
+          const carries = !!data && diff / n < (cfg.marginMatch ?? 16);
           for (let yy = y; yy <= y2; yy++) for (let j = 0; j < m; j++) {
             const i = yy * CW + (side < 0 ? m - 1 - j : m + W + j), pi = (yy * W + (side < 0 ? 2 : W - 3)) * 4;
             img.d.set(carries ? data.subarray(i * 4, i * 4 + 3) : pic.d.subarray(pi, pi + 3), i * 4);
@@ -234,8 +239,9 @@ export async function cmdSplit([file], opt) {
       // what shows from behind a nearer thing as it slides is the rest of its row. Something narrow (a post, a lamp's head)
       // is bridged from this layer's colours on either side; something wide has the colours of its sides carried in, as
       // far as the layers can slide (the margin), and where it stands against something further away, only half way, the
-      // rest left to the layer behind; the furthest layer keeps the model's painting there. Colours are taken a pixel or two
-      // out from the edge.
+      // rest left to the layer behind. The furthest layer does the same: the camera only ever shows that much behind an
+      // edge, and the model's painting there could be anything, even black, or tear a shape the map cut in two; it keeps
+      // the model's painting only deeper in, which is never seen. Colours are taken a pixel or two out from the edge.
       const thin = Math.round((cfg.thin ?? 24) * res), reach = m, rim = 2;
       for (let y = 0; y < H; y++) {
         const row = y * CW, x0 = m, x1 = m + W - 1;
@@ -251,7 +257,7 @@ export async function cmdSplit([file], opt) {
           if (left && right && len <= thin) {
             const a = from(x - 1, -1), b = from(e + 1, 1);
             for (let j = 0; j < len; j++) paint(x + j, a, b, (j + 1) / (len + 1));
-          } else if (k > 0) {
+          } else {
             const share = (otherOwn, otherEdge) => Math.min(reach, otherOwn ? Math.ceil(len / 2) : otherEdge ? len : Math.ceil(len / 2));
             if (left) { const a = from(x - 1, -1), n = share(right, rightEdge); for (let j = 0; j < n; j++) paint(x + j, a, a, 0); }
             if (right) { const b = from(e + 1, 1), n = share(left, leftEdge); for (let j = 0; j < n; j++) paint(e - j, b, b, 0); }
@@ -285,3 +291,55 @@ export async function cmdSplit([file], opt) {
     console.log(`${rel(sceneFile)}: ${layers.map((l) => l.asset).join(', ')} in place of ${r.scene}/${r.name}`);
   } else console.log(`For the scene file's layers:\n${JSON.stringify(layers, null, 1)}`);
 }
+
+/**
+ * A picture's wet ground without its painted reflections, for a scene whose reflections the engine makes as the camera
+ * moves (the look's "Mirror the set"): painted ones stay put while what they reflect slides. Below `--from` (level
+ * pixels), in both views, the ground keeps its broad pools of light but loses the streaks: each stretch of a row takes
+ * the colour of its darkest few pixels, smoothed. The pictures before are kept in candidates/; split or build again after.
+ */
+export async function cmdGround([file], opt) {
+  const r = await loadRecipe(file), res = r.res ?? 1, from = Number(opt.from);
+  if (!Number.isFinite(from)) throw new Error('usage: ground <recipe> --from <y in level pixels: the reflection line>');
+  const BLOCK = Math.round(24 * res), LOW = 0.12;
+  for (const v of ['raw', 'concierge']) {
+    const f = join(r.dir, `${v}.png`);
+    if (!existsSync(f)) continue;
+    const img = await readRGBA(f), { w, h } = img, y0 = Math.max(0, Math.round(from * res));
+    const dir = join(r.dir, 'candidates');
+    await mkdir(dir, { recursive: true });
+    const keep = join(dir, (await nextName(dir, `${v}-before-ground`))());
+    await copyFile(f, keep);
+    // each row in blocks: a block's colour is the mean of its darkest pixels, which the streaks of light leave out
+    const nb = Math.ceil(w / BLOCK), base = new Float32Array((h - y0) * nb * 3);
+    for (let y = y0; y < h; y++) for (let b = 0; b < nb; b++) {
+      const px = [];
+      for (let x = b * BLOCK; x < Math.min(w, (b + 1) * BLOCK); x++) {
+        const i = (y * w + x) * 4;
+        px.push([0.2126 * img.d[i] + 0.7152 * img.d[i + 1] + 0.0722 * img.d[i + 2], img.d[i], img.d[i + 1], img.d[i + 2]]);
+      }
+      px.sort((a, c) => a[0] - c[0]);
+      const n = Math.max(1, Math.round(px.length * LOW)), o = ((y - y0) * nb + b) * 3;
+      for (let k = 0; k < n; k++) for (let c = 0; c < 3; c++) base[o + c] += px[k][c + 1] / n;
+    }
+    // smoothed across the blocks and down the rows, so the ground is a calm, flat surface
+    const R = 6, rows = h - y0, smooth = new Float32Array(base.length);
+    for (let y = 0; y < rows; y++) for (let b = 0; b < nb; b++) for (let c = 0; c < 3; c++) {
+      let sum = 0, n = 0;
+      for (let dy = -R; dy <= R; dy++) for (let db = -1; db <= 1; db++) {
+        const yy = y + dy, bb = b + db;
+        if (yy < 0 || yy >= rows || bb < 0 || bb >= nb) continue;
+        sum += base[(yy * nb + bb) * 3 + c]; n++;
+      }
+      smooth[(y * nb + b) * 3 + c] = sum / n;
+    }
+    for (let y = y0; y < h; y++) for (let x = 0; x < w; x++) {
+      // between the centres of the blocks either side
+      const fb = Math.max(0, Math.min(nb - 1, (x + 0.5) / BLOCK - 0.5)), b0 = Math.floor(fb), b1 = Math.min(nb - 1, b0 + 1), t = fb - b0, i = (y * w + x) * 4;
+      for (let c = 0; c < 3; c++) img.d[i + c] = Math.round(smooth[((y - y0) * nb + b0) * 3 + c] * (1 - t) + smooth[((y - y0) * nb + b1) * 3 + c] * t);
+    }
+    await writePNG(f, img);
+    console.log(`${r.name}: ${v} ground below y ${from} without its painted reflections → ${rel(f)} (the old one is ${rel(keep)})`);
+  }
+}
+

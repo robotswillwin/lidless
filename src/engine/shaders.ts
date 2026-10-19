@@ -263,6 +263,8 @@ uniform float uTime, uDof, uView, uRawFog;
 uniform float uWrap;      // the look: how much a character's outline softens into the light around it, and takes it on
 uniform float uRain;      // how hard it rains in raw view, 0 to 1
 uniform float uBakedC;    // how much of the set is painted, its reflections too: then only the characters are mirrored
+uniform vec4 uRefl;       // the look: reflections' strength; how far up the set's reaches (1 a mirror); how far its lights
+                          // streak down, in pixels; how much the set is mirrored in a painted scene, below the line
 uniform vec4 uSteam[4];
 uniform vec4 uDrips;      // world x0, x1, top, bottom of the drip curtain; z <= 0 turns it off
 uniform float uMirror;    // world y of the reflection line
@@ -304,7 +306,9 @@ void main() {
     float rip = (sin(p.y * 0.85 + uTime * 5.0 + w.x * 0.04) * mix(0.5, 1.6, puddle) + (vn(w * 0.08 + uTime) - 0.5) * 2.0 * puddle) * mix(0.25, 1.0, raw);
     // the set is mirrored around its ground line, and a character around its own feet: look up this column for the nearest
     // character above this bit of ground. If the set's mirror lands on a character standing elsewhere, take the set beside it
-    vec2 qs = vec2(p.x + rip, 2.0 * GY - p.y), q = qs;
+    // the set's reflection reaches uRefl.y times as far up as the pixel is below the line: a low camera over wet ground
+    // sees tall things in it, squeezed
+    vec2 qs = vec2(p.x + rip, max(0.5, GY - (p.y - GY) * uRefl.y)), q = qs;
     float F = -1.0;
     for (int k = 1; k <= 32; k++) { vec4 ga = T(tG3, vec2(p.x, p.y - float(k) * 3.0)); if (isActor(ga.a) > 0.5) { F = ga.g * uRes.y; break; } }
     bool mine = false;
@@ -315,7 +319,19 @@ void main() {
       for (int j = 1; j <= 4; j++) for (int s = -1; s <= 1; s += 2) { vec2 b = qs + vec2(float(s * j) * 14.0, 0.0); if (keep < 0.5 && isActor(T(tG3, b).a) < 0.5) { q = b; keep = 1.0; } }
     }
     vec3 r = (T(tA, q).rgb * 2.0 + T(tA, q + vec2(0.0, 2.0)).rgb + T(tA, q - vec2(0.0, 2.0)).rgb + (T(tA, q + vec2(0.0, 5.0)).rgb + T(tA, q - vec2(0.0, 5.0)).rgb) * 0.6 + T(tA, q - vec2(0.0, 9.0)).rgb * 0.4) / 5.6;
-    float k = mix(0.42, 0.88, puddle) * (0.75 + 0.25 * smoothstep(GY, uRes.y, p.y)) * keep * (mine ? 1.0 : 1.0 - uBakedC);
+    // streaks: what is above smears down the wet ground for uRefl.z pixels, its lights the most, as in the painted streets
+    float below = step(GY + 0.5, p.y);
+    if (!mine && uRefl.z > 0.5) {
+      vec3 acc = vec3(0.0); float ws = 0.0;
+      for (int i = 0; i < 12; i++) {
+        float t = float(i) / 11.0;
+        vec3 cs = T(tA, vec2(q.x, min(GY - 1.0, q.y + t * uRefl.z * uRefl.y))).rgb;
+        float wt = (1.0 - 0.7 * t) * (0.15 + lum(cs));
+        acc += cs * wt; ws += wt;
+      }
+      r = acc / max(1e-4, ws);
+    }
+    float k = mix(0.42, 0.88, puddle) * (0.75 + 0.25 * smoothstep(GY, uRes.y, p.y)) * keep * (mine ? 1.0 : max(1.0 - uBakedC, uRefl.w * below)) * uRefl.x;
     c = c * (1.0 - k * 0.5) + r * k;
   }
   // raw view: the poisonous air between the eye and everything it sees, thicker with distance and outdoors
