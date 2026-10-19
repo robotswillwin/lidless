@@ -163,6 +163,7 @@ uniform int uNSh;
 uniform float uShadowK;   // the look: how dark the ground gets right under a character
 uniform vec4 uCars[16]; uniform int uNC;
 uniform vec4 uBeac[32]; uniform int uNB;
+uniform float uLightView;  // 1: the lighting view (scene editor): everything a flat grey, so only what the lights do shows
 float facadeW(vec2 w) { return w.y < 104.0 ? 1.0 : w.y > 424.0 ? 0.7 : w.x > 524.0 ? 0.5 : 0.18; }
 float occAt(vec2 p) { return mod(floor(T(tG0, p).a * 255.0 + 0.5), 2.0); }
 float shadowMarch(vec2 p, vec2 lp, float self) {
@@ -186,7 +187,8 @@ void main() {
   // raw view: every surface goes cold and muted; the strongest colour left lives in the air. A set with its light
   // painted in is already as raw view sees it
   float bk = uBaked * (1.0 - actor);
-  vec3 alb = lin(g0.rgb);
+  vec3 alb = mix(lin(g0.rgb), vec3(0.3), uLightView);
+  bk *= 1.0 - uLightView;
   alb = mix(alb, tone(alb, RAW_COLD), raw * (1.0 - uRawColour) * (1.0 - bk));
   float occB = T(tAO, p).r, ao = (occ > 0.5 ? 1.0 - 0.25 * occB : 1.0 - 0.8 * occB) * z.b;
   vec3 ambIn = vec3(0.1, 0.066, 0.046), ambOut = vec3(0.045, 0.055, 0.1);
@@ -231,7 +233,7 @@ void main() {
   // little, and its reflections are painted too: the lights' glints stay faint on it. The characters stay lit by them
   col = mix(col, alb * uPaint + col * 0.35, bk);
   // and its people in their own flat colours, tinted by the place, the lamps near them adding their light
-  if (actor > 0.5) col = mix(col, alb * uActorLight.rgb * uPaint + col * 0.25, uActorLight.a);
+  if (actor > 0.5) col = mix(col, alb * uActorLight.rgb * uPaint + col * 0.25, uActorLight.a * (1.0 - uLightView));
   spc *= 1.0 - 0.75 * bk;
   // the ground under a character's feet gets less of every light, and of the ambient: it stands on it. Not the character
   // itself, and not anything glowing
@@ -245,7 +247,7 @@ void main() {
   vec3 outc = (col + spc) * ground + haze * mix(0.06, 0.16, z.g) * uLookL.z;
   float ge = floor(g2.a * 31.0 + 0.5), machE = step(15.5, ge);
   vec3 em = lin(g2.rgb * 2.0);
-  outc += mix(em, tone(em, RAW_LIGHT), raw * (1.0 - machE)) * uGI[int(mod(ge, 16.0))] * uLookL.w;
+  outc += mix(em, tone(em, RAW_LIGHT), raw * (1.0 - machE)) * uGI[int(mod(ge, 16.0))] * uLookL.w * (1.0 - 0.75 * uLightView);
   if (dep < 0.4 && uView > 0.5) {
     for (int k = 0; k < 16; k++) { if (k >= uNC) break; vec4 c = uCars[k]; vec2 r = p - (c.xy - uCam); float al = r.x * c.z;
       if (abs(r.y) < 1.2) { if (al > -c.w && al < 0.0) outc += vec3(2.2, 0.25, 0.2) * pow(1.0 + al / c.w, 2.0) * 0.6; if (al >= 0.0 && al < 4.0) outc += al < 2.0 ? vec3(4.0, 4.2, 4.6) : vec3(0.08, 0.08, 0.1); } }

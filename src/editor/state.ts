@@ -60,8 +60,13 @@ export const ed = {
   dirty: false,
   /** Every built asset, as scene/name: for new layers and scenes. */
   assets: [] as string[],
-  /** Lux, to judge the light on: where she stands, which way she faces, and whether the camera follows her as in the game. */
-  lux: { x: 480, facing: 1 as 1 | -1, show: true, follow: false },
+  /**
+   * Lux, to judge the light on: where she stands, which way she faces, whether the camera follows her as in the game, and
+   * whether she follows the pointer along the walk line.
+   */
+  lux: { x: 480, facing: 1 as 1 | -1, show: true, follow: false, track: false },
+  /** The lighting view: only what the lights do. */
+  lightView: false,
   look: null as LookPanel | null,
 };
 

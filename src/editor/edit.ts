@@ -1,6 +1,7 @@
 // Adding and deleting: lights, hotspots, exits, places, areas, layers, and new scenes.
 
-import { presets } from '../engine/presets';
+import { presets, resolveLight } from '../engine/presets';
+import { suggestLights, type GlowImage, type GlowLayer } from './suggest';
 import { NH, NW } from '../engine/renderer';
 import type { Hotspot } from '../game/level';
 import { rebuild, refresh, syncEffects, updatePlay } from './files';
@@ -135,7 +136,7 @@ export async function newScene(): Promise<void> {
   undoStack.length = 0;
   ed.sel = { kind: 'scene' };
   ed.camX = 0;
-  ed.lux = { x: Math.round(w / 2), facing: 1, show: true, follow: ed.lux.follow };
+  ed.lux = { x: Math.round(w / 2), facing: 1, show: true, follow: ed.lux.follow, track: ed.lux.track };
   await rebuild();
   if (![...dom.sceneSel.options].some((o) => o.value === id)) dom.sceneSel.add(new Option(`${id} (new)`, id));
   dom.sceneSel.value = id;
@@ -158,6 +159,58 @@ export function nudge(dx: number, dy: number): void {
   else if (sel.kind === 'beacon') { const b = file.beacons![sel.i]; b.x += dx; b.y += dy; syncEffects(); }
   else if (sel.kind === 'drips') { const d = file.drips!; d.x0 += dx; d.x1 += dx; d.top += dy; d.bottom += dy; syncEffects(); }
   else if (sel.kind === 'mover') { const m = file.movers![sel.i]; m.x0 += dx; m.x1 += dx; if (dy) m.y = (m.y ?? ed.scene?.loaded.movers?.[sel.i]?.sprite.def.y ?? 0) + dy; }
+  remember(before);
+  redraw.overlay();
+  redraw.side();
+}
+
+/* ---------- lights suggested from the art ---------- */
+
+/** A glow map at half the level's resolution: one pixel for two by two level pixels. */
+async function glowImage(url: string, w: number, h: number): Promise<GlowImage> {
+  const img = new Image();
+  img.src = url;
+  await img.decode();
+  const cv = document.createElement('canvas');
+  cv.width = Math.max(1, Math.round(w / 2));
+  cv.height = Math.max(1, Math.round(h / 2));
+  const cx = cv.getContext('2d', { willReadFrequently: true })!;
+  cx.drawImage(img, 0, 0, cv.width, cv.height);
+  return { w: cv.width, h: cv.height, data: cx.getImageData(0, 0, cv.width, cv.height).data };
+}
+
+/** Lights at what the art shows lit, in both views, marked suggested until kept. */
+export async function suggestFromArt(): Promise<void> {
+  if (!ed.scene) return;
+  setStatus('Looking for lights in the art…');
+  const layers: GlowLayer[] = [];
+  for (const [i, layer] of ed.file.layers.entries()) {
+    const def = ed.scene.loaded.sprites[i]?.def;
+    if (!def || (def.actor ?? def.kind === 'character')) continue;
+    const map = async (name: 'glow.raw' | 'glow.concierge') => (def.maps.includes(name) ? glowImage(`${base}/${layer.asset}/${name}.png?v=${Date.now()}`, def.w, def.h) : undefined);
+    layers.push({ raw: await map('glow.raw'), concierge: await map('glow.concierge'), scale: 2, x0: def.x, y0: def.y, parallax: def.parallax, street: def.parallax === 1 && !def.front });
+  }
+  // outside, the ground below the reflection line glows with the lights' reflections and pools, not lights of its own;
+  // inside, below the floor can be another room (the cutaway of Lux's block)
+  const floor = ed.file.kind === 'exterior' ? ed.file.mirror ?? ed.file.walk.y - 8 : Infinity;
+  if (!layers.some((l) => l.raw || l.concierge)) { setStatus('Nothing to read lights from: no layer has glow maps (art in the flat look has them)'); return; }
+  const found = suggestLights(layers, ed.file.lights.map(resolveLight), { floor });
+  if (!found.length) { setStatus('No more lights found in the art'); return; }
+  const before = snapshot();
+  ed.file.lights.push(...found);
+  remember(before);
+  setStatus(`${found.length} lights suggested: dashed rings. Keep, move or discard them`);
+  redraw.overlay();
+  redraw.side();
+}
+
+/** Keep the suggested lights, or discard them: all of them at once. */
+export function settleSuggested(keep: boolean): void {
+  const before = snapshot();
+  if (keep) for (const l of ed.file.lights) delete l.suggested;
+  else ed.file.lights = ed.file.lights.filter((l) => !l.suggested);
+  if (ed.scene) ed.scene.loaded.def.lights = ed.file.lights;
+  if (ed.sel.kind === 'light') ed.sel = { kind: 'scene' };
   remember(before);
   redraw.overlay();
   redraw.side();

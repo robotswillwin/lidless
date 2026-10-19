@@ -54,6 +54,8 @@ async function boot(): Promise<void> {
       renderer.quality = QUALITY[order[(order.indexOf(renderer.quality.tier) + 1) % order.length]];
       stats.hidden = false;
     },
+    // on the dev server, ` opens the scene editor on the scene she is in, in the view on screen, in a tab of its own
+    openEditor: import.meta.env.DEV ? () => { window.open(`./editor.html?scene=${game.scene.file.id}${game.raw ? '&view=raw' : ''}`, 'lidless-editor'); } : undefined,
   });
   // on the dev server: art or a scene file changed
   import.meta.hot?.on('lidless:asset', (data: { files: string[] }) => game.assetsChanged(data.files));

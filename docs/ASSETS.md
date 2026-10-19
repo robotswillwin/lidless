@@ -156,6 +156,17 @@ has (`"cone": null`). A light with no preset has all its settings itself. In the
 light of its own or one of a kind; a light's panel shows the kind it is, what it does its own way and **Back to the
 preset**. The main street's lights are all of a kind.
 
+### Lighting a new scene
+
+1. **Suggest lights from the art** (the scene's settings in the editor) reads every layer's glow maps in both views and
+   puts a light where something glows: in its colour, reaching further the bigger the glow, in the views it glows in
+   (Concierge view only where only the Concierge's view glows; a machine's light where raw view glows coloured). Lights
+   low in the street hang among the people; lights on a far layer move with it. Outside, the ground below the
+   reflection line is left out: its glow is the lights' reflections. It needs art in the flat look (glow maps).
+2. Keep, move or discard them (dashed rings until kept), and give the ones that are a kind their preset.
+3. **Lighting view** (G) shows only what the lights do, every surface a flat grey; have Lux follow the pointer to see
+   them fall on her along the walk line.
+
 ## Scenes
 
 A scene folder holds the sprite sets plus `scene.json` (sprite order back to front, lights, beacons,

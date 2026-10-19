@@ -54,10 +54,10 @@ export async function openScene(id: string): Promise<void> {
   ed.sel = { kind: 'scene' };
   ed.camX = 0;
   const first = Object.values(ed.file.spawns)[0];
-  ed.lux = { x: first?.x ?? ed.file.size[0] / 2, facing: first?.facing ?? 1, show: true, follow: ed.lux.follow };
+  ed.lux = { x: first?.x ?? ed.file.size[0] / 2, facing: first?.facing ?? 1, show: true, follow: ed.lux.follow, track: ed.lux.track };
   await rebuild();
   dom.sceneSel.value = id;
-  window.history.replaceState(null, '', `?scene=${id}`);
+  syncAddress();
   setStatus('');
   updatePlay();
   redraw.overlay();
@@ -65,6 +65,11 @@ export async function openScene(id: string): Promise<void> {
 }
 
 /** The Play link starts the game in this scene, at its first place. */
+/** The address names the scene and the view on screen, so a reload comes back to them. */
+export function syncAddress(): void {
+  window.history.replaceState(null, '', `?scene=${ed.file.id}${ed.view < 0.5 ? '&view=raw' : ''}`);
+}
+
 export function updatePlay(): void {
   const spawn = Object.keys(ed.file.spawns)[0];
   dom.play.href = `./?scene=${ed.file.id}${spawn ? `&spawn=${spawn}` : ''}`;

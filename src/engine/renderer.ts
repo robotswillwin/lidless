@@ -216,8 +216,15 @@ export class Renderer {
     return [...visible].sort((a, b) => b.i * b.r - a.i * a.r).slice(0, this.quality.maxLights);
   }
 
+  /**
+   * The lighting view, for the scene editor: every surface a flat grey and nothing painted kept, so all that shows is
+   * what the lights do, their glow in the air and the effects.
+   */
+  lightView = false;
+
   render(f: Frame): void {
     const gl = this.gl, q = this.quality, t = this.t, k = f.view >= 0.5 ? this.looks.concierge : this.looks.raw;
+    const baked = this.lightView ? 0 : f.baked ?? 0;
     gl.disable(gl.BLEND);
 
     // G-buffer: sprites back to front, alpha-tested
@@ -301,7 +308,7 @@ export class Renderer {
       gl.uniform4fv(pr.u.uBeac, f.beacons); gl.uniform1i(pr.u.uNB, f.nBeacons);
       gl.uniform4f(pr.u.uLookL, k.lights, k.ambient * (f.ambient ?? 1), k.haze, k.glow);
       gl.uniform1f(pr.u.uGround, f.mirror);
-      gl.uniform1f(pr.u.uFill, k.charFill); gl.uniform1f(pr.u.uRim, k.charRim); gl.uniform1f(pr.u.uRawColour, k.rawColour); gl.uniform1f(pr.u.uBaked, f.baked ?? 0); gl.uniform1f(pr.u.uPaint, k.ambient);
+      gl.uniform1f(pr.u.uFill, k.charFill); gl.uniform1f(pr.u.uRim, k.charRim); gl.uniform1f(pr.u.uRawColour, k.rawColour); gl.uniform1f(pr.u.uBaked, baked); gl.uniform1f(pr.u.uLightView, this.lightView ? 1 : 0); gl.uniform1f(pr.u.uPaint, k.ambient);
       gl.uniform4f(pr.u.uActorLight, k.actorRed, k.actorGreen, k.actorBlue, k.actorPaint);
       gl.uniform4fv(pr.u.uSh, f.shadows ?? new Float32Array(32)); gl.uniform1i(pr.u.uNSh, f.nShadows ?? 0); gl.uniform1f(pr.u.uShadowK, k.charShadow);
     });
@@ -343,7 +350,7 @@ export class Renderer {
       this.zoneUniforms(pr, f, 3);
       gl.uniform1f(pr.u.uTime, f.t); gl.uniform1f(pr.u.uDof, dof ? 1 : 0); gl.uniform1f(pr.u.uView, f.view);
       gl.uniform4fv(pr.u.uSteam, f.steam); gl.uniform4f(pr.u.uDrips, ...f.drips); gl.uniform1f(pr.u.uMirror, f.mirror);
-      gl.uniform1f(pr.u.uRawFog, k.rawFog); gl.uniform1f(pr.u.uWrap, k.charWrap); gl.uniform1f(pr.u.uRain, k.rain); gl.uniform1f(pr.u.uBakedC, f.baked ?? 0);
+      gl.uniform1f(pr.u.uRawFog, k.rawFog); gl.uniform1f(pr.u.uWrap, k.charWrap); gl.uniform1f(pr.u.uRain, k.rain); gl.uniform1f(pr.u.uBakedC, baked);
       gl.uniform4f(pr.u.uRefl, k.reflect, k.reflectReach, k.reflectStreak, k.mirrorSet);
       gl.uniform2f(pr.u.uReflSoft, k.reflectDiffuse, k.reflectStreak); gl.uniform1f(pr.u.uSmudge, smudge ? 1 : 0);
     });
@@ -375,7 +382,7 @@ export class Renderer {
       gl.uniform4f(pr.u.uLookB, k.bloom, k.shafts, k.streaks, k.dither);
       gl.uniform4f(pr.u.uLookC, k.exposure + (f.exposure ?? 0), k.contrast, k.saturation, k.temperature);
       gl.uniform4f(pr.u.uLookF, k.tint, k.vignette, k.grain, k.aberration);
-      gl.uniform1f(pr.u.uGradeK, 1 - (f.baked ?? 0));
+      gl.uniform1f(pr.u.uGradeK, 1 - baked);
     });
   }
 }

@@ -75,7 +75,13 @@ light on.
   selection.
 - **Editing:** the selected item's settings in the side panel.
 - **Lights:** colour, strength, reach, height, cone, haze, shadows, flicker, whether they are behind, among or in
-  front of the characters, Concierge view only, and machine lights.
+  front of the characters, Concierge view only, and machine lights. **+ Light** places one of its own or one of a kind
+  (a preset, shared by every scene: see [docs/ASSETS.md](docs/ASSETS.md#kinds-of-light-presets)).
+- **Suggest lights from the art** (the scene's settings): lights where the art glows, in its colour and in the views it
+  glows in, drawn with dashed rings to keep, move or discard.
+- **Lighting view** (G, or **Lighting**): every surface a flat grey, so all that shows is what the lights do.
+- **Lux:** drag her, turn her, have the camera move with her, or have her follow the pointer along the walk line to
+  see the light fall on her as she walks.
 - **Adding:** new scenes from a built background, and layers from any built asset.
 - **Effects** (**+ Effect**): steam and smoke, light shafts, beacons, drips and movers, each drawn over the scene to
   drag (a mover's band and its two ends), with its settings in the side panel; the scene's settings list them all.
@@ -83,9 +89,10 @@ light on.
 - **Layers:** each with its parallax, and whether it is drawn in front of the people. A scene no wider than the screen
   can have the camera follow Lux a little (its drift, in the scene's settings); **Move the camera with her** previews
   it with Lux where she stands in the editor.
-- **Keys:** E switches view, L opens the look panel, Cmd+Z undoes, Cmd+S saves.
+- **Keys:** E switches view, L opens the look panel, G the lighting view, Cmd+Z undoes, Cmd+S saves.
 
-Save writes the scene file, and an open game tab reloads the scene at once.
+Save writes the scene file, and an open game tab reloads the scene at once. In the game on the dev server, the key left
+of 1 (`` ` ``) opens the editor on the scene she is in, in the view on screen, always in the same tab.
 
 ## Making assets
 

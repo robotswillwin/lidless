@@ -136,6 +136,13 @@ function down(e: PointerEvent): void {
 }
 
 function move(e: PointerEvent): void {
+  // Lux can follow the pointer along the walk line, to see how the lights fall on her as she walks
+  if (!drag && ed.lux.track && ed.lux.show) {
+    const [x] = toLevel(e), { x0, x1 } = ed.file.walk;
+    ed.lux.x = Math.round(Math.max(x0, Math.min(x1, x)));
+    drawOverlay();
+    return;
+  }
   if (!drag) return;
   const file = ed.file, [x, y] = toLevel(e), dx = Math.round(x - drag.start[0]), dy = Math.round(y - drag.start[1]), o = drag.orig, s = drag.ref;
   if (!dx && !dy && !drag.moved) return;

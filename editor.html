@@ -35,6 +35,7 @@
     <span class="ed-sep"></span>
     <button id="view" class="ed-view" type="button" aria-pressed="true" title="Switch view (E)">Concierge view</button>
     <button id="look" type="button" title="The look panel (L)">Look</button>
+    <button id="lighting" type="button" aria-pressed="false" title="Lighting view (G): everything a flat grey, so only what the lights do shows">Lighting</button>
     <span class="ed-grow"></span>
     <span id="status" class="ed-status"></span>
     <button id="undo" type="button" title="Undo (Cmd+Z)">Undo</button>
@@ -48,7 +49,7 @@
         <svg id="overlay" class="ed-overlay" viewBox="0 0 960 540" aria-label="Lights, hotspots and places in the scene"></svg>
       </div>
       <input id="scroll" class="ed-scroll" type="range" min="0" max="0" value="0" aria-label="Scroll the scene" hidden>
-      <p class="ed-help">Click to select, drag to move; drag a corner to resize. Delete removes. E view, L look, Cmd+Z undo, Cmd+S save.</p>
+      <p class="ed-help">Click to select, drag to move; drag a corner to resize. Delete removes. E view, L look, G lighting view, Cmd+Z undo, Cmd+S save.</p>
     </div>
     <aside class="ed-side" id="side" aria-label="Selected item"></aside>
   </main>

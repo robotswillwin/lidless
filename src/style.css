@@ -317,6 +317,7 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .ed-bar { position: fixed; inset: 0 0 auto 0; height: 44px; display: flex; align-items: center; gap: 6px; padding: 0 10px; background: #0d0d14; border-bottom: 1px solid #23232e; z-index: 3; }
 .ed-bar button, .ed-play, .ed-bar select { font: 400 12px/1 var(--ui); padding: 7px 9px; background: #1a1a24; color: var(--ink); border: 1px solid #30303e; border-radius: 3px; cursor: pointer; text-decoration: none; }
 .ed-bar button:hover, .ed-play:hover, .ed-bar button:focus-visible { background: #262634; outline: none; }
+.ed-bar button[aria-pressed="true"]:not(.ed-view) { border-color: #ffe9a8; color: #ffe9a8; }
 .ed-scene { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
 .ed-sep { width: 1px; height: 22px; background: #2a2a36; margin: 0 4px; }
 .ed-grow { flex: 1; }
@@ -369,6 +370,7 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .ed-overlay .light .ring { fill: rgba(0, 0, 0, .35); stroke: #fff; stroke-width: 1.5; }
 .ed-overlay .light.ar .ring { stroke: var(--cyan); stroke-dasharray: 3 2; }
 .ed-overlay .light.sel .ring { stroke-width: 3; }
+.ed-overlay .light.suggested .ring { stroke: #ffe9a8; stroke-dasharray: 3 3; }
 .ed-overlay .reach { fill: none; stroke: rgba(255, 255, 255, .35); stroke-dasharray: 4 6; }
 .ed-overlay .cone { fill: rgba(255, 255, 255, .06); stroke: rgba(255, 255, 255, .45); }
 .ed-overlay .lux { cursor: ew-resize; }

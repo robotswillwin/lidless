@@ -1,5 +1,6 @@
 // The game's input: the pointer and the keyboard, turned into what the session does.
-// Arrows or A/D walk, E switches view, L opens the look panel, Q cycles quality, number keys answer in a conversation.
+// Arrows or A/D walk, E switches view, L opens the look panel, Q cycles quality, number keys answer in a conversation,
+// and on the dev server ` opens the scene editor.
 
 import type { Game } from './game';
 
@@ -8,6 +9,8 @@ export interface InputExtras {
   forceView: boolean;
   /** Q: the next quality tier. */
   cycleQuality(): void;
+  /** ` (the key left of 1): the scene editor on this scene. Only where there is one: on the dev server. */
+  openEditor?: () => void;
 }
 
 const walkDir = (k: string): 'left' | 'right' | null => (k === 'ArrowLeft' || k === 'a' || k === 'A' ? 'left' : k === 'ArrowRight' || k === 'd' || k === 'D' ? 'right' : null);
@@ -29,6 +32,7 @@ export function bindInput(canvas: HTMLCanvasElement, game: Game, extras: InputEx
     if (dir && !game.ui.dialogueOpen) { game.walkKey(dir, true); return e.preventDefault(); }
     if (e.key === 'e' || e.key === 'E') game.toggleView(extras.forceView);
     if (e.key === 'q' || e.key === 'Q') extras.cycleQuality();
+    if ((e.key === '`' || e.code === 'Backquote') && extras.openEditor) { e.preventDefault(); extras.openEditor(); }
   });
   document.addEventListener('keyup', (e) => {
     const dir = walkDir(e.key);

@@ -4,7 +4,7 @@ import { NW } from '../engine/renderer';
 import { loadSceneFile, type Rect } from '../game/scenefile';
 import type { LightDef } from '../engine/assets';
 import { presets, resolveLight } from '../engine/presets';
-import { deleteSelected, pickAsset } from './edit';
+import { deleteSelected, pickAsset, settleSuggested, suggestFromArt } from './edit';
 import { rebuild, refresh, syncEffects, syncScroll, updatePlay } from './files';
 import { buttons, check, choice, colour, heading, labelFields, num, str, viewText } from './form';
 import { base, dom, ed, LIMITS, redraw, remember, snapshot } from './state';
@@ -265,6 +265,7 @@ function sceneSide(): void {
   side(
     check('Show Lux', lux.show, (v) => { lux.show = v; }),
     check('Move the camera with her, as in the game', lux.follow, (v) => { lux.follow = v; }),
+    check('She follows the pointer along the walk line', lux.track, (v) => { lux.track = v; }),
     choice('Lux faces', String(lux.facing), [['1', 'Right'], ['-1', 'Left']], (v) => { lux.facing = Number(v) as 1 | -1; }),
   );
   side(heading('Layers', 'Back to front. Click one to move it or change its depth.'));
@@ -272,7 +273,10 @@ function sceneSide(): void {
   list.className = 'ed-list';
   file.layers.forEach((l, i) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = `${i + 1}. ${l.asset}`; b.addEventListener('click', () => { ed.sel = { kind: 'layer', i }; reselect(); }); list.append(b); });
   side(list);
-  side(heading('Lights', `${file.lights.length} lights. Dots on the scene; cyan rings are Concierge view only.`));
+  const suggested = file.lights.filter((l) => l.suggested).length;
+  side(heading('Lights', `${file.lights.length} lights. Dots on the scene; cyan rings are Concierge view only, dashed ones suggested. Lighting view (G) shows what they light.`));
+  side(buttons(['Suggest lights from the art', () => void suggestFromArt().then(reselect)]));
+  if (suggested) side(buttons([`Keep the ${suggested} suggested`, () => settleSuggested(true)], ['Discard them', () => settleSuggested(false), 'danger']));
   side(heading('Effects', 'Steam, smoke, light shafts, beacons, drips and movers. Add them with + Effect.'), effectsList());
 }
 

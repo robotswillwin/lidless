@@ -13,7 +13,7 @@ import { heroDrawing } from '../game/hero';
 import { loadWorld } from '../game/scenefile';
 import { createLookPanel } from '../look-panel';
 import { add, deleteSelected, newScene, nudge } from './edit';
-import { listAssets, openScene, save, undo } from './files';
+import { listAssets, openScene, save, syncAddress, undo } from './files';
 import { bindOverlay, drawOverlay } from './overlay';
 import { drawSide } from './panels';
 import { base, dom, ed, gl, redraw, renderer, showError, t0, viewX } from './state';
@@ -26,6 +26,7 @@ function draw(): void {
   if (!ed.scene || !ed.runner) return;
   const file = ed.file, t = (performance.now() - t0) / 1000, actors: DrawSprite[] = [], cam: [number, number] = [viewX(), 0];
   if (ed.hero && ed.lux.show) actors.push(heroDrawing(ed.hero, { x: ed.lux.x, walkY: file.walk.y, cam, scale: file.actorScale ?? 1, facing: ed.lux.facing, frame: frameFor(ed.hero.def, false, 0, t, ed.lux.facing) }));
+  renderer.lightView = ed.lightView;
   renderer.render(ed.runner.frame(t, { view: ed.view, sinceSwitch: t - ed.switchedAt }, cam, actors, [-1000, -1000]));
 }
 
@@ -38,6 +39,7 @@ function toggleView(): void {
   ed.view = ed.view > 0.5 ? 0 : 1;
   ed.switchedAt = (performance.now() - t0) / 1000;
   syncView();
+  syncAddress();
   ed.look?.refresh();
 }
 
@@ -53,6 +55,9 @@ dom.button('new-scene').addEventListener('click', () => void newScene().catch(sh
 dom.button('save').addEventListener('click', () => void save());
 dom.button('undo').addEventListener('click', () => void undo());
 dom.button('look').addEventListener('click', () => ed.look?.toggle());
+const lighting = dom.button('lighting');
+const toggleLighting = () => { ed.lightView = !ed.lightView; lighting.setAttribute('aria-pressed', String(ed.lightView)); };
+lighting.addEventListener('click', toggleLighting);
 dom.viewBtn.addEventListener('click', toggleView);
 dom.sceneSel.addEventListener('change', () => {
   if (ed.dirty && !confirm('Leave this scene without saving?')) { dom.sceneSel.value = ed.file.id; return; }
@@ -82,6 +87,7 @@ document.addEventListener('keydown', (e) => {
   const k = e.key;
   if (k === 'e' || k === 'E') toggleView();
   else if (k === 'l' || k === 'L') ed.look?.toggle();
+  else if (k === 'g' || k === 'G') toggleLighting();
   else if (k === 'Escape') { ed.sel = { kind: 'scene' }; drawOverlay(); drawSide(); }
   else if (k === 'Delete' || k === 'Backspace') { e.preventDefault(); deleteSelected(); }
   else if (k.startsWith('Arrow') && ed.sel.kind !== 'scene') {
@@ -107,7 +113,8 @@ async function start(): Promise<void> {
     // the scene's own look was saved into its file: so the editor's own Save keeps it
     onSceneSaved: (id, json) => { if (ed.file?.id === id) { if (json) ed.file.look = json; else delete ed.file.look; } },
   });
-  const asked = new URLSearchParams(location.search).get('scene');
+  const params = new URLSearchParams(location.search), asked = params.get('scene');
+  if (params.get('view') === 'raw') ed.view = 0;
   await openScene(asked && ed.world.scenes.includes(asked) ? asked : ed.world.scenes[0]);
   syncView();
   document.documentElement.dataset.ready = '1';
