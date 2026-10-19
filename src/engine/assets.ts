@@ -105,6 +105,22 @@ export interface SteamDef { x: number; y: number; height: number; width: number;
 /** `parallax` for things on a layer that is not the street's: they move with that layer, as lights and beacons can. */
 export interface GodrayDef { x: number; y: number; strength: number; zone: number; ar?: number; parallax?: number }
 
+/**
+ * The ground below the reflection line, drawn by the engine over a painted floor that was smoothed for it (asset ground
+ * --smooth): paving slabs in perspective, a kerb and the road beyond it, and where puddles collect. How wet, polished and
+ * worn it is comes from the look, per view: raw view's street is wet, worn concrete; the Concierge's, dry polished stone.
+ */
+export interface GroundDef {
+  /** World y of the horizon, the eye's height: the nearer the walk line, the flatter the ground is seen. */
+  horizon: number;
+  /** A paving slab's width and depth, in pixels at the walk line; none, or [0, 0], for no slabs. */
+  slab?: [number, number];
+  /** How far in front of the walk line the kerb is, in pixels at the walk line; none, or 0, for no kerb and no road. */
+  kerb?: number;
+  /** How much of the ground holds puddles when it is wet, 0 to 1: the road most, along the gutter, the pavement less. */
+  puddles?: number;
+}
+
 export interface SceneDef {
   name: string;
   size: [number, number];
@@ -119,6 +135,8 @@ export interface SceneDef {
   drips?: { x0: number; x1: number; top: number; bottom: number };
   /** World y of the line wet surfaces reflect around. */
   mirror: number;
+  /** The ground the engine draws below that line, if any. */
+  ground?: GroundDef;
   /**
    * How bright the ambient light is, 1 by default: a room with few lamps gets more, evenly and without highlights.
    * One number for both views, or one per view, since a dark raw room can be a white one to the Concierge.

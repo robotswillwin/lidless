@@ -1,6 +1,6 @@
 // The 2D deferred renderer: sprites into a G-buffer, then lighting, composite, bloom and the final grade.
 
-import { smoothSampled, type LightDef, type MapName, type Sprite } from './assets';
+import { smoothSampled, type GroundDef, type LightDef, type MapName, type Sprite } from './assets';
 import { defaultLookSet, lookFor, type Look, type LookSet } from './look';
 import { createGeometry, createProgram, createTarget, deleteTarget, solidTexture, type GL, type Program, type Target } from './gl';
 import * as S from './shaders';
@@ -83,6 +83,8 @@ export interface Frame {
   godrays: Float32Array;
   drips: [number, number, number, number];
   mirror: number;
+  /** The ground the engine draws below the reflection line, if the scene has one. */
+  ground?: GroundDef;
   /** The scene's ambient light, over the look's: 1 by default. */
   ambient?: number;
   /** The scene's exposure in stops, over the look's: 0 by default. */
@@ -353,6 +355,10 @@ export class Renderer {
       gl.uniform1f(pr.u.uRawFog, k.rawFog); gl.uniform1f(pr.u.uWrap, k.charWrap); gl.uniform1f(pr.u.uRain, k.rain); gl.uniform1f(pr.u.uBakedC, baked);
       gl.uniform4f(pr.u.uRefl, k.reflect, k.reflectReach, k.reflectStreak, k.mirrorSet);
       gl.uniform2f(pr.u.uReflSoft, k.reflectDiffuse, k.reflectStreak); gl.uniform1f(pr.u.uSmudge, smudge ? 1 : 0);
+      const gd = f.ground;
+      gl.uniform4f(pr.u.uGnd, gd?.horizon ?? 0, gd?.kerb ?? 0, gd?.puddles ?? 0, gd ? 1 : 0);
+      gl.uniform2f(pr.u.uSlab, gd?.slab?.[0] ?? 0, gd?.slab?.[1] ?? 0);
+      gl.uniform3f(pr.u.uState, k.wet, k.polish, k.wear);
     });
 
     // bloom at a quarter and an eighth of the resolution

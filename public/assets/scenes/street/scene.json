@@ -83,6 +83,14 @@
   "x1": 820
  },
  "mirror": 452,
+ "ground": {
+  "horizon": 352,
+  "slab": [
+   90,
+   70
+  ],
+  "puddles": 0.25
+ },
  "spawns": {
   "start": {
    "x": 478,
@@ -388,7 +396,10 @@
    "reflect": 0.9,
    "reflectStreak": 28,
    "reflectDiffuse": 3,
-   "reflectReach": 3.5
+   "reflectReach": 3.5,
+   "wet": 1,
+   "polish": 0.15,
+   "wear": 1
   },
   "concierge": {
    "actorRed": 0.97,
@@ -398,7 +409,10 @@
    "reflect": 0.22,
    "reflectStreak": 70,
    "reflectDiffuse": 40,
-   "reflectReach": 1.4
+   "reflectReach": 1.4,
+   "wet": 0,
+   "polish": 1,
+   "wear": 0.15
   },
   "mirrorSet": 1
  },

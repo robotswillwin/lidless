@@ -80,6 +80,9 @@ light on.
 - **Suggest lights from the art** (the scene's settings): lights where the art glows, in its colour and in the views it
   glows in, drawn with dashed rings to keep, move or discard.
 - **Lighting view** (G, or **Lighting**): every surface a flat grey, so all that shows is what the lights do.
+- **Ground** (the scene's settings): the floor the engine draws below the reflection line, its slabs, kerb and
+  puddles; how wet, shiny and worn it is in each view is in the look panel (see
+  [docs/ASSETS.md](docs/ASSETS.md#painted-scenes)).
 - **Lux:** drag her, turn her, have the camera move with her, or have her follow the pointer along the walk line to
   see the light fall on her as she walks.
 - **Adding:** new scenes from a built background, and layers from any built asset.

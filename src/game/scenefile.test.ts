@@ -41,6 +41,19 @@ describe('checkSceneFile', () => {
     expect(problems).toContain('drips needs x0, x1, top and bottom');
   });
 
+  it('checks the ground: its eye above the reflection line, its slabs, kerb and puddles', () => {
+    const f = read('street');
+    f.ground = { horizon: 460, slab: [90], kerb: -5, puddles: 2 };
+    expect(checkSceneFile(f, 'street')).toEqual([
+      'ground.horizon must be above the reflection line',
+      'ground.slab must be [width, depth], 0 or more',
+      'ground.kerb must be 0 to 900 pixels in front of the walk line',
+      'ground.puddles must be 0 to 1',
+    ]);
+    f.ground = { horizon: 352 };
+    expect(checkSceneFile(f, 'street')).toEqual([]);
+  });
+
   it('says so plainly when it is not a scene at all', () => {
     expect(checkSceneFile(null)).toEqual(['it is not a JSON object']);
     expect(checkSceneFile({}).length).toBeGreaterThan(4);

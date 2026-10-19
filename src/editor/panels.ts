@@ -261,6 +261,16 @@ function sceneSide(): void {
     str('The Concierge’s greeting', file.greeting ?? '', (v) => { if (v) file.greeting = v; else delete file.greeting; }),
     str('Its answer to Ring for assistance', file.assist ?? '', (v) => { if (v) file.assist = v; else delete file.assist; }, { area: true }),
   );
+  const g = file.ground, line = file.mirror ?? file.walk.y - 8;
+  side(heading('Ground', 'Drawn by the engine below the reflection line, over a floor smoothed for it: paving slabs, a kerb, puddles. How wet, shiny and worn it is in each view is in the look panel, under Reflections.'));
+  side(check('The engine draws the ground', !!g, (v) => { if (v) file.ground = { horizon: line - 100, slab: [90, 70], puddles: 0.25 }; else delete file.ground; }, () => { refresh(); redraw.side(); }));
+  if (g) side(
+    num('Horizon y: the eye’s height (nearer the line, flatter)', g.horizon, (v) => { g.horizon = Math.min(v, line - 8); }, { step: 2, max: line - 8, after: refresh }),
+    num('Slab width, px (0: no slabs)', g.slab?.[0] ?? 0, (v) => { g.slab = [Math.max(0, v), g.slab?.[1] ?? v]; }, { min: 0, step: 2, after: refresh }),
+    num('Slab depth, px', g.slab?.[1] ?? 0, (v) => { g.slab = [g.slab?.[0] ?? v, Math.max(0, v)]; }, { min: 0, step: 2, after: refresh }),
+    num('Kerb, px in front of the walk line (0: none, no road)', g.kerb ?? 0, (v) => { if (v > 0) g.kerb = v; else delete g.kerb; }, { min: 0, max: 800, step: 5, after: refresh }),
+    num('Puddles when wet (0 to 1)', g.puddles ?? 0, (v) => { g.puddles = Math.min(1, Math.max(0, v)); }, { min: 0, max: 1, step: 0.05, after: refresh }),
+  );
   side(heading('Lux', 'Drag the triangle at her feet to move her.'));
   side(
     check('Show Lux', lux.show, (v) => { lux.show = v; }),

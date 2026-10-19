@@ -3,7 +3,7 @@
 // (built assets, placed), lights, its inside and outside areas, the walk line, places to arrive and hotspots, some of
 // which lead to other scenes.
 
-import { loadSprite, spriteDefaults, type GodrayDef, type LoadedScene, type MoverDef, type SceneDef, type Sprite, type SteamDef } from '../engine/assets';
+import { loadSprite, spriteDefaults, type GodrayDef, type GroundDef, type LoadedScene, type MoverDef, type SceneDef, type Sprite, type SteamDef } from '../engine/assets';
 import { presets, type PlacedLight } from '../engine/presets';
 import { textureFromImage, type GL } from '../engine/gl';
 import type { Hotspot, LevelDef } from './level';
@@ -55,6 +55,8 @@ export interface SceneFile {
   walk: { y: number; x0: number; x1: number };
   /** World y of the line wet surfaces reflect around; by default a little above the walk line. */
   mirror?: number;
+  /** The ground the engine draws below the reflection line, over a painted floor smoothed for it: slabs, a kerb, puddles. */
+  ground?: GroundDef;
   /**
    * How bright the ambient light is, 1 by default: a room with few lamps gets more, evenly and without highlights.
    * One number for both views, or one per view, since a dark raw room can be a white one to the Concierge.
@@ -191,6 +193,17 @@ export function checkSceneFile(data: unknown, id?: string): string[] {
     });
   }
   if (f.drift !== undefined && (!isNum(f.drift) || f.drift < 0)) out.push('drift must be a number of pixels, 0 or more');
+  if (f.ground !== undefined) {
+    const g = f.ground as Partial<GroundDef>;
+    if (!isNum(g.horizon)) out.push('ground.horizon must be the world y of the eye');
+    else {
+      const line = isNum(f.mirror) ? f.mirror : isNum(walk?.y) ? walk.y - 8 : undefined;
+      if (line !== undefined && g.horizon >= line) out.push('ground.horizon must be above the reflection line');
+    }
+    if (g.slab !== undefined && (!nums(g.slab, 2) || g.slab.some((v) => v < 0))) out.push('ground.slab must be [width, depth], 0 or more');
+    if (g.kerb !== undefined && (!isNum(g.kerb) || g.kerb < 0 || g.kerb >= 900)) out.push('ground.kerb must be 0 to 900 pixels in front of the walk line');
+    if (g.puddles !== undefined && (!isNum(g.puddles) || g.puddles < 0 || g.puddles > 1)) out.push('ground.puddles must be 0 to 1');
+  }
   // effects: what each needs, and how many the renderer draws
   const effects = (key: string, max: number, needs: string[], extra?: (e: Record<string, unknown>, name: string) => void) => {
     const list = f[key];
@@ -254,7 +267,7 @@ export async function buildScene(gl: GL, assets: string, file: SceneFile, world:
   const def: SceneDef = {
     name: file.id, size: file.size, sprites: sprites.map((s) => s.def.name), zone: file.zoneMap ?? '',
     lights: file.lights, beacons: file.beacons ?? [], steam: file.steam ?? [], godrays: file.godrays ?? [],
-    drips: file.drips, mirror: file.mirror ?? file.walk.y - 8, traffic: file.traffic, ambient: file.ambient, exposure: file.exposure, baked: file.baked, actorScale: file.actorScale,
+    drips: file.drips, mirror: file.mirror ?? file.walk.y - 8, ground: file.ground, traffic: file.traffic, ambient: file.ambient, exposure: file.exposure, baked: file.baked, actorScale: file.actorScale,
   };
   const level: LevelDef = {
     walk: file.walk,

@@ -310,6 +310,33 @@ smoothed up and down by `--smooth` (20 level pixels), so the broad pools of ligh
 lines painted across the ground (planks, ripples) too: kept row by row, they had shown as horizontal bands. Then
 split or build again.
 
+**Ground: dry and wet.** A smoothed ground is a gradient with nothing to read as a floor, and mirrors on it like a lake.
+A scene's `ground` has the engine draw its floor below the reflection line, over the smoothed painting:
+
+```json
+"ground": { "horizon": 352, "slab": [90, 70], "puddles": 0.25 }
+```
+
+- `horizon`: the world y of the eye. The floor is seen in perspective from there, so it moves under the camera as a
+  floor does, its near part faster than its far; the nearer the walk line, the flatter it is seen.
+- `slab`: paving slabs, [width, depth] in pixels at the walk line, each row half a slab along from the last.
+- `kerb` (none by default): how far in front of the walk line the pavement ends, and the road begins, lower.
+- `puddles`: how much of it holds standing water when it is wet, 0 to 1 (with a kerb, the road and its gutter most).
+
+How the ground is, per view and per scene, is in the look panel's Reflections group:
+
+- **Wet** (`wet`, 0 dry to 1 soaked) darkens it, lays a film of water on it that mirrors in soft streaks broken up by
+  its grain, and fills its puddles, which mirror sharply and ripple in the rain. Rain rings spread only in standing
+  water; on the rest, drops splash.
+- **Shine when dry** (`polish`): the soft reflection of polished stone, smudged by Diffuse, sharper where things touch
+  the floor.
+- **Wear** (`wear`): stains, slabs of uneven tone, patched asphalt.
+
+Reflections are stronger far off, where the eye looks along the ground, than near, where it looks down at it. The
+street in raw view is wet, worn concrete with puddles (wet 1, shine 0.15, wear 1); in the Concierge's, dry polished
+stone (wet 0, shine 1, wear 0.15). The ground keeps to the flat look: its slabs, stains and puddles are simple shapes.
+In the scene editor, its settings are under Ground in the scene's settings. Scenes without a `ground` reflect as before.
+
 In flat art, raw view is as simple as the Concierge's: age and dirt are duller colours and a few simple shapes, never
 texture. The pipeline's description of the raw world says so for `look: vector`, and a recipe's `rawAir` names the
 colour of its raw smog (yellow-green unless it says otherwise; the street's is amber-brown).

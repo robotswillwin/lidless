@@ -274,6 +274,84 @@ uniform vec4 uRefl;       // the look: reflections' strength; how far up the set
 uniform vec4 uSteam[4];
 uniform vec4 uDrips;      // world x0, x1, top, bottom of the drip curtain; z <= 0 turns it off
 uniform float uMirror;    // world y of the reflection line
+uniform vec4 uGnd;        // the ground the engine draws over a painted floor: the horizon's world y; the kerb's distance in
+                          // front of the walk line (0: none); how much of it holds puddles when wet; 1 when there is one
+uniform vec2 uSlab;       // a paving slab's width and depth, in pixels at the walk line; 0: no slabs
+uniform vec3 uState;      // the look: how wet the ground is (0 dry, 1 soaked), how polished when dry, how worn
+/*
+ * The ground below the reflection line, when the scene has one: paving slabs, a kerb and the road beyond it, seen by an
+ * eye at the horizon's height. Its coordinates are pixels at the walk line, along the street and out from the walk line
+ * towards the eye, so it moves under the camera as a floor does, the near ground faster than the far.
+ */
+const float FOCAL = 1000.0;  // the eye's focal length in level pixels: about 50 degrees across the screen
+const float KERB = 7.0;      // the kerb's height, in pixels at the walk line
+struct Ground {
+  vec3 tint;    // what it does to the painted floor's colour
+  float gloss;  // how much it shines dry, polished
+  float film;   // how much a film of water on it mirrors, broken up by its grain
+  float pud;    // standing water, 0 to 1: none when dry
+  float joint;  // how much of the pixel is a joint between slabs
+  float face;   // 1 on the kerb's face, which mirrors nothing
+  float edge;   // the kerb's top edge, catching the light
+  float fres;   // reflections are stronger far off, where the eye looks along the ground, than near: 1 at the walk line
+};
+// how much of a pixel f wide a line hw either side of its middle covers, its middle d away
+float cover(float d, float hw, float f) { return clamp((min(d + 0.5 * f, hw) - max(d - 0.5 * f, -hw)) / f, 0.0, 1.0); }
+// the joints of cells \`size\` apart, at s cells along, in a pixel f wide: lines closer together than a pixel or so fade
+// to their average, so far rows of slabs do not shimmer
+float joints(float s, float size, float hw, float f) {
+  float d = min(fract(s), 1.0 - fract(s)) * size;
+  return mix(cover(d, hw, f), 2.0 * hw / size, smoothstep(0.25, 0.7, f / size));
+}
+Ground groundAt(vec2 p, float GY) {
+  Ground o = Ground(vec3(1.0), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+  float H = min(uGnd.x - uCam.y, GY - 8.0), cx = uRes.x * 0.5, lift = 0.0, wear = uState.z;
+  bool road = false;
+  if (uGnd.y > 0.0) {
+    // the kerb: the pavement ends there, and its face drops KERB to the road
+    float zk = 1.0 - min(uGnd.y, FOCAL * 0.9) / FOCAL, yk = H + (GY - H) / zk, yb = yk + KERB / zk;
+    o.edge = cover(abs(p.y - yk + 0.4), 0.5, 1.0 / uRS);
+    if (p.y >= yb) { road = true; lift = KERB; }
+    else if (p.y >= yk) o.face = 1.0;
+  }
+  float zr = (GY - H + lift) / max(p.y - H, 1.0);
+  vec2 g = vec2(uCam.x + cx + (p.x - cx) * zr, FOCAL * (1.0 - zr));
+  float fx = zr / uRS, fz = FOCAL * zr / max(p.y - H, 1.0) / uRS;   // ground pixels across a target pixel, along and out
+  float s = (p.y - H) / length(vec2(p.y - H, FOCAL)), s0 = (GY - H) / length(vec2(GY - H, FOCAL));
+  o.fres = (0.04 + 0.96 * pow(1.0 - s, 5.0)) / (0.04 + 0.96 * pow(1.0 - s0, 5.0));
+  if (o.face > 0.5) { o.tint = vec3(mix(0.6, 0.45, wear)); return o; }
+  float rough;
+  if (road) {
+    // asphalt: darker and rougher, patched where it was dug up, grimy along the gutter
+    vec2 cs = vec2(160.0, 110.0), pc = floor(g / cs), pf = fract(g / cs), pw = vec2(fx, fz) / cs;
+    vec2 m0 = 0.08 + 0.3 * vec2(hash(pc + 1.0), hash(pc + 2.0)), m1 = 0.92 - 0.3 * vec2(hash(pc + 3.0), hash(pc + 4.0));
+    vec2 in2 = smoothstep(m0 - pw, m0 + pw, pf) * smoothstep(m1 + pw, m1 - pw, pf);
+    float pa = in2.x * in2.y * step(0.68, hash(pc + 5.0)) * wear;
+    o.tint = vec3(0.78 * (1.0 - 0.14 * pa) * (1.0 - 0.3 * wear * exp(-(g.y - uGnd.y) / 14.0)));
+    o.gloss = 0.55; rough = mix(0.85, 0.55, pa);
+  } else {
+    o.gloss = 1.0; rough = 0.4;
+    if (uSlab.x > 0.0 && uSlab.y > 0.0) {
+      // paving slabs, each row half a slab along from the last, each a little lighter or darker
+      vec2 sl = g / uSlab; sl.x += 0.5 * mod(floor(sl.y), 2.0);
+      o.joint = max(joints(sl.x, uSlab.x, 0.8, fx), joints(sl.y, uSlab.y, 0.8, fz));
+      o.tint = vec3(1.0 + (hash(floor(sl) + 3.7) - 0.5) * mix(0.1, 0.2, wear));
+    }
+  }
+  // grime: stains in big soft blotches, and a grain that fades out where it would be finer than a pixel
+  o.tint *= 1.0 - wear * 0.28 * smoothstep(0.5, 0.8, fbm(g * vec2(0.008, 0.013) + 11.0));
+  float fine = smoothstep(1.0, 0.35, max(fx * 0.45, fz * 0.3));
+  o.tint *= 1.0 + (vn(g * vec2(0.45, 0.3) + 2.0) - 0.5) * wear * 0.24 * fine;
+  // a film of water mirrors less on rough ground, broken by its grain into the streaks of a wet street
+  float spark = vn(vec2(g.x * 0.3, g.y * 0.035) + 5.0);
+  o.film = mix(0.42, 0.25, rough) * mix(1.0, 0.3 + 1.4 * spark, rough * mix(0.5, 1.0, fine));
+  // standing water: where the ground dips, filling as it gets wetter; with a kerb, on the road most, along the gutter
+  float amt = clamp(uGnd.z * (uGnd.y > 0.0 && !road ? 0.5 : 1.0) + (road ? 0.35 * exp(-(g.y - uGnd.y) / 25.0) : 0.0), 0.0, 1.0);
+  // two octaves, so they are simple shapes with smooth outlines, as the flat look draws them; amt is about the share covered
+  float n = vn(g * vec2(0.010, 0.016) + 4.2) * 0.667 + vn(g * vec2(0.0203, 0.0325) + vec2(10.2, 17.7)) * 0.333, thr = 0.76 - 0.52 * amt;
+  o.pud = smoothstep(thr, thr + 0.01, n) * smoothstep(0.3, 0.8, uState.x) * step(0.001, uGnd.z);
+  return o;
+}
 float rainL(vec2 p, float t, float sc, float sp, float ln, float dens) {
   vec2 q = p / sc; q.x += q.y * 0.28; q.y -= t * sp;
   vec2 cell = vec2(floor(q.x), floor(q.y / ln)); float rnd = hash(cell);
@@ -306,11 +384,18 @@ void main() {
     for (int k = 0; k < 8; k++) { vec2 q = p + vec2(cos(float(k) * 0.7854), sin(float(k) * 0.7854)) * 1.5; if (isActor(T(tG3, q).a) < 0.5) { env += T(tA, q).rgb; m += 1.0; } }
     if (m > 0.0) c = mix(env / m, c, g3.b);
   }
+  // the ground the scene has the engine draw, if this pixel is its floor
+  Ground G = Ground(vec3(1.0), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+  bool gnd = uGnd.w > 0.5 && refl > 0.02 && p.y > GY && isActor(g3.a) < 0.5;
+  if (gnd) G = groundAt(p, GY);
   if (refl > 0.02) {
-    float puddle = step(0.7, refl);
+    float puddle = gnd ? G.pud : step(0.7, refl);
     // rain stirs the puddles in the real world; the Concierge's streets are still. Softened reflections get long, slow
-    // swells, so their edges waver instead of breaking into bands
-    float rip = uReflBlur > 0.5
+    // swells, so their edges waver instead of breaking into bands. On a ground of the scene's own only standing water
+    // moves: stone and asphalt hold still
+    float rip = gnd
+      ? (sin(p.y * 0.85 + uTime * 5.0 + w.x * 0.04) * 1.2 + (vn(w * 0.08 + uTime) - 0.5) * 2.0) * G.pud * mix(0.2, 1.0, raw)
+      : uReflBlur > 0.5
       ? (sin(p.y * 0.32 + uTime * 2.0 + w.x * 0.025) * 0.8 + (vn(w * vec2(0.03, 0.12) + uTime * 0.4) - 0.5) * 1.6 * puddle) * mix(0.15, 1.0, raw)
       : (sin(p.y * 0.85 + uTime * 5.0 + w.x * 0.04) * mix(0.5, 1.6, puddle) + (vn(w * 0.08 + uTime) - 0.5) * 2.0 * puddle) * mix(0.25, 1.0, raw);
     // the set is mirrored around its ground line, and a character around its own feet: look up this column for the nearest
@@ -328,6 +413,7 @@ void main() {
       for (int j = 1; j <= 4; j++) for (int s = -1; s <= 1; s += 2) { vec2 b = qs + vec2(float(s * j) * 14.0, 0.0); if (keep < 0.5 && isActor(T(tG3, b).a) < 0.5) { q = b; keep = 1.0; } }
     }
     vec3 r = (T(tA, q).rgb * 2.0 + T(tA, q + vec2(0.0, 2.0)).rgb + T(tA, q - vec2(0.0, 2.0)).rgb + (T(tA, q + vec2(0.0, 5.0)).rgb + T(tA, q - vec2(0.0, 5.0)).rgb) * 0.6 + T(tA, q - vec2(0.0, 9.0)).rgb * 0.4) / 5.6;
+    vec3 rs = r;  // sharp, as standing water mirrors
     // a character's reflection softens as the set's does: averaged over her own pixels around the mirrored point, and
     // fading at her edges by how much of her is there
     float cover = 1.0;
@@ -343,7 +429,18 @@ void main() {
     // the set, softened: blurred sideways (diffuse, as in polished stone) and up and down (streaks, as in a wet street)
     float below = step(GY + 0.5, p.y);
     if (!mine && uReflBlur > 0.5) { vec4 b = T(tRefl, vec2(q.x, min(GY - 1.0, q.y))); if (b.a > 0.02) r = b.rgb / b.a; }
-    float k = mix(0.42, 0.88, puddle) * (0.75 + 0.25 * smoothstep(GY, uRes.y, p.y)) * keep * (mine ? cover : max(1.0 - uBakedC, uRefl.w * below)) * uRefl.x;
+    float k, seen = keep * (mine ? cover : max(1.0 - uBakedC, uRefl.w * below)) * uRefl.x;
+    if (gnd) {
+      // its own colour: wet things are darker, standing water darker still, and so are the joints between slabs; the
+      // kerb's top edge catches the light
+      c *= G.tint * mix(1.0, 0.72, uState.x) * mix(1.0, 0.8, G.pud) * (1.0 - 0.4 * G.joint);
+      c += G.edge * (c * 0.9 + 0.01);
+      // dry, polished stone shines softly; wet, a film of water mirrors on anything, broken up by the grain under it;
+      // standing water mirrors best, and sharply. All of it more far off than near
+      // a glossy reflection is sharper where the thing touches the ground, softer further from it
+      r = mix(r, rs, max(G.pud, 0.45 * exp(-(p.y - GY) / 5.0) * (1.0 - uState.x)));
+      k = max(max(G.gloss * uState.y, G.film * uState.x), G.pud) * G.fres * (1.0 - 0.75 * G.joint) * (1.0 - G.face) * (1.0 - G.edge) * seen;
+    } else k = mix(0.42, 0.88, puddle) * (0.75 + 0.25 * smoothstep(GY, uRes.y, p.y)) * seen;
     c = c * (1.0 - k * 0.5) + r * k;
   }
   // raw view: the poisonous air between the eye and everything it sees, thicker with distance and outdoors
@@ -366,7 +463,14 @@ void main() {
     float rn = rainL(p, uTime, 2.0, 55.0, 6.0, 0.33) * 0.55 + rainL(p + 37.0, uTime, 4.0, 95.0, 5.0, 0.22);
     vec3 tint = normalize(near + 1e-4) * 0.9;
     c += rn * outside * (tone(vec3(0.012, 0.014, 0.02), RAW_AIR) + tint * lum(near) * 2.6);
-    if (p.y > GY + 2.0 && refl > 0.02 && hash(floor(w / vec2(18.0, 6.0)) + 21.0) < uRain) { vec2 cell = floor(w / vec2(18.0, 6.0)); float ph = fract(uTime * (0.7 + hash(cell)) + hash(cell + 3.0)); float rr = length((w - (cell + 0.5) * vec2(18.0, 6.0)) * vec2(1.0, 3.0)); c += vec3(0.18, 0.2, 0.24) * smoothstep(1.4, 0.0, abs(rr - ph * 9.0)) * (1.0 - ph) * step(0.55, hash(cell + 9.0)) * (0.4 + lum(near)); }
+    if (p.y > GY + 2.0 && refl > 0.02 && hash(floor(w / vec2(18.0, 6.0)) + 21.0) < uRain) { vec2 cell = floor(w / vec2(18.0, 6.0)); float ph = fract(uTime * (0.7 + hash(cell)) + hash(cell + 3.0)); float rr = length((w - (cell + 0.5) * vec2(18.0, 6.0)) * vec2(1.0, 3.0)); c += vec3(0.18, 0.2, 0.24) * smoothstep(1.4, 0.0, abs(rr - ph * 9.0)) * (1.0 - ph) * step(0.55, hash(cell + 9.0)) * (0.4 + lum(near)) * (gnd ? G.pud : 1.0); }
+    // on a ground of the scene's own, rings spread only in standing water; on the rest, wet, drops splash
+    if (gnd && G.pud < 0.99) {
+      vec2 cs = vec2(7.0, 3.0), cell = floor(w / cs), at = (cell + vec2(hash(cell + 1.0), hash(cell + 2.0))) * cs;
+      float ph = fract(uTime * (1.3 + hash(cell + 5.0)) + hash(cell + 4.0));
+      float drop = smoothstep(0.9, 0.25, length((w - at) * vec2(1.0, 2.2))) * smoothstep(0.14, 0.0, ph) * step(hash(cell + 7.0), uRain * 0.6);
+      c += vec3(0.16, 0.18, 0.21) * drop * (1.0 - G.pud) * uState.x * (0.4 + lum(near));
+    }
   }
   if (uDrips.z > 0.0 && raw > 0.5 && w.y < uDrips.w && w.x > uDrips.x && w.x < uDrips.y && z.r > 0.5) {
     float dx = mod(w.x, 37.0), id = floor(w.x / 37.0), ph = fract(uTime * (0.45 + hash(vec2(id, 1.0)) * 0.5) + hash(vec2(id, 2.0)));
