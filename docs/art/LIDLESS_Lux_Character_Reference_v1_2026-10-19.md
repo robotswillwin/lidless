@@ -152,10 +152,10 @@ The prompt text drawn inside the sheets is garbled in places; the two texts abov
 
 ## Where the sheets disagree
 
-The eye device is on her right eye in every panel checked, in both views. The rest drifts. Proposed resolutions, until
-the director decides:
+The eye device is on her right eye in every panel checked, in both views. The rest drifts. The director accepted these
+resolutions on 2026-10-19, and her sprite is built to them:
 
-| Point | The sheets | Proposed |
+| Point | The sheets | Decided |
 | --- | --- | --- |
 | Hair | The prompt asks for green with pink accents and a shaved side, the same cut in both views. In the sheets the AR hair is near-black indigo with no green or pink and little sign of the sidecut; the raw hair is dark teal, with a fringe. | As the prompt says. In AR the cut is clean, the shaved side clear, the green and pink vivid; in raw the same cut grown out and messier, the dye faded to the sheets' dark teal. The shaved side on her right, with the eye device. |
 | Coat | The long red coat is her signature in both realities, but only AR wears it. Raw has a short rust jacket, a grey-blue coat or a hooded jacket, and one long rust coat (sheet 06, street). | Raw wears the same long coat, worn and faded to that rust. |
@@ -179,10 +179,13 @@ the director decides:
 - **Outfits.** One walking outfit per view first: in AR the long red coat open over the black bodysuit, with heels; in
   raw the same coat worn to rust, over a crop top and cargo trousers, with boots. The other outfits become further
   part sets on the same rig.
-- **The world bible.** Its description of Lux (Characters, Lux) predates this reference and is to be updated once the
-  points above are settled.
+- **The world bible.** Its description of Lux (Characters, Lux) is updated to this design. The narrative bible
+  (docs/story) still has the earlier table and is for the script agent to bring in line.
+- **Her sprite.** `art/cast/hero/raw.png` and `concierge.png` are the design in profile, generated from the clothed
+  panels; the parts, the rig and the walk are built from them (see ASSETS.md, Characters).
 
 ## Change log
 
 - **v1 · 2026-10-19:** the director's nine sheets and two prompts stored as the current reference; where they disagree,
-  listed with proposed resolutions; clothed panels cut out for the image pipeline.
+  listed with proposed resolutions; clothed panels cut out for the image pipeline. The resolutions accepted the same day
+  and her sprite built to them.

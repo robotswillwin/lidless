@@ -54,7 +54,16 @@ export const PARTS = {
   shin: { at: [650, 790], joints: { knee: [646, 712] } },
 };
 
+/**
+ * Parts only some characters have, asked for by the recipe's `parts.extra`: where they go on the template, and their
+ * joints. A ponytail is drawn on its own so it can sway; it hangs from the head's `tie` joint.
+ */
+export const EXTRA_PARTS = {
+  ponytail: { at: [1110, 760], joints: { root: [1110, 640] } },
+};
+
 const SHAPES = {
+  ponytail: ([x, y]) => `<path d="M ${x - 32} ${y - 120} Q ${x + 6} ${y - 140} ${x + 32} ${y - 112} L ${x + 12} ${y + 120} Q ${x} ${y + 150} ${x - 14} ${y + 118} Z"/>`,
   head: ([x, y]) => `<ellipse cx="${x}" cy="${y - 25}" rx="65" ry="75"/><rect x="${x - 22}" y="${y + 30}" width="44" height="70" rx="18"/>`,
   torso: ([x, y]) => `<rect x="${x - 75}" y="${y - 120}" width="150" height="240" rx="34"/>`,
   coat: ([x, y]) => `<path d="M ${x - 75} ${y - 100} L ${x + 75} ${y - 100} L ${x + 120} ${y + 100} L ${x - 120} ${y + 100} Z"/>`,
@@ -65,11 +74,17 @@ const SHAPES = {
 };
 
 /** The template as a PNG: grey shapes on white, no labels. With `cutout`, on transparency, for measuring. */
-export async function template(cutout = false) {
-  const shapes = Object.entries(PARTS).map(([n, p]) => `<g fill="#cfe3ec">${SHAPES[n](p.at)}</g>`).join('');
+export async function template(cutout = false, extra = []) {
+  const all = { ...PARTS, ...Object.fromEntries(extra.map((n) => [n, EXTRA_PARTS[n]])) };
+  const shapes = Object.entries(all).map(([n, p]) => `<g fill="#cfe3ec">${SHAPES[n](p.at)}</g>`).join('');
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${SHEET.w}" height="${SHEET.h}">${cutout ? '' : '<rect width="100%" height="100%" fill="#ffffff"/>'}${shapes}</svg>`;
   return sharp(Buffer.from(svg)).png().toBuffer();
 }
+
+/** The parts prompt for a character with these extra parts. */
+export const partsPromptFor = (extra = []) => extra.includes('ponytail')
+  ? partsPrompt.replace('the head with the neck and hair;', 'the head with the neck and the hair on the head, but without the ponytail; the ponytail on its own as a separate piece, from where it is tied at the back of the head to its tip, hanging straight down;')
+  : partsPrompt;
 
 export const partsPrompt = [
   'Draw a cut-out animation parts sheet of the character in the first image, seen from the side, facing right.',
@@ -77,6 +92,7 @@ export const partsPrompt = [
   'Draw every part as a separate piece with empty space around it, complete as if nothing covered it, and a little longer at each joint so it overlaps its neighbour when it bends. Every part ends in its own clothing or skin, never in a grey or coloured cap:',
   'the head with the neck and hair; the torso with the upper part of the coat, from the collar to the hips; the lower part of the coat, open, hanging from the waist;',
   'one upper arm in its coat sleeve; one forearm with the end of the sleeve and the hand, relaxed and open; one thigh in the trousers; one lower leg with its boot, toes pointing right.',
+  'Keep every part at the same scale and in the same proportions as the character in the first image: no part shorter, longer, thinner or thicker than it is on her. Her thigh, from the hip to the knee, is long and slim, about three quarters as long as her lower leg from the knee to the sole.',
   'The same style, detail, colours and even, soft, frontal lighting as the first image.',
   'Transparent background, no text, no labels, no guide shapes.',
 ].join(' ');
@@ -145,8 +161,12 @@ function blobs(sheet, at = null) {
  * Where each part's joints are, read from its own shape: a fraction of the way down from its top (or up from its
  * bottom), centred on what is drawn at that height. The first joint is the one it turns on.
  */
+// a joint is where a part turns or where a child hangs: on a row a fraction from its top or bottom, at the middle of that
+// row; or at its back or front edge on a row a fraction from the top (`back` is the left of a part facing right): the
+// tie of a ponytail at the back of the head, and the knot at the front of the ponytail's top
 const JOINTS = {
-  head: { neck: ['bottom', 0.1] },
+  head: { neck: ['bottom', 0.1], tie: ['back', 0.15] },
+  ponytail: { root: ['front', 0.09], tip: ['bottom', 0.04] },
   torso: { hip: ['bottom', 0.1], neck: ['top', 0.04], shoulder: ['top', 0.14] },
   coat: { waist: ['top', 0.03] },
   upperArm: { shoulder: ['top', 0.1], elbow: ['bottom', 0.1] },
@@ -155,11 +175,19 @@ const JOINTS = {
   shin: { knee: ['top', 0.08] },
 };
 
-function jointsOf(img, name) {
-  const rowCentre = (y) => { let s = 0, n = 0; for (let x = 0; x < img.w; x++) if (img.d[(y * img.w + x) * 4 + 3] >= 128) { s += x; n++; } return n ? s / n : img.w / 2; };
-  return Object.fromEntries(Object.entries(JOINTS[name]).map(([j, [from, f]]) => {
-    const y = Math.round(from === 'top' ? f * img.h : (1 - f) * img.h);
-    return [j, [Math.round(rowCentre(Math.min(img.h - 1, y))), y]];
+function jointsOf(img, name, mirrored = false) {
+  const opaque = (x, y) => img.d[(y * img.w + x) * 4 + 3] >= 128;
+  const rowCentre = (y) => { let s = 0, n = 0; for (let x = 0; x < img.w; x++) if (opaque(x, y)) { s += x; n++; } return n ? s / n : img.w / 2; };
+  // an edge, a little inside it: the left one or the right one, the other way round for a part facing left
+  const rowEdge = (y, left) => {
+    if (left) { for (let x = 0; x < img.w; x++) if (opaque(x, y)) return Math.min(img.w - 1, x + 4); }
+    else for (let x = img.w - 1; x >= 0; x--) if (opaque(x, y)) return Math.max(0, x - 4);
+    return img.w / 2;
+  };
+  return Object.fromEntries(Object.entries(JOINTS[name] ?? {}).map(([j, [from, f]]) => {
+    const y = Math.min(img.h - 1, Math.round(from === 'bottom' ? (1 - f) * img.h : f * img.h));
+    const x = from === 'back' ? rowEdge(y, !mirrored) : from === 'front' ? rowEdge(y, mirrored) : rowCentre(y);
+    return [j, [Math.round(x), y]];
   }));
 }
 
@@ -172,7 +200,7 @@ export function cut(sheet, at = null, fix = {}, mirrored = false) {
   for (const [name, { pixels, box: [x0, y0, bw, bh] }] of Object.entries(found)) {
     const img = blank(bw, bh);
     for (const p of pixels) { const x = p % sheet.w, y = (p / sheet.w) | 0; img.d.set(sheet.d.subarray(p * 4, p * 4 + 4), ((y - y0) * bw + (x - x0)) * 4); }
-    const joints = jointsOf(img, name);
+    const joints = jointsOf(img, name, mirrored);
     // a left-facing part has its fixes mirrored
     for (const [j, [fx, fy]] of Object.entries(fix[name] ?? {})) joints[j] = [Math.round((mirrored ? 1 - fx : fx) * bw), Math.round(fy * bh)];
     parts[name] = { img, box: [x0, y0, bw, bh], joints };
@@ -215,7 +243,9 @@ const RIG = [
   ['coat', 'coat', 'torso', 'hip', 'waist', false],
   ['legFarUpper', 'thigh', 'torso', 'hip', 'hip', true], ['legFarLower', 'shin', 'legFarUpper', 'knee', 'knee', true], ['footFar', 'foot', 'legFarLower', 'ankle', 'ankle', true],
   ['legUpper', 'thigh', 'torso', 'hip', 'hip', false], ['legLower', 'shin', 'legUpper', 'knee', 'knee', false], ['foot', 'foot', 'legLower', 'ankle', 'ankle', false],
-  ['torso', 'torso', null, null, 'hip', false], ['head', 'head', 'torso', 'neck', 'neck', false],
+  // the head tucks its neck under the collar: drawn behind the torso, the ponytail behind the head
+  ['ponytail', 'ponytail', 'head', 'tie', 'root', false], ['head', 'head', 'torso', 'neck', 'neck', false],
+  ['torso', 'torso', null, null, 'hip', false],
   ['armUpper', 'upperArm', 'torso', 'shoulder', 'shoulder', false], ['armLower', 'forearm', 'armUpper', 'elbow', 'elbow', false],
 ];
 
@@ -237,7 +267,7 @@ export function pose(parts, angles, { w, h, origin, far = [-14, -6], matrices = 
   // parents first, so every piece knows where its joint sits
   const byName = Object.fromEntries(RIG.map((r) => [r[0], r]));
   // a piece turns by its own angle plus its parent's, except that the legs and coat ignore the torso's lean
-  const turn = (name) => { let a = 0; for (let n = name; n; n = byName[n][2]) { if (n === 'torso' && name !== 'torso' && !['head', 'armUpper', 'armLower', 'armFarUpper', 'armFarLower'].includes(name)) break; a += angles[n] ?? 0; } return a; };
+  const turn = (name) => { let a = 0; for (let n = name; n; n = byName[n][2]) { if (n === 'torso' && name !== 'torso' && !['head', 'ponytail', 'armUpper', 'armLower', 'armFarUpper', 'armFarLower'].includes(name)) break; a += angles[n] ?? 0; } return a; };
   const place = (name) => {
     if (M[name]) return M[name];
     const [, part, parent, attach, pivot, isFar] = byName[name], p = parts[part];
@@ -280,7 +310,7 @@ export function pose(parts, angles, { w, h, origin, far = [-14, -6], matrices = 
  * leg free with its heel lifted (`heel`, degrees) and its foot a little forward (`step`).
  */
 export const GAIT = { frames: 16, stride: 1.5, stance: 0.62, lift: 0.12, strike: 16, toeOff: 28, flex: 0.012, arms: 10, elbow: 10, elbowSwing: 10, lean: 1, coat: 2 };
-export const STAND = { step: 0.1, heel: 14, arm: -3, elbow: 9, farArm: 4, farElbow: 12, lean: -0.5 };
+export const STAND = { step: 0.06, heel: 10, reach: 0.997, arm: -3, elbow: 9, farArm: 4, farElbow: 12, lean: 0 };
 
 const rad = (d) => (d * Math.PI) / 180, deg = (r) => (r * 180) / Math.PI;
 const smooth = (x) => { const t = Math.max(0, Math.min(1, x)); return t * t * (3 - 2 * t); };
@@ -351,8 +381,9 @@ export function walkCycle(parts, gaitIn = {}, far = [-14, -6]) {
       torso: g.lean, head: -g.lean, coat: -2 + 0.15 * (nl.thighAbs + fl.thighAbs) + g.coat * Math.sin(4 * Math.PI * p + 0.9),
       legUpper: nl.thigh, legLower: nl.knee, foot: nl.foot, legFarUpper: fl.thigh, legFarLower: fl.knee, footFar: fl.foot,
       armUpper: an.up, armLower: an.low, armFarUpper: af.up, armFarLower: af.low,
-      // where the thighs point, for a coat or skirt that the legs push and drag
-      thighAbs: nl.thighAbs, thighAbsFar: fl.thighAbs,
+      // where the thighs point, for a coat or skirt that the legs push and drag; and how high the hip rides, for hair
+      // that bounces with each step
+      thighAbs: nl.thighAbs, thighAbsFar: fl.thighAbs, bob: G,
     });
   }
   return { frames, stride: S };
@@ -360,7 +391,8 @@ export function walkCycle(parts, gaitIn = {}, far = [-14, -6]) {
 
 /** Her stance for parts that have a foot: weight on the near leg, its foot flat under her; the far leg free, a little forward, heel lifted. */
 export function standPose(parts, standIn = {}, far = [-14, -6]) {
-  const st = { ...STAND, ...standIn }, leg = legOf(parts), L = leg.L1 + leg.L2, R = 0.975 * L;
+  // the leg she stands on is straight, as a standing leg is: its knee only just short of locked
+  const st = { ...STAND, ...standIn }, leg = legOf(parts), L = leg.L1 + leg.L2, R = st.reach * L;
   const ax = 0.02 * L, G = groundFor([0, 0], ax, leg.heel[1], R);
   const near = reach(leg, [0, 0], [ax, G - leg.heel[1]], 0);
   const phi = -rad(st.heel), toeX = ax + leg.toe[0] + st.step * L, v = turnVec(leg.toe, phi);

@@ -259,12 +259,12 @@ A woman in her late twenties who runs errands nobody asks about. She has the loo
 
 |  | Concierge view | Raw view |
 | --- | --- | --- |
-| Face and hair | Asymmetric undercut, long hair swept over one side in neon green fading to purple. Bold make-up, dark lips, sharp eyeliner. | Thin and pale, tired eyes, dark hair in a messy bun |
-| Visor | A seamless white shell with a soft blue light | Heavy, grey and riveted, with a round lens, over the eye and temple |
-| Clothes | Cropped black top, high-waisted black trousers, a long glossy red coat with thin neon trims, chunky platform boots | A long cheap raincoat in faded grey-maroon, a worn black top and leggings, scuffed knee boots |
-| Manner | Confident, glamorous, attractive | Tired, careful, unnoticed |
+| Face and hair | An angular face with a slightly pointed chin. An asymmetric sidecut, the right side shaved, the rest in a sleek high ponytail, green with pink accents. Flawless skin, bold make-up, glossy dark-red lips. | The same face, pale and tired, no make-up. The same sidecut grown out and messier: a looser ponytail with strands over her face, the dye faded to dark teal. |
+| Eye device | A sleek white visor with an ice-blue glow, over her right eye only | A round mechanical monocle of dull dark grey metal with an orange lens, on a thin strap, over her right eye only |
+| Clothes | A long glossy red coat to the ankles with a high collar and thin cyan trims, open over a strapless black bodysuit; bare legs, black heeled ankle boots | The same long coat, cheap, worn and faded to rust, frayed at the hem; a worn grey crop top, faded denim shorts, scuffed flat lace-up boots |
+| Body and manner | A little taller in her heels, perfect upright posture, an idealised figure. Perfected, controlled, always happy. | Thinner and paler, natural proportions and posture. Natural, authentic, vulnerable. |
 
-Seen from her left, her Concierge self is all hair, a curtain over that side of her face; her raw self shows the edge of the visor.
+Both are recognisably the same woman, one body under two looks: the Concierge paints over her, it does not change her bones. Seen from her left, both show her uncovered left eye and the long side of her hair; the shaved side and the eye device are on her right. Her design reference: docs/art/LIDLESS_Lux_Character_Reference_v1_2026-10-19.md. *(Decided, 2026-10-19.)*
 
 *Proposed past and motive:*
 

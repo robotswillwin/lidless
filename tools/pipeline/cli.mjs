@@ -12,8 +12,8 @@ import { blank, crop, readRGBA, resize, writePNG } from './image.mjs';
 import { edit, generate } from './openai.mjs';
 import { KINDS, ROOT, loadRecipe, recipeTemplate } from './recipe.mjs';
 import { blockoutPNG, camera as roomCamera } from './blockout.mjs';
-import { conciergePartsPrompt, cut as cutParts, otherSidePrompt, PARTS as PARTS_NAMES, partsPrompt, plant, pointOf, pose as posePartsRig, SHEET, standPose, template as partsTemplate, walkAngles, walkCycle } from './parts.mjs';
-import { conciergePrompt, extendPrompt, generationPrompt, LAYOUT_REFERENCES_NOTE, layoutNote, LOOKS, REDRESS_REFERENCES_NOTE, redressPrompt, reframePrompt, REFERENCE_NOTE, REFERENCE_NOTE_VECTOR, VARIANT_REFERENCES_NOTE } from './style.mjs';
+import { conciergePartsPrompt, cut as cutParts, EXTRA_PARTS, otherSidePrompt, PARTS as PARTS_NAMES, partsPromptFor, plant, pointOf, pose as posePartsRig, SHEET, standPose, template as partsTemplate, walkAngles, walkCycle } from './parts.mjs';
+import { CHARACTER_REDRESS_NOTE, CHARACTER_SHEET_NOTE, conciergePrompt, extendPrompt, generationPrompt, LAYOUT_REFERENCES_NOTE, layoutNote, LOOKS, REDRESS_REFERENCES_NOTE, redressPrompt, reframePrompt, REFERENCE_NOTE, REFERENCE_NOTE_VECTOR, VARIANT_REFERENCES_NOTE } from './style.mjs';
 
 try { process.loadEnvFile(resolve(ROOT, '.env.local')); } catch { /* no .env.local: fine until an API call needs the key */ }
 
@@ -147,7 +147,8 @@ async function cmdGenerate([file], opt) {
   // references set the rendering themselves, unless a look is asked for, on the command line or in the recipe
   const look = typeof opt.look === 'string' ? opt.look : r.look ?? (refs.length ? null : 'pixel');
   if (look && !LOOKS[look]) throw new Error(`look must be one of ${Object.keys(LOOKS).join(', ')}`);
-  const notes = layout ? `${layoutNote(look)} ${refs.length ? `${LAYOUT_REFERENCES_NOTE} ` : ''}` : refs.length ? `${look === 'vector' ? REFERENCE_NOTE_VECTOR : REFERENCE_NOTE} ` : '';
+  const refNote = r.referenceNote === 'character' ? CHARACTER_SHEET_NOTE : look === 'vector' ? REFERENCE_NOTE_VECTOR : REFERENCE_NOTE;
+  const notes = layout ? `${layoutNote(look)} ${refs.length ? `${LAYOUT_REFERENCES_NOTE} ` : ''}` : refs.length ? `${refNote} ` : '';
   const prompt = notes + generationPrompt(r, look), as = r.exists === 'concierge' ? 'concierge' : 'raw';
   console.log(`${r.name}: ${n} × ${size}, ${quality} quality, ${look ?? 'reference'} look, ${as} view${layout ? `, laid out like ${rel(layout)}` : ''}${refs.length ? `, ${refs.length} reference${refs.length > 1 ? 's' : ''}` : ''}`);
   if (opt.dry) return console.log(`\n${prompt}`);
@@ -179,7 +180,7 @@ async function cmdRedress([file], opt) {
   if (!existsSync(src)) throw new Error(`pick or import a ${view} image first (${rel(src)})`);
   const refs = typeof opt.ref === 'string' ? opt.ref.split(',').map((f) => resolve(ROOT, f.trim())) : [];
   for (const f of refs) if (!existsSync(f)) throw new Error(`no image at ${rel(f)}`);
-  const prompt = (refs.length ? `${REDRESS_REFERENCES_NOTE} ` : '') + redressPrompt(r, view, opt.prompt), meta = await sharp(src).metadata(), n = Number(opt.n ?? 2), quality = opt.quality ?? 'medium';
+  const prompt = (refs.length ? `${r.referenceNote === 'character' ? CHARACTER_REDRESS_NOTE : REDRESS_REFERENCES_NOTE} ` : '') + redressPrompt(r, view, opt.prompt), meta = await sharp(src).metadata(), n = Number(opt.n ?? 2), quality = opt.quality ?? 'medium';
   const size = `${Math.round(meta.width / 16) * 16}x${Math.round(meta.height / 16) * 16}`;
   console.log(`${r.name}: ${n} re-dressed ${view} candidates of ${rel(src)}, ${size}${refs.length ? `, ${refs.length} reference${refs.length > 1 ? 's' : ''}` : ''}`);
   if (opt.dry) return console.log(`\n${prompt}`);
@@ -598,7 +599,8 @@ async function cmdParts([file], opt) {
   // --side left: the character seen from the other side; its parts live under raw-left and concierge-left
   const left = opt.side === 'left', view = left ? `${look}-left` : look;
   await mkdir(join(dir, view), { recursive: true });
-  const tpl = await partsTemplate();
+  const extra = r.parts?.extra ?? [], partsPrompt = partsPromptFor(extra);
+  const tpl = await partsTemplate(false, extra);
   await writeFile(join(dir, 'template.png'), tpl);
   if (opt.preview) return previewParts(r, dir);
   if (opt.bake) return bakeParts(r, dir);
@@ -643,7 +645,7 @@ async function cmdParts([file], opt) {
   }
   all[view] = Object.fromEntries(Object.entries(parts).map(([n, p]) => [n, { size: [p.img.w, p.img.h], box: p.box, joints: p.joints }]));
   await writeFile(jfile, JSON.stringify(all, null, 2) + '\n');
-  const missing = Object.keys(PARTS_NAMES).filter((n) => !parts[n]);
+  const missing = [...Object.keys(PARTS_NAMES), ...extra.filter((n) => EXTRA_PARTS[n])].filter((n) => !parts[n]);
   console.log(`${r.name}: ${Object.keys(parts).length} parts → ${rel(join(dir, view))}${missing.length ? ` · missing: ${missing.join(', ')}` : ''}`);
   console.log(res.cost == null ? 'Cost: not reported by the API.' : `Cost: $${res.cost.toFixed(4)}`);
 }
@@ -657,7 +659,11 @@ const BONE = {
   forearm: (p) => p.img.h - p.joints.elbow[1],
   thigh: (p) => Math.abs(p.joints.knee[1] - p.joints.hip[1]),
   shin: (p) => p.img.h - p.joints.knee[1],
+  ponytail: (p) => p.img.h - p.joints.root[1],
 };
+
+/** A character's proportions for one view: the recipe's, with that view's own where it has any (heels in one view). */
+const proportionsFor = (r, look) => (r.parts?.proportions ? { ...r.parts.proportions, ...(r.parts.proportionsByView?.[look] ?? {}) } : undefined);
 
 /**
  * The parts resized so the figure has the recipe's proportions: `parts.proportions` gives each part's length as a
@@ -671,14 +677,35 @@ async function proportion(parts, prop) {
   if (!prop?.torso || !parts.torso) return parts;
   const unit = BONE.torso(parts.torso) / prop.torso;
   for (const [name, p] of Object.entries(parts)) {
-    if (name === 'torso' || !prop[name] || !BONE[name] || (name === 'shin' && prop.boot)) continue;
+    if (name === 'torso' || !prop[name] || !BONE[name] || (name === 'shin' && prop.boot) || !p.joints) continue;
     const s = (prop[name] * unit) / BONE[name](p);
     if (Math.abs(s - 1) < 0.01) continue;
     const w = Math.max(1, Math.round(p.img.w * s)), h = Math.max(1, Math.round(p.img.h * s));
     parts[name] = { img: await resize(p.img, w, h), joints: Object.fromEntries(Object.entries(p.joints).map(([j, [x, y]]) => [j, [(x * w) / p.img.w, (y * h) / p.img.h]])) };
   }
   if (prop.boot && prop.shin && parts.shin && parts.thigh) Object.assign(parts, await lowerLeg(parts.shin.img, parts.thigh, prop.boot * unit, prop.shin * unit));
+  // a lower leg drawn whole, the leg into its shoe, is split at the ankle so the foot can roll
+  else if (parts.shin && !parts.foot) Object.assign(parts, splitAnkle(parts.shin.img, parts.shin.joints.knee));
+  if (parts.head) parts.head = { ...parts.head, img: extendNeck(parts.head.img) };
   return parts;
+}
+
+/**
+ * The neck carried on below the head's cut, so it tucks under the collar: every column whose lowest pixel is in the
+ * bottom of the piece (the neck, not hair hanging higher up) continues downward. The torso is drawn over it, so only the
+ * neckline shows it, and no gap opens between the neck and the collar however the head turns.
+ */
+function extendNeck(img, frac = 0.14) {
+  const extra = Math.round(img.h * frac), out = blank(img.w, img.h + extra);
+  out.d.set(img.d, 0);
+  for (let x = 0; x < img.w; x++) {
+    let low = -1;
+    for (let y = img.h - 1; y >= 0; y--) if (img.d[(y * img.w + x) * 4 + 3] >= 128) { low = y; break; }
+    if (low < img.h * 0.86) continue;
+    const src = img.d.subarray((Math.max(0, low - 2) * img.w + x) * 4, (Math.max(0, low - 2) * img.w + x) * 4 + 4);
+    for (let y = low + 1; y < img.h + extra; y++) out.d.set(src, (y * img.w + x) * 4);
+  }
+  return out;
 }
 
 /** Where a row of a part is opaque: its first and last opaque x, or null. */
@@ -713,12 +740,24 @@ async function lowerLeg(bootImg, thigh, bootH, shinLen) {
   const over4 = (img, ox, oy) => { for (let y = 0; y < img.h; y++) for (let x = 0; x < img.w; x++) { const i = (y * img.w + x) * 4; if (img.d[i + 3] < 128) continue; const X = ox + x, Y = oy + y; if (X >= 0 && Y >= 0 && X < W && Y < H) out.d.set(img.d.subarray(i, i + 4), (Y * W + X) * 4); } };
   over4(tube, tx, 0);
   over4(boot, 0, H - boot.h);
-  // the ankle: a little above where the boot's front starts reaching forward over the foot, in the middle of the shaft
-  const by = H - boot.h, shaft = top[1] - top[0] + 1;
-  let toeRow = boot.h - 1;
-  for (let y = Math.round(boot.h * 0.4); y < boot.h; y++) { const sp = span(boot, y); if (sp && sp[1] > top[1] + shaft * 0.2) { toeRow = y; break; } }
-  const ankleRow = Math.max(Math.round(boot.h * 0.45), toeRow - Math.round(shaft * 0.3)), at = span(boot, ankleRow) ?? top;
-  const ax = (at[0] + at[1]) / 2, ay = by + ankleRow, lap = Math.max(3, Math.round(shaft * 0.18));
+  return splitAnkle(out, [cx, k0], H - boot.h);
+}
+
+/**
+ * A lower leg split at the ankle into the shin, knee to ankle, and the foot below, overlapping a little so the ankle
+ * can bend; the foot knows where its heel and toe touch the ground. The ankle is found a little above where the shoe's
+ * front starts reaching forward over the foot, below `from` (the top of the boot, or of the lower leg).
+ */
+function splitAnkle(out, knee, from = 0) {
+  const W = out.w, H = out.h, h = H - from, row = (y) => span(out, from + y);
+  // the width of the shaft or calf at the shoe's top, the front edge's line below it, and where the toe starts
+  const top = row(Math.round(h * 0.04)) ?? [0, W - 1], shaft = top[1] - top[0] + 1;
+  let front = top[1];
+  for (let y = Math.round(h * 0.04); y < Math.round(h * (from ? 0.4 : 0.6)); y++) { const sp = row(y); if (sp) front = Math.max(front, sp[1]); }
+  let toeRow = h - 1;
+  for (let y = Math.round(h * (from ? 0.4 : 0.6)); y < h; y++) { const sp = row(y); if (sp && sp[1] > front + shaft * 0.2) { toeRow = y; break; } }
+  const ankleRow = Math.max(Math.round(h * (from ? 0.45 : 0.7)), toeRow - Math.round(shaft * 0.3)), at = row(ankleRow) ?? top;
+  const ax = (at[0] + at[1]) / 2, ay = from + ankleRow, lap = Math.max(3, Math.round(shaft * 0.18));
   const shin = crop(out, 0, 0, W, Math.min(H, ay + lap)), foot = crop(out, 0, ay - lap, W, H - (ay - lap));
   // the sole's back and front, where the heel and the toe touch the ground
   let soleY = foot.h - 1;
@@ -726,7 +765,7 @@ async function lowerLeg(bootImg, thigh, bootH, shinLen) {
   let hx = Infinity, fx = -Infinity;
   for (let y = Math.max(0, soleY - Math.round(foot.h * 0.06)); y <= soleY; y++) { const sp = span(foot, y); if (sp) { hx = Math.min(hx, sp[0]); fx = Math.max(fx, sp[1]); } }
   return {
-    shin: { img: shin, joints: { knee: [cx, k0], ankle: [ax, ay] } },
+    shin: { img: shin, joints: { knee, ankle: [ax, ay] } },
     foot: { img: foot, joints: { ankle: [ax, lap], heel: [hx, soleY], toe: [fx, soleY] } },
   };
 }
@@ -749,7 +788,7 @@ async function bakeParts(r, dir) {
       const img = await readRGBA(join(dir, v, `${name}.png`));
       parts[name] = left ? { img: mirror(img), joints: Object.fromEntries(Object.entries(info.joints).map(([j, [x, y]]) => [j, [img.w - 1 - x, y]])) } : { img, joints: info.joints };
     }
-    await proportion(parts, r.parts?.proportions);
+    await proportion(parts, proportionsFor(r, look));
     // with a foot of its own, the walk is built from where the feet go; without one, from the standard angles
     const gait = r.parts?.gait ?? {}, cycle = parts.foot ? walkCycle(parts, gait, FAR) : null;
     const foot = [parts.shin.img.w * 0.55, parts.shin.img.h * 0.97];
@@ -805,8 +844,8 @@ async function cmdRig([file], opt) {
         const img = await readRGBA(join(dir, v, `${name}.png`));
         parts[name] = left ? mirrorPart(img, info.joints) : { img, joints: info.joints };
       }
-      await proportion(parts, r.parts?.proportions);
-      if (!parts.foot) throw new Error(`${r.name}: the rig needs a separate foot: give parts.proportions a boot height`);
+      await proportion(parts, proportionsFor(r, look));
+      if (!parts.foot) throw new Error(`${r.name}: the rig needs a separate foot: give the recipe parts.proportions`);
       await mkdir(join(out, v), { recursive: true });
       const pieces = {};
       for (const [name, p] of Object.entries(parts)) {
@@ -848,7 +887,7 @@ async function previewParts(r, dir) {
   for (const v of views) {
     const parts = {};
     for (const [name, info] of Object.entries(all[v])) parts[name] = { img: await readRGBA(join(dir, v, `${name}.png`)), joints: info.joints };
-    await proportion(parts, r.parts?.proportions);
+    await proportion(parts, proportionsFor(r, v));
     const W = 1600, H = 2000, origin = [800, 900];
     const gait = r.parts?.gait ?? {}, cycle = parts.foot ? walkCycle(parts, gait) : null;
     const poses = cycle ? [standPose(parts, gait.idle), ...cycle.frames] : [gait.idle ?? {}, ...Array.from({ length: 8 }, (_, k) => walkAngles(k, gait))];

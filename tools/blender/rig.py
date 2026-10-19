@@ -33,12 +33,17 @@ RIG = [
     ('coat', 'coat', 'torso', 'hip', 'waist', False),
     ('legFarUpper', 'thigh', 'torso', 'hip', 'hip', True), ('legFarLower', 'shin', 'legFarUpper', 'knee', 'knee', True), ('footFar', 'foot', 'legFarLower', 'ankle', 'ankle', True),
     ('legUpper', 'thigh', 'torso', 'hip', 'hip', False), ('legLower', 'shin', 'legUpper', 'knee', 'knee', False), ('foot', 'foot', 'legLower', 'ankle', 'ankle', False),
-    ('torso', 'torso', None, None, 'hip', False), ('head', 'head', 'torso', 'neck', 'neck', False),
+    # the head tucks its neck under the collar: drawn behind the torso, the ponytail behind the head
+    ('ponytail', 'ponytail', 'head', 'tie', 'root', False), ('head', 'head', 'torso', 'neck', 'neck', False),
+    ('torso', 'torso', None, None, 'hip', False),
     ('armUpper', 'upperArm', 'torso', 'shoulder', 'shoulder', False), ('armLower', 'forearm', 'armUpper', 'elbow', 'elbow', False),
 ]
 BY = {r[0]: r for r in RIG}
 FAR_DARK = 0.62           # the far arm and leg, in the shadow of her body
 COAT_CHAIN = 3
+PONY_CHAIN = 3
+PONY_TRAIL = -6.0         # degrees: walking, the ponytail trails out behind her
+PONY_GAIN = 7.0           # degrees: how far each step's bounce swings it
 
 
 def to3(p, depth=0.0):
@@ -138,6 +143,14 @@ def build_armature(parts, pos):
         prev = 'hips'
         for k in range(COAT_CHAIN):
             prev = bone(f'coat{side}{k + 1}', pts[k], pts[k + 1], prev).name
+    # the ponytail: a chain from where it is tied at the back of the head to its tip, riding on the head
+    if 'ponytail' in parts:
+        root, tip = pos['ponytail'], world(parts, pos, 'ponytail', 'tip')
+        prev = 'head'
+        for k in range(PONY_CHAIN):
+            a = (root[0] + (tip[0] - root[0]) * k / PONY_CHAIN, root[1] + (tip[1] - root[1]) * k / PONY_CHAIN)
+            b = (root[0] + (tip[0] - root[0]) * (k + 1) / PONY_CHAIN, root[1] + (tip[1] - root[1]) * (k + 1) / PONY_CHAIN)
+            prev = bone(f'pony{k + 1}', a, b, prev).name
     bpy.ops.object.mode_set(mode='OBJECT')
     for pb in arm.pose.bones:
         pb.rotation_mode = 'XYZ'
@@ -172,6 +185,17 @@ def weights(name, part, x, y):
         e, band = j['elbow'][1], 0.12 * h
         s = smooth(e - 0.5 * band, e + band, y)
         return {aup: 1 - s, alow: s}
+    if name == 'ponytail':
+        r0, tip = j['root'][1], j['tip'][1]
+        t = (y - r0) / max(1.0, tip - r0)
+        pin = 1 - smooth(-0.04, 0.1, t)
+        w1 = 1 - smooth(0.2, 0.45, t)
+        w3 = smooth(0.55, 0.8, t)
+        w2 = max(0.0, 1 - w1 - w3)
+        out = {'head': pin}
+        for k, wk in ((1, w1), (2, w2), (3, w3)):
+            out[f'pony{k}'] = (1 - pin) * wk
+        return out
     if name == 'coat':
         top = j['waist'][1]
         t = (y - top) / max(1.0, h - top)
@@ -303,6 +327,11 @@ def animate(arm):
     trail = [min(f['thighAbs'], f['thighAbsFar'], 0.0) for f in walk]
     front = spring_chain([0.55 * a + 1.5 for a in lead], COAT_CHAIN, omega=2 * math.pi * 2.4, zeta=0.5)
     back = spring_chain([0.5 * a - 2.0 for a in trail], COAT_CHAIN, omega=2 * math.pi * 2.0, zeta=0.45)
+    # the ponytail: each step's bounce swings it, the tip later than the root
+    bob = [f.get('bob', 0.0) for f in walk]
+    lo, hi = min(bob), max(bob)
+    mid, half = (lo + hi) / 2, max(1e-6, (hi - lo) / 2)
+    pony = spring_chain([PONY_TRAIL - PONY_GAIN * (b - mid) / half for b in bob], PONY_CHAIN, omega=2 * math.pi * 1.8, zeta=0.35)
     # the forearms trail the upper arms a little
     lag = max(1, round(N * 0.07))
 
@@ -327,6 +356,8 @@ def animate(arm):
         for i in range(COAT_CHAIN):
             a[f'coatF{i + 1}'] = front[i][k] - (front[i - 1][k] if i else 0.0)
             a[f'coatB{i + 1}'] = back[i][k] - (back[i - 1][k] if i else 0.0)
+        for i in range(PONY_CHAIN):
+            a[f'pony{i + 1}'] = pony[i][k] - (pony[i - 1][k] if i else 0.0)
         key(k + 1, {**rest, **a})
     for fc in arm.animation_data.action.fcurves if arm.animation_data and arm.animation_data.action and hasattr(arm.animation_data.action, 'fcurves') else []:
         for kp in fc.keyframe_points:

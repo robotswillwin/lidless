@@ -123,6 +123,13 @@ export function conciergePrompt(r) {
 const worldOf = (r, view) => (view === 'concierge' ? `It shows the city AI's augmented view, whose world is ${conciergeWorld(r)}` : RAW_WORLD);
 
 /** Re-dress the picked image of one view: the same picture, every outline in place, its surfaces changed as asked. */
+/**
+ * For a recipe whose references are the character's own model sheet (`referenceNote: "character"`): the references
+ * are who to draw, not only how.
+ */
+export const CHARACTER_SHEET_NOTE = 'The attached images are the model sheet of the character to draw: keep her face, hair, body, proportions, eye device and clothing as they appear there, in their rendering, palette and level of detail. Where the description below differs from them, the description wins. Draw only the one figure described, not a sheet, and no text.';
+export const CHARACTER_REDRESS_NOTE = 'The first attached image is the one to edit. The other attached images show this same character in the view to draw: match how she looks there, her face, hair, eye device, colours and rendering, but keep the pose, framing and outline of the first image.';
+
 /** Put in front of a re-dress's prompt when references go with it. */
 export const REDRESS_REFERENCES_NOTE = 'The first attached image is the one to edit. The other attached images are style references for the result: match their rendering, palette, contrast, lighting and mood, but not their layout, their objects or their people.';
 

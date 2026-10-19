@@ -3,8 +3,8 @@
   "scene": "cast",
   "kind": "character",
   "exists": "both",
-  "prompt": "Lux, the hero: a woman in her late twenties who runs errands nobody asks about. Thin and pale, with tired eyes and no make-up, her dark hair pulled back in a messy bun. Like everyone, she wears a partial helmet over her right eye: a heavy, grey, steampunk-like device of riveted metal plates and a round dark lens, covering the whole eye and her temple. A long, cheap raincoat in faded grey-maroon reaching to mid-calf, worn thin and frayed at the hem, open and hanging loose, over a worn black top and black leggings, and scuffed flat boots to the knee.",
-  "concierge": "Lux, the hero, as the city AI shows her: a striking cyberpunk woman in her late twenties, slim and confident. An asymmetric undercut, one side shaved, long hair swept over the other side in a few clean locks of neon green fading to purple. Bold make-up with dark lips and sharp eyeliner. Over her right eye a partial helmet: a smooth, seamless white shell with a soft blue light, covering the whole eye. A long, glossy red coat reaching to mid-calf, with a high collar and thin cyan neon trims along its edges, open over a cropped black top; fitted high-waisted black trousers and chunky black platform boots. The coat a bright, saturated red with a deep crimson shadow side; the black clothes near-black with one dark grey lit plane.",
+  "prompt": "This is the real woman under the city AI's version of her: keep her pose, her proportions and the outline of her body, head, ponytail and coat. Her hair is the same asymmetric sidecut with the right side shaved, grown out and messier, tied in a looser ponytail with loose strands falling over her face, the green dye faded to a dull dark teal, no pink. Her face is pale and tired, with no make-up and plain lips. Over her right eye, instead of the white visor, a round mechanical monocle of dull dark grey metal with a few rivets and a small glowing orange lens, held by a thin strap around her head; no brass. The same long coat, but a cheap one, worn thin and faded to a dull rust brown, frayed at the hem, its collar lying flat, no trims. Under it a worn grey crop top and faded dark denim shorts instead of the bodysuit, and scuffed flat black lace-up boots to mid-calf instead of the heeled boots. Her legs thinner and paler. The same flat-shaded style: two or three flat tones per surface, crisp edges, no texture.",
+  "concierge": "Lux, the hero, as the city AI shows her: a beautiful woman of about 27, tall and slim, with perfect upright posture, adult proportions, long legs and an hourglass figure. A distinctive angular face with a slightly pointed chin and a recognisable nose and jaw; bold make-up and glossy dark-red lips. Her hair: an asymmetric cyberpunk sidecut, the right side of her head shaved short, the rest pulled back into a sleek high ponytail that hangs down her back; the hair green with bright pink accents. Over her right eye, the one we see in this side view, a sleek white visor with an ice-blue glow covers that one eye only. She wears a long glossy red coat reaching her ankles, with a high collar and thin cyan trims, open over a strapless black bodysuit; her legs are bare, and she wears black heeled ankle boots. The coat a bright saturated red with a deep crimson shadow side; the bodysuit near-black with one dark grey lit plane.",
   "height": 240,
   "position": [
     480,
@@ -17,68 +17,28 @@
     "machine": false
   },
   "references": [
-    "art/reference/lux-flat-concierge.png"
+    "art/reference/lux/ref-raw-turnaround.png",
+    "art/reference/lux/ref-raw-coat.png",
+    "art/reference/lux/ref-raw-face.png"
   ],
   "parts": {
     "from": "raw.png",
-    "joints": {
-      "torso": {
-        "neck": [
-          0.66,
-          0.07
-        ],
-        "shoulder": [
-          0.38,
-          0.17
-        ]
-      }
-    },
     "left": {
       "mirror": true,
       "coat": "front",
-      "raw": "Seen from her left side, her left eye is uncovered; her eye device is on her right eye, out of sight, with only its strap over her hair.",
-      "concierge": "Seen from her left side, her left eye is uncovered and her long green-to-purple hair falls over this side of her head; the device and the shaved side of her undercut are on her right, out of sight."
+      "raw": "Seen from her left side: her left eye is uncovered, the long, unshaved side of her hair is pulled back into the ponytail, and only the thin strap of her eye device crosses her hair above the ear; the device itself is on her right eye, out of sight.",
+      "concierge": "Seen from her left side: her left eye is uncovered and made up, the long, unshaved side of her green-and-pink hair is pulled back sleekly into the ponytail; the visor and the shaved side are on her right, out of sight."
     },
-    "right": "Seen from her right side, her eye device covers her whole right eye and temple.",
-    "at": {
-      "head": [
-        282,
-        183
-      ],
-      "torso": [
-        654,
-        299
-      ],
-      "coat": [
-        1124,
-        314
-      ],
-      "upperArm": [
-        263,
-        761
-      ],
-      "forearm": [
-        546,
-        765
-      ],
-      "thigh": [
-        845,
-        752
-      ],
-      "shin": [
-        1189,
-        807
-      ]
-    },
+    "right": "Seen from her right side: the shaved side of her head and her eye device over her right eye.",
     "proportions": {
       "head": 0.15,
-      "torso": 0.3,
-      "coat": 0.335,
-      "upperArm": 0.155,
-      "forearm": 0.195,
-      "thigh": 0.24,
-      "shin": 0.315,
-      "boot": 0.23
+      "torso": 0.26,
+      "coat": 0.455,
+      "upperArm": 0.14,
+      "forearm": 0.19,
+      "thigh": 0.245,
+      "shin": 0.325,
+      "ponytail": 0.18
     },
     "gait": {
       "stride": 1.5,
@@ -87,8 +47,67 @@
         "step": 0.1,
         "heel": 14
       }
+    },
+    "extra": [
+      "ponytail"
+    ],
+    "proportionsByView": {
+      "concierge": {
+        "ponytail": 0.27
+      }
+    },
+    "at": {
+      "head": [
+        172,
+        208
+      ],
+      "ponytail": [
+        405,
+        232
+      ],
+      "torso": [
+        700,
+        295
+      ],
+      "coat": [
+        982,
+        477
+      ],
+      "upperArm": [
+        1225,
+        297
+      ],
+      "forearm": [
+        1413,
+        308
+      ],
+      "thigh": [
+        366,
+        716
+      ],
+      "shin": [
+        613,
+        782
+      ]
+    },
+    "joints": {
+      "torso": {
+        "neck": [
+          0.5,
+          0.05
+        ],
+        "shoulder": [
+          0.4,
+          0.15
+        ],
+        "hip": [
+          0.6,
+          0.86
+        ]
+      }
     }
   },
   "look": "vector",
-  "framing": "One full-length figure in exact profile, seen straight from the side and facing right, standing in a neutral pose for animation: arms hanging relaxed and slightly away from the body, hands empty and open, legs straight and a little apart so both are fully visible, nothing held and nothing crossing the body. Feet at the bottom of the frame. Even, soft, frontal lighting with no cast shadows, no rim light and no glow halos. Transparent background, the whole figure in frame with a little space around it, no ground, no text, no border."
+  "framing": "One full-length figure in exact profile, seen straight from the side and facing right, standing in a neutral pose for animation: arms hanging relaxed and slightly away from the body, hands empty and open, legs straight and a little apart so both are fully visible, nothing held and nothing crossing the body. Feet at the bottom of the frame. Even, soft, frontal lighting with no cast shadows and no rim light. Transparent background, the whole figure in frame with a little space around it, no ground, no text, no border.",
+  "referenceNote": "character"
 }

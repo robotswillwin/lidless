@@ -1,0 +1,25 @@
+{
+  "name": "lux-concierge",
+  "x": 443,
+  "y": 224,
+  "w": 74,
+  "h": 240,
+  "maps": [
+    "albedo.concierge",
+    "albedo.raw",
+    "material",
+    "meta",
+    "normal"
+  ],
+  "depth": 3,
+  "parallax": 1,
+  "occluder": 1,
+  "reflectivity": 0,
+  "object": 0,
+  "anchor": [
+    37,
+    240
+  ],
+  "exists": "concierge",
+  "kind": "character"
+}

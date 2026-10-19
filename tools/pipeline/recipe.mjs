@@ -45,6 +45,7 @@ export const PRESENCE = ['both', 'concierge', 'raw'];
  * @property {number} [palette]           0 to 1: how strongly to pull colours toward the house palette
  * @property {string[]} [references]      images sent along as style references, relative to the project folder
  * @property {string[]} [conciergeReferences]  style references for the Concierge variant, the augmented view's look
+ * @property {'character'} [referenceNote]  the references are the character's own model sheet: who to draw, not only how
  * @property {{ colors?: number, cleanup?: boolean } | false} [pixel]  the colour finish (default by kind), or false for none
  * @property {'pixel'|'paint'|'vector'} [look]  ask for pixel art, a painting that the build pixelates, or flat vector art
  * @property {boolean} [interior]        a background that is a room rather than a street

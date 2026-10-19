@@ -166,6 +166,13 @@ both sides, the walk keyed from the gait (feet planted, the legs reaching them),
 the legs push and drag, the forearms trailing the upper arms, and every set rendered to anims/. Joints are meshes
 blended into the next bone, so knees, elbows and ankles bend instead of breaking.
 
+The ponytail is a part of its own (`parts.extra: ["ponytail"]` in the recipe): drawn as a separate piece on the
+parts sheet, hung from a joint at the back of the head, and swung in Blender by a chain of springs that each step's
+bounce sets going, the tip later than the root. The head is drawn behind the torso, its neck carried on a little below
+its cut so it tucks under the collar: no gap opens between them however she moves. A lower leg drawn whole, the bare leg
+into the boot, is split at the ankle into a shin and a foot so the foot can roll. `parts.proportionsByView` gives one
+view's own proportions where it has them (the Concierge's longer, sleeker ponytail).
+
 To change the walk by hand: open `art/cast/hero/rig/hero.blend` in Blender, pose the `rig` armature (frame 0 is her
 stance, frames 1 to 16 one cycle of the walk), save, and run `npm run asset -- rig art/cast/hero.json --render-only`,
 then `build`. The walk is animated once and every outfit and side follows. Redrawing a part means replacing its image

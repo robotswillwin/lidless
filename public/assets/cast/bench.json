@@ -1,7 +1,8 @@
 {
   "assets": [
     "fixer",
-    "hero"
+    "hero",
+    "lux-concierge"
   ],
   "backgrounds": [],
   "latest": "hero"
