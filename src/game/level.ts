@@ -18,6 +18,10 @@ export interface Hotspot {
   /** Which way the hero faces when she gets there. */
   face?: 1 | -1;
   look?: ViewText;
+  /** Using it (the Use verb): what she finds when she does. */
+  use?: ViewText;
+  /** Taking it (the Take verb): what she says as she does. What goes into her pockets comes with the story. */
+  take?: ViewText;
   /** Under its name: in the Concierge's view its classification of the thing ("Guest · dining"), in raw view her own note, if any. */
   tag?: ViewNote;
   /** What the Concierge answers when she asks it about the thing. Its view only. */
@@ -39,7 +43,7 @@ export interface LevelDef {
    * The hero's sprite is a name in the scene, or a path under assets such as "cast/hero". Anchor and smoke (where her
    * cigarette is, from her feet) are for sprites that do not say themselves.
    */
-  hero: { sprite: string; x: number; anchor?: [number, number]; smoke?: [number, number]; speed: number };
+  hero: { sprite: string; x: number; anchor?: [number, number]; smoke?: [number, number]; speed: number; runSpeed?: number };
   hotspots: Hotspot[];
 }
 

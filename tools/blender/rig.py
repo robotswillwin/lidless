@@ -7,8 +7,8 @@
 # One skeleton carries every set of parts (an outfit seen from one side), so the walk is animated once for all of them.
 # The skeleton faces right; a set seen from the left is drawn mirrored to face right and its frames mirrored back.
 # The .blend saved in the rig dir is the file to open to change the walk by hand; --render-only renders it as it is,
-# without building it again. Frames 0 to M - 1 are the idle loop, a breath standing; the M frames after it one cycle of
-# the walk (markers "idle" and "walk").
+# without building it again. Frames 0 to M - 1 are the idle loop, a breath standing; then one cycle of the walk, and
+# one of the run if the rig has one (markers "idle", "walk" and "run").
 
 import bpy
 import json
@@ -318,24 +318,12 @@ def spring_chain(target, n, omega, zeta, cycles=6, sub=64):
 
 
 def animate(arm):
-    """The idle loop at frames 0 to M - 1 and one cycle of the walk after it, with follow-through the gait leaves out."""
-    walk, idle = R['walk']['frames'], R['idle']
+    """The idle loop at frames 0 to M - 1, one cycle of the walk after it and one of the run after that, with
+    follow-through the gait leaves out."""
+    walk, idle, run = R['walk']['frames'], R['idle'], (R.get('run') or {}).get('frames', [])
     idle = idle if isinstance(idle, list) else [idle]
     N, M = len(walk), len(idle)
     deg = math.radians
-    # the coat: its front pushed forward by whichever leg leads, its back dragged by the trailing one, each a chain of
-    # springs so the hem lags behind the hips
-    lead = [max(f['thighAbs'], f['thighAbsFar'], 0.0) for f in walk]
-    trail = [min(f['thighAbs'], f['thighAbsFar'], 0.0) for f in walk]
-    front = spring_chain([0.55 * a + 1.5 for a in lead], COAT_CHAIN, omega=2 * math.pi * 2.4, zeta=0.5)
-    back = spring_chain([0.5 * a - 2.0 for a in trail], COAT_CHAIN, omega=2 * math.pi * 2.0, zeta=0.45)
-    # the ponytail: each step's bounce swings it, the tip later than the root
-    bob = [f.get('bob', 0.0) for f in walk]
-    lo, hi = min(bob), max(bob)
-    mid, half = (lo + hi) / 2, max(1e-6, (hi - lo) / 2)
-    pony = spring_chain([PONY_TRAIL - PONY_GAIN * (b - mid) / half for b in bob], PONY_CHAIN, omega=2 * math.pi * 1.8, zeta=0.35)
-    # the forearms trail the upper arms a little
-    lag = max(1, round(N * 0.07))
 
     def key(frame, angles):
         for name, a in angles.items():
@@ -361,41 +349,74 @@ def animate(arm):
                 a[f'coatF{i + 1}'] = icoat[i][k] - (icoat[i - 1][k] if i else 0.0)
                 a[f'coatB{i + 1}'] = icoat[i][k] - (icoat[i - 1][k] if i else 0.0)
         key(k, {**rest, **a})
-    for k, f in enumerate(walk):
-        p = k / N
-        pitch = 0.7 * math.sin(4 * math.pi * (p - 0.1))
-        a = {n: f[n] for n in ('legUpper', 'legLower', 'foot', 'legFarUpper', 'legFarLower', 'footFar', 'armUpper', 'armFarUpper')}
-        a['torso'] = f['torso'] + pitch
-        a['head'] = f['head'] - pitch
-        for up, low in (('armUpper', 'armLower'), ('armFarUpper', 'armFarLower')):
-            a[low] = f[low] + (walk[(k - lag) % N][up] - f[up])
-        for i in range(COAT_CHAIN):
-            a[f'coatF{i + 1}'] = front[i][k] - (front[i - 1][k] if i else 0.0)
-            a[f'coatB{i + 1}'] = back[i][k] - (back[i - 1][k] if i else 0.0)
-        for i in range(PONY_CHAIN):
-            a[f'pony{i + 1}'] = pony[i][k] - (pony[i - 1][k] if i else 0.0)
-        key(M + k, {**rest, **a})
+    def cycle(start, frames, pitch_k, coat_k, pony_trail, pony_gain):
+        """One cycle of a gait keyed from frame `start`: the coat its legs push and drag, the ponytail its steps swing,
+        the forearms trailing the upper arms, the torso pitching with each step."""
+        n = len(frames)
+        # the coat: its front pushed forward by whichever leg leads, its back dragged by the trailing one, each a chain
+        # of springs so the hem lags behind the hips
+        lead = [max(f['thighAbs'], f['thighAbsFar'], 0.0) for f in frames]
+        trail = [min(f['thighAbs'], f['thighAbsFar'], 0.0) for f in frames]
+        front = spring_chain([coat_k * (0.55 * a + 1.5) for a in lead], COAT_CHAIN, omega=2 * math.pi * 2.4, zeta=0.5)
+        back = spring_chain([coat_k * (0.5 * a - 2.0) for a in trail], COAT_CHAIN, omega=2 * math.pi * 2.0, zeta=0.45)
+        # the ponytail: each step's bounce swings it, the tip later than the root
+        bob = [f.get('bob', 0.0) for f in frames]
+        lo, hi = min(bob), max(bob)
+        mid, half = (lo + hi) / 2, max(1e-6, (hi - lo) / 2)
+        pony = spring_chain([pony_trail - pony_gain * (b - mid) / half for b in bob], PONY_CHAIN, omega=2 * math.pi * 1.8, zeta=0.35)
+        # the forearms trail the upper arms a little
+        lag = max(1, round(n * 0.07))
+        for k, f in enumerate(frames):
+            p = k / n
+            pitch = pitch_k * math.sin(4 * math.pi * (p - 0.1))
+            a = {nm: f[nm] for nm in ('legUpper', 'legLower', 'foot', 'legFarUpper', 'legFarLower', 'footFar', 'armUpper', 'armFarUpper')}
+            a['torso'] = f['torso'] + pitch
+            a['head'] = f['head'] - pitch
+            for up, low in (('armUpper', 'armLower'), ('armFarUpper', 'armFarLower')):
+                a[low] = f[low] + (frames[(k - lag) % n][up] - f[up])
+            for i in range(COAT_CHAIN):
+                a[f'coatF{i + 1}'] = front[i][k] - (front[i - 1][k] if i else 0.0)
+                a[f'coatB{i + 1}'] = back[i][k] - (back[i - 1][k] if i else 0.0)
+            for i in range(PONY_CHAIN):
+                a[f'pony{i + 1}'] = pony[i][k] - (pony[i - 1][k] if i else 0.0)
+            key(start + k, {**rest, **a})
+
+    cycle(M, walk, 0.7, 1.0, PONY_TRAIL, PONY_GAIN)
+    # running, the coat flies out further behind, the ponytail streams back and bounces harder, the torso pitches more
+    if run:
+        cycle(M + N, run, 1.6, 1.5, PONY_TRAIL * 3.0, PONY_GAIN * 1.6)
     for fc in arm.animation_data.action.fcurves if arm.animation_data and arm.animation_data.action and hasattr(arm.animation_data.action, 'fcurves') else []:
         for kp in fc.keyframe_points:
             kp.interpolation = 'CONSTANT'
     scn = bpy.context.scene
-    scn.frame_start, scn.frame_end = 0, M + N - 1
+    scn.frame_start, scn.frame_end = 0, M + N + len(run) - 1
     scn.timeline_markers.new('idle', frame=0)
     scn.timeline_markers.new('walk', frame=M)
+    if run:
+        scn.timeline_markers.new('run', frame=M + N)
 
 
-def setup_render():
+def use_gpu():
+    """Cycles on the Mac's GPU, without the optimised kernels Metal compiles in the background while it renders: that
+    compile crashed Blender partway through a set. The frames are the same without them."""
     scn = bpy.context.scene
-    scn.render.engine = 'CYCLES'
     try:
         prefs = bpy.context.preferences.addons['cycles'].preferences
         prefs.compute_device_type = 'METAL'
+        if hasattr(prefs, 'kernel_optimization_level'):
+            prefs.kernel_optimization_level = 'OFF'
         prefs.get_devices()
         for d in prefs.devices:
             d.use = True
         scn.cycles.device = 'GPU'
     except Exception:
         scn.cycles.device = 'CPU'
+
+
+def setup_render():
+    scn = bpy.context.scene
+    scn.render.engine = 'CYCLES'
+    use_gpu()
     scn.cycles.samples = 16
     scn.cycles.use_denoising = False
     scn.cycles.pixel_filter_type = 'BOX'
@@ -435,6 +456,7 @@ def render_sets():
 
 if RENDER_ONLY:
     bpy.ops.wm.open_mainfile(filepath=BLEND)
+    use_gpu()
 else:
     bpy.ops.wm.read_factory_settings(use_empty=True)
     first = R['sets'][0]

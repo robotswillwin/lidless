@@ -90,6 +90,9 @@ function hotspotSide(i: number): void {
   } else {
     side(...viewText('Look text', h.look, (v) => { if (v === undefined) delete h.look; else h.look = v; }, true));
     side(str('Conversation (Ink knot)', h.talk ?? '', (v) => { if (v) h.talk = v; else delete h.talk; }));
+    // what the Use and Take verbs do to it: without a text, they do nothing to it and it does not light up for them
+    side(...viewText('Use text', h.use, (v) => { if (v === undefined) delete h.use; else h.use = v; }, true));
+    side(...viewText('Take text', h.take, (v) => { if (v === undefined) delete h.take; else h.take = v; }, true));
   }
   side(buttons(['Delete', () => deleteSelected(), 'danger']));
 }

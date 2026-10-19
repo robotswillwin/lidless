@@ -16,14 +16,18 @@ npm run dev
 
 Then open the address Vite prints.
 
-- Click or tap to walk. Click a thing to use it: with one use she just does it; with several they fan out in an arc
-  above it, each in its fixed place (Feet go, Hands use, Eyes look, Heart talks, and in Concierge view its bell asks
-  the Concierge). A second click on the same thing, or a double-click, does its main use. Right-click looks. Arrow
-  keys or A/D walk too.
-- **N** opens her notebook, **I** her things (her pockets in raw view), **Esc** closes. In Concierge view,
-  *Ring for assistance* asks the Concierge for a hint.
-- Talk to the fixer in the radio shop. Once he has opened your eye, **E** or the button switches between
-  Concierge view and raw view, and many things read differently. On the dev server, E works from the start.
+- Made for a phone held sideways; a mouse works the same way, and nothing needs it to hover. Tap anywhere to walk
+  there; far off, she runs. Tapping a door or the end of the street walks her there and through. Arrow keys or A/D
+  walk too, with Shift she runs.
+- **The ball at the bottom right** holds what she can do: Look, Talk, Use, Take, and in Concierge view Ask (its bell).
+  Choose one, then press and slide over the scene: what that verb does something to lights up under your finger
+  (framed by the Concierge in its view, ringed in her pencil in raw view), and letting go does it. Right-click puts the
+  verb down, or looks; **Esc** puts it down.
+- **The ball at the bottom left** holds her things (her pockets in raw view), her notebook, the view switch once she
+  has it, and in Concierge view *Ring for assistance*, which asks the Concierge for a hint. **N** opens the notebook,
+  **I** her things, **Esc** closes.
+- Talk to the fixer in the radio shop. Once he has opened your eye, **E** or her temple (with her things) switches
+  between Concierge view and raw view, and many things read differently. On the dev server, E works from the start.
 - Number keys pick answers in a conversation. **Q** cycles the quality tiers.
 - **L** opens the look panel: pixel size and shape, colour levels and dither, lights, haze, bloom, light shafts,
   raw-view fog and rain, how lights behind characters fill and rim them, how much glow shows over them and the light

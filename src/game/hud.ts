@@ -1,14 +1,17 @@
 // The HUD over the frame. In the Concierge's view it is the Concierge's own interface: it names and classifies what
-// the pointer is over, greets her, offers its services and keeps her things in its catalogue. In raw view that
+// her finger lights up, greets her, offers its services and keeps her things in its catalogue. In raw view that
 // interface is gone, because the augmented eye is switched off: what is left is Lux's own, her handwriting on what she
 // has noticed, her pockets, her notebook and her sense of being watched.
 //
-// Actions on a thing fan out in an arc above it, each of her properties always in the same place so the hand learns
-// them: Feet far left, Hands upper left, Eyes on top, Heart upper right, and the Concierge's bell far right.
+// Two balls at the bottom corners, made for thumbs, and nothing that needs a mouse to hover: her things on the left
+// (her pockets, her notebook, the view switch, the Concierge's bell), what she can do on the right (look, talk, use,
+// take, ask). A ball opens its choices on an arc around it. With a verb chosen, what her finger is over lights up if
+// the verb does something to it, and letting go does it.
 
+import { verbName, verbsIn, type Verb } from './actions';
 import { note, pick, type Hotspot, type ViewText } from './level';
 
-export type ActionKind = 'feet' | 'hands' | 'eyes' | 'heart' | 'ask';
+export type ActionKind = 'feet' | 'hands' | 'take' | 'eyes' | 'heart' | 'ask';
 
 export interface Action {
   kind: ActionKind;
@@ -17,9 +20,6 @@ export interface Action {
   /** Steps of the Concierge's attention it costs. */
   cost?: number;
 }
-
-/** Where each kind of action sits on the arc, in degrees: 0 to the right, -90 straight up. */
-const PLACE: Record<ActionKind, number> = { feet: -170, hands: -130, eyes: -90, heart: -50, ask: -10 };
 
 export interface Item {
   icon: string;
@@ -53,6 +53,12 @@ const ICONS: Record<string, string> = {
   hands: '<path d="M7 12V6.5a1.5 1.5 0 0 1 3 0V11M10 11V4.5a1.5 1.5 0 0 1 3 0V11M13 11V5.5a1.5 1.5 0 0 1 3 0V12M16 12V8.5a1.5 1.5 0 0 1 3 0V15a6.5 6.5 0 0 1-6.5 6.5h-1A6.5 6.5 0 0 1 6 18.6l-2.7-3.4a1.5 1.5 0 0 1 2.3-1.9L7 15"/>',
   heart: '<path d="M12 20s-7.2-4.4-9.3-8.8C1.3 8.1 3.1 5 6.4 5c2.1 0 3.3 1.2 4 2.3.4.6 1 .6 1.3 0 .8-1.1 2-2.3 4-2.3 3.4 0 5.2 3.1 3.7 6.2C17.3 15.6 12 20 12 20z"/>',
   feet: '<path d="M12 2.5c2.3 0 3.6 2.3 3.6 5.2S14.4 14 12.3 14 8.9 10.9 8.9 7.9 9.7 2.5 12 2.5zM11.1 16.2c1.5 0 2.6 1.1 2.6 2.6s-1 2.7-2.2 2.7-2.7-1.2-2.7-2.7.8-2.6 2.3-2.6z"/>',
+  // a hand closing under a small box: taking it
+  take: '<rect x="9.5" y="2.5" width="7" height="6" rx="1"/><path d="M3 15.5l3.6-1.9a2.4 2.4 0 0 1 2-.1l3.4 1.3a1.4 1.4 0 0 1-.9 2.7l-2.6-.6M3 21l4.2-1.7h5.9l6.4-4.6a1.5 1.5 0 0 0-1.8-2.4l-4.4 2.7"/>',
+  // the verbs' ball with no verb chosen: a ring with four ticks, choose what to do
+  verbs: '<circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v3.5M12 18v3.5M2.5 12H6M18 12h3.5"/>',
+  // the view switch: the dot behind her eye
+  temple: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.2"/>',
   ask: '<path d="M3 18h18M5 18a7 7 0 0 1 14 0M12 11V8.5M10.5 8h3M4 21h16"/>',
   notebook: '<rect x="5" y="3" width="14" height="18" rx="1.5"/><path d="M9 3v18M12 8h4M12 11.5h4"/>',
   satchel: '<path d="M4.5 9h15l-1.2 11.2a1 1 0 0 1-1 .8H6.7a1 1 0 0 1-1-.8L4.5 9z"/><path d="M9 9V7a3 3 0 0 1 6 0v2"/>',
@@ -92,9 +98,18 @@ function button(cls: string, label: string, parent: HTMLElement, onClick: () => 
   return b;
 }
 
+/** What a chosen verb lights up under her finger: the thing, what the verb does to it, and where it is on screen. */
+export interface Mark {
+  h: Hotspot;
+  a: Action;
+  /** x, y, width, height in the HUD's pixels. */
+  box: [number, number, number, number];
+}
+
 export class Hud {
   readonly root: HTMLElement;
-  onAction: (h: Hotspot, a: Action) => void = () => {};
+  /** A verb chosen at the right ball, or put down (null). */
+  onVerb: (v: Verb | null) => void = () => {};
   onTemple: () => void = () => {};
   onBell: () => void = () => {};
   onDispose: (id: string, dispose: boolean) => void = () => {};
@@ -109,15 +124,16 @@ export class Hud {
   private status: HTMLElement;
   private toastEl: HTMLElement | null = null;
   private toastTimer = 0;
-  private hover: HTMLElement;
-  private ring: HTMLElement | null = null;
-  private ringOf: Hotspot | null = null;
   private eye: HTMLElement;
-  private noteBtn: HTMLButtonElement;
-  private thingsBtn: HTMLButtonElement;
-  private bellBtn: HTMLButtonElement;
-  private temple: HTMLButtonElement;
-  private viewLabel: HTMLElement;
+  private thingsBall: HTMLButtonElement;
+  private verbBall: HTMLButtonElement;
+  private verbLabel: HTMLElement;
+  private verb: Verb | null = null;
+  private unlocked = false;
+  private menu: HTMLElement | null = null;
+  private menuKind: 'things' | 'verbs' | null = null;
+  private markEl: HTMLElement | null = null;
+  private markOf: Hotspot | null = null;
   private panel: HTMLElement | null = null;
   private panelKind: 'things' | 'notebook' | null = null;
   private items: Record<string, Item> = {};
@@ -141,52 +157,46 @@ export class Hud {
     this.eye.innerHTML = `<svg class="eye" width="64" height="38" viewBox="0 0 70 40" fill="none" stroke-linecap="round" aria-hidden="true"><g filter="url(#lidless-pencil)"><path d="M4 20C13 7 24 4 35 4s22 3 31 16C57 33 46 36 35 36S13 33 4 20z" stroke="currentColor" stroke-width="2"/><circle class="iris" cx="35" cy="20" r="9" stroke="currentColor" stroke-width="2"/><circle class="pupil" cx="35" cy="20" r="3"/></g></svg><div class="ticks"><span></span><span></span><span></span></div>`;
     this.eye.setAttribute('role', 'img');
 
-    this.hover = el('div', 'hud-hover', root);
-    this.hover.hidden = true;
-
-    const left = el('div', 'hud-left', root);
-    this.noteBtn = button('hud-btn hud-round hud-lux', 'Her notebook (N)', left, () => this.togglePanel('notebook'));
-    this.thingsBtn = button('hud-btn hud-things', 'Her things (I)', left, () => this.togglePanel('things'));
-
-    const right = el('div', 'hud-right', root);
-    this.bellBtn = button('hud-btn hud-co hud-bell', 'Ring for assistance', right, () => this.onBell());
-    this.bellBtn.innerHTML = `${icon('ask', 22)}<span>Ring for assistance</span>`;
-    // in raw view, in her hand: what the switch is doing
-    el('div', 'hud-temple-note hud-hand', right, 'seeing it as it is');
-    this.temple = button('hud-btn hud-temple', 'Press her temple to switch views (E)', right, () => this.onTemple());
-    this.temple.id = 'view';
-    el('span', 'dot', this.temple);
-    this.viewLabel = el('span', 'vh', this.temple, 'Concierge view');
-    this.viewLabel.id = 'view-label';
+    // the two balls: her things on the left, what she can do on the right, the verb chosen named beside it
+    this.thingsBall = button('hud-ball things', 'Her things', root, () => this.toggleMenu('things'));
+    this.verbBall = button('hud-ball verbs', 'What she can do', root, () => this.toggleMenu('verbs'));
+    this.verbLabel = el('div', 'hud-ball-label', root);
+    this.verbLabel.hidden = true;
     this.setAttention(0);
   }
 
   setThings(items: Record<string, Item>, carried: string[]): void {
     this.items = items;
     this.carried = carried;
-    this.drawButtons();
+    this.drawBalls();
   }
 
   setNotebook(pages: NotebookPages): void {
     this.notebook = pages;
   }
 
-  /** Which view is on screen, and whether she can switch yet: the temple and her sense of being watched come with the biohack. */
+  /** Which view is on screen, and whether she can switch yet: the switch and her sense of being watched come with the biohack. */
   setView(raw: boolean, unlocked: boolean): void {
-    const changed = raw !== this.raw;
+    const changed = raw !== this.raw || unlocked !== this.unlocked;
     this.raw = raw;
+    this.unlocked = unlocked;
     this.root.dataset.skin = raw ? 'raw' : 'concierge';
-    this.temple.hidden = !unlocked;
+    if (unlocked) this.root.dataset.switch = ''; else delete this.root.dataset.switch;
     this.eye.hidden = !unlocked;
-    this.temple.setAttribute('aria-pressed', String(raw));
-    this.viewLabel.textContent = raw ? 'Raw view' : 'Concierge view';
     if (changed) {
-      this.closeRing();
-      this.showHover(null);
+      this.closeMenu();
+      this.mark(null);
       if (raw) this.dismissToast();
-      this.drawButtons();
+      this.drawBalls();
       if (this.panelKind) this.openPanel(this.panelKind);
     }
+  }
+
+  /** The verb chosen, or none: the right ball shows it, and names it beside it until it is used or put down. */
+  setVerb(v: Verb | null): void {
+    this.verb = v;
+    this.closeMenu();
+    this.drawBalls();
   }
 
   /** The Concierge's greeting and its line of the day, time and weather. */
@@ -204,75 +214,112 @@ export class Hud {
     this.eye.setAttribute('aria-label', `The Concierge's attention: ${['calm', 'noticing', 'watching', 'watching closely'][n]}`);
   }
 
-  /** The name of what the pointer is over: the Concierge's label in its view, her handwriting in raw view. */
-  showHover(h: Hotspot | null, clientX = 0, clientY = 0): void {
-    if (!h || this.ring) { this.hover.hidden = true; return; }
-    const tag = note(h.tag, this.raw);
-    this.hover.replaceChildren();
-    el('div', 'name', this.hover, pick(h.name, this.raw));
-    if (tag) el('div', 'tag', this.hover, tag);
-    const r = this.root.getBoundingClientRect();
-    this.hover.style.left = `${clientX - r.left}px`;
-    this.hover.style.top = `${clientY - r.top}px`;
-    this.hover.hidden = false;
-    this.hover.classList.toggle('flip', clientX - r.left + 18 + this.hover.offsetWidth > r.width - 8);
+  /**
+   * What a chosen verb lights up under her finger, or nothing (null): in the Concierge's view its frame around the thing,
+   * glowing, with its name, its classification and the verb; in raw view her pencil ring around it and her handwriting.
+   */
+  mark(m: Mark | null): void {
+    if (!m) { this.markEl?.remove(); this.markEl = null; this.markOf = null; return; }
+    const [x, y, w, h] = m.box;
+    if (this.markOf !== m.h || !this.markEl) {
+      this.markEl?.remove();
+      const box = (this.markEl = el('div', 'hud-mark', this.root));
+      this.markOf = m.h;
+      box.insertAdjacentHTML('beforeend', this.raw
+        ? `<svg class="ring" viewBox="0 0 54 54" preserveAspectRatio="none" ${SVG_ATTRS}><g filter="url(#lidless-pencil)"><path d="${LOOP}"/></g></svg>`
+        : '<svg class="frame" aria-hidden="true"><path/></svg>');
+      const label = el('div', 'hud-mark-label', box);
+      el('div', 'name', label, pick(m.h.name, this.raw));
+      const tag = note(m.h.tag, this.raw);
+      if (tag) el('div', 'tag', label, tag);
+      const verb = el('div', 'verb', label);
+      verb.insertAdjacentHTML('beforeend', icon(m.a.kind, 16, this.raw));
+      el('span', '', verb, m.a.label);
+      if (m.a.cost) verb.insertAdjacentHTML('beforeend', '<svg class="cost" width="30" height="16" viewBox="0 0 34 18" fill="none" stroke-linecap="round" aria-hidden="true"><path d="M2 9C5 4 8.5 3 12 3s7 1 10 6c-3 5-6.5 6-10 6S5 14 2 9z"/><circle cx="12" cy="9" r="2"/><path d="M26 9h6M29 6v6"/></svg>');
+    }
+    const box = this.markEl;
+    box.style.left = `${x}px`;
+    box.style.top = `${y}px`;
+    box.style.width = `${w}px`;
+    box.style.height = `${h}px`;
+    // its corners, as long as the frame allows
+    const c = Math.min(14, w / 3, h / 3), frame = box.querySelector('svg.frame');
+    if (frame) {
+      frame.setAttribute('viewBox', `0 0 ${w} ${h}`);
+      frame.querySelector('path')?.setAttribute('d', `M0 ${c}V0H${c}M${w - c} 0H${w}V${c}M${w} ${h - c}V${h}H${w - c}M${c} ${h}H0V${h - c}`);
+    }
+    // the label above it, or under it when there is no room above
+    box.classList.toggle('below', y < 70);
   }
 
-  /** While she talks the conversation has the bottom of the frame: her buttons and the hover step aside. */
+  /** While she talks the conversation has the bottom of the frame: the balls step aside. */
   setTalking(on: boolean): void {
     if (on) { this.closeAll(); this.root.dataset.talking = ''; } else delete this.root.dataset.talking;
   }
 
-  get ringFor(): Hotspot | null { return this.ringOf; }
   get panelOpen(): boolean { return this.panel !== null; }
+  get menuOpen(): boolean { return this.menu !== null; }
 
-  /**
-   * Fan the actions out in an arc above the point she clicked, each in its place, the default lit. Without room above, the
-   * arc opens downwards; near the sides it moves in.
-   */
-  openRing(h: Hotspot, actions: Action[], def: ActionKind, clientX: number, clientY: number): void {
-    this.closeRing();
-    this.hover.hidden = true;
-    const box = this.root.getBoundingClientRect(), W = box.width;
-    const r = Math.max(64, Math.min(104, W * 0.066)), slot = Math.max(42, Math.min(56, W * 0.036));
-    const x = Math.max(r + 70, Math.min(W - r - 120, clientX - box.left)), y = clientY - box.top;
-    const down = y - r - slot - 64 < 0, dir = down ? -1 : 1;
-    const ring = (this.ring = el('div', 'hud-ring', this.root));
-    this.ringOf = h;
-    ring.style.left = `${x}px`;
-    ring.style.top = `${y}px`;
-    ring.innerHTML = `<svg class="arc" width="${2 * r + 8}" height="${r + 8}" viewBox="${-r - 4} ${down ? -4 : -r - 4} ${2 * r + 8} ${r + 8}" aria-hidden="true"><g filter="${this.raw ? 'url(#lidless-pencil)' : 'none'}"><path d="M${-r} 0A${r} ${r} 0 0 ${down ? 0 : 1} ${r} 0" fill="none"/><circle class="anchor" r="4.5"/></g></svg>`;
-    const arc = ring.querySelector('svg.arc') as SVGElement;
-    arc.style.left = `${-r - 4}px`;
-    arc.style.top = `${down ? -4 : -r - 4}px`;
-    const title = el('div', `hud-ring-title${down ? ' below' : ''}`, ring);
-    el('div', 'name', title, pick(h.name, this.raw));
-    if (note(h.tag, this.raw)) el('div', 'tag', title, note(h.tag, this.raw));
-    // clear of the label over the top slot, which is taller in her handwriting
-    const lift = r + slot / 2 + (this.raw ? 46 : 32);
-    title.style.top = `${down ? lift : -lift}px`;
-    for (const a of actions) {
-      const deg = PLACE[a.kind] * dir, rad = (deg * Math.PI) / 180, sx = r * Math.cos(rad), sy = r * Math.sin(rad);
-      const b = button(`hud-slot${a.kind === def ? ' default' : ''}${a.kind === 'ask' ? ' co' : ''}`, `${a.label}${a.cost ? ', costs the Concierge’s attention' : ''}`, ring, () => this.onAction(h, a));
-      b.style.left = `${sx}px`;
-      b.style.top = `${sy}px`;
-      b.innerHTML = this.raw
-        ? `<svg class="loop" viewBox="0 0 54 54" ${SVG_ATTRS}><g filter="url(#lidless-pencil)"><path d="${LOOP}"/></g></svg>${icon(a.kind, 24, true)}`
-        : icon(a.kind, 24);
-      const side = Math.abs(deg + 90 * dir) < 15 ? (down ? 'below' : 'above') : Math.cos(rad) < 0 ? 'left' : 'right';
-      const label = el('div', `hud-slot-label ${side}${a.kind === 'ask' ? ' co' : ''}`, ring);
-      el('span', '', label, a.label);
-      if (a.cost) label.insertAdjacentHTML('beforeend', '<svg class="cost" width="30" height="16" viewBox="0 0 34 18" fill="none" stroke-linecap="round" aria-hidden="true"><path d="M2 9C5 4 8.5 3 12 3s7 1 10 6c-3 5-6.5 6-10 6S5 14 2 9z"/><circle cx="12" cy="9" r="2"/><path d="M26 9h6M29 6v6"/></svg>');
-      const gap = slot / 2 + 8;
-      label.style.left = `${sx + (side === 'left' ? -gap : side === 'right' ? gap : 0)}px`;
-      label.style.top = `${sy + (side === 'above' ? -gap : side === 'below' ? gap : 0)}px`;
-    }
+  private toggleMenu(kind: 'things' | 'verbs'): void {
+    if (this.menuKind === kind) this.closeMenu();
+    else this.openMenu(kind);
   }
 
-  closeRing(): void {
-    this.ring?.remove();
-    this.ring = null;
-    this.ringOf = null;
+  /**
+   * A ball's choices on a quarter circle around it: the verbs from straight up round to the left of the right ball,
+   * her things from straight up round to the right of the left one, each labelled outward. The chosen verb is lit, and
+   * choosing it again puts it down.
+   */
+  private openMenu(kind: 'things' | 'verbs'): void {
+    this.closeMenu();
+    this.closePanel();
+    // like a panel, the choices clear what she was looking at off the bottom of the screen
+    this.onPanel();
+    const ball = kind === 'verbs' ? this.verbBall : this.thingsBall;
+    const choices: { id: string; icon: string; label: string; on?: boolean; co?: boolean; badge?: number; run: () => void }[] = kind === 'verbs'
+      ? verbsIn(this.raw).map((v) => ({ id: v, icon: v, label: verbName(v, this.raw), on: v === this.verb, co: v === 'ask', run: () => this.onVerb(v === this.verb ? null : v) }))
+      : [
+          { id: 'things', icon: 'satchel', label: this.raw ? 'pockets' : 'Your things', badge: this.raw ? undefined : this.thingCount(), run: () => this.togglePanel('things') },
+          { id: 'notebook', icon: 'notebook', label: this.raw ? 'notebook' : 'Notebook', run: () => this.togglePanel('notebook') },
+          ...(this.unlocked ? [{ id: 'view', icon: 'temple', label: this.raw ? 'back to its view' : 'see it as it is', run: () => { this.closeMenu(); this.onTemple(); } }] : []),
+          ...(this.raw ? [] : [{ id: 'bell', icon: 'ask', label: 'Ring for assistance', co: true, run: () => { this.closeMenu(); this.onBell(); } }]),
+        ];
+    const root = this.root.getBoundingClientRect(), b = ball.getBoundingClientRect(), slot = b.width / 1.15;
+    const menu = (this.menu = el('div', `hud-menu ${kind}`, this.root));
+    this.menuKind = kind;
+    ball.setAttribute('aria-expanded', 'true');
+    menu.style.left = `${b.left + b.width / 2 - root.left}px`;
+    menu.style.top = `${b.top + b.height / 2 - root.top}px`;
+    const n = choices.length, r = Math.max(slot * 2.1, ((slot + 12) * (n - 1)) / (Math.PI / 2));
+    const from = -90, span = kind === 'verbs' ? -90 : 90;
+    menu.insertAdjacentHTML('beforeend', `<svg class="arc" width="${2 * r}" height="${2 * r}" viewBox="${-r} ${-r} ${2 * r} ${2 * r}" aria-hidden="true"><g filter="${this.raw ? 'url(#lidless-pencil)' : 'none'}"><path d="M0 ${-r}A${r} ${r} 0 0 ${kind === 'verbs' ? 0 : 1} ${kind === 'verbs' ? -r : r} 0" fill="none"/></g></svg>`);
+    const arc = menu.querySelector('svg.arc') as SVGElement;
+    arc.style.left = `${-r}px`;
+    arc.style.top = `${-r}px`;
+    choices.forEach((c, i) => {
+      const deg = from + span * (n > 1 ? i / (n - 1) : 0.5), rad = (deg * Math.PI) / 180, cx = Math.cos(rad), cy = Math.sin(rad);
+      const s = button(`hud-slot${c.on ? ' default' : ''}${c.co ? ' co' : ''}`, c.label, menu, c.run);
+      s.dataset[kind === 'verbs' ? 'verb' : 'menu'] = c.id;
+      s.style.left = `${r * cx}px`;
+      s.style.top = `${r * cy}px`;
+      s.innerHTML = this.raw
+        ? `<svg class="loop" viewBox="0 0 54 54" ${SVG_ATTRS}><g filter="url(#lidless-pencil)"><path d="${LOOP}"/></g></svg>${icon(c.icon, 24, true)}`
+        : icon(c.icon, 24);
+      if (c.badge !== undefined) el('span', 'badge', s, String(c.badge));
+      // the label further out along the same line, its near edge towards the slot
+      const label = el('div', `hud-slot-label${c.co ? ' co' : ''}`, menu, c.label), out = r + slot / 2 + 8;
+      label.style.left = `${out * cx}px`;
+      label.style.top = `${out * cy}px`;
+      label.style.transform = `translate(${cx < -0.3 ? '-100%' : cx > 0.3 ? '0' : '-50%'}, ${cy < -0.3 ? '-100%' : cy > 0.3 ? '0' : '-50%'})`;
+    });
+  }
+
+  closeMenu(): void {
+    this.menu?.remove();
+    this.menu = null;
+    this.menuKind = null;
+    this.verbBall.setAttribute('aria-expanded', 'false');
+    this.thingsBall.setAttribute('aria-expanded', 'false');
   }
 
   /** A message from the Concierge, under its greeting. Only in its view: raw view has no Concierge to show it. */
@@ -298,11 +345,11 @@ export class Hud {
     this.toastEl = null;
   }
 
-  /** Close what the HUD has open: the ring and a panel. */
+  /** Close what the HUD has open: a ball's choices, a panel, what a verb has lit. */
   closeAll(): void {
-    this.closeRing();
+    this.closeMenu();
     this.closePanel();
-    this.hover.hidden = true;
+    this.mark(null);
   }
 
   togglePanel(kind: 'things' | 'notebook'): void {
@@ -314,34 +361,43 @@ export class Hud {
     this.panel?.remove();
     this.panel = null;
     this.panelKind = null;
-    this.noteBtn.setAttribute('aria-pressed', 'false');
-    this.thingsBtn.setAttribute('aria-pressed', 'false');
   }
 
-  /** N for the notebook, I for her things, Escape closes. Returns true if it used the key. */
+  /** N for the notebook, I for her things, Escape closes what is open or puts the verb down. Returns true if it used the key. */
   key(k: string): boolean {
-    if (k === 'Escape' && (this.ring || this.panel)) { this.closeAll(); return true; }
+    if (k === 'Escape' && (this.menu || this.panel)) { this.closeAll(); return true; }
+    if (k === 'Escape' && this.verb) { this.onVerb(null); return true; }
     if (k === 'n' || k === 'N') { this.togglePanel('notebook'); return true; }
     if (k === 'i' || k === 'I') { this.togglePanel('things'); return true; }
     return false;
   }
 
-  private drawButtons(): void {
-    this.noteBtn.innerHTML = this.raw ? `<svg class="loop" viewBox="0 0 54 54" ${SVG_ATTRS}><g filter="url(#lidless-pencil)"><path d="${LOOP}"/></g></svg>${icon('notebook', 24, true)}` : icon('notebook', 24);
-    const n = this.carried.filter((id) => this.items[id] && this.items[id].only !== (this.raw ? 'concierge' : 'raw')).length;
-    this.thingsBtn.className = `hud-btn hud-things ${this.raw ? 'hud-lux' : 'hud-co'}`;
-    this.thingsBtn.innerHTML = this.raw
-      ? `${icon('satchel', 30, true)}<span>pockets</span>`
-      : `${icon('satchel', 22)}<span>Your things</span><span class="badge">${n}</span>`;
-    this.thingsBtn.setAttribute('aria-label', `${this.raw ? 'Her pockets' : 'Your things'} (I), ${n} ${n === 1 ? 'thing' : 'things'}`);
+  /** How many of her things are there in the view on screen. */
+  private thingCount(): number {
+    return this.carried.filter((id) => this.items[id] && this.items[id].only !== (this.raw ? 'concierge' : 'raw')).length;
+  }
+
+  /** The balls in the view's skin: her satchel on the left, the verb chosen (or the ring of choices) on the right. */
+  private drawBalls(): void {
+    const loop = this.raw ? `<svg class="loop" viewBox="0 0 54 54" ${SVG_ATTRS}><g filter="url(#lidless-pencil)"><path d="${LOOP}"/></g></svg>` : '';
+    const n = this.thingCount();
+    this.thingsBall.innerHTML = `${loop}${icon('satchel', 26, this.raw)}${this.raw ? '' : `<span class="badge">${n}</span>`}`;
+    this.thingsBall.setAttribute('aria-label', `${this.raw ? 'Her pockets, her notebook' : 'Your things, your notebook'}${this.unlocked ? ', the view switch' : ''} (I, N)`);
+    this.verbBall.innerHTML = `${loop}${icon(this.verb ?? 'verbs', 26, this.raw)}`;
+    this.verbBall.setAttribute('aria-pressed', String(this.verb !== null));
+    this.verbBall.setAttribute('aria-label', this.verb ? `${verbName(this.verb, this.raw)}: choose another, or put it down` : 'What she can do: look, talk, use, take');
+    this.verbLabel.hidden = !this.verb;
+    if (this.verb) {
+      this.verbLabel.replaceChildren();
+      el('div', 'verb', this.verbLabel, verbName(this.verb, this.raw));
+      el('div', 'hint', this.verbLabel, this.raw ? 'slide over things' : 'Slide over what you see');
+    }
   }
 
   private openPanel(kind: 'things' | 'notebook'): void {
-    this.closeRing();
+    this.closeMenu();
     this.panel?.remove();
     this.panelKind = kind;
-    this.noteBtn.setAttribute('aria-pressed', String(kind === 'notebook'));
-    this.thingsBtn.setAttribute('aria-pressed', String(kind === 'things'));
     const p = (this.panel = el('section', `hud-panel ${kind === 'notebook' ? 'notebook' : this.raw ? 'pockets' : 'things'}`, this.root));
     p.addEventListener('pointerdown', (e) => e.stopPropagation());
     this.onPanel();

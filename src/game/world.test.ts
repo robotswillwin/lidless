@@ -43,3 +43,30 @@ describe('walking', () => {
     expect(world.heroX).toBeCloseTo(304, 0);
   });
 });
+
+describe('running', () => {
+  const runner: LevelDef = { ...level, hero: { ...level.hero, runSpeed: 150 } };
+
+  it('runs at her running pace, and walks again once she is there', () => {
+    const world = new World(runner, 100);
+    world.walkTo(700, null, true);
+    world.update(1);
+    expect(world.running).toBe(true);
+    expect(world.heroX).toBeCloseTo(250, 5);
+    for (let i = 0; i < 600 && world.moving; i++) world.update(1 / 60);
+    expect(world.heroX).toBe(700);
+    expect(world.running).toBe(false);
+  });
+
+  it('runs about twice as fast as she walks when the sprite has no run of its own, and with Shift on the keys', () => {
+    const world = new World(level, 100);
+    world.walkTo(700, null, true);
+    world.update(1);
+    expect(world.heroX).toBeCloseTo(100 + 60 * 2.2, 5);
+    world.keyRun = true;
+    world.keyDir = -1;
+    world.update(0.5);
+    expect(world.running).toBe(true);
+    expect(world.heroX).toBeCloseTo(232 - 66, 5);
+  });
+});

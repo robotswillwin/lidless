@@ -104,8 +104,12 @@ export interface SceneFile {
 
 export interface WorldFile {
   start: Exit;
-  /** cadence: strides (two steps) a second; with a walk that has a stride, her pace follows it, so her feet stay where they land. */
-  hero: { sprite: string; speed: number; cadence?: number; smoke?: [number, number]; items?: string[] };
+  /**
+   * cadence: strides (two steps) a second; with a walk that has a stride, her pace follows it, so her feet stay where
+   * they land. runCadence: the same running (by default a third more). runFrom: sent further than this many times her
+   * height on screen, she runs (2.5 by default).
+   */
+  hero: { sprite: string; speed: number; cadence?: number; runCadence?: number; runFrom?: number; smoke?: [number, number]; items?: string[] };
   scenes: string[];
 }
 
@@ -177,7 +181,7 @@ export function checkSceneFile(data: unknown, id?: string): string[] {
     if (!isStr(h?.id)) out.push(`${name} has no id`);
     if (!nums(h?.rect, 4)) out.push(`${name}: rect must be [x, y, width, height]`);
     if (!viewText(h?.name)) out.push(`${name}: name must be text, or { concierge, raw }`);
-    if (h?.look !== undefined && !viewText(h.look)) out.push(`${name}: look must be text, or { concierge, raw }`);
+    for (const k of ['look', 'use', 'take'] as const) if (h?.[k] !== undefined && !viewText(h[k])) out.push(`${name}: ${k} must be text, or { concierge, raw }`);
     const go = h?.go as Record<string, unknown> | undefined;
     if (go !== undefined && (!isStr(go?.scene) || !isStr(go?.spawn))) out.push(`${name}: go needs a scene and a spawn to arrive at`);
     if (h?.only !== undefined && h.only !== 'raw' && h.only !== 'concierge') out.push(`${name}: only must be "raw" or "concierge"`);

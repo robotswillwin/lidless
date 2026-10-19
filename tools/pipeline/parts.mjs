@@ -20,16 +20,17 @@ export const WALK = {
 
 /**
  * Move the images of one frame down together until the lowest opaque row of any of them sits on the bottom edge:
- * the planted foot stays on the ground, and both views stay aligned.
+ * the planted foot stays on the ground, and both views stay aligned. `air` pixels short of it for a frame she is off the
+ * ground in, running.
  */
-export function plant(imgs) {
+export function plant(imgs, air = 0) {
   let low = -1;
   for (const img of imgs) for (let y = img.h - 1; y > low; y--) {
     let hit = false;
     for (let x = 0; x < img.w && !hit; x++) hit = img.d[(y * img.w + x) * 4 + 3] >= 128;
     if (hit) { low = y; break; }
   }
-  const drop = low < 0 ? 0 : imgs[0].h - 1 - low;
+  const drop = low < 0 ? 0 : Math.max(0, imgs[0].h - 1 - low - Math.round(air));
   return imgs.map((img) => {
     if (!drop) return img;
     const out = blank(img.w, img.h);
@@ -312,7 +313,14 @@ export function pose(parts, angles, { w, h, origin, far = [-14, -6], matrices = 
  * on is not the ankle but where a standing person's weight falls, 40% along the foot from the heel (`WEIGHT`). `idle` changes the same for her stance: weight on the near leg, the far leg free with its heel lifted (`heel`,
  * degrees) and its foot a little forward (`step`).
  */
-export const GAIT = { frames: 16, stride: 1.35, stance: 0.62, lift: 0.11, strike: 12, toeOff: 24, flex: 0.008, arms: 10, elbow: 10, elbowSwing: 10, lean: 3, back: 0.04, reach: 0.993, coat: 2 };
+export const GAIT = { frames: 16, stride: 1.35, stance: 0.62, lift: 0.11, strike: 12, toeOff: 24, flex: 0.008, arms: 10, elbow: 10, elbowSwing: 10, lean: 3, back: 0.04, reach: 0.993, coat: 2, dip: 0.08 };
+/**
+ * How she runs, a recipe's `parts.run` changing any of it: the walk's settings, the stride longer and the time on the
+ * ground shorter than half the cycle, so both feet are off it between steps; the heel kicks up behind, the knee drives
+ * forward, the torso leans into it, the arms are bent and swing hard, and the hip dips most halfway through each step
+ * (`dip`: when in the cycle, after the foot lands).
+ */
+export const RUN = { frames: 16, stride: 2.3, stance: 0.36, lift: 0.3, strike: 4, toeOff: 30, flex: 0.03, arms: 46, elbow: 80, elbowSwing: 16, lean: 11, back: 0.02, reach: 0.985, coat: 5, dip: 0.17 };
 export const STAND = { step: 0.06, heel: 10, reach: 0.997, arm: -3, elbow: 9, farArm: 4, farElbow: 12, lean: 1 };
 /** Where along the foot, from the heel, a person's weight falls when they stand: the body is balanced over this point. */
 const WEIGHT = 0.4;
@@ -364,8 +372,8 @@ const softMin = (a, b, k) => Math.min(a, b) - k * Math.log(1 + Math.exp(-Math.ab
  * cycle; the legs reach the feet, and the hip rides as high as both legs allow, so it dips at each heel strike and rises
  * over the standing leg. `far` is where the far hip sits from the near one.
  */
-export function walkCycle(parts, gaitIn = {}, far = [-14, -6]) {
-  const g = { ...GAIT, ...gaitIn }, leg = legOf(parts), L = leg.L1 + leg.L2, S = g.stride * L, R = g.reach * L;
+export function walkCycle(parts, gaitIn = {}, far = [-14, -6], base = GAIT) {
+  const g = { ...base, ...gaitIn }, leg = legOf(parts), L = leg.L1 + leg.L2, S = g.stride * L, R = g.reach * L;
   const footLen = leg.toe[0] - leg.heel[0], heelOff = g.stance - 0.2;
   // the heel lands so that, halfway through the foot's time on the ground, its weight point passes a little behind her
   // hip: she is carried over her feet
@@ -389,8 +397,11 @@ export function walkCycle(parts, gaitIn = {}, far = [-14, -6]) {
   for (let k = 0; k < g.frames; k++) {
     const p = k / g.frames, n = legAt(p), f = legAt(p + 0.5);
     // the ground under the hip: as low as the legs reach, a little lower as each leg takes her weight
-    const G = softMin(groundFor([0, 0], n.x, n.oy, R), groundFor(far, f.x, f.oy, R), 0.02 * L) - g.flex * L * (bell(p - 0.08) + bell(p - 0.58));
+    const G = softMin(groundFor([0, 0], n.x, n.oy, R), groundFor(far, f.x, f.oy, R), 0.02 * L) - g.flex * L * (bell(p - g.dip) + bell(p - g.dip - 0.5));
     const nl = reach(leg, [0, 0], [n.x, G - n.oy], n.phi), fl = reach(leg, far, [f.x, G - f.oy], f.phi);
+    // how far the lowest point of either foot is off the ground: 0 while one stands on it, more when she is in the air
+    const low = (ft) => Math.max(...[leg.heel, leg.toe].map((pt) => turnVec(pt, ft.phi)[1])) - ft.oy;
+    const air = Math.max(0, -Math.max(low(n), low(f)));
     const arm = (q) => ({ up: -g.arms * Math.cos(2 * Math.PI * (q - 0.05)), low: g.elbow + (g.elbowSwing * (1 - Math.cos(2 * Math.PI * (q - 0.05)))) / 2 });
     const an = arm(p), af = arm(p + 0.5);
     // the head and the arms turn with the torso; turned back by as much, the head stays level and the arms hang
@@ -400,11 +411,14 @@ export function walkCycle(parts, gaitIn = {}, far = [-14, -6]) {
       armUpper: an.up - tor, armLower: an.low, armFarUpper: af.up - tor, armFarLower: af.low,
       // where the thighs point, for a coat or skirt that the legs push and drag; and how high the hip rides, for hair
       // that bounces with each step
-      thighAbs: nl.thighAbs, thighAbsFar: fl.thighAbs, bob: G,
+      thighAbs: nl.thighAbs, thighAbsFar: fl.thighAbs, bob: G, air,
     });
   }
   return { frames, stride: S };
 }
+
+/** One run cycle: the walk's model with the run's settings (`RUN`, a recipe's `parts.run` over them). */
+export const runCycle = (parts, runIn = {}, far = [-14, -6]) => walkCycle(parts, runIn, far, RUN);
 
 /** Her stance for parts that have a foot: weight on the near leg, its foot flat under her; the far leg free, a little forward, heel lifted. */
 export function standPose(parts, standIn = {}, far = [-14, -6]) {

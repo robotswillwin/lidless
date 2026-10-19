@@ -143,8 +143,8 @@ export async function assembleOne(r) {
     const files = (await readdir(d)).filter((f) => f.startsWith(`${view}-`) && f.endsWith('.png')).sort();
     return Promise.all(files.map((f) => readRGBA(join(d, f))));
   };
-  // runs in this order, each where it exists: standing and walking facing right, then the same facing left
-  const RUNS = ['idle', 'walk', 'idleLeft', 'walkLeft'], views = {};
+  // runs in this order, each where it exists: standing, walking and running facing right, then the same facing left
+  const RUNS = ['idle', 'walk', 'run', 'idleLeft', 'walkLeft', 'runLeft'], views = {};
   for (const v of ['raw', 'concierge']) {
     const runs = {};
     for (const run of RUNS) runs[run] = await load(run, v);
@@ -155,14 +155,18 @@ export async function assembleOne(r) {
   if (b && RUNS.some((run) => a[run].length !== b[run].length)) throw new Error(`${r.name}: the raw and Concierge views have different frames; make both the same way`);
   const all = [views.raw, views.concierge].filter(Boolean).flatMap((v) => RUNS.flatMap((run) => v[run]));
   const box = all.map((img) => contentBox(img)).reduce(unionBox), scale = height / box.h;
-  const frames = async (v) => v && Promise.all(RUNS.flatMap((run) => v[run]).map(async (img) => plant([hardenAlpha(await fitToHeight(img, box, height))])[0]));
-  const stride = existsSync(join(dir, 'walk', 'stride.json')) ? JSON.parse(await readFile(join(dir, 'walk', 'stride.json'), 'utf8')).stride * scale : 0;
+  const gaitOf = async (name) => (existsSync(join(dir, name, 'stride.json')) ? JSON.parse(await readFile(join(dir, name, 'stride.json'), 'utf8')) : null);
+  const walkG = await gaitOf('walk'), runG = await gaitOf('run');
+  // each frame is set down on its lowest foot, a run's frames as high off the ground as she is in them
+  const airOf = (run, k) => (run.startsWith('run') ? (runG?.air?.[k] ?? 0) * scale : 0);
+  const frames = async (v) => v && Promise.all(RUNS.flatMap((run) => v[run].map((img, k) => [img, airOf(run, k)])).map(async ([img, air]) => plant([hardenAlpha(await fitToHeight(img, box, height))], air)[0]));
   const anims = {};
   let from = 0;
   for (const run of RUNS) {
     const count = a[run].length;
     if (!count) continue;
-    anims[run] = run.startsWith('walk') ? { from, count, stride: toLevel(stride, res) } : { from, count };
+    const g = run.startsWith('walk') ? walkG : run.startsWith('run') ? runG : null;
+    anims[run] = g ? { from, count, stride: toLevel(g.stride * scale, res) } : { from, count };
     from += count;
   }
   // the anchor: the rig's hip if the frames were baked from parts; otherwise writeAnimated centres it

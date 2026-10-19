@@ -5,12 +5,12 @@ import type { Sprite } from '../engine/assets';
 import type { LookSet } from '../engine/look';
 import { fitCanvas, NH, NW, type Renderer } from '../engine/renderer';
 import { createLookPanel, type LookPanel } from '../look-panel';
-import { actionsFor, defaultOf } from './actions';
+import { actionFor, actionsFor, defaultOf, verbsIn, type Verb } from './actions';
 import { frameFor } from './anim';
 import { Camera, cameraTarget } from './camera';
 import { Dialogue } from './dialogue';
 import { heroDrawing } from './hero';
-import { Hud, type Action, type Item, type NotebookPages } from './hud';
+import { Hud, type Action, type Item, type Mark, type NotebookPages } from './hud';
 import { inView, pick, type Hotspot } from './level';
 import { writeSave, type SaveData } from './save';
 import { SceneRunner, type ViewState } from './scene';
@@ -76,6 +76,12 @@ export class Game {
   private pending: Action | null = null;
   /** The walk keys held down. */
   private readonly held = new Set<'left' | 'right'>();
+  /** The verb chosen at the ball: what she will do to the next thing her finger lights up. */
+  private verb: Verb | null = null;
+  /** What it lights up under her finger now. */
+  private marked: Mark | null = null;
+  /** Where a finger (or the mouse button) went down on the scene, while it is down. */
+  private down: [number, number] | null = null;
 
   private constructor(private readonly s: GameSetup) {
     this.dialogue = new Dialogue(s.save?.ink ?? null);
@@ -99,7 +105,7 @@ export class Game {
       this.ui.showDialogue(lines, this.dialogue.choices, said);
     };
     this.ui.onClose = () => this.endTalk();
-    this.hud.onAction = (h, a) => this.perform(h, a);
+    this.hud.onVerb = (v) => this.setVerb(v);
     this.hud.onTemple = () => this.toggleView();
     this.hud.onBell = () => this.hud.toast(this.scene.file.assist ?? 'Is there anything I can do for you, guest?');
     this.hud.onPanel = () => this.ui.hideCaption();
@@ -144,8 +150,10 @@ export class Game {
     this.scene = next;
     this.runner = new SceneRunner(next.loaded);
     // her pace follows her stride at her size here, so each foot stays where it lands
-    const walk = this.s.hero.def.anims?.walk, cadence = this.s.world.hero.cadence;
-    if (cadence && walk?.stride) next.level.hero.speed = cadence * walk.stride * (next.file.actorScale ?? 1);
+    const anims = this.s.hero.def.anims, cadence = this.s.world.hero.cadence, sc = next.file.actorScale ?? 1;
+    if (cadence && anims?.walk?.stride) next.level.hero.speed = cadence * anims.walk.stride * sc;
+    // and running, her longer stride at a quicker cadence
+    if (cadence && anims?.run?.stride) next.level.hero.runSpeed = (this.s.world.hero.runCadence ?? cadence * 1.35) * anims.run.stride * sc;
     this.world = new World(next.level, at.x ?? sp?.x, at.facing ?? sp?.facing);
     this.camera.jump(this.cameraTarget());
     this.cam[0] = this.s.fixedCam ?? this.camera.x;
@@ -163,6 +171,7 @@ export class Game {
     this.travelling = true;
     this.world.stop();
     this.releaseKeys();
+    this.setVerb(null);
     this.hud.closeAll();
     // what she was looking at stays behind
     this.ui.hideCaption();
@@ -222,7 +231,10 @@ export class Game {
     this.state.view = this.state.view > 0.5 ? 0 : 1;
     this.switchedAt = this.clock();
     this.look.refresh();
+    // a verb the other view does not have (the Concierge's bell) is put down
+    if (this.verb && !verbsIn(this.raw).includes(this.verb)) this.setVerb(null);
     this.syncView();
+    this.hud.setVerb(this.verb);
     this.persist();
     // back in its view after staring too long: it noticed, and it is concerned
     if (this.state.view > 0.5 && this.attention >= 3) this.hud.toast('You seem distracted this evening, guest. Shall I schedule some rest for you?', [{ label: 'Yes, please', primary: true }, { label: 'No, thank you' }]);
@@ -239,7 +251,7 @@ export class Game {
     this.syncView();
     this.persist();
     if (unlocked) {
-      this.ui.showCaption('Something behind your eye is new. Press E, or the button, to see what is really there.');
+      this.ui.showCaption('Something behind your eye is new. Touch your temple, with your things at the bottom left, or press E, to see what is really there.');
       this.switchedAt = this.clock();
     }
   }
@@ -254,21 +266,36 @@ export class Game {
     } else if (a.kind === 'eyes' && h.look) {
       this.ui.showCaption(pick(h.look, raw));
       if (a.cost) this.raiseAttention(a.cost);
-    } else if (a.kind === 'ask' && h.ask) this.hud.toast(h.ask);
+    } else if (a.kind === 'hands' && h.use) this.ui.showCaption(pick(h.use, raw));
+    else if (a.kind === 'take' && h.take) this.ui.showCaption(pick(h.take, raw));
+    else if (a.kind === 'ask' && h.ask) this.hud.toast(h.ask);
   }
 
-  /** Looking and asking happen from where she stands, turned towards it; going and talking walk her there first. */
+  /** Looking and asking happen from where she stands, turned towards it; talking, using and taking walk her there first. */
   private perform(h: Hotspot, a: Action): void {
-    this.hud.closeRing();
     if (a.kind === 'eyes' || a.kind === 'ask' || h.stand === undefined) {
       if (!this.world.moving) this.world.facing = h.rect[0] + h.rect[2] / 2 >= this.world.heroX ? 1 : -1;
       return this.act(h, a);
     }
     this.pending = a;
-    this.world.walkTo(h.stand, h);
+    this.goTo(h.stand, h);
   }
 
-  /* ---------- input: the pointer in level pixels, the walk keys ---------- */
+  /** She goes to x, and then does what is pending to `then`. Further off than a few of her heights, she runs. */
+  private goTo(x: number, then: Hotspot | null = null): void {
+    const far = (this.s.world.hero.runFrom ?? 2.5) * this.s.hero.def.h * (this.scene.file.actorScale ?? 1);
+    this.world.walkTo(x, then, Math.abs(x - this.world.heroX) > far);
+  }
+
+  /* ---------- input: verbs, the pointer in level pixels, the walk keys ---------- */
+
+  /** A verb chosen at the ball, or put down. */
+  private setVerb(v: Verb | null): void {
+    this.verb = v;
+    this.unmark();
+    this.hud.setVerb(v);
+    this.s.canvas.style.cursor = v ? 'crosshair' : '';
+  }
 
   /** The point under the pointer, in level pixels: the screen's position in the scene. */
   toLevel(clientX: number, clientY: number): [number, number] {
@@ -276,34 +303,79 @@ export class Game {
     return [((clientX - r.left) / r.width) * NW + this.cam[0], ((clientY - r.top) / r.height) * NH + this.cam[1]];
   }
 
-  /** The pointer moved: the name of what is under it. */
-  hover(clientX: number, clientY: number, mouse: boolean): void {
-    if (!mouse || this.ui.dialogueOpen || this.travelling) return this.hud.showHover(null);
-    const [x, y] = this.toLevel(clientX, clientY), h = this.world.hotspotAt(x, y, this.raw, this.cam[0]);
-    this.s.canvas.style.cursor = h ? 'pointer' : 'default';
-    this.hud.showHover(h, clientX, clientY);
+  /** A thing's place on screen, in the HUD's pixels, where its layer has moved to with the camera. */
+  private boxOf(h: Hotspot): [number, number, number, number] {
+    const c = this.s.canvas.getBoundingClientRect(), hud = this.hud.root.getBoundingClientRect(), k = c.width / NW;
+    const [x, y, w, hh] = h.rect;
+    return [(x - this.cam[0] * (h.parallax ?? 1)) * k + c.left - hud.left, (y - this.cam[1]) * k + c.top - hud.top, w * k, hh * k];
+  }
+
+  /** With a verb chosen: what is under the pointer lights up if the verb does something to it. */
+  private scan(clientX: number, clientY: number): void {
+    const [x, y] = this.toLevel(clientX, clientY), h = this.verb ? this.world.hotspotAt(x, y, this.raw, this.cam[0]) : null;
+    const a = h && this.verb ? actionFor(h, this.verb, this.raw) : null;
+    this.marked = h && a ? { h, a, box: this.boxOf(h) } : null;
+    this.hud.mark(this.marked);
+  }
+
+  private unmark(): void {
+    this.marked = null;
+    this.hud.mark(null);
   }
 
   /**
-   * A click or tap: on a thing with one use it does it, on a thing with several it fans them out, and a second click on
-   * the same thing (or a double-click) does the default. Right-click looks. On the ground, she walks there.
+   * A finger or the mouse button went down on the scene. With a verb chosen, what is under it lights up. Without one,
+   * she goes there: up to a thing, through a way out (a door, the end of the street), running if it is far. A finger
+   * held down and moved steers her. Right-click puts the verb down, or looks.
    */
-  press(clientX: number, clientY: number, button: number): void {
+  pointerDown(clientX: number, clientY: number, button: number): void {
     if (this.ui.dialogueOpen || this.travelling) return;
-    if (this.hud.panelOpen) return this.hud.closePanel();
-    const raw = this.raw, [x, y] = this.toLevel(clientX, clientY), h = this.world.hotspotAt(x, y, raw, this.cam[0]), again = h !== null && this.hud.ringFor === h;
-    this.hud.closeRing();
-    if (!h) return this.world.walkTo(x);
-    const actions = actionsFor(h, raw);
-    if (!actions.length) return;
-    if (button === 2) { const eyes = actions.find((a) => a.kind === 'eyes'); if (eyes) this.perform(h, eyes); return; }
-    if (actions.length === 1 || again) return this.perform(h, again ? defaultOf(actions) : actions[0]);
-    this.hud.openRing(h, actions, defaultOf(actions).kind, clientX, clientY);
+    if (this.hud.menuOpen || this.hud.panelOpen) return this.hud.closeAll();
+    if (button === 2) {
+      if (this.verb) return this.setVerb(null);
+      const [x, y] = this.toLevel(clientX, clientY), h = this.world.hotspotAt(x, y, this.raw, this.cam[0]), a = h && actionFor(h, 'eyes', this.raw);
+      if (h && a) this.perform(h, a);
+      return;
+    }
+    this.down = [clientX, clientY];
+    if (this.verb) return this.scan(clientX, clientY);
+    const [x, y] = this.toLevel(clientX, clientY), h = this.world.hotspotAt(x, y, this.raw, this.cam[0]);
+    this.pending = h?.go ? { kind: 'feet', label: '' } : null;
+    this.goTo(h?.go || h?.stand === undefined ? x : h.stand, h?.go ? h : null);
   }
 
-  walkKey(dir: 'left' | 'right', down: boolean): void {
+  /** It moved: with a verb, what it is over lights up (a mouse needs no button for that); a finger held down steers her. */
+  pointerMove(clientX: number, clientY: number): void {
+    if (this.ui.dialogueOpen || this.travelling) return;
+    if (this.verb) return this.scan(clientX, clientY);
+    if (this.down && Math.hypot(clientX - this.down[0], clientY - this.down[1]) > 12) {
+      this.pending = null;
+      this.goTo(this.toLevel(clientX, clientY)[0]);
+    }
+  }
+
+  /** It came up: with a verb, letting go over what it lit does the verb to it, and the verb is put down. */
+  pointerUp(): void {
+    const was = this.down;
+    this.down = null;
+    if (!was || !this.verb) return;
+    const m = this.marked;
+    if (!m) return this.unmark();
+    this.setVerb(null);
+    this.perform(m.h, m.a);
+  }
+
+  /** The finger was taken away, or the mouse left the scene without a button down. */
+  pointerCancel(): void {
+    this.down = null;
+    this.unmark();
+  }
+
+  /** The arrows walk her, with Shift she runs. */
+  walkKey(dir: 'left' | 'right', down: boolean, run = false): void {
     if (down) this.held.add(dir);
     else this.held.delete(dir);
+    this.world.keyRun = run;
     this.syncKeys();
     if (!down && !this.world.keyDir) this.persist();
   }
@@ -353,7 +425,9 @@ export class Game {
     // emitter follows her cigarette, or goes off screen when she has none
     const hero = this.s.hero, sc = file.actorScale ?? 1, bob = (hero.def.anims?.walk ? 0 : world.bob) * sc, hs = this.s.world.hero.smoke;
     const smoke: [number, number] = hs ? [world.heroX + hs[0] * sc * world.facing, file.walk.y + hs[1] * sc + bob] : [-1000, -1000];
-    const her = heroDrawing(hero, { x: world.heroX, walkY: file.walk.y, cam: this.cam, scale: sc, facing: world.facing, bob, frame: frameFor(hero.def, world.moving, world.walked / sc, t, world.facing) });
+    const her = heroDrawing(hero, { x: world.heroX, walkY: file.walk.y, cam: this.cam, scale: sc, facing: world.facing, bob, frame: frameFor(hero.def, world.moving, world.walked / sc, t, world.facing, world.running) });
+    // what a verb lights up stays on the thing as the camera follows her
+    if (this.marked) { this.marked.box = this.boxOf(this.marked.h); this.hud.mark(this.marked); }
     fitCanvas(this.s.canvas);
     this.s.renderer.render(this.runner.frame(t, this.state, this.cam, [her], smoke));
   }

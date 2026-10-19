@@ -229,8 +229,15 @@ Standing, she breathes: a loop of 16 frames (`idleCycle` in tools/pipeline/parts
 torso tips back a touch, her head, arms and free knee follow, and in Blender her ponytail and coat sway on their
 springs; the recipe's `anims.idle.fps` (5) sets its pace.
 
+Running, she follows the same model with the run's settings (`RUN` in tools/pipeline/parts.mjs, a recipe's
+`parts.run` changing any of them): a longer stride, each foot on the ground for less than half the cycle so she is in
+the air between steps, the heel kicking up behind, the knee driving forward, a lean into it and bent arms swinging
+hard; in Blender the coat flies out further and the ponytail streams back. Each run frame records how far she is off
+the ground, and `build` sets it down that far up, so the flight stays in. The game runs her when she is sent further
+than 2.5 times her height (`runFrom` in world.json), at her run stride and `runCadence`.
+
 To change the walk by hand: open `art/cast/hero/rig/hero.blend` in Blender, pose the `rig` armature (frames 0 to 15
-are her idle loop, the 16 after it one cycle of the walk; markers name them), save, and run
+are her idle loop, the 16 after it one cycle of the walk, then 16 of the run; markers name them), save, and run
 `npm run asset -- rig art/cast/hero.json --render-only`,
 then `build`. The walk is animated once and every outfit and side follows. Redrawing a part means replacing its image
 in the parts folder and running `parts --recut`, then `rig`. Set pieces (sleeping, eating, showering) are fixed-frame

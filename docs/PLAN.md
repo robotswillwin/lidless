@@ -49,12 +49,16 @@ The design: https://claude.ai/artifact/X65FknT3sqWZBgJaHgHboZ. In code: `src/gam
   labels on things, its messages, *Ring for assistance* and *Your things*. In raw view that interface is gone with the
   augmented eye, and what is left is Lux's own: her handwriting, her pockets, her notebook, her sense of being watched
   and the temple switch.
-- **The action ring.** Her properties, each always in the same place on an arc above the thing: Feet, Hands, Eyes,
-  Heart and the Concierge's bell. One use does itself; several fan out; a second click does the main one.
+- **Two balls, for thumbs.** Tap to walk (far off, she runs; a door or the street's end, she goes through). The right
+  ball holds the verbs, her properties: Eyes look, Heart talks, Hands use and take, and the Concierge's bell asks it.
+  With a verb chosen, pressing and sliding over the scene lights up what it does something to, and letting go does it:
+  nothing depends on a mouse hovering. The left ball holds her things, her notebook, the view switch and the bell's
+  *Ring for assistance*; later, her eye's mods and using a thing she carries on another.
 - **Data.** A hotspot's `tag` and `ask`, a scene's `greeting` and `assist`, `public/assets/items.json` for her things
   and `public/assets/notebook.json` for her notebook, whose entries appear as Ink variables come true.
-- **Not built yet.** Hands (use, take, give) waits for items in the story; the Concierge's offers (rest, disposal) only
-  answer for now.
+- **Not built yet.** Use and Take only say what happens (a hotspot's `use` and `take`): what she takes does not go into
+  her pockets yet, and giving and using a thing she carries on another wait for items in the story. The Concierge's
+  offers (rest, disposal) only answer for now.
 
 ## Milestones
 

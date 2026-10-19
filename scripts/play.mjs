@@ -35,6 +35,9 @@ const text = (sel) => page.$eval(sel, (e) => (e.hidden ? '' : e.textContent ?? '
 const ready = () => page.waitForFunction(() => document.documentElement.dataset.ready === '1' || document.documentElement.dataset.err, { timeout: 15000 });
 
 const where = () => page.evaluate(() => { const s = JSON.parse(localStorage.getItem('lidless.save.v1') ?? '{}'); return `${s.scene} x=${s.heroX}`; });
+// a verb from the ball in the bottom right corner; then pressing on something it does something to lights it up, and
+// letting go does it
+const verb = async (v) => { await page.click('.hud-ball.verbs'); await wait(200); await page.click(`.hud-menu [data-verb="${v}"]`); await wait(150); };
 const hold = async (key, ms) => { await page.keyboard.down(key); await wait(ms); await page.keyboard.up(key); await wait(1500); };
 
 // the opening route: the game starts in Lux's flat
@@ -42,7 +45,8 @@ await page.goto(`${url}?new`);
 await ready();
 await shot('home');
 
-// out of the flat, down to the backstreet, and along it to the main street: walking into its right end leaves
+// out of the flat, down to the backstreet, and along it to the main street: tapping the door walks her there and out,
+// and walking into the street's right end leaves
 await page.mouse.click(815, 300);
 await wait(3000);
 console.log('out of the flat:', await where());
@@ -50,24 +54,47 @@ await shot('backstreet');
 await hold('ArrowRight', 5000);
 console.log('along the backstreet:', await where());
 
-// something far away: the Concierge's face on its billboard. In the Concierge's view it has two uses, looking and
-// asking it, so a click fans them out; a second click on it does the default, looking, from where she stands
-await page.mouse.click(870, 160);
+// far along the street she runs there
+await page.mouse.click(800, 470);
+await wait(700);
+await shot('running');
+
+// something far away: the Concierge's face on its billboard. Look, chosen at the ball, lights it up under the pointer,
+// and a click on it looks, from where she stands; Ask asks the Concierge about it
+await page.click('.hud-ball.verbs');
 await wait(250);
-console.log('ring:', await page.$$eval('.hud-slot', (b) => b.map((e) => e.getAttribute('aria-label')).join(', ')));
-await shot('ring-sky');
+console.log('verbs:', await page.$$eval('.hud-menu [data-verb]', (b) => b.map((e) => e.getAttribute('aria-label')).join(', ')));
+await shot('verbs');
+await page.click('.hud-menu [data-verb="eyes"]');
+await wait(150);
+await page.mouse.move(870, 160);
+await wait(250);
+console.log('lit:', await text('.hud-mark-label'));
+await shot('look-lit');
 await page.mouse.click(870, 160);
 await wait(300);
-console.log('caption:', await text('.caption'));
+console.log('caption:', await text('.caption'), '| verb put down:', await page.$eval('.hud-ball.verbs', (b) => b.getAttribute('aria-pressed')));
 await shot('look-sky');
+await verb('ask');
+await page.mouse.click(870, 160);
+await wait(300);
+console.log('asked:', await text('.hud-toast'));
+
+// her things, in the left ball: her things, her notebook and the Concierge's bell
+await page.click('.hud-ball.things');
+await wait(250);
+console.log('things:', await page.$$eval('.hud-menu [data-menu]', (b) => b.map((e) => e.getAttribute('aria-label')).join(', ')));
+await shot('things');
+await page.keyboard.press('Escape');
 
 // into the radio repair, through its door on the street, and talk to the fixer at his bench
 await page.mouse.click(304, 350);
 await wait(5000);
 console.log('through the shop door:', await where());
 await shot('shop');
-// a double-click on him does his default, talking
-await page.mouse.click(620, 400, { count: 2 });
+// Talk, and a tap on him: she walks up to him and they talk
+await verb('heart');
+await page.mouse.click(620, 400);
 await page.waitForSelector('.dialogue:not([hidden])', { timeout: 10000 });
 await wait(200);
 await shot('fixer-opens');
@@ -86,7 +113,7 @@ await wait(200);
 await shot('fixer-installs');
 await choose('Close');
 await wait(300);
-console.log('caption:', await text('.caption'), '| button hidden:', await page.$eval('#view', (e) => e.hidden));
+console.log('caption:', await text('.caption'), '| view switch:', await page.$eval('.hud', (e) => 'switch' in e.dataset));
 await shot('unlocked');
 
 // back out to the street by the door in the left wall: walking into the left end leaves. Then raw view, and the woman
@@ -95,6 +122,7 @@ await hold('ArrowLeft', 7000);
 console.log('back out:', await where());
 await page.keyboard.press('e');
 await wait(600);
+await verb('eyes');
 await page.mouse.click(865, 420);
 await wait(600);
 console.log('caption:', await text('.caption'), '| attention:', await page.$eval('.hud-eye', (e) => e.dataset.level));
@@ -114,7 +142,7 @@ await page.keyboard.press('Escape');
 await page.goto(url);
 await ready();
 await wait(300);
-console.log('after reload, button hidden:', await page.$eval('#view', (e) => e.hidden), '| label:', await text('#view-label'), '| skin:', await page.$eval('.hud', (e) => e.dataset.skin));
+console.log('after reload, view switch:', await page.$eval('.hud', (e) => 'switch' in e.dataset), '| skin:', await page.$eval('.hud', (e) => e.dataset.skin));
 await shot('reloaded');
 
 console.log(errors.length ? `errors:\n${errors.join('\n')}` : 'no errors');

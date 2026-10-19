@@ -16,7 +16,7 @@
 html, body { height: 100%; margin: 0; background: var(--bg); }
 .stage { position: fixed; inset: 0; display: grid; place-items: center; container-type: size; }
 /* the frame keeps 16:9 and fills the screen on one axis */
-#game { display: block; width: min(100cqw, 177.78cqh); height: min(56.25cqw, 100cqh); }
+#game { display: block; width: min(100cqw, 177.78cqh); height: min(56.25cqw, 100cqh); touch-action: none; -webkit-user-select: none; user-select: none; }
 .view {
   position: absolute; right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom));
   display: inline-flex; align-items: center; gap: 10px; padding: 10px 14px; border: 0; border-radius: 4px;
@@ -116,23 +116,15 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .hud-eye[data-level="3"] { color: #e2553d; animation: hud-watched 1.6s ease-in-out infinite; }
 @keyframes hud-watched { 50% { opacity: .55; } }
 
-/* the name under the pointer: its label in its view, her handwriting in raw view */
-.hud-hover { position: absolute; transform: translate(18px, -50%); display: grid; gap: 2px; white-space: nowrap; }
-.hud-hover.flip { transform: translate(calc(-100% - 18px), -50%); justify-items: end; }
-.hud[data-skin="concierge"] .hud-hover { padding: 7px 12px 8px; background: rgba(6, 10, 20, .74); border: 1px solid var(--co-line); border-radius: 2px; }
-.hud[data-skin="concierge"] .hud-hover .name { font: italic 500 clamp(14px, 1.3cqw, 19px)/1.2 var(--serif); }
-.hud[data-skin="concierge"] .hud-hover .tag { font: 400 clamp(9px, .75cqw, 11px)/1.3 var(--ui); letter-spacing: .2em; text-transform: uppercase; color: var(--cyan); }
-.hud[data-skin="raw"] .hud-hover { font-family: var(--hand); color: var(--amber); text-shadow: 0 1px 2px #000, 0 0 10px rgba(0, 0, 0, .9); }
-.hud[data-skin="raw"] .hud-hover .name { font-size: clamp(18px, 1.7cqw, 25px); line-height: 1.1; }
-.hud[data-skin="raw"] .hud-hover .tag { font-size: clamp(14px, 1.2cqw, 18px); font-weight: 300; }
-
-/* the action ring: an arc of her properties above what she clicked */
-.hud-ring { position: absolute; width: 0; height: 0; }
-.hud-ring .arc { position: absolute; overflow: visible; }
-.hud-ring .arc path { stroke: rgba(143, 240, 234, .45); stroke-width: 1; }
-.hud-ring .arc .anchor { fill: var(--cyan); }
-.hud[data-skin="raw"] .hud-ring .arc path { stroke: rgba(240, 178, 90, .55); stroke-width: 1.6; }
-.hud[data-skin="raw"] .hud-ring .arc .anchor { fill: var(--amber); }
+/* a ball's choices: slots on a quarter circle around it, each labelled outward */
+.hud-menu { position: absolute; width: 0; height: 0; }
+.hud-menu .arc { position: absolute; overflow: visible; pointer-events: none; }
+.hud-menu .arc path { stroke: rgba(143, 240, 234, .4); stroke-width: 1; }
+.hud[data-skin="raw"] .hud-menu .arc path { stroke: rgba(240, 178, 90, .5); stroke-width: 1.6; }
+.hud-menu .hud-slot { animation: hud-open .16s ease-out both; }
+.hud-menu .hud-slot .badge { position: absolute; right: -6px; top: -6px; min-width: 18px; height: 18px; border-radius: 9px; background: var(--cyan); color: #05060a; font: 500 10px/18px var(--ui); letter-spacing: 0; text-align: center; }
+@keyframes hud-open { from { opacity: 0; transform: scale(.6); } }
+@media (prefers-reduced-motion: reduce) { .hud-menu .hud-slot { animation: none; } }
 .hud-slot {
   position: absolute; width: var(--slot); height: var(--slot); margin: calc(var(--slot) / -2) 0 0 calc(var(--slot) / -2); padding: 0; border-radius: 50%;
   display: grid; place-items: center; border: 1px solid rgba(143, 240, 234, .6); background: rgba(6, 10, 20, .78); color: #dff8f6;
@@ -151,43 +143,53 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
   font: 400 clamp(10px, .82cqw, 12px)/1 var(--ui); letter-spacing: .2em; text-transform: uppercase; text-shadow: 0 1px 3px rgba(0, 0, 0, .95);
 }
 .hud-slot-label.co { color: var(--cyan); }
-.hud-slot-label.left { transform: translate(-100%, -50%); }
-.hud-slot-label.right { transform: translate(0, -50%); }
-.hud-slot-label.above { transform: translate(-50%, -100%); }
-.hud-slot-label.below { transform: translate(-50%, 0); }
 .hud[data-skin="raw"] .hud-slot-label { font: 400 clamp(16px, 1.4cqw, 21px)/1 var(--hand); letter-spacing: 0; text-transform: none; color: var(--amber); text-shadow: 0 1px 2px #000, 0 0 8px rgba(0, 0, 0, .9); }
 .hud-slot-label .cost { stroke: #e2553d; stroke-width: 1.6; }
 .hud-slot-label .cost circle { fill: #e2553d; stroke: none; }
-.hud-ring-title { position: absolute; left: 0; transform: translate(-50%, -100%); display: grid; justify-items: center; gap: 2px; white-space: nowrap; text-shadow: 0 1px 3px rgba(0, 0, 0, .95); }
-.hud-ring-title.below { transform: translate(-50%, 0); }
-.hud-ring-title .name { font: italic 500 clamp(15px, 1.35cqw, 20px)/1.2 var(--serif); }
-.hud-ring-title .tag { font: 400 clamp(9px, .75cqw, 11px)/1.3 var(--ui); letter-spacing: .2em; text-transform: uppercase; color: var(--cyan); }
-.hud[data-skin="raw"] .hud-ring-title .name { font: 400 clamp(19px, 1.8cqw, 27px)/1.1 var(--hand); color: var(--amber); }
-.hud[data-skin="raw"] .hud-ring-title .tag { font: 300 clamp(14px, 1.2cqw, 18px)/1.2 var(--hand); letter-spacing: 0; text-transform: none; color: var(--amber); }
+/* the two balls, made for thumbs: her things on the left, what she can do on the right */
+.hud-ball { position: absolute; bottom: var(--m); width: calc(var(--slot) * 1.15); aspect-ratio: 1; padding: 0; border-radius: 50%; display: grid; place-items: center; }
+.hud-ball.things { left: var(--m); }
+.hud-ball.verbs { right: var(--m); }
+.hud-ball > svg { position: relative; }
+.hud[data-skin="concierge"] .hud-ball { border: 1px solid var(--co-line); background: rgba(6, 10, 20, .72); color: var(--cyan); box-shadow: 0 0 0 5px rgba(143, 240, 234, .07); }
+.hud[data-skin="concierge"] .hud-ball:is([aria-pressed="true"], [aria-expanded="true"]) { border-color: var(--cyan); background: rgba(143, 240, 234, .2); color: #fff; box-shadow: 0 0 24px rgba(143, 240, 234, .55); }
+.hud-ball .badge { position: absolute; right: -3px; top: -3px; min-width: 18px; height: 18px; border-radius: 9px; background: var(--cyan); color: #05060a; font: 500 10px/18px var(--ui); text-align: center; }
+.hud[data-skin="raw"] .hud-ball { border: 0; background: rgba(14, 10, 6, .62); color: var(--amber); }
+.hud[data-skin="raw"] .hud-ball .loop { position: absolute; inset: 0; width: 100%; height: 100%; stroke-width: 1.8; }
+.hud[data-skin="raw"] .hud-ball:is([aria-pressed="true"], [aria-expanded="true"]) { background: rgba(240, 178, 90, .22); box-shadow: 0 0 18px rgba(240, 178, 90, .45); }
+.hud[data-skin="raw"] .hud-ball:is([aria-pressed="true"], [aria-expanded="true"]) .loop { stroke-width: 2.8; }
+/* the verb chosen, beside its ball until it is used or put down */
+.hud-ball-label { position: absolute; right: calc(var(--m) + var(--slot) * 1.15 + 14px); bottom: calc(var(--m) + var(--slot) * .575); transform: translateY(50%); display: grid; justify-items: end; gap: 3px; text-align: right; white-space: nowrap; text-shadow: 0 1px 3px rgba(0, 0, 0, .95); pointer-events: none; }
+.hud[data-skin="concierge"] .hud-ball-label .verb { font: italic 500 clamp(15px, 1.35cqw, 20px)/1.1 var(--serif); }
+.hud[data-skin="concierge"] .hud-ball-label .hint { font: 400 clamp(9px, .75cqw, 11px)/1.3 var(--ui); letter-spacing: .2em; text-transform: uppercase; color: var(--cyan); }
+.hud[data-skin="raw"] .hud-ball-label { font-family: var(--hand); color: var(--amber); }
+.hud[data-skin="raw"] .hud-ball-label .verb { font-size: clamp(19px, 1.8cqw, 26px); line-height: 1; }
+.hud[data-skin="raw"] .hud-ball-label .hint { font-size: clamp(14px, 1.2cqw, 18px); }
+.hud[data-talking] :is(.hud-ball, .hud-ball-label, .hud-menu, .hud-mark) { visibility: hidden; }
+.hud[data-skin="raw"] :is(.hud-ribbon, .hud-toast) { display: none; }
 
-/* the corners: her notebook and things on the left; its bell and her temple on the right */
-.hud-left, .hud-right { position: absolute; bottom: var(--m); display: flex; align-items: center; gap: 14px; }
-.hud-left { left: var(--m); }
-.hud[data-talking] :is(.hud-left, .hud-right, .hud-hover) { visibility: hidden; }
-.hud-right { right: var(--m); }
-.hud-btn { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 0; border: 0; background: none; }
-.hud-round { width: clamp(42px, 3.6cqw, 54px); aspect-ratio: 1; border-radius: 50%; }
-.hud-lux { border: 1.5px solid rgba(240, 178, 90, .75); background: rgba(14, 10, 6, .6); color: var(--amber); }
-.hud-btn.hud-co { min-height: clamp(40px, 3.2cqw, 46px); padding: 0 16px 0 12px; background: rgba(6, 10, 20, .62); border: 1px solid var(--co-line); border-radius: 2px; font: 400 clamp(10px, .82cqw, 12px)/1 var(--ui); letter-spacing: .22em; text-transform: uppercase; color: var(--co-text); }
-.hud-btn.hud-co svg { color: var(--cyan); }
-.hud-things .badge { min-width: 20px; height: 20px; border-radius: 10px; background: var(--cyan); color: #05060a; font: 500 11px/20px var(--ui); letter-spacing: 0; text-align: center; }
-.hud[data-skin="raw"] .hud-round.hud-lux { border: 0; }
-.hud[data-skin="raw"] .hud-round .loop { position: absolute; inset: 0; width: 100%; height: 100%; stroke-width: 1.8; }
-.hud-things.hud-lux { min-height: clamp(42px, 3.6cqw, 54px); padding: 0 16px 0 6px; border: 0; border-radius: 999px; font: 400 clamp(16px, 1.4cqw, 20px)/1 var(--hand); }
-.hud-btn.hud-co[aria-pressed="true"] { border-color: var(--cyan); background: rgba(143, 240, 234, .18); }
-.hud-btn.hud-lux[aria-pressed="true"] { background: rgba(240, 178, 90, .22); box-shadow: 0 0 0 1.5px var(--amber); }
-.hud[data-skin="raw"] :is(.hud-bell, .hud-ribbon, .hud-toast) { display: none; }
-.hud-temple-note { display: none; font-size: clamp(15px, 1.3cqw, 19px); }
-.hud[data-skin="raw"] .hud-temple-note { display: block; }
-.hud-temple { width: clamp(40px, 3.1cqw, 46px); aspect-ratio: 1; border-radius: 50%; border: 1.5px solid rgba(240, 178, 90, .7); background: rgba(14, 10, 6, .55); }
-.hud-temple .dot { width: 30%; aspect-ratio: 1; border-radius: 50%; border: 1.5px solid var(--amber); }
-.hud[data-skin="raw"] .hud-temple { border-color: var(--amber); background: rgba(240, 178, 90, .18); box-shadow: 0 0 16px rgba(240, 178, 90, .45); }
-.hud[data-skin="raw"] .hud-temple .dot { background: var(--amber); box-shadow: 0 0 10px var(--amber); }
+/* what a chosen verb lights up under her finger: the Concierge frames it, she rings it in pencil */
+.hud-mark { position: absolute; pointer-events: none; }
+.hud-mark::before { content: ""; position: absolute; inset: -10%; border-radius: 18%; animation: hud-glow 1.3s ease-in-out infinite; }
+.hud[data-skin="concierge"] .hud-mark::before { background: radial-gradient(closest-side, rgba(143, 240, 234, .22), rgba(143, 240, 234, 0)); }
+.hud[data-skin="raw"] .hud-mark::before { background: radial-gradient(closest-side, rgba(240, 178, 90, .2), rgba(240, 178, 90, 0)); }
+@keyframes hud-glow { 50% { opacity: .55; } }
+@media (prefers-reduced-motion: reduce) { .hud-mark::before { animation: none; } }
+.hud-mark .frame { position: absolute; inset: -6px; width: calc(100% + 12px); height: calc(100% + 12px); overflow: visible; fill: none; stroke: var(--cyan); stroke-width: 2; filter: drop-shadow(0 0 6px rgba(143, 240, 234, .9)); }
+.hud-mark .ring { position: absolute; inset: -16%; width: 132%; height: 132%; stroke: var(--amber); stroke-width: 1.4; vector-effect: non-scaling-stroke; filter: drop-shadow(0 0 5px rgba(240, 178, 90, .8)); }
+.hud-mark-label { position: absolute; left: 50%; bottom: calc(100% + 14px); transform: translateX(-50%); display: grid; justify-items: center; gap: 2px; white-space: nowrap; text-shadow: 0 1px 3px rgba(0, 0, 0, .95); }
+.hud-mark.below .hud-mark-label { bottom: auto; top: calc(100% + 14px); }
+.hud[data-skin="concierge"] .hud-mark-label { padding: 7px 12px 8px; background: rgba(6, 10, 20, .78); border: 1px solid var(--co-line); border-radius: 2px; }
+.hud[data-skin="concierge"] .hud-mark-label .name { font: italic 500 clamp(14px, 1.3cqw, 19px)/1.2 var(--serif); }
+.hud[data-skin="concierge"] .hud-mark-label .tag { font: 400 clamp(9px, .75cqw, 11px)/1.3 var(--ui); letter-spacing: .2em; text-transform: uppercase; color: var(--cyan); }
+.hud-mark-label .verb { display: flex; align-items: center; gap: 6px; margin-top: 3px; }
+.hud[data-skin="concierge"] .hud-mark-label .verb { font: 500 clamp(10px, .82cqw, 12px)/1 var(--ui); letter-spacing: .2em; text-transform: uppercase; color: var(--cyan); }
+.hud[data-skin="raw"] .hud-mark-label { font-family: var(--hand); color: var(--amber); }
+.hud[data-skin="raw"] .hud-mark-label .name { font-size: clamp(18px, 1.7cqw, 25px); line-height: 1.1; }
+.hud[data-skin="raw"] .hud-mark-label .tag { font-size: clamp(14px, 1.2cqw, 18px); font-weight: 300; }
+.hud[data-skin="raw"] .hud-mark-label .verb { font-size: clamp(15px, 1.3cqw, 19px); }
+.hud-mark-label .cost { stroke: #e2553d; stroke-width: 1.6; }
+.hud-mark-label .cost circle { fill: #e2553d; stroke: none; }
 
 /* panels over the street: the Concierge's catalogue, her pockets, her notebook */
 .hud-panel { position: absolute; left: var(--m); right: var(--m); bottom: calc(var(--m) + clamp(54px, 4.6cqw, 70px)); max-height: calc(100% - 2 * var(--m) - 80px); overflow: auto; }

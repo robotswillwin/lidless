@@ -9,7 +9,7 @@ import sharp from 'sharp';
 import { contentBox, fitColours, fitToHeight, hardenAlpha, paletteFit, pixelate, unionBox } from './clean.mjs';
 import { blank, crop, readRGBA, resize, writePNG } from './image.mjs';
 import { edit } from './openai.mjs';
-import { conciergePartsPrompt, cut as cutParts, EXTRA_PARTS, idleCycle, otherSidePrompt, PARTS as PARTS_NAMES, partsPromptFor, plant, pointOf, pose as posePartsRig, SHEET, standPose, template as partsTemplate, walkAngles, walkCycle } from './parts.mjs';
+import { conciergePartsPrompt, cut as cutParts, EXTRA_PARTS, idleCycle, otherSidePrompt, PARTS as PARTS_NAMES, partsPromptFor, plant, pointOf, pose as posePartsRig, runCycle, SHEET, standPose, template as partsTemplate, walkAngles, walkCycle } from './parts.mjs';
 import { loadRecipe, ROOT } from './recipe.mjs';
 import { palette, rel } from './shared.mjs';
 
@@ -254,7 +254,7 @@ export async function cmdRig([file], opt) {
   const r = await loadRecipe(file), dir = join(r.dir, 'parts'), out = join(r.dir, 'rig'), tmp = join(out, 'frames'), FAR = [-14, -6], PERCENT = 50;
   if (!opt['render-only']) {
     const all = JSON.parse(await readFile(join(dir, 'parts.json'), 'utf8')), gait = r.parts?.gait ?? {}, sets = [];
-    let walk = null, idle = null;
+    let walk = null, idle = null, run = null;
     for (const side of ['', '-left']) for (const look of ['raw', 'concierge']) {
       const v = look + side;
       if (!existsSync(join(dir, v, 'torso.png'))) continue;
@@ -272,29 +272,33 @@ export async function cmdRig([file], opt) {
         pieces[name] = { size: [p.img.w, p.img.h], joints: p.joints };
       }
       sets.push({ name: v, left, coatFront: left ? r.parts?.left?.coat === 'front' : r.parts?.coat === 'front', parts: pieces });
-      if (v === 'raw') { walk = walkCycle(parts, gait, FAR); idle = idleCycle(parts, gait.idle, FAR, { frames: gait.idleFrames ?? 16 }); }
+      if (v === 'raw') { walk = walkCycle(parts, gait, FAR); idle = idleCycle(parts, gait.idle, FAR, { frames: gait.idleFrames ?? 16 }); run = runCycle(parts, r.parts?.run ?? {}, FAR); }
     }
     if (!walk) throw new Error(`${r.name}: no raw parts to rig`);
-    await writeFile(join(out, 'rig.json'), JSON.stringify({ blend: `${r.name}.blend`, percent: PERCENT, far: FAR, sets, walk, idle }, null, 1) + '\n');
+    await writeFile(join(out, 'rig.json'), JSON.stringify({ blend: `${r.name}.blend`, percent: PERCENT, far: FAR, sets, walk, idle, run }, null, 1) + '\n');
   }
   await rm(tmp, { recursive: true, force: true });
   execFileSync('blender', ['-b', '--factory-startup', '--python', resolve(ROOT, 'tools/blender/rig.py'), '--', out, tmp, ...(opt['render-only'] ? ['--render-only'] : [])], { stdio: ['ignore', 'inherit', 'inherit'] });
-  // the first frames are the idle loop, the rest the walk; a set seen from the left is mirrored back
-  const rig = JSON.parse(await readFile(join(out, 'rig.json'), 'utf8')), nIdle = Array.isArray(rig.idle) ? rig.idle.length : 1;
+  // the first frames are the idle loop, then the walk, then the run; a set seen from the left is mirrored back
+  const rig = JSON.parse(await readFile(join(out, 'rig.json'), 'utf8')), nIdle = Array.isArray(rig.idle) ? rig.idle.length : 1, nWalk = rig.walk.frames.length;
+  const runs = rig.run ? ['idle', 'walk', 'run'] : ['idle', 'walk'];
+  const which = (i) => (i < nIdle ? ['idle', i] : i < nIdle + nWalk ? ['walk', i - nIdle] : ['run', i - nIdle - nWalk]);
   for (const s of rig.sets) {
     const look = s.name.replace('-left', ''), sfx = s.left ? 'Left' : '';
     const files = (await readdir(join(tmp, s.name))).filter((f) => f.endsWith('.png')).sort();
-    for (const anim of ['idle', 'walk']) {
+    for (const anim of runs) {
       const d = join(out, 'anims', anim + sfx);
       await mkdir(d, { recursive: true });
       for (const f of await readdir(d)) if (f.startsWith(`${look}-`) && f.endsWith('.png')) await rm(join(d, f));
     }
     for (const [i, f] of files.entries()) {
-      const idle = i < nIdle, dst = join(out, 'anims', (idle ? 'idle' : 'walk') + sfx, `${look}-${String(idle ? i : i - nIdle).padStart(2, '0')}.png`);
+      const [anim, k] = which(i), dst = join(out, 'anims', anim + sfx, `${look}-${String(k).padStart(2, '0')}.png`);
       await (s.left ? sharp(join(tmp, s.name, f)).flop() : sharp(join(tmp, s.name, f))).png().toFile(dst);
     }
   }
   await writeFile(join(out, 'anims', 'walk', 'stride.json'), JSON.stringify({ stride: (rig.walk.stride * PERCENT) / 100 }) + '\n');
+  // the run's stride, and how far she is off the ground in each frame, so build sets her down in the air, not on a foot
+  if (rig.run) await writeFile(join(out, 'anims', 'run', 'stride.json'), JSON.stringify({ stride: (rig.run.stride * PERCENT) / 100, air: rig.run.frames.map((f) => ((f.air ?? 0) * PERCENT) / 100) }) + '\n');
   await writeFile(join(out, 'anims', 'origin.json'), JSON.stringify({ x: (800 * PERCENT) / 100 }) + '\n');
   console.log(`${r.name}: rigged in Blender (${rel(join(out, rig.blend))}), ${nIdle} idle and ${rig.walk.frames.length} walk frames for ${rig.sets.map((s) => s.name).join(', ')} → ${rel(join(out, 'anims'))}. Build it with: npm run asset -- build ${rel(r.file)}`);
 }
