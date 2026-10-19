@@ -31,7 +31,7 @@ type Selection =
 
 let world: WorldFile, file: SceneFile, scene: Scene | null = null, runner: SceneRunner | null = null, hero: Sprite | null = null;
 let sel: Selection = { kind: 'scene' }, view = 1, switchedAt = -10, camX = 0, dirty = false, assets: string[] = [];
-let lux = { x: 480, facing: 1 as 1 | -1, show: true };
+let lux = { x: 480, facing: 1 as 1 | -1, show: true, lean: false };
 const undoStack: string[] = [];
 const t0 = performance.now();
 
@@ -75,12 +75,13 @@ function syncScroll(): void {
 
 async function openScene(id: string): Promise<void> {
   file = await loadSceneFile(base, id);
+  look?.setScene(file);
   undoStack.length = 0;
   dirty = false;
   sel = { kind: 'scene' };
   camX = 0;
   const first = Object.values(file.spawns)[0];
-  lux = { x: first?.x ?? file.size[0] / 2, facing: first?.facing ?? 1, show: true };
+  lux = { x: first?.x ?? file.size[0] / 2, facing: first?.facing ?? 1, show: true, lean: lux.lean };
   await rebuild();
   sceneSel.value = id;
   window.history.replaceState(null, '', `?scene=${id}`);
@@ -112,7 +113,10 @@ function draw(): void {
     const d = hero.def, [ax, ay] = d.anchor ?? [d.w / 2, d.h], sc = file.actorScale ?? 1;
     actors.push({ sprite: hero, x: Math.round(lux.x - camX - ax * sc), y: Math.round(file.walk.y - ay * sc), scale: sc, frame: frameFor(d, false, 0, t, lux.facing) });
   }
-  renderer.render(runner.frame(t, { view, sinceSwitch: t - switchedAt }, [camX, 0], actors, [-1000, -1000]));
+  // the camera's lean, as the game would have it with Lux where she stands here (see the scene's drift)
+  const { x0, x1 } = file.walk, drift = file.drift ?? 0;
+  const lean = lux.lean && drift && file.size[0] <= NW && x1 > x0 ? drift * Math.max(-1, Math.min(1, (lux.x - (x0 + x1) / 2) / ((x1 - x0) / 2))) : 0;
+  renderer.render(runner.frame(t, { view, sinceSwitch: t - switchedAt }, [camX, 0], actors, [-1000, -1000], lean));
 }
 
 const css = (c: [number, number, number]) => `rgb(${c.map((v) => Math.round(Math.min(1, Math.max(0, v)) * 255)).join(',')})`;
@@ -471,6 +475,7 @@ function layerSide(i: number): void {
   side.append(
     num('x', l.x ?? d?.x ?? 0, (v) => { l.x = v; }, { after: place }), num('y', l.y ?? d?.y ?? 0, (v) => { l.y = v; }, { after: place }),
     num('Parallax (1 moves with the street)', l.parallax ?? d?.parallax ?? 1, (v) => { l.parallax = v; }, { step: 0.05, min: 0, max: 2, after: place }),
+    check('In front of the people', l.front ?? d?.front ?? false, (v) => { if (v) l.front = true; else delete l.front; if (d) d.front = v; }),
     choice('Depth', String(l.depth ?? d?.depth ?? 3), [['0', 'Sky'], ['1', 'Far'], ['2', 'Middle'], ['3', 'Near']], (v) => { l.depth = Number(v); }, place),
   );
   const move = (to: number) => { if (to < 0 || to >= file.layers.length) return; const before = snapshot(); const [m] = file.layers.splice(i, 1); file.layers.splice(to, 0, m); sel = { kind: 'layer', i: to }; remember(before); void rebuild().then(() => { drawOverlay(); drawSide(); }); };
@@ -487,14 +492,15 @@ function sceneSide(): void {
     num('Walk from x', file.walk.x0, (v) => { file.walk.x0 = v; }), num('Walk to x', file.walk.x1, (v) => { file.walk.x1 = v; }),
     num('Reflection line y', file.mirror ?? file.walk.y - 8, (v) => { file.mirror = v; }, { after: refresh }),
     num('People’s size (1 standard, under 1 further back)', file.actorScale ?? 1, (v) => { if (v === 1) delete file.actorScale; else file.actorScale = v; }, { step: 0.05, min: 0.3, max: 3, after: refresh }),
+    num('Camera lean with Lux, px (0 none; a scene no wider than the screen)', file.drift ?? 0, (v) => { if (v) file.drift = v; else delete file.drift; }, { step: 1, min: 0, max: 60 }),
     num('Light painted into the art (0 to 1)', typeof file.baked === 'number' ? file.baked : 0, (v) => { if (v) file.baked = v; else delete file.baked; }, { step: 0.05, min: 0, max: 1, after: refresh }),
-    num('Rain in raw view (0 to 1)', file.rain ?? 1, (v) => { if (v === 1) delete file.rain; else file.rain = v; }, { step: 0.05, min: 0, max: 1, after: refresh }),
     str('The Concierge’s greeting', file.greeting ?? '', (v) => { if (v) file.greeting = v; else delete file.greeting; }),
     str('Its answer to Ring for assistance', file.assist ?? '', (v) => { if (v) file.assist = v; else delete file.assist; }, { area: true }),
   );
   side.append(heading('Lux', 'Drag the triangle at her feet to move her.'));
   side.append(
     check('Show Lux', lux.show, (v) => { lux.show = v; }),
+    check('Lean the camera with her, as in the game', lux.lean, (v) => { lux.lean = v; }),
     choice('Lux faces', String(lux.facing), [['1', 'Right'], ['-1', 'Left']], (v) => { lux.facing = Number(v) as 1 | -1; }),
   );
   side.append(heading('Layers', 'Back to front. Click one to move it or change its depth.'));
@@ -597,7 +603,7 @@ async function newScene(): Promise<void> {
   undoStack.length = 0;
   sel = { kind: 'scene' };
   camX = 0;
-  lux = { x: Math.round(w / 2), facing: 1, show: true };
+  lux = { x: Math.round(w / 2), facing: 1, show: true, lean: lux.lean };
   await rebuild();
   if (![...sceneSel.options].some((o) => o.value === id)) sceneSel.add(new Option(`${id} (new)`, id));
   sceneSel.value = id;
@@ -705,7 +711,11 @@ async function start(): Promise<void> {
   for (const id of world.scenes) sceneSel.add(new Option(id, id));
   const heroPath = world.hero.sprite, cut = heroPath.lastIndexOf('/');
   hero = await loadSprite(gl, `${base}/${heroPath.slice(0, cut)}`, heroPath.slice(cut + 1), spriteDefaults(gl)).catch(() => null);
-  look = createLookPanel(renderer, project, el<HTMLElement>('stage'), { view: () => (view < 0.5 ? 'raw' : 'concierge') });
+  look = createLookPanel(renderer, project, el<HTMLElement>('stage'), {
+    view: () => (view < 0.5 ? 'raw' : 'concierge'),
+    // the scene's own look was saved into its file: so the editor's own Save keeps it
+    onSceneSaved: (id, json) => { if (file?.id === id) { if (json) file.look = json; else delete file.look; } },
+  });
   const asked = new URLSearchParams(location.search).get('scene');
   await openScene(asked && world.scenes.includes(asked) ? asked : world.scenes[0]);
   syncView();

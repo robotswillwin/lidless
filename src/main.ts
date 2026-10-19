@@ -57,11 +57,20 @@ async function boot(): Promise<void> {
     if (!scenes.has(id)) scenes.set(id, loadSceneFile(assets, id).then((file) => buildScene(gl, assets, file, worldFile, bust)));
     return scenes.get(id)!;
   };
-  let scene: Scene, runner: SceneRunner, world: World;
+  // set by enter(), which runs before anything reads them
+  let scene!: Scene, runner: SceneRunner, world: World;
   const cam: [number, number] = [0, 0];
   let camX = 0;
   /** Where the camera wants to be: her in the middle, the scene's ends never past the screen's. */
   const camTarget = () => Math.max(0, Math.min(scene.file.size[0] - NW, world.heroX - NW / 2));
+  // in a scene no wider than the screen the camera leans with her instead: the scene's drift at the ends of the walk
+  // line, none in the middle, and none for players who asked for less motion
+  let lean = 0;
+  const leanTarget = () => {
+    const drift = scene.file.drift ?? 0, { x0, x1 } = scene.file.walk;
+    if (!drift || reduceMotion || scene.file.size[0] > NW || x1 <= x0) return 0;
+    return drift * Math.max(-1, Math.min(1, (world.heroX - (x0 + x1) / 2) / ((x1 - x0) / 2)));
+  };
   const enter = async (id: string, at: { spawn?: string; x?: number; facing?: 1 | -1 }) => {
     const next = await sceneById(id), sp = at.spawn ? next.file.spawns[at.spawn] : undefined;
     scene = next;
@@ -72,6 +81,7 @@ async function boot(): Promise<void> {
     world = new World(next.level, at.x ?? sp?.x, at.facing ?? sp?.facing);
     camX = camTarget();
     cam[0] = Math.round(camX);
+    lean = leanTarget();
   };
   // the scene to start in: asked for in the address, or the saved one, or where the world starts
   const askedScene = params.get('scene');
@@ -90,7 +100,13 @@ async function boot(): Promise<void> {
   const canSwitch = () => dialogue.hasRaw || debugView;
   const state: ViewState = { view: debugView ? 0 : save && canSwitch() ? save.view : 1, sinceSwitch: 10 };
   // the look panel (L): pixels, light, characters, colour and film, from the game's saved look; split settings follow the view
-  const look = createLookPanel(renderer, projectLook, stage, { view: () => (state.view < 0.5 ? 'raw' : 'concierge') });
+  const look = createLookPanel(renderer, projectLook, stage, {
+    view: () => (state.view < 0.5 ? 'raw' : 'concierge'),
+    // a scene's own look, just saved into its file: the copy loaded here follows
+    onSceneSaved: (id, json) => { void scenes.get(id)?.then((s) => { if (json) s.file.look = json; else delete s.file.look; }); },
+  });
+  // each scene shows the game's look with its own settings over it
+  look.setScene(scene.file);
   const t0 = performance.now(), fixedT = params.has('t') ? Number(params.get('t')) : null;
   const clock = () => fixedT ?? (performance.now() - t0) / 1000;
   let switchedAt = -10, lastT = clock(), frames = 0, fpsAt = performance.now(), fps = 0, lockedBeforeTalk = false;
@@ -113,6 +129,7 @@ async function boot(): Promise<void> {
     await new Promise((r) => setTimeout(r, reduceMotion ? 0 : 260));
     try {
       await enter(exit.scene, { spawn: exit.spawn });
+      look.setScene(scene.file);
       syncKeys();
       persist();
     } catch (err) {
@@ -217,7 +234,7 @@ async function boot(): Promise<void> {
   // second click on the same thing (or a double-click) does the default. Right-click looks. On the ground, she walks
   canvas.addEventListener('pointermove', (e) => {
     if (e.pointerType !== 'mouse' || ui.dialogueOpen || travelling) return hud.showHover(null);
-    const [x, y] = toLevel(e, cam), h = world.hotspotAt(x, y, state.view < 0.5);
+    const [x, y] = toLevel(e, cam), h = world.hotspotAt(x, y, state.view < 0.5, cam[0] + lean);
     canvas.style.cursor = h ? 'pointer' : 'default';
     hud.showHover(h, e.clientX, e.clientY);
   });
@@ -226,7 +243,7 @@ async function boot(): Promise<void> {
   canvas.addEventListener('pointerdown', (e) => {
     if (ui.dialogueOpen || travelling) return;
     if (hud.panelOpen) return hud.closePanel();
-    const raw = state.view < 0.5, [x, y] = toLevel(e, cam), h = world.hotspotAt(x, y, raw), again = h !== null && hud.ringFor === h;
+    const raw = state.view < 0.5, [x, y] = toLevel(e, cam), h = world.hotspotAt(x, y, raw, cam[0] + lean), again = h !== null && hud.ringFor === h;
     hud.closeRing();
     if (!h) return world.walkTo(x);
     const actions = actionsFor(h, raw);
@@ -286,6 +303,8 @@ async function boot(): Promise<void> {
     // the camera follows her across a wide scene, in whole pixels so the pixel art stays crisp
     camX += (camTarget() - camX) * Math.min(1, dt * 5);
     cam[0] = Math.round(camX);
+    // and leans after her, slower, so the layers glide
+    lean += (leanTarget() - lean) * Math.min(1, dt * 1.5);
     if (wasMoving && !world.moving) persist();
     state.sinceSwitch = reduceMotion ? 10 : t - switchedAt;
     // facing left: the sprite's own left-facing frames, or its right-facing ones mirrored
@@ -295,7 +314,7 @@ async function boot(): Promise<void> {
     // the scene's smoke emitter follows her cigarette, or goes off screen when she has none
     const smoke: [number, number] = hs ? [world.heroX + hs[0] * sc * world.facing, walkY + hs[1] * sc + bob] : [-1000, -1000];
     fitCanvas(canvas);
-    renderer.render(runner.frame(t, state, cam, [{ sprite: heroSprite, x: hx, y: hy, flip, scale: sc, frame: frameFor(heroSprite.def, world.moving, world.walked / sc, t, world.facing) }], smoke));
+    renderer.render(runner.frame(t, state, cam, [{ sprite: heroSprite, x: hx, y: hy, flip, scale: sc, frame: frameFor(heroSprite.def, world.moving, world.walked / sc, t, world.facing) }], smoke, lean));
     frames++;
     const now = performance.now();
     if (now - fpsAt > 500) { fps = (frames * 1000) / (now - fpsAt); frames = 0; fpsAt = now; }

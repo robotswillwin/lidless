@@ -125,10 +125,47 @@ function sceneSave(): Plugin {
   };
 }
 
+/**
+ * On the dev server, the look panel's Save with "This scene" writes the scene's own look settings into its scene file,
+ * public/assets/scenes/<id>/scene.json, leaving the rest of the file as it is: flat numbers, and per view under "raw"
+ * and "concierge". An empty look takes the scene back to the game's look.
+ */
+function sceneLookSave(): Plugin {
+  return {
+    name: 'lidless-scene-look-save',
+    configureServer(server) {
+      server.middlewares.use('/__scene-look', (req, res) => {
+        const id = new URL(req.url ?? '', 'http://x').searchParams.get('id') ?? '';
+        if (req.method !== 'POST' || !/^[a-z0-9][a-z0-9-]{0,39}$/.test(id)) { res.statusCode = 400; res.end('POST a scene look to /__scene-look?id=<id>'); return; }
+        let body = '';
+        req.on('data', (chunk: Buffer) => { body += chunk; if (body.length > 100_000) req.destroy(); });
+        req.on('end', async () => {
+          try {
+            const data = JSON.parse(body) as Record<string, unknown>;
+            const numbers = (o: unknown) => Object.fromEntries(Object.entries((o && typeof o === 'object' ? o : {}) as Record<string, unknown>).filter(([k, v]) => /^[a-zA-Z]{1,40}$/.test(k) && typeof v === 'number' && Number.isFinite(v)));
+            const look: Record<string, unknown> = numbers(data);
+            for (const view of ['raw', 'concierge']) { const split = numbers(data[view]); if (Object.keys(split).length) look[view] = split; }
+            const file = `${server.config.publicDir}/assets/scenes/${id}/scene.json`;
+            const scene = JSON.parse(await readFile(file, 'utf8')) as Record<string, unknown>;
+            if (Object.keys(look).length) scene.look = look;
+            else delete scene.look;
+            await writeFile(file, JSON.stringify(scene, null, 1) + '\n');
+            res.statusCode = 200;
+            res.end('saved');
+          } catch (err) {
+            res.statusCode = 400;
+            res.end(err instanceof Error ? err.message : String(err));
+          }
+        });
+      });
+    },
+  };
+}
+
 // Relative base so the same build runs from a subpath, from file:// in tests, and inside Capacitor and Tauri.
 export default defineConfig({
   base: './',
-  plugins: [ink(), assetWatch(), lookSave(), sceneSave()],
+  plugins: [ink(), assetWatch(), lookSave(), sceneSave(), sceneLookSave()],
   build: {
     target: 'es2022',
     assetsInlineLimit: 0,

@@ -71,11 +71,12 @@ export class World {
     return this.moving && Math.floor(this.walkT * 4.4) % 2 === 1 ? -1 : 0;
   }
 
-  hotspotAt(x: number, y: number, raw: boolean): Hotspot | null {
+  /** `look` is how far the camera is from the scene's start, its lean included: far hotspots have moved less. */
+  hotspotAt(x: number, y: number, raw: boolean, look = 0): Hotspot | null {
     const hs = this.level.hotspots;
     for (let i = hs.length - 1; i >= 0; i--) {
       if (!inView(hs[i], raw)) continue;
-      const [rx, ry, rw, rh] = hs[i].rect;
+      const [rx0, ry, rw, rh] = hs[i].rect, rx = rx0 - look * ((hs[i].parallax ?? 1) - 1);
       if (x >= rx && x < rx + rw && y >= ry && y < ry + rh) return hs[i];
     }
     return null;

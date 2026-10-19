@@ -1,6 +1,7 @@
-// The look: live settings for pixels, light, characters, colour and film. Tuned with the look panel (L), kept per
-// browser while tuning, and saved as the game's look in public/assets/look.json, which every page loads at start.
+// The look: live settings for pixels, light, weather, characters, colour and film. Tuned with the look panel (L), kept
+// per browser while tuning, and saved as the game's look in public/assets/look.json, which every page loads at start.
 // A setting is the same in both views, or split: then raw view and Concierge view each have a value of their own.
+// A scene can set some of them its own way: its scene file's "look" holds only those, over the game's look.
 
 export interface Look {
   /** Native pixels per art pixel: 1 as drawn, more is chunkier. */
@@ -22,6 +23,8 @@ export interface Look {
   streaks: number;
   /** The poisonous fog of raw view. */
   rawFog: number;
+  /** How hard it rains in raw view, 0 to 1: a drizzle around 0.3. Rain falls outside only. */
+  rain: number;
   /** How much of a surface's own colour raw view keeps: 0 a cold grey, 1 all of it. Muted by default. */
   rawColour: number;
   /** How much of a light behind a character reaches the side we see, bounced off the surroundings. */
@@ -34,6 +37,14 @@ export interface Look {
   charShadow: number;
   /** How much a character's outline softens into the light around it, and takes it on. */
   charWrap: number;
+  /**
+   * In a scene with its light painted in: 1 shows its people in their own drawn colours times the light below, as
+   * flat-shaded figures read in the concept art; 0 lights them by the lamps alone.
+   */
+  actorPaint: number;
+  actorRed: number;
+  actorGreen: number;
+  actorBlue: number;
   /** In stops. */
   exposure: number;
   contrast: number;
@@ -45,14 +56,16 @@ export interface Look {
   vignette: number;
   grain: number;
   aberration: number;
+  /** Far things soften, on the tiers that have it: 1 on, 0 off, for flat art that should stay sharp. */
+  depthOfField: number;
 }
 
 export const LOOK_DEFAULTS: Look = {
   pixelSize: 1, pixelShape: 0, shapeAmount: 0.5, colorLevels: 0, dither: 0.5,
-  lights: 1, ambient: 1, haze: 1, glow: 1, bloom: 1, shafts: 1, streaks: 1, rawFog: 1, rawColour: 0.5,
-  charFill: 1, charRim: 1, charGlow: 0.05, charShadow: 0.55, charWrap: 0.6,
+  lights: 1, ambient: 1, haze: 1, glow: 1, bloom: 1, shafts: 1, streaks: 1, rawFog: 1, rawColour: 0.5, rain: 1,
+  charFill: 1, charRim: 1, charGlow: 0.05, charShadow: 0.55, charWrap: 0.6, actorPaint: 0, actorRed: 1, actorGreen: 1, actorBlue: 1,
   exposure: 0, contrast: 1, saturation: 1, temperature: 0, tint: 0,
-  vignette: 1, grain: 1, aberration: 1,
+  vignette: 1, grain: 1, aberration: 1, depthOfField: 1,
 };
 
 export type ViewName = 'raw' | 'concierge';
@@ -91,11 +104,16 @@ export const LOOK_CONTROLS: LookControl[] = [
   { key: 'shafts', label: 'Light shafts', group: 'Light', min: 0, max: 4, step: 0.05 },
   { key: 'streaks', label: 'Lens streaks', group: 'Light', min: 0, max: 4, step: 0.05 },
   { key: 'rawFog', label: 'Raw view fog', group: 'Light', min: 0, max: 3, step: 0.05 },
+  { key: 'rain', label: 'Rain in raw view', group: 'Light', min: 0, max: 1, step: 0.05 },
   { key: 'charFill', label: 'Fill from lights behind', group: 'Characters', min: 0, max: 2, step: 0.05 },
   { key: 'charRim', label: 'Rim from lights behind', group: 'Characters', min: 0, max: 3, step: 0.05 },
   { key: 'charGlow', label: 'Glow showing over them', group: 'Characters', min: 0, max: 1, step: 0.01 },
   { key: 'charShadow', label: 'Shadow under them', group: 'Characters', min: 0, max: 1, step: 0.05 },
   { key: 'charWrap', label: 'Edges taking the light around', group: 'Characters', min: 0, max: 2, step: 0.05 },
+  { key: 'actorPaint', label: 'Drawn colours (painted scenes)', group: 'Characters', min: 0, max: 1, step: 0.05 },
+  { key: 'actorRed', label: 'Their light: red', group: 'Characters', min: 0, max: 2, step: 0.01 },
+  { key: 'actorGreen', label: 'Their light: green', group: 'Characters', min: 0, max: 2, step: 0.01 },
+  { key: 'actorBlue', label: 'Their light: blue', group: 'Characters', min: 0, max: 2, step: 0.01 },
   { key: 'rawColour', label: 'Raw view colour', group: 'Colour', min: 0, max: 1, step: 0.05 },
   { key: 'exposure', label: 'Exposure', group: 'Colour', min: -2, max: 2, step: 0.05 },
   { key: 'contrast', label: 'Contrast', group: 'Colour', min: 0.5, max: 1.8, step: 0.02 },
@@ -105,6 +123,7 @@ export const LOOK_CONTROLS: LookControl[] = [
   { key: 'vignette', label: 'Vignette', group: 'Film', min: 0, max: 2.5, step: 0.05 },
   { key: 'grain', label: 'Grain', group: 'Film', min: 0, max: 4, step: 0.05 },
   { key: 'aberration', label: 'Colour fringes', group: 'Film', min: 0, max: 4, step: 0.05 },
+  { key: 'depthOfField', label: 'Depth of field', group: 'Film', min: 0, max: 1, step: 1, options: ['Off', 'On'] },
 ];
 
 /** The settings for one view: the shared ones with that view's split ones over them. */
@@ -137,6 +156,47 @@ export function lookSetJSON(set: LookSet): Record<string, unknown> {
   const out: Record<string, unknown> = { ...set.base };
   if (Object.keys(set.raw).length) out.raw = { ...set.raw };
   if (Object.keys(set.concierge).length) out.concierge = { ...set.concierge };
+  return out;
+}
+
+/** A scene's own settings, over the game's look: only those it sets, shared or split like the look's. */
+export interface SceneLook {
+  base: Partial<Look>;
+  raw: Partial<Look>;
+  concierge: Partial<Look>;
+}
+
+export const emptySceneLook = (): SceneLook => ({ base: {}, raw: {}, concierge: {} });
+
+export const cloneSceneLook = (s: SceneLook): SceneLook => ({ base: { ...s.base }, raw: { ...s.raw }, concierge: { ...s.concierge } });
+
+/** A scene's look as stored in its scene file, shaped like look.json but with only the settings it sets. */
+export function cleanSceneLook(data: unknown): SceneLook {
+  const d = (data && typeof data === 'object' ? data : {}) as Record<string, unknown>;
+  return { base: cleanValues(d), raw: cleanValues(d.raw), concierge: cleanValues(d.concierge) };
+}
+
+/** For the scene file; undefined when the scene sets nothing of its own. */
+export function sceneLookJSON(s: SceneLook): Record<string, unknown> | undefined {
+  const out: Record<string, unknown> = { ...s.base };
+  if (Object.keys(s.raw).length) out.raw = { ...s.raw };
+  if (Object.keys(s.concierge).length) out.concierge = { ...s.concierge };
+  return Object.keys(out).length ? out : undefined;
+}
+
+/** Whether the scene sets this setting, in either view. */
+export const sceneSets = (s: SceneLook, key: keyof Look): boolean => key in s.base || key in s.raw || key in s.concierge;
+
+/**
+ * The look in a scene: the game's, with the scene's own settings over it. A setting the scene shares between the views
+ * is shared there even where the game splits it; one it splits overrides each view it names.
+ */
+export function withScene(project: LookSet, scene: SceneLook | null): LookSet {
+  const out = cloneLookSet(project);
+  if (!scene) return out;
+  for (const [k, v] of Object.entries(scene.base) as [keyof Look, number][]) { out.base[k] = v; delete out.raw[k]; delete out.concierge[k]; }
+  Object.assign(out.raw, scene.raw);
+  Object.assign(out.concierge, scene.concierge);
   return out;
 }
 
@@ -186,5 +246,36 @@ export function saveLocalLook(set: LookSet | null, project?: LookSet): void {
     else localStorage.removeItem(LOCAL);
   } catch {
     // private windows and blocked storage: tuning still works, it just is not kept
+  }
+}
+
+/** Tuning of each scene's own settings in progress, kept the same way: per scene, with the scene look it was made from. */
+const LOCAL_SCENES = 'lidless.sceneLook.v1';
+const sceneStamp = (s: SceneLook) => stamp({ base: s.base as Look, raw: s.raw, concierge: s.concierge });
+
+function localScenes(): Record<string, { against: string; look: unknown }> {
+  try {
+    const all = JSON.parse(localStorage.getItem(LOCAL_SCENES) ?? '{}') as unknown;
+    return all && typeof all === 'object' ? all as Record<string, { against: string; look: unknown }> : {};
+  } catch {
+    return {};
+  }
+}
+
+/** This browser's tuning of a scene's own settings, if any, made against its saved ones. */
+export function loadLocalSceneLook(id: string, saved: SceneLook): SceneLook | null {
+  const entry = localScenes()[id];
+  return entry && entry.against === sceneStamp(saved) ? cleanSceneLook(entry.look) : null;
+}
+
+export function saveLocalSceneLook(id: string, look: SceneLook | null, saved?: SceneLook): void {
+  try {
+    const all = localScenes();
+    if (look && saved) all[id] = { against: sceneStamp(saved), look: sceneLookJSON(look) ?? {} };
+    else delete all[id];
+    if (Object.keys(all).length) localStorage.setItem(LOCAL_SCENES, JSON.stringify(all));
+    else localStorage.removeItem(LOCAL_SCENES);
+  } catch {
+    // as above
   }
 }

@@ -288,6 +288,20 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .look-editing[data-view="raw"] { color: var(--amber); }
 .look-editing[data-view="concierge"] { color: var(--cyan); }
 .look-editing:empty { display: none; }
+/* what the sliders edit: the game's look, or the scene's own settings over it */
+.look-scopes { display: flex; gap: 4px; margin: 8px 0 0; }
+.look-scopes[hidden] { display: none; }
+.look-scopes button { flex: 1 1 0; min-width: 0; font: 400 11px/1.2 var(--ui); padding: 5px 7px; background: #1c1c26; color: var(--muted); border: 1px solid #333344; border-radius: 3px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.look-scopes button:hover, .look-scopes button:focus-visible { color: var(--ink); outline: none; }
+.look-scopes button[aria-pressed="true"] { color: var(--ink); border-color: var(--ink); }
+.look-name { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.look-reset { font: 400 11px/1 var(--ui); padding: 1px 5px; background: transparent; color: var(--muted); border: 1px solid #333344; border-radius: 3px; cursor: pointer; }
+.look-reset:hover, .look-reset:focus-visible { color: var(--ink); border-color: #555566; outline: none; }
+.look-reset[hidden] { display: none; }
+/* a setting the scene on screen sets its own way: marked, and only shown while editing the game's look */
+.look-row.look-own label { color: var(--ink); }
+.look-row.look-own label::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 6px; border-radius: 50%; background: var(--ink); vertical-align: 1px; }
+.look[data-scope="game"] .look-row.look-own { opacity: .5; }
 .bench .maps figcaption { font: 400 11px/1 var(--ui); color: var(--muted); letter-spacing: .06em; }
 
 /* scene editor */

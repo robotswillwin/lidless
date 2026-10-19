@@ -338,20 +338,6 @@
  },
  "actorScale": 0.44,
  "baked": 1,
- "dof": false,
- "rain": 0.5,
- "actorLight": {
-  "concierge": [
-   1.0,
-   0.92,
-   0.9
-  ],
-  "raw": [
-   0.9,
-   0.84,
-   0.7
-  ]
- },
  "mirror": 362,
  "zones": {
   "outside": [
@@ -385,5 +371,20 @@
    "width": 3,
    "kind": "steam"
   }
- ]
+ ],
+ "look": {
+  "rain": 0.5,
+  "depthOfField": 0,
+  "actorPaint": 1,
+  "raw": {
+   "actorRed": 0.9,
+   "actorGreen": 0.84,
+   "actorBlue": 0.7
+  },
+  "concierge": {
+   "actorRed": 1.0,
+   "actorGreen": 0.92,
+   "actorBlue": 0.9
+  }
+ }
 }

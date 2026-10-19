@@ -26,12 +26,15 @@ Then open the address Vite prints.
   Concierge view and raw view, and many things read differently. On the dev server, E works from the start.
 - Number keys pick answers in a conversation. **Q** cycles the quality tiers.
 - **L** opens the look panel: pixel size and shape, colour levels and dither, lights, haze, bloom, light shafts,
-  raw-view fog, how lights behind characters fill and rim them and how much glow shows over them, exposure,
-  contrast, saturation, temperature, tint, vignette, grain and colour fringes, all live. Each setting is shared by
-  both views, or split (its **both** button): then raw view and Concierge view have values of their own, and the
-  slider edits the view on screen. Tuning is kept in the browser, until the game's look changes: then it is set
-  aside, so a browser never shows the game through settings made for art that is gone. **Save** (on the dev server)
-  makes it the game's look, in `public/assets/look.json`.
+  raw-view fog and rain, how lights behind characters fill and rim them, how much glow shows over them and the light
+  they are shown in, exposure, contrast, saturation, temperature, tint, vignette, grain, colour fringes and depth of
+  field, all live. Each setting is shared by both views, or split (its **both** button): then raw view and Concierge
+  view have values of their own, and the slider edits the view on screen.
+- The panel edits the game's look (**All scenes**) or the scene on screen (**This scene**): a scene sets some settings
+  its own way over the game's look, marked with a dot, and × takes one back to the game's value. Tuning is kept in
+  the browser until what it was made against changes, so a browser never shows the game through settings made for
+  art that is gone. **Save** (on the dev server) writes the game's look to `public/assets/look.json`, or the scene's
+  own settings into its scene file, under `look`.
 - The game saves as you go. Add `?new` to the address to start over, `?debug` to see the tier and frame rate.
 
 Other commands:
@@ -72,6 +75,9 @@ light on.
 - **Lights:** colour, strength, reach, height, cone, haze, shadows, flicker, whether they are behind, among or in
   front of the characters, Concierge view only, and machine lights.
 - **Adding:** new scenes from a built background, and layers from any built asset.
+- **Layers:** each with its parallax, and whether it is drawn in front of the people. A scene no wider than the screen
+  can have the camera lean with Lux (its drift, in the scene's settings); **Lean the camera with her** previews it with
+  Lux where she stands in the editor.
 - **Keys:** E switches view, L opens the look panel, Cmd+Z undoes, Cmd+S saves.
 
 Save writes the scene file, and an open game tab reloads the scene at once.

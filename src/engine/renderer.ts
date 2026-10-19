@@ -81,12 +81,6 @@ export interface Frame {
   exposure?: number;
   /** How much of the set's light is painted into its art: 0 lit by the lights alone, 1 shown as painted. */
   baked?: number;
-  /** False for a scene whose far shapes stay crisp: no depth of field. */
-  dof?: boolean;
-  /** How hard it rains in raw view, 0 to 1: 1 by default. */
-  rain?: number;
-  /** In a painted scene, the light its people are shown in: their own colours times this. */
-  actorLight?: [number, number, number];
   /** Shadows on the ground under the characters: x and y of the feet on screen, half-width, unused; up to 8. */
   shadows?: Float32Array;
   nShadows?: number;
@@ -227,9 +221,11 @@ export class Renderer {
     gl.bindVertexArray(this.geo.quad);
     for (const d of f.sprites) {
       const s = d.sprite, def = s.def, sc = d.scale ?? 1, dw = def.w * sc, dh = def.h * sc;
-      if (d.x > NW || d.y > NH || d.x + dw < 0 || d.y + dh < 0) continue;
+      // on whole pixels of the buffer, so a layer sliding slowly with the camera stays crisp at any render scale
+      const x = Math.round(d.x * this.rs) / this.rs, y = Math.round(d.y * this.rs) / this.rs;
+      if (x > NW || y > NH || x + dw < 0 || y + dh < 0) continue;
       MAP_ORDER.forEach(([m, u], i) => this.bind(sp, u, s.tex[m], i));
-      gl.uniform4f(sp.u.uRect, d.x, d.y, dw, dh);
+      gl.uniform4f(sp.u.uRect, x, y, dw, dh);
       // texels per pixel of the buffer: past about one, several samples per pixel keep it from sparkling
       const dens = (def.res ?? 1) / (sc * this.rs);
       gl.uniform1f(sp.u.uSS, dens > 1.11 ? Math.min(4, Math.ceil(1.5 * dens)) : 1);
@@ -242,7 +238,7 @@ export class Renderer {
       gl.uniform1f(sp.u.uHasMeta, s.hasMeta ? 1 : 0);
       // a character stands in front of the set: lights behind it rim it, and the set's glow mostly stays behind it
       gl.uniform1f(sp.u.uHaze, def.actor ?? def.kind === 'character' ? (def.haze ?? k.charGlow) : -1);
-      gl.uniform1f(sp.u.uFoot, Math.min(1, Math.max(0, (d.y + dh) / NH)));
+      gl.uniform1f(sp.u.uFoot, Math.min(1, Math.max(0, (y + dh) / NH)));
       gl.uniform4f(sp.u.uConst, def.occluder ?? 0, def.depth, def.reflectivity ?? 0, def.object ?? 0);
       gl.uniform3f(sp.u.uConstG, def.groupRaw ?? 0, def.groupConcierge ?? 0, def.machine ?? 0);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
@@ -282,12 +278,12 @@ export class Renderer {
       gl.uniform4f(pr.u.uLookL, k.lights, k.ambient * (f.ambient ?? 1), k.haze, k.glow);
       gl.uniform1f(pr.u.uGround, f.mirror);
       gl.uniform1f(pr.u.uFill, k.charFill); gl.uniform1f(pr.u.uRim, k.charRim); gl.uniform1f(pr.u.uRawColour, k.rawColour); gl.uniform1f(pr.u.uBaked, f.baked ?? 0); gl.uniform1f(pr.u.uPaint, k.ambient);
-      const al = f.actorLight; gl.uniform4f(pr.u.uActorLight, al?.[0] ?? 1, al?.[1] ?? 1, al?.[2] ?? 1, al ? 1 : 0);
+      gl.uniform4f(pr.u.uActorLight, k.actorRed, k.actorGreen, k.actorBlue, k.actorPaint);
       gl.uniform4fv(pr.u.uSh, f.shadows ?? new Float32Array(32)); gl.uniform1i(pr.u.uNSh, f.nShadows ?? 0); gl.uniform1f(pr.u.uShadowK, k.charShadow);
     });
 
     // depth of field: background-only blur at half resolution
-    const dof = q.dof && f.dof !== false;
+    const dof = q.dof && k.depthOfField > 0.5;
     if (dof) {
       this.pass(this.prog.dofdown, t.d1, (pr) => { this.bind(pr, 'tSrc', t.fa.tex[0], 0); this.bind(pr, 'tG3', t.gbuf.tex[3], 1); gl.uniform2f(pr.u.uSrcRes, NW, NH); });
       for (let n = 0; n < 2; n++) {
@@ -302,7 +298,7 @@ export class Renderer {
       this.zoneUniforms(pr, f, 3);
       gl.uniform1f(pr.u.uTime, f.t); gl.uniform1f(pr.u.uDof, dof ? 1 : 0); gl.uniform1f(pr.u.uView, f.view);
       gl.uniform4fv(pr.u.uSteam, f.steam); gl.uniform4f(pr.u.uDrips, ...f.drips); gl.uniform1f(pr.u.uMirror, f.mirror);
-      gl.uniform1f(pr.u.uRawFog, k.rawFog); gl.uniform1f(pr.u.uWrap, k.charWrap); gl.uniform1f(pr.u.uRain, f.rain ?? 1); gl.uniform1f(pr.u.uBakedC, f.baked ?? 0);
+      gl.uniform1f(pr.u.uRawFog, k.rawFog); gl.uniform1f(pr.u.uWrap, k.charWrap); gl.uniform1f(pr.u.uRain, k.rain); gl.uniform1f(pr.u.uBakedC, f.baked ?? 0);
     });
 
     // bloom at a quarter and an eighth of the resolution

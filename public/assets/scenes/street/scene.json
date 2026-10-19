@@ -57,7 +57,7 @@
     0.78,
     0.48
    ],
-   "i": 1.0,
+   "i": 1,
    "zone": 0,
    "layer": 1,
    "cone": [
@@ -152,7 +152,7 @@
     0.55,
     0.2
    ],
-   "i": 1.0,
+   "i": 1,
    "zone": 0,
    "raw": 1,
    "machine": 1,
@@ -425,25 +425,26 @@
   "raw": 1.2,
   "concierge": 1.4
  },
- "dof": false,
  "baked": 1,
- "rain": 0.35,
- "actorLight": {
-  "concierge": [
-   1.04,
-   0.86,
-   0.97
-  ],
-  "raw": [
-   0.92,
-   0.82,
-   0.66
-  ]
- },
  "drips": {
   "x0": 40,
   "x1": 330,
   "top": 268,
   "bottom": 448
+ },
+ "look": {
+  "rain": 0.35,
+  "actorPaint": 1,
+  "depthOfField": 0,
+  "raw": {
+   "actorRed": 0.92,
+   "actorGreen": 0.82,
+   "actorBlue": 0.66
+  },
+  "concierge": {
+   "actorRed": 1.04,
+   "actorGreen": 0.86,
+   "actorBlue": 0.97
+  }
  }
 }

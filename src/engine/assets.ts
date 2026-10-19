@@ -13,8 +13,14 @@ export interface SpriteDef {
   maps: MapName[];
   /** 0 sky, 1 far, 2 middle, 3 near. Drives depth of field and which lights reach it. */
   depth: number;
-  /** How fast the layer moves with the camera: 1 moves with the street, 0 stays put. */
+  /**
+   * How fast the layer moves with the camera: 1 moves with the street, 0 stays put, over 1 is nearer than the street.
+   * In a scene no wider than the screen, the camera leans with the hero (the scene's drift): the street stays where it
+   * is and the other layers slide against it, each by how far it is from the street's 1.
+   */
   parallax: number;
+  /** Drawn in front of the people: something nearer than the walk line, such as a railing or the edge of a wall. */
+  front?: boolean;
   /** Feet or base point inside the sprite, for characters placed by their position. */
   anchor?: [number, number];
   /** Which way a placed character faces: -1 turns it to the left (mirrored, unless it has frames of its own for that). */
@@ -77,6 +83,8 @@ export interface LightDef {
   g?: number;
   /** Exists only in Concierge view. */
   ar?: number;
+  /** A light on a layer that is not the street's moves with it: its parallax (1, the street's, by default). */
+  parallax?: number;
   /** Exists only in raw view: the moon behind the Concierge's face, a machine's eye it dresses up as something else. */
   raw?: number;
   /** A machine's own light (a monitor, an indicator, the kiosk's eye): keeps its colour in raw view, where main lighting goes sterile white. */
@@ -92,7 +100,8 @@ export interface LightDef {
 }
 
 export interface SteamDef { x: number; y: number; height: number; width: number; kind: 'steam' | 'smoke' }
-export interface GodrayDef { x: number; y: number; strength: number; zone: number; ar?: number }
+/** `parallax` for things on a layer that is not the street's: they move with that layer, as lights and beacons can. */
+export interface GodrayDef { x: number; y: number; strength: number; zone: number; ar?: number; parallax?: number }
 
 export interface SceneDef {
   name: string;
@@ -101,7 +110,7 @@ export interface SceneDef {
   /** World-space zone map: r inside, g outside, b static ambient occlusion. */
   zone: string;
   lights: LightDef[];
-  beacons: { x: number; y: number; phase: number }[];
+  beacons: { x: number; y: number; phase: number; parallax?: number }[];
   steam: SteamDef[];
   godrays: GodrayDef[];
   drips?: { x0: number; x1: number; top: number; bottom: number };
@@ -115,17 +124,11 @@ export interface SceneDef {
   /** Exposure in stops, over the look's: 0 by default. One number for both views, or one per view (a white room in the Concierge's view). */
   exposure?: number | { raw?: number; concierge?: number };
   /** Flying traffic far away; ar = only in Concierge view. */
-  traffic?: { lanes: number[]; perLane: number; x0: number; span: number; ar?: number };
+  traffic?: { lanes: number[]; perLane: number; x0: number; span: number; ar?: number; parallax?: number };
   /** How much of the set's light is painted into its art, 0 to 1; one number, or one per view. */
   baked?: number | { raw?: number; concierge?: number };
   /** How big the people are drawn, 1 by default. */
   actorScale?: number;
-  /** False to keep far shapes crisp: no depth of field. */
-  dof?: boolean;
-  /** How hard it rains in raw view, 0 to 1. */
-  rain?: number;
-  /** In a painted scene, the light its people are shown in, one colour or one per view. */
-  actorLight?: [number, number, number] | { raw?: [number, number, number]; concierge?: [number, number, number] };
 }
 
 export interface Sprite {

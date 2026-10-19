@@ -15,8 +15,11 @@ export interface LayerDef {
   /** Where it goes in the scene; by default where the asset's sprite.json puts it. */
   x?: number;
   y?: number;
+  /** How fast it moves with the camera: 1 with the street, under 1 further away, over 1 nearer. */
   parallax?: number;
   depth?: number;
+  /** Drawn in front of the people: a layer nearer than the walk line. */
+  front?: boolean;
   /** For a character: which way it faces, -1 for left. It plays its idle loop where it stands. */
   facing?: 1 | -1;
   /** For a character: half the width of its shadow on the ground, in pixels; 0 for none. */
@@ -72,15 +75,18 @@ export interface SceneFile {
    * around a smaller Lux), over 1 a closeup. Her pace on screen goes with the square root of it: smaller, but not a crawl.
    */
   actorScale?: number;
-  /** False for flat vector art whose far shapes stay crisp: no depth-of-field blur. */
-  dof?: boolean;
-  /** How hard it rains in raw view, 0 to 1: 1 by default, a drizzle around 0.3. */
-  rain?: number;
   /**
-   * In a painted scene, the light its people are shown in: their own drawn colours times this rgb, one for both views or
-   * one per view, with the scene's lamps adding their light near them. Without it they are lit by the lights alone.
+   * The scene's own look: the settings it sets its own way over the game's look (public/assets/look.json), shaped like
+   * that file but with only those settings: rain, fog, depth of field, the light on its people, anything the look panel
+   * has. Tuned in the look panel with "This scene", which saves here.
    */
-  actorLight?: [number, number, number] | { raw?: [number, number, number]; concierge?: [number, number, number] };
+  look?: Record<string, unknown>;
+  /**
+   * In a scene no wider than the screen: how far the camera leans with the hero as she walks from one end to the other,
+   * in pixels, 0 (the default) for none. The street she walks on stays put; the other layers slide against it by how
+   * far they are from it, the sky (parallax 0) by this much, nearer layers (over 1) the other way.
+   */
+  drift?: number;
   spawns: Record<string, Spawn>;
   hotspots: Hotspot[];
   beacons?: SceneDef['beacons'];
@@ -154,13 +160,13 @@ export async function buildScene(gl: GL, assets: string, file: SceneFile, world:
   const sprites = await Promise.all(file.layers.map(async (layer) => {
     const s = await sprite(layer.asset), d = s.def;
     // each layer has a definition of its own, so the same asset can be placed twice
-    return { ...s, def: { ...d, x: layer.x ?? d.x, y: layer.y ?? d.y, parallax: layer.parallax ?? d.parallax, depth: layer.depth ?? d.depth, facing: layer.facing ?? d.facing, footprint: layer.footprint ?? d.footprint } };
+    return { ...s, def: { ...d, x: layer.x ?? d.x, y: layer.y ?? d.y, parallax: layer.parallax ?? d.parallax, front: layer.front ?? d.front, depth: layer.depth ?? d.depth, facing: layer.facing ?? d.facing, footprint: layer.footprint ?? d.footprint } };
   }));
   const zone = file.zoneMap ? textureFromImage(gl, await loadImage(`${assets}/${file.zoneMap}`), false) : zoneTexture(gl, file);
   const def: SceneDef = {
     name: file.id, size: file.size, sprites: sprites.map((s) => s.def.name), zone: file.zoneMap ?? '',
     lights: file.lights, beacons: file.beacons ?? [], steam: file.steam ?? [], godrays: file.godrays ?? [],
-    drips: file.drips, mirror: file.mirror ?? file.walk.y - 8, traffic: file.traffic, ambient: file.ambient, exposure: file.exposure, baked: file.baked, actorScale: file.actorScale, dof: file.dof, rain: file.rain, actorLight: file.actorLight,
+    drips: file.drips, mirror: file.mirror ?? file.walk.y - 8, traffic: file.traffic, ambient: file.ambient, exposure: file.exposure, baked: file.baked, actorScale: file.actorScale,
   };
   const level: LevelDef = {
     walk: file.walk,

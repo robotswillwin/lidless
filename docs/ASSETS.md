@@ -95,7 +95,8 @@ and `machine` (1 for a machine's own light) from `sprite.json`.
 
 - `x` and `y` place the sprite in the level, `w` and `h` are its size, in level pixels.
 - `res` is texels per level pixel, 1 if left out (see Resolution).
-- `parallax` is how fast it moves with the camera: 1 moves with the street, 0 is a fixed sky.
+- `parallax` is how fast it moves with the camera: 1 moves with the street, 0 is a fixed sky, over 1 is nearer than
+  the street (see Layers and parallax).
 - `anchor` is the point inside the sprite that stands on the ground, for anything placed by its feet.
 - `exists` says which views it is in. It is information for tools; the albedo alpha decides what is drawn.
 
@@ -225,15 +226,19 @@ painted in, and the engine adds what moves and what lights the characters.
 - The look panel (L) tunes painted scenes like any other: its Ambient sets how bright the painted set and its people
   are shown, its Lights what the lamps add, and haze, glow, bloom, light shafts, grain and the rest work as usual. The
   project look keeps grain and colour fringes low and the characters' edge wrap small, which would wash out a small figure.
+  What a scene needs its own way goes in its scene file's `look`, tuned with the panel's **This scene**: only those
+  settings, over the game's look.
 - The painted art's own neon, windows and lamps glow (`glow: auto` in its recipe), so bloom and light shafts have
   something to work with; the street adds haze under its lamps, light shafts, drips from the shop's awning and steam.
-- `actorLight` shows the scene's people in their own drawn colours times a tint, one per view (the street: a touch of
-  violet in the Concierge's, warm and dimmer in raw), with the lamps near them adding their light. Flat-shaded figures
-  then read as in the concept art instead of dimmed by the night.
+- The look's **Drawn colours** (`actorPaint` 1) shows the scene's people in their own drawn colours times the light
+  of **Their light** (`actorRed`, `actorGreen`, `actorBlue`), one per view (the street: a touch of violet in the
+  Concierge's, warm and dimmer in raw), with the lamps near them adding their light. Flat-shaded figures then read as
+  in the concept art instead of dimmed by the night.
 - A painted scene's colours are final: the game's built-in grade and film curve are left out for it, its colours pass
   straight through with a soft shoulder over the light the game adds, so the street and its people come out as drawn
   and bloom comes from the lights, not from every bright painted pixel.
-- `dof: false` keeps far shapes sharp; `rain` (0 to 1) sets how hard it rains in raw view, a drizzle at 0.2.
+- The look's **Depth of field** off (`depthOfField` 0) keeps far shapes sharp; **Rain in raw view** (`rain`, 0 to 1)
+  sets how hard it rains, a drizzle at 0.2. The street and the home set all of these in their own `look`.
 - A light with `raw: 1` exists only in raw view, as `ar: 1` only in the Concierge's: the moon, a machine's own eye.
 - Its hotspots and lights were placed on the picture by a coordinate grid over the built albedo maps.
 
@@ -283,3 +288,20 @@ the walk never turns into a scurry when she is drawn small.
 A character is softened into the scene: the pixels she only partly covers take the rest of their colour from the set
 around her. The look's "Edges taking the light around" (0.15) and "Glow over them" (0.03) stay low: more of the scene's
 air over her made her read as far away.
+
+### Layers and parallax
+
+A scene is drawn from its layers, back to front, then its people, nearest last, then any layer marked `front` (a
+railing or a wall's edge nearer than the walk line). A layer's `parallax` is how fast it moves with the camera: 1
+with the street Lux walks on, under 1 further away (0 stays put, like a sky), over 1 nearer.
+
+- **Wide scenes**, wider than the screen, scroll: the camera follows her and each layer moves at its parallax.
+- **One-screen scenes** can lean instead: with `drift` in the scene file, the camera leans with her as she walks, by
+  `drift` pixels at the ends of the walk line. The street stays where it is, so its hotspots, lights and walk line
+  never move; the other layers slide against it by how far they are from it (a layer at 0.3 by 0.7 of the drift, one
+  at 1.2 by 0.2 the other way). Players who ask for less motion get no lean.
+- **Things on a far layer** take its parallax too, so they move with it: lights, light shafts and beacons (`parallax`
+  on each), the flying traffic (`traffic.parallax`) and hotspots (`parallax`, so a click finds them where they are).
+- **Overscan:** a layer that slides needs art past the screen's edges, as far as it slides: a layer at 0.3 in a scene
+  with a drift of 20 needs 14 pixels more on each side.
+- Layers are placed at whole pixels of the render (half level pixels at render scale 2), so a slow slide stays crisp.

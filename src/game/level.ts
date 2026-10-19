@@ -11,6 +11,8 @@ export interface Hotspot {
   name: ViewText;
   /** x, y, w, h in level pixels. */
   rect: [number, number, number, number];
+  /** For something on a layer that is not the street's: that layer's parallax, so the hotspot moves with it. */
+  parallax?: number;
   /** Where the hero walks to before interacting; look-only hotspots far away can leave it out. */
   stand?: number;
   /** Which way the hero faces when she gets there. */

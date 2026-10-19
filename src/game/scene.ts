@@ -23,14 +23,6 @@ export function lightGroups(t: number): number[] {
  */
 export const switchFade = (view: number, since: number): number => Math.max(0, 1 - since / (view < 0.5 ? 0.9 : 0.45));
 
-type RGB = [number, number, number];
-/** A painted scene's light on its people for the view on screen, blended across a switch. */
-function actorLightOf(a: RGB | { raw?: RGB; concierge?: RGB } | undefined, view: number): RGB | undefined {
-  if (!a) return undefined;
-  if (Array.isArray(a)) return a;
-  const r = a.raw ?? [1, 1, 1], c = a.concierge ?? [1, 1, 1];
-  return [r[0] + (c[0] - r[0]) * view, r[1] + (c[1] - r[1]) * view, r[2] + (c[2] - r[2]) * view];
-}
 
 export class SceneRunner {
   private cars = new Float32Array(64);
@@ -54,31 +46,38 @@ export class SceneRunner {
     return s;
   }
 
-  /** `actors` are drawn after the scene's sprites; `smoke` moves the scene's smoke emitter (the hero's cigarette). */
-  frame(t: number, v: ViewState, cam: [number, number], actors: DrawSprite[] = [], smoke?: [number, number]): Frame {
+  /**
+   * `actors` are drawn after the scene's sprites; `smoke` moves the scene's smoke emitter (the hero's cigarette). `lean`
+   * is how far the camera leans with the hero in a scene no wider than the screen: the street stays, and everything
+   * on another layer slides against it by how far it is from the street (see the scene file's drift).
+   */
+  frame(t: number, v: ViewState, cam: [number, number], actors: DrawSprite[] = [], smoke?: [number, number], lean = 0): Frame {
     const d = this.scene.def;
     if (smoke && this.smokeSlot >= 0) this.steam.set(smoke, this.smokeSlot * 4);
-    // the set first, in the scene's order; then the people, the nearest last, so whoever stands nearer covers whoever is behind
+    // where something placed in the scene is, in the scene's own pixels, for its parallax: the renderer takes off the camera
+    const along = (p = 1) => -(cam[0] + lean) * (p - 1);
+    // the set first, in the scene's order; then the people, the nearest last, so whoever stands nearer covers whoever is
+    // behind; then anything nearer than them
     const isPerson = (def: SpriteDef) => def.actor ?? def.kind === 'character';
-    const set: DrawSprite[] = [], people: DrawSprite[] = [];
+    const set: DrawSprite[] = [], people: DrawSprite[] = [], front: DrawSprite[] = [];
     for (const sprite of this.scene.sprites) {
       if (this.dynamic.has(sprite.def.name)) continue;
       const def = sprite.def, facing = def.facing ?? 1;
       // a character placed in the scene plays its idle loop, facing the way the scene says
       const draw = {
         sprite,
-        x: Math.round(def.x - cam[0] * def.parallax),
-        y: Math.round(def.y - cam[1] * def.parallax),
+        x: def.x - cam[0] * def.parallax - lean * (def.parallax - 1),
+        y: def.y - cam[1] * def.parallax,
         flip: facing < 0 && !hasLeft(def),
         frame: def.frames ? frameFor(def, false, 0, t, facing) : 0,
         scale: isPerson(def) ? d.actorScale ?? 1 : 1,
       };
-      (isPerson(def) ? people : set).push(draw);
+      (isPerson(def) ? people : def.front ? front : set).push(draw);
     }
     people.push(...actors);
     const foot = (d: DrawSprite) => d.y + d.sprite.def.h * (d.scale ?? 1);
     people.sort((a, b) => foot(a) - foot(b));
-    const sprites = [...set, ...people];
+    const sprites = [...set, ...people, ...front];
     // a shadow on the ground under each of them, centred under the feet (the anchor), as wide as their footprint
     this.shadows.fill(0);
     let nShadows = 0;
@@ -94,12 +93,13 @@ export class SceneRunner {
         for (let j = 0; j < tr.perLane && nCars < 16; j++) {
           const vel = (li % 2 ? -1 : 1) * (40 + li * 9), off = j * 140 + li * 47;
           const x = tr.x0 + ((((off + t * vel) % tr.span) + tr.span) % tr.span);
-          this.cars.set([x, y + Math.sin(t + off) * 1.5, Math.sign(vel), 26], nCars++ * 4);
+          this.cars.set([x + along(tr.parallax), y + Math.sin(t + off) * 1.5, Math.sign(vel), 26], nCars++ * 4);
         }
       });
     }
     this.godrays.fill(0);
-    d.godrays.slice(0, 4).forEach((g, i) => this.godrays.set([g.x, g.y, g.ar ? g.strength * v.view : g.strength, g.zone], i * 4));
+    d.godrays.slice(0, 4).forEach((g, i) => this.godrays.set([g.x + along(g.parallax), g.y, g.ar ? g.strength * v.view : g.strength, g.zone], i * 4));
+    d.beacons.slice(0, 32).forEach((b, i) => { this.beacons[i * 4] = b.x + along(b.parallax); });
     const dr = d.drips;
     return {
       t,
@@ -109,7 +109,7 @@ export class SceneRunner {
       level: d.size,
       zone: this.scene.zone,
       sprites,
-      lights: d.lights,
+      lights: d.lights.some((l) => (l.parallax ?? 1) !== 1) ? d.lights.map((l) => ((l.parallax ?? 1) === 1 ? l : { ...l, x: l.x + along(l.parallax) })) : d.lights,
       gi: lightGroups(t),
       cars: this.cars,
       nCars,
@@ -122,9 +122,6 @@ export class SceneRunner {
       ambient: typeof d.ambient === 'object' ? (d.ambient.raw ?? 1) + ((d.ambient.concierge ?? 1) - (d.ambient.raw ?? 1)) * v.view : d.ambient,
       exposure: typeof d.exposure === 'object' ? (d.exposure.raw ?? 0) + ((d.exposure.concierge ?? 0) - (d.exposure.raw ?? 0)) * v.view : d.exposure,
       baked: typeof d.baked === 'object' ? (d.baked.raw ?? 0) + ((d.baked.concierge ?? 0) - (d.baked.raw ?? 0)) * v.view : d.baked,
-      dof: d.dof,
-      rain: d.rain,
-      actorLight: actorLightOf(d.actorLight, v.view),
       shadows: this.shadows,
       nShadows,
     };
