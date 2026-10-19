@@ -6,6 +6,8 @@ import { loadSprite, spriteDefaults, type Sprite } from './engine/assets';
 import { loadProjectLook } from './engine/look';
 import { fitCanvas, NH, NW, QUALITY, Renderer, type DrawSprite } from './engine/renderer';
 import { frameFor } from './game/anim';
+import { cameraTarget } from './game/camera';
+import { heroDrawing } from './game/hero';
 import type { Hotspot, ViewNote, ViewText } from './game/level';
 import { SceneRunner } from './game/scene';
 import { buildScene, loadSceneFile, loadWorld, zoneTexture, type Rect, type Scene, type SceneFile, type WorldFile } from './game/scenefile';
@@ -108,12 +110,9 @@ async function listAssets(): Promise<string[]> {
 function draw(): void {
   fitCanvas(canvas);
   if (!scene || !runner) return;
-  const t = (performance.now() - t0) / 1000, actors: DrawSprite[] = [];
-  if (hero && lux.show) {
-    const d = hero.def, [ax, ay] = d.anchor ?? [d.w / 2, d.h], sc = file.actorScale ?? 1;
-    actors.push({ sprite: hero, x: lux.x - viewX() - ax * sc, y: Math.round(file.walk.y - ay * sc), scale: sc, frame: frameFor(d, false, 0, t, lux.facing) });
-  }
-  renderer.render(runner.frame(t, { view, sinceSwitch: t - switchedAt }, [viewX(), 0], actors, [-1000, -1000]));
+  const t = (performance.now() - t0) / 1000, actors: DrawSprite[] = [], cam: [number, number] = [viewX(), 0];
+  if (hero && lux.show) actors.push(heroDrawing(hero, { x: lux.x, walkY: file.walk.y, cam, scale: file.actorScale ?? 1, facing: lux.facing, frame: frameFor(hero.def, false, 0, t, lux.facing) }));
+  renderer.render(runner.frame(t, { view, sinceSwitch: t - switchedAt }, cam, actors, [-1000, -1000]));
 }
 
 /**
@@ -121,9 +120,7 @@ function draw(): void {
  * on, where the game would have it with Lux where she stands (see the scene's drift).
  */
 function viewX(): number {
-  const { x0, x1 } = file.walk, drift = file.drift ?? 0;
-  if (!lux.follow || !drift || file.size[0] > NW || x1 <= x0) return camX;
-  return drift * Math.max(-1, Math.min(1, (lux.x - (x0 + x1) / 2) / ((x1 - x0) / 2)));
+  return lux.follow && file.size[0] <= NW ? cameraTarget(file, lux.x) : camX;
 }
 
 const css = (c: [number, number, number]) => `rgb(${c.map((v) => Math.round(Math.min(1, Math.max(0, v)) * 255)).join(',')})`;
