@@ -8,9 +8,11 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "check": "tsc --noEmit",
+    "test": "vitest run",
     "preview": "vite preview",
     "shot": "node scripts/shot.mjs",
     "play": "node scripts/play.mjs",
+    "check:layers": "node scripts/layers.mjs",
     "perf": "vite build --logLevel warn && node scripts/perf.mjs",
     "asset": "node tools/pipeline/cli.mjs"
   },
@@ -20,7 +22,8 @@
     "puppeteer-core": "25.12.0",
     "sharp": "^0.35.5",
     "typescript": "6.0.3",
-    "vite": "8.3.1"
+    "vite": "8.3.1",
+    "vitest": "^5.0.5"
   },
   "dependencies": {
     "inkjs": "2.4.0"

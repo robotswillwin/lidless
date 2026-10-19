@@ -150,7 +150,12 @@ itself whenever `build` runs.
   `parts.mjs` (cutting and posing parts), `split.mjs` and `depth.mjs` (layer maps), `style.mjs` (the prompts),
   `openai.mjs`, `recipe.mjs` and `blockout.mjs`. `tools/blender`: the rig. `tools/styleframe`: the hand-coded main
   street (sky, crowd and set), drawn in code.
-- `scripts`: headless checks: `play` walks the opening route, `shot` takes screenshots, `perf` measures frame times.
+- `scripts`: headless checks: `play` walks the opening route, `check:layers` checks the main street's layers as the
+  camera moves (a thin pole must stay steady, and the street at both ends of the drift is saved to look at), `shot`
+  takes screenshots, `perf` measures frame times. None needs the dev server.
+- Tests: `npm test` runs the unit tests (Vitest), next to the code they test (`*.test.ts`, `*.test.mjs`): the camera,
+  what can be done with things, scene files, the look and a scene's own, movers and blended edges, hotspots on far
+  layers, layer maps. `npm run check` checks the types. A scene file with a mistake says what is wrong when it loads.
 - `docs`: the plan, the asset contract, the story documents and the art review; [docs/README.md](docs/README.md) lists
   them.
 

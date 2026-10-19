@@ -125,7 +125,69 @@ const loadImage = (url: string) => new Promise<HTMLImageElement>((resolve, rejec
 });
 
 export const loadWorld = (assets: string) => getJSON<WorldFile>(`${assets}/world.json`);
-export const loadSceneFile = (assets: string, id: string) => getJSON<SceneFile>(`${assets}/scenes/${id}/scene.json`);
+/** A scene file, checked: a mistake in it is reported by name, with every other mistake found, before anything uses it. */
+export async function loadSceneFile(assets: string, id: string): Promise<SceneFile> {
+  const data = await getJSON<unknown>(`${assets}/scenes/${id}/scene.json`), problems = checkSceneFile(data, id);
+  if (problems.length) throw new Error(`scenes/${id}/scene.json: ${problems.join('; ')}`);
+  return data as SceneFile;
+}
+
+const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
+const isStr = (v: unknown): v is string => typeof v === 'string';
+const nums = (v: unknown, n: number) => Array.isArray(v) && v.length === n && v.every(isNum);
+const viewText = (v: unknown) => isStr(v) || (!!v && typeof v === 'object' && isStr((v as { concierge?: unknown }).concierge) && isStr((v as { raw?: unknown }).raw));
+
+/**
+ * What is wrong with a scene file, in words: missing or mistyped fields, an exit without a place to arrive at, a mover
+ * drawn after a layer the scene does not have. Empty when it is fine. The fields the game does without are not required.
+ */
+export function checkSceneFile(data: unknown, id?: string): string[] {
+  const out: string[] = [];
+  if (!data || typeof data !== 'object') return ['it is not a JSON object'];
+  const f = data as Record<string, unknown>;
+  if (!isStr(f.id)) out.push('id is missing');
+  else if (id !== undefined && f.id !== id) out.push(`its id is ${f.id}, not ${id}`);
+  if (f.kind !== 'exterior' && f.kind !== 'interior') out.push('kind must be "exterior" or "interior"');
+  if (!nums(f.size, 2)) out.push('size must be [width, height]');
+  const walk = f.walk as Record<string, unknown> | undefined;
+  if (!walk || !isNum(walk.y) || !isNum(walk.x0) || !isNum(walk.x1)) out.push('walk needs y, x0 and x1');
+  else if (walk.x1 <= walk.x0) out.push('walk.x1 must be right of walk.x0');
+  const layers = Array.isArray(f.layers) ? (f.layers as Record<string, unknown>[]) : null;
+  if (!layers?.length) out.push('layers must list at least one built asset');
+  else layers.forEach((l, i) => { if (!l || !isStr(l.asset)) out.push(`layers[${i}] has no asset`); });
+  if (!Array.isArray(f.lights)) out.push('lights must be a list (it can be empty)');
+  else (f.lights as Record<string, unknown>[]).forEach((l, i) => {
+    const missing = ['x', 'y', 'z', 'r', 'i', 'zone'].filter((k) => !isNum(l?.[k]));
+    if (missing.length) out.push(`lights[${i}] needs ${missing.join(', ')}`);
+    if (!nums(l?.c, 3)) out.push(`lights[${i}].c must be [r, g, b]`);
+  });
+  const spawns = f.spawns as Record<string, Record<string, unknown>> | undefined;
+  if (!spawns || typeof spawns !== 'object' || !Object.keys(spawns).length) out.push('spawns must name at least one place to arrive at');
+  else for (const [name, sp] of Object.entries(spawns)) if (!isNum(sp?.x) || (sp.facing !== 1 && sp.facing !== -1)) out.push(`spawn ${name} needs x and facing 1 or -1`);
+  if (!Array.isArray(f.hotspots)) out.push('hotspots must be a list (it can be empty)');
+  else (f.hotspots as Record<string, unknown>[]).forEach((h, i) => {
+    const name = isStr(h?.id) ? `hotspot ${h.id}` : `hotspots[${i}]`;
+    if (!isStr(h?.id)) out.push(`${name} has no id`);
+    if (!nums(h?.rect, 4)) out.push(`${name}: rect must be [x, y, width, height]`);
+    if (!viewText(h?.name)) out.push(`${name}: name must be text, or { concierge, raw }`);
+    if (h?.look !== undefined && !viewText(h.look)) out.push(`${name}: look must be text, or { concierge, raw }`);
+    const go = h?.go as Record<string, unknown> | undefined;
+    if (go !== undefined && (!isStr(go?.scene) || !isStr(go?.spawn))) out.push(`${name}: go needs a scene and a spawn to arrive at`);
+    if (h?.only !== undefined && h.only !== 'raw' && h.only !== 'concierge') out.push(`${name}: only must be "raw" or "concierge"`);
+  });
+  if (f.movers !== undefined) {
+    if (!Array.isArray(f.movers)) out.push('movers must be a list');
+    else (f.movers as Record<string, unknown>[]).forEach((m, i) => {
+      if (!isStr(m?.asset)) out.push(`movers[${i}] has no asset`);
+      if (!layers?.some((l) => l?.asset === m?.after)) out.push(`movers[${i}] is drawn after ${String(m?.after)}, which is not one of the scene's layers`);
+      if (!isNum(m?.x0) || !isNum(m?.x1) || m.x1 <= m.x0) out.push(`movers[${i}] needs x0 and x1, x1 right of x0`);
+      if (!isNum(m?.speed) || m.speed <= 0) out.push(`movers[${i}] needs a speed over 0`);
+      if (!nums(m?.wait, 2)) out.push(`movers[${i}].wait must be [shortest, longest] in seconds`);
+    });
+  }
+  if (f.drift !== undefined && (!isNum(f.drift) || f.drift < 0)) out.push('drift must be a number of pixels, 0 or more');
+  return out;
+}
 
 /**
  * The zone map, from the scene's kind and its areas of the other kind: r inside, g outside, b static shade. Drawn at a
