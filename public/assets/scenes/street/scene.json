@@ -14,8 +14,8 @@
  ],
  "lights": [
   {
-   "x": 118,
-   "y": 330,
+   "x": 165,
+   "y": 350,
    "z": 30,
    "r": 230,
    "c": [
@@ -28,8 +28,8 @@
    "layer": 1
   },
   {
-   "x": 305,
-   "y": 218,
+   "x": 444,
+   "y": 291,
    "z": 30,
    "r": 250,
    "c": [
@@ -48,30 +48,10 @@
    "haze": 0.3
   },
   {
-   "x": 343,
-   "y": 295,
-   "z": 24,
-   "r": 210,
-   "c": [
-    1,
-    0.78,
-    0.48
-   ],
-   "i": 1.2,
-   "zone": 0,
-   "layer": 1,
-   "cone": [
-    0,
-    1,
-    0.45
-   ],
-   "haze": 0.3
-  },
-  {
-   "x": 553,
-   "y": 357,
+   "x": 557,
+   "y": 395,
    "z": 14,
-   "r": 120,
+   "r": 110,
    "c": [
     1,
     0.78,
@@ -88,27 +68,7 @@
    "haze": 0.3
   },
   {
-   "x": 862,
-   "y": 232,
-   "z": 30,
-   "r": 250,
-   "c": [
-    1,
-    0.8,
-    0.5
-   ],
-   "i": 1.2,
-   "zone": 0,
-   "layer": 1,
-   "cone": [
-    0,
-    1,
-    0.45
-   ],
-   "haze": 0.3
-  },
-  {
-   "x": 600,
+   "x": 640,
    "y": 230,
    "z": 120,
    "r": 640,
@@ -122,14 +82,14 @@
    "ar": 1
   },
   {
-   "x": 800,
-   "y": 260,
+   "x": 872,
+   "y": 160,
    "z": 30,
    "r": 260,
    "c": [
-    1,
-    0.35,
-    0.75
+    0.9,
+    0.45,
+    1
    ],
    "i": 0.6,
    "zone": 0,
@@ -137,14 +97,14 @@
    "g": 6
   },
   {
-   "x": 254,
-   "y": 275,
+   "x": 388,
+   "y": 262,
    "z": 12,
    "r": 150,
    "c": [
     1,
     0.22,
-    0.45
+    0.35
    ],
    "i": 0.7,
    "zone": 0,
@@ -153,12 +113,12 @@
    "layer": 1
   },
   {
-   "x": 907,
-   "y": 320,
+   "x": 922,
+   "y": 353,
    "z": 10,
    "r": 130,
    "c": [
-    0.7,
+    0.6,
     0.5,
     1
    ],
@@ -174,8 +134,8 @@
    "z": 140,
    "r": 700,
    "c": [
+    0.9,
     0.78,
-    0.8,
     0.5
    ],
    "i": 0.45,
@@ -183,8 +143,8 @@
    "raw": 1
   },
   {
-   "x": 906,
-   "y": 320,
+   "x": 914,
+   "y": 345,
    "z": 10,
    "r": 130,
    "c": [
@@ -201,14 +161,14 @@
   }
  ],
  "walk": {
-  "y": 470,
+  "y": 452,
   "x0": 30,
-  "x1": 798
+  "x1": 790
  },
- "mirror": 470,
+ "mirror": 452,
  "spawns": {
   "start": {
-   "x": 420,
+   "x": 478,
    "facing": 1
   },
   "from-backstreet": {
@@ -216,7 +176,7 @@
    "facing": 1
   },
   "from-radio": {
-   "x": 182,
+   "x": 304,
    "facing": 1
   }
  },
@@ -228,7 +188,7 @@
     0,
     300,
     30,
-    116
+    150
    ],
    "stand": 30,
    "go": {
@@ -243,10 +203,10 @@
     "raw": "Poster"
    },
    "rect": [
-    770,
-    150,
-    95,
-    190
+    843,
+    88,
+    58,
+    144
    ],
    "look": {
     "concierge": "The Concierge's face, as big as weather, watching the street with kind attention.",
@@ -261,10 +221,10 @@
   {
    "id": "moon",
    "rect": [
-    632,
-    62,
-    36,
-    36
+    790,
+    18,
+    30,
+    30
    ],
    "name": "The moon",
    "only": "raw",
@@ -277,12 +237,12 @@
    "id": "sign",
    "name": "Shop sign",
    "rect": [
-    55,
-    222,
-    150,
-    52
+    50,
+    232,
+    252,
+    34
    ],
-   "stand": 120,
+   "stand": 175,
    "look": "RADIO REPAIR, in gold leaf. Somebody still cares about lettering."
   },
   {
@@ -290,11 +250,11 @@
    "name": "Shop window",
    "rect": [
     45,
-    274,
-    120,
-    104
+    270,
+    237,
+    160
    ],
-   "stand": 110,
+   "stand": 160,
    "look": {
     "concierge": "Through the glass: shelves of old radios, a lamp left on, a bench covered in work.",
     "raw": "Grimy glass, and behind it a lamp left on over a bench full of half-mended radios."
@@ -305,12 +265,12 @@
    "id": "radio-door",
    "name": "Radio repair",
    "rect": [
-    165,
-    258,
-    36,
-    145
+    282,
+    270,
+    44,
+    160
    ],
-   "stand": 182,
+   "stand": 304,
    "go": {
     "scene": "radio",
     "spawn": "door"
@@ -323,9 +283,9 @@
     "raw": "Someone at the dock"
    },
    "rect": [
-    802,
-    340,
-    62,
+    808,
+    370,
+    70,
     82
    ],
    "stand": 790,
@@ -344,10 +304,10 @@
    "id": "kiosk",
    "name": "Street machine",
    "rect": [
-    864,
-    285,
-    82,
-    135
+    878,
+    300,
+    77,
+    150
    ],
    "stand": 790,
    "face": 1,
@@ -363,12 +323,12 @@
    "id": "sleeper",
    "name": "Someone asleep",
    "rect": [
-    35,
-    378,
-    160,
-    40
+    100,
+    410,
+    112,
+    36
    ],
-   "stand": 112,
+   "stand": 150,
    "only": "raw",
    "look": "A man asleep against the shop front under a wet blanket. Nobody has woken him in a while.",
    "tag": {
@@ -378,65 +338,58 @@
  ],
  "beacons": [
   {
-   "x": 452,
-   "y": 18,
+   "x": 585,
+   "y": 36,
    "phase": 0
   },
   {
-   "x": 580,
-   "y": 62,
+   "x": 478,
+   "y": 68,
    "phase": 1.7
   },
   {
-   "x": 733,
-   "y": 40,
+   "x": 780,
+   "y": 42,
    "phase": 3.1
   },
   {
-   "x": 809,
-   "y": 60,
+   "x": 858,
+   "y": 22,
    "phase": 0.9
   }
  ],
  "steam": [
   {
-   "x": 600,
-   "y": 412,
-   "height": 110,
-   "width": 12,
-   "kind": "steam"
-  },
-  {
-   "x": 565,
-   "y": 249,
+   "x": 612,
+   "y": 448,
    "height": 90,
-   "width": 5,
-   "kind": "smoke"
+   "width": 10,
+   "kind": "steam"
   }
  ],
  "godrays": [
   {
-   "x": 305,
-   "y": 218,
+   "x": 444,
+   "y": 291,
    "strength": 0.22,
    "zone": 2
   },
   {
-   "x": 862,
-   "y": 232,
-   "strength": 0.22,
+   "x": 557,
+   "y": 395,
+   "strength": 0.15,
    "zone": 2
   },
   {
-   "x": 118,
+   "x": 165,
    "y": 300,
    "strength": 0.18,
    "zone": 1
   },
   {
-   "x": 800,
-   "y": 250,
-   "strength": 0.25,
+   "x": 872,
+   "y": 160,
+   "strength": 0.22,
    "zone": 2,
    "ar": 1
   }
@@ -455,13 +408,19 @@
   "inside": [
    [
     45,
-    255,
-    155,
-    145
+    270,
+    280,
+    160
+   ],
+   [
+    30,
+    60,
+    320,
+    125
    ]
   ]
  },
- "actorScale": 0.58,
+ "actorScale": 0.46,
  "ambient": {
   "raw": 1.2,
   "concierge": 1.4
@@ -476,15 +435,15 @@
    0.97
   ],
   "raw": [
-   0.84,
+   0.92,
    0.82,
    0.66
   ]
  },
  "drips": {
-  "x0": 45,
-  "x1": 210,
+  "x0": 40,
+  "x1": 330,
   "top": 268,
-  "bottom": 404
+  "bottom": 448
  }
 }

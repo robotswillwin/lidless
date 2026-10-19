@@ -50,19 +50,19 @@ await shot('backstreet');
 await hold('ArrowRight', 5000);
 console.log('along the backstreet:', await where());
 
-// something far away: the face in the sky. In the Concierge's view it has two uses, looking and asking it, so a click
-// fans them out; a second click on it does the default, looking, from where she stands
-await page.mouse.click(810, 240);
+// something far away: the Concierge's face on its billboard. In the Concierge's view it has two uses, looking and
+// asking it, so a click fans them out; a second click on it does the default, looking, from where she stands
+await page.mouse.click(870, 160);
 await wait(250);
 console.log('ring:', await page.$$eval('.hud-slot', (b) => b.map((e) => e.getAttribute('aria-label')).join(', ')));
 await shot('ring-sky');
-await page.mouse.click(810, 240);
+await page.mouse.click(870, 160);
 await wait(300);
 console.log('caption:', await text('.caption'));
 await shot('look-sky');
 
 // into the radio repair, through its door on the street, and talk to the fixer at his bench
-await page.mouse.click(182, 330);
+await page.mouse.click(304, 350);
 await wait(5000);
 console.log('through the shop door:', await where());
 await shot('shop');

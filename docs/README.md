@@ -8,6 +8,7 @@
 | [story/LIDLESS_World_Bible_and_Writing_Brief_2026-10-17.md](story/LIDLESS_World_Bible_and_Writing_Brief_2026-10-17.md) | The world bible and writing brief: what the game implements today (scene ids, hotspot ids, the two views) and the Ink format scripts must follow. A snapshot; the live version is the [Claude doc](https://claude.ai/code/artifact/7554cdcf-7d3e-4f74-a962-a2c0afb30004). |
 | [art/LIDLESS_Art_Feedback_v0.1_2026-10-17.md](art/LIDLESS_Art_Feedback_v0.1_2026-10-17.md) | The art review of the first four places: physical scale, perspective and continuity between the views come before any polish. |
 | [art/LIDLESS_Lux_Character_Reference_v1_2026-10-19.md](art/LIDLESS_Lux_Character_Reference_v1_2026-10-19.md) | Lux's design reference: the nine study sheets in both views, the rendering-style and character prompts, where the sheets disagree, and the clothed panels the image pipeline may use. The current reference for her final design. |
+| [art/LIDLESS_Look_Reference_v1_2026-10-19.md](art/LIDLESS_Look_Reference_v1_2026-10-19.md) | The flat look: the director's two pictures of the main street, what makes the look, what was painted back for the story, open points, and how a scene splits into layers for parallax. The current reference for how the game looks. |
 
 When the narrative bible and the world bible disagree, flag it rather than quietly choosing one: the world bible is what the code and art are built on, the narrative bible is where the story is going.
 

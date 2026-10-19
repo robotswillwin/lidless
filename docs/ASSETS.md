@@ -208,16 +208,17 @@ loops instead: a picture as frame 0 and a few frames where only part of it chang
 
 ### Painted scenes
 
-The main street is the first scene in the current look: flat, simple shapes with the drama in the light, like a modern
-Another World (`art/reference/street-lighting-variants.webp`, `style-another-world-modern-2.webp`). Its background is
-one picture per view with its night light painted in, and the engine adds what moves and what lights the characters.
+The main street is the first scene in the current look, the flat look (`art/reference/look/`, and
+docs/art/LIDLESS_Look_Reference_v1_2026-10-19.md): flat, simple shapes with the drama in the light, so that a scene can
+later be split into layers that move at their own speed. Its background is one picture per view with its night light
+painted in, and the engine adds what moves and what lights the characters.
 
 - `baked: 1` shows the set as painted: the scene's lights add only a little to it, and its painted reflections are not
   mirrored again; only the characters are. The lights are there for the characters: put them on the painted lamps,
   signs and windows, with a soft fill in the scene's colour (layer 1) so the hero reads against the city, and keep
   their `haze` low, or the painted glow doubles up. A lamp keeps the colour it is given in raw view.
-- `actorScale` is how big people are drawn: on the street 0.58, walking at its front edge (walk line 470), so she is in
-  the foreground and not out in the plaza; in her home 0.44, the right size for its door and furniture. Characters are
+- `actorScale` is how big people are drawn: on the street 0.46, walking along the bollards (walk line 452) at the size
+  the look reference shows her; in her home 0.44, the right size for its door and furniture. Characters are
   sampled smoothly and shrunk by averaging what each screen pixel covers, their colours bled a few pixels past their
   edges by the build, so a small figure keeps clean edges and does not sparkle or boil as she walks. Her pace on screen goes with its square root. Under 1 the engine averages the sprite's pixels, so she shrinks
   smoothly; over 1 is a closeup.
@@ -227,7 +228,7 @@ one picture per view with its night light painted in, and the engine adds what m
 - The painted art's own neon, windows and lamps glow (`glow: auto` in its recipe), so bloom and light shafts have
   something to work with; the street adds haze under its lamps, light shafts, drips from the shop's awning and steam.
 - `actorLight` shows the scene's people in their own drawn colours times a tint, one per view (the street: a touch of
-  violet in the Concierge's, olive and dimmer in raw), with the lamps near them adding their light. Flat-shaded figures
+  violet in the Concierge's, warm and dimmer in raw), with the lamps near them adding their light. Flat-shaded figures
   then read as in the concept art instead of dimmed by the night.
 - A painted scene's colours are final: the game's built-in grade and film curve are left out for it, its colours pass
   straight through with a soft shoulder over the light the game adds, so the street and its people come out as drawn
@@ -241,9 +242,12 @@ gone (`art/home/cutaway.json`): her floor lit in the middle of the frame, the ne
 city on either side. The scene walks her along her floor; the city at the sides is outside (`zones`), so the rain
 falls there, and rings from the rain only show on ground that reflects.
 
-How the street was made: `npm run asset -- extend` placed the concept panel of the Concierge's view in a 16:9 frame and
-had the rest painted around it; `touch` took Lux out of the picture, `redress --ref` made the raw view from it with
-the raw panel as reference, and `touch` added the sleeper.
+How the street was made: the two pictures of the look reference, scaled to 1920 by 1080, were imported as its two
+views. `touch` took Lux out of both and painted back what the scene's story needs: the woman at the dining machine (in
+raw first, then laid under the Concierge's picture so its woman in red kneels in the same place), the sleeper in raw,
+the shop's gold-leaf sign in both views, the Concierge's face on the billboard with a poster in its place in raw, and
+the moon. Raw lettering follows the world bible: the hotel sign reads ОТЕЛЬ and the machine's screen is blank. The
+earlier painted street is in git's history.
 
 Lux was designed again in the look: `art/cast/lux-concierge.json` generated her Concierge self in profile with the
 flat reference figure from the concept art, and `redress` made her raw self from it, the same outline in her worn
