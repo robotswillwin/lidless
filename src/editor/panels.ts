@@ -2,10 +2,10 @@
 
 import { NW } from '../engine/renderer';
 import { loadSceneFile, type Rect } from '../game/scenefile';
-import { deleteSelected } from './edit';
-import { rebuild, refresh, syncScroll, updatePlay } from './files';
+import { deleteSelected, pickAsset } from './edit';
+import { rebuild, refresh, syncEffects, syncScroll, updatePlay } from './files';
 import { buttons, check, choice, colour, heading, labelFields, num, str, viewText } from './form';
-import { base, dom, ed, redraw, remember, snapshot } from './state';
+import { base, dom, ed, LIMITS, redraw, remember, snapshot } from './state';
 
 const GROUPS: [string, string][] = [['0', 'Steady'], ['1', 'Monitor flicker'], ['2', 'Valves'], ['3', 'Fire'], ['4', 'The machine’s eye'], ['5', 'Neon flicker'], ['6', 'Hologram'], ['7', 'Screen'], ['8', 'String lights']];
 const ZONES: [string, string][] = [['0', 'Everywhere'], ['1', 'Inside areas'], ['2', 'Outside, near layer'], ['4', 'Outside, every depth'], ['3', 'Facade']];
@@ -139,6 +139,88 @@ function layerSide(i: number): void {
   side(buttons(['Further back', () => move(i - 1)], ['Further forward', () => move(i + 1)], ['Delete', () => deleteSelected(), 'danger']));
 }
 
+/* ---------- effects ---------- */
+
+const SHAFT_ZONES: [string, string][] = [['0', 'Everywhere'], ['1', 'Inside areas'], ['2', 'Outside']];
+
+function steamSide(i: number): void {
+  const e = ed.file.steam![i];
+  side(heading(e.kind === 'smoke' ? `Smoke ${i + 1}` : `Steam ${i + 1}`, `Rising from the dot. The first smoke follows Lux’s cigarette when she smokes. At most ${LIMITS.steam} are drawn.`));
+  side(
+    choice('Kind', e.kind, [['steam', 'Steam: broad, slow, pale'], ['smoke', 'Smoke: thin, drifting']], (v) => { e.kind = v as 'steam' | 'smoke'; }, syncEffects),
+    num('x', e.x, (v) => { e.x = v; }, { after: syncEffects }), num('y (where it starts)', e.y, (v) => { e.y = v; }, { after: syncEffects }),
+    num('Height it rises', e.height, (v) => { e.height = v; }, { min: 4, max: 400, after: syncEffects }),
+    num('Width', e.width, (v) => { e.width = v; }, { min: 1, max: 60, after: syncEffects }),
+  );
+  side(buttons(['Delete', () => deleteSelected(), 'danger']));
+}
+
+function godraySide(i: number): void {
+  const g = ed.file.godrays![i];
+  side(heading(`Light shaft ${i + 1}`, `Rays of light through the haze from a lamp, a window or a sign. At most ${LIMITS.godrays} are drawn.`));
+  side(
+    num('x', g.x, (v) => { g.x = v; }, { after: syncEffects }), num('y', g.y, (v) => { g.y = v; }, { after: syncEffects }),
+    num('Strength', g.strength, (v) => { g.strength = v; }, { step: 0.01, min: 0, max: 1, after: syncEffects }),
+    choice('Shines in', String(g.zone), SHAFT_ZONES, (v) => { g.zone = Number(v); }, syncEffects),
+    check('Concierge view only', !!g.ar, (v) => { if (v) g.ar = 1; else delete g.ar; }, syncEffects),
+    num('Parallax (on a far layer: its parallax)', g.parallax ?? 1, (v) => { if (v === 1) delete g.parallax; else g.parallax = v; }, { step: 0.05, min: 0, max: 2, after: syncEffects }),
+  );
+  side(buttons(['Delete', () => deleteSelected(), 'danger']));
+}
+
+function beaconSide(i: number): void {
+  const b = ed.file.beacons![i];
+  side(heading(`Beacon ${i + 1}`, 'A red warning light on a tower or a mast, blinking in its own rhythm.'));
+  side(
+    num('x', b.x, (v) => { b.x = v; }, { after: syncEffects }), num('y', b.y, (v) => { b.y = v; }, { after: syncEffects }),
+    num('Phase (when it blinks)', b.phase, (v) => { b.phase = v; }, { step: 0.1, min: 0, max: 6.3, after: syncEffects }),
+    num('Parallax (on a far layer: its parallax)', b.parallax ?? 1, (v) => { if (v === 1) delete b.parallax; else b.parallax = v; }, { step: 0.05, min: 0, max: 2, after: syncEffects }),
+  );
+  side(buttons(['Delete', () => deleteSelected(), 'danger']));
+}
+
+function dripsSide(): void {
+  const d = ed.file.drips!;
+  side(heading('Drips', 'Rain dripping off an edge, an awning or a balcony, in raw view: from the top of the box to its bottom.'));
+  side(
+    num('From x', d.x0, (v) => { d.x0 = v; }, { after: syncEffects }), num('To x', d.x1, (v) => { d.x1 = v; }, { after: syncEffects }),
+    num('Top', d.top, (v) => { d.top = v; }, { after: syncEffects }), num('Bottom', d.bottom, (v) => { d.bottom = v; }, { after: syncEffects }),
+  );
+  side(buttons(['Delete', () => deleteSelected(), 'danger']));
+}
+
+function moverSide(i: number): void {
+  const m = ed.file.movers![i], layers = ed.file.layers.map((l) => [l.asset, l.asset] as [string, string]);
+  side(heading(`Mover: ${m.asset}`, 'Something that passes through the scene on its own, such as a train, a car or a drone: drawn after its layer, so nearer layers cover it, and seen only between its ends. Drag its band, or its ends.'));
+  const reload = () => { void rebuild().then(() => { redraw.overlay(); drawSide(); }); };
+  side(
+    choice('Drawn after the layer', m.after, layers, (v) => { m.after = v; }, reload),
+    num('From x (in that layer)', m.x0, (v) => { m.x0 = v; }), num('To x', m.x1, (v) => { m.x1 = v; }),
+    str('y (empty: as built)', m.y === undefined ? '' : String(m.y), (v) => { const n = Number(v); if (v.trim() === '' || !Number.isFinite(n)) delete m.y; else m.y = n; }),
+    num('Speed, px a second', m.speed, (v) => { m.speed = Math.max(1, v); }, { min: 1, max: 2000 }),
+    num('Wait between passes: shortest, s', m.wait[0], (v) => { m.wait[0] = Math.max(0, v); }, { step: 0.5, min: 0 }),
+    num('Longest, s', m.wait[1], (v) => { m.wait[1] = Math.max(m.wait[0], v); }, { step: 0.5, min: 0 }),
+    choice('Direction', String(m.dir ?? 0), [['0', 'Each way in turn'], ['1', 'Always to the right'], ['-1', 'Always to the left']], (v) => { const n = Number(v); if (n) m.dir = n as 1 | -1; else delete m.dir; }),
+  );
+  side(buttons(
+    ['Another asset', async () => { const a = await pickAsset('The mover’s asset'); if (!a) return drawSide(); const before = snapshot(); m.asset = a; remember(before); reload(); }],
+    ['Delete', () => deleteSelected(), 'danger'],
+  ));
+}
+
+/** Every effect in the scene, to select one that is hard to click. */
+function effectsList(): HTMLDivElement {
+  const f = ed.file, list = document.createElement('div');
+  list.className = 'ed-list';
+  const item = (label: string, sel: typeof ed.sel) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = label; b.addEventListener('click', () => { ed.sel = sel; reselect(); }); list.append(b); };
+  (f.steam ?? []).forEach((e, i) => item(`${e.kind === 'smoke' ? 'Smoke' : 'Steam'} ${i + 1}`, { kind: 'steam', i }));
+  (f.godrays ?? []).forEach((_, i) => item(`Light shaft ${i + 1}`, { kind: 'godray', i }));
+  (f.beacons ?? []).forEach((_, i) => item(`Beacon ${i + 1}`, { kind: 'beacon', i }));
+  if (f.drips) item('Drips', { kind: 'drips' });
+  (f.movers ?? []).forEach((m, i) => item(`Mover: ${m.asset}`, { kind: 'mover', i }));
+  return list;
+}
+
 function sceneSide(): void {
   const file = ed.file, lux = ed.lux;
   side(heading(file.name || file.id, `Scene ${file.id}: ${file.size[0]}×${file.size[1]} px. Click a light, hotspot, spawn or area to edit it.`));
@@ -167,6 +249,7 @@ function sceneSide(): void {
   file.layers.forEach((l, i) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = `${i + 1}. ${l.asset}`; b.addEventListener('click', () => { ed.sel = { kind: 'layer', i }; reselect(); }); list.append(b); });
   side(list);
   side(heading('Lights', `${file.lights.length} lights. Dots on the scene; cyan rings are Concierge view only.`));
+  side(heading('Effects', 'Steam, smoke, light shafts, beacons, drips and movers. Add them with + Effect.'), effectsList());
 }
 
 export function drawSide(): void {
@@ -177,5 +260,10 @@ export function drawSide(): void {
   else if (sel.kind === 'spawn' && file.spawns[sel.id]) spawnSide(sel.id);
   else if (sel.kind === 'zone' && file.zones?.[sel.set]?.[sel.i]) zoneSide(sel.set, sel.i);
   else if (sel.kind === 'layer' && file.layers[sel.i]) layerSide(sel.i);
+  else if (sel.kind === 'steam' && file.steam?.[sel.i]) steamSide(sel.i);
+  else if (sel.kind === 'godray' && file.godrays?.[sel.i]) godraySide(sel.i);
+  else if (sel.kind === 'beacon' && file.beacons?.[sel.i]) beaconSide(sel.i);
+  else if (sel.kind === 'drips' && file.drips) dripsSide();
+  else if (sel.kind === 'mover' && file.movers?.[sel.i]) moverSide(sel.i);
   else { ed.sel = { kind: 'scene' }; sceneSide(); }
 }

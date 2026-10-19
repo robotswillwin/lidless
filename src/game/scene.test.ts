@@ -38,6 +38,20 @@ describe('a scene’s frame', () => {
   });
 });
 
+describe('sync', () => {
+  it('reads steam and beacons again after they changed, as the scene editor changes them', () => {
+    const sc = scene([sprite('far')]), r = new SceneRunner(sc);
+    expect(r.frame(0, view, [0, 0]).steam[0]).toBe(0);
+    sc.def.steam = [{ x: 120, y: 400, height: 90, width: 5, kind: 'smoke' }];
+    sc.def.beacons = [{ x: 300, y: 40, phase: 1 }];
+    r.sync();
+    const f = r.frame(0, view, [0, 0]);
+    expect(Array.from(f.steam.slice(0, 4))).toEqual([120, 400, 90, -5]);
+    expect(f.nBeacons).toBe(1);
+    expect(Array.from(f.beacons.slice(0, 3))).toEqual([300, 40, 1]);
+  });
+});
+
 describe('movers', () => {
   const run = () => new SceneRunner(scene([sprite('far'), sprite('mid', { parallax: 0.6 }), sprite('street')], [{ def: mover, sprite: train, after: 1 }]));
   const trainIn = (f: ReturnType<SceneRunner['frame']>) => f.sprites.find((s) => s.sprite === train);

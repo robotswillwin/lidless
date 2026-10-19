@@ -44,6 +44,8 @@ function toggleView(): void {
 
 bindOverlay();
 document.querySelectorAll<HTMLButtonElement>('[data-add]').forEach((b) => b.addEventListener('click', () => void add(b.dataset.add!).catch(showError)));
+const addEffect = document.getElementById('add-effect') as HTMLSelectElement;
+addEffect.addEventListener('change', () => { const kind = addEffect.value; addEffect.value = ''; if (kind) void add(kind).catch(showError); });
 dom.button('new-scene').addEventListener('click', () => void newScene().catch(showError));
 dom.button('save').addEventListener('click', () => void save());
 dom.button('undo').addEventListener('click', () => void undo());

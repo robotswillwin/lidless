@@ -36,12 +36,19 @@ export class SceneRunner {
   private steam = new Float32Array(16);
   private godrays = new Float32Array(16);
   private shadows = new Float32Array(32);
-  private smokeSlot: number;
+  private smokeSlot = -1;
 
   /** Sprites named in `dynamic` are left out; the game draws them itself (the hero). */
   constructor(readonly scene: LoadedScene, private dynamic = new Set<string>()) {
-    const d = scene.def;
+    this.sync();
+  }
+
+  /** Read the scene's steam and beacons again, after they changed (in the scene editor). */
+  sync(): void {
+    const d = this.scene.def;
     this.smokeSlot = d.steam.findIndex((e) => e.kind === 'smoke');
+    this.beacons.fill(0);
+    this.steam.fill(0);
     d.beacons.slice(0, 32).forEach((b, i) => this.beacons.set([b.x, b.y, b.phase, 1], i * 4));
     d.steam.slice(0, 4).forEach((e, i) => this.steam.set([e.x, e.y, e.height, e.kind === 'smoke' ? -e.width : e.width], i * 4));
   }

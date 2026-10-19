@@ -2,9 +2,9 @@
 
 import { NH, NW } from '../engine/renderer';
 import type { Hotspot } from '../game/level';
-import { rebuild, refresh, updatePlay } from './files';
+import { rebuild, refresh, syncEffects, updatePlay } from './files';
 import { buttons, heading } from './form';
-import { base, dom, ed, markDirty, redraw, remember, snapshot, undoStack, viewX } from './state';
+import { base, dom, ed, LIMITS, markDirty, redraw, remember, setStatus, snapshot, undoStack, viewX } from './state';
 
 /** Where new things go: the middle of what is on screen. */
 const centre = (): [number, number] => [Math.round(viewX() + NW / 2), Math.round(NH / 2)];
@@ -34,6 +34,37 @@ export async function add(kind: string): Promise<void> {
     file.layers.push({ asset });
     ed.sel = { kind: 'layer', i: file.layers.length - 1 };
     await rebuild();
+  } else if (kind === 'steam' || kind === 'smoke') {
+    const list = (file.steam ??= []);
+    if (list.length >= LIMITS.steam) return setStatus(`At most ${LIMITS.steam} steam and smoke in a scene`);
+    list.push(kind === 'smoke' ? { x: cx, y: file.walk.y - 120, height: 90, width: 5, kind } : { x: cx, y: file.walk.y - 4, height: 100, width: 10, kind });
+    ed.sel = { kind: 'steam', i: list.length - 1 };
+    syncEffects();
+  } else if (kind === 'godray') {
+    const list = (file.godrays ??= []);
+    if (list.length >= LIMITS.godrays) return setStatus(`At most ${LIMITS.godrays} light shafts in a scene`);
+    list.push({ x: cx, y: cy - 60, strength: 0.2, zone: 2 });
+    ed.sel = { kind: 'godray', i: list.length - 1 };
+    syncEffects();
+  } else if (kind === 'beacon') {
+    const list = (file.beacons ??= []);
+    if (list.length >= LIMITS.beacons) return setStatus(`At most ${LIMITS.beacons} beacons in a scene`);
+    list.push({ x: cx, y: 40, phase: Math.round(Math.random() * 63) / 10 });
+    ed.sel = { kind: 'beacon', i: list.length - 1 };
+    syncEffects();
+  } else if (kind === 'drips') {
+    // one curtain of drips a scene
+    file.drips ??= { x0: cx - 80, x1: cx + 80, top: file.walk.y - 180, bottom: file.walk.y - 4 };
+    ed.sel = { kind: 'drips' };
+    syncEffects();
+  } else if (kind === 'mover') {
+    const asset = await pickAsset('Add a mover: what passes through');
+    if (!asset) return;
+    // behind the street by default: after the first layer that is further away than it
+    const after = file.layers.find((l, i) => (l.parallax ?? ed.scene?.loaded.sprites[i]?.def.parallax ?? 1) < 1) ?? file.layers[0];
+    (file.movers ??= []).push({ asset, after: after.asset, x0: 0, x1: file.size[0], speed: 80, wait: [10, 25] });
+    ed.sel = { kind: 'mover', i: file.movers.length - 1 };
+    await rebuild();
   }
   remember(before);
   redraw.overlay();
@@ -47,6 +78,11 @@ export function deleteSelected(): void {
   else if (sel.kind === 'spawn') delete file.spawns[sel.id];
   else if (sel.kind === 'zone') { file.zones![sel.set]!.splice(sel.i, 1); refresh(); }
   else if (sel.kind === 'layer') { file.layers.splice(sel.i, 1); void rebuild().then(redraw.overlay); }
+  else if (sel.kind === 'steam') { file.steam!.splice(sel.i, 1); syncEffects(); }
+  else if (sel.kind === 'godray') { file.godrays!.splice(sel.i, 1); syncEffects(); }
+  else if (sel.kind === 'beacon') { file.beacons!.splice(sel.i, 1); syncEffects(); }
+  else if (sel.kind === 'drips') { delete file.drips; syncEffects(); }
+  else if (sel.kind === 'mover') { file.movers!.splice(sel.i, 1); if (!file.movers!.length) delete file.movers; void rebuild().then(redraw.overlay); }
   else return;
   ed.sel = { kind: 'scene' };
   remember(before);
@@ -105,6 +141,11 @@ export function nudge(dx: number, dy: number): void {
   else if (sel.kind === 'spawn') file.spawns[sel.id].x += dx;
   else if (sel.kind === 'zone') { const r = file.zones![sel.set]![sel.i]; r[0] += dx; r[1] += dy; refresh(); }
   else if (sel.kind === 'layer' && ed.scene) { const l = file.layers[sel.i], s = ed.scene.loaded.sprites[sel.i].def; l.x = (l.x ?? s.x) + dx; l.y = (l.y ?? s.y) + dy; s.x = l.x; s.y = l.y; }
+  else if (sel.kind === 'steam') { const e = file.steam![sel.i]; e.x += dx; e.y += dy; syncEffects(); }
+  else if (sel.kind === 'godray') { const g = file.godrays![sel.i]; g.x += dx; g.y += dy; syncEffects(); }
+  else if (sel.kind === 'beacon') { const b = file.beacons![sel.i]; b.x += dx; b.y += dy; syncEffects(); }
+  else if (sel.kind === 'drips') { const d = file.drips!; d.x0 += dx; d.x1 += dx; d.top += dy; d.bottom += dy; syncEffects(); }
+  else if (sel.kind === 'mover') { const m = file.movers![sel.i]; m.x0 += dx; m.x1 += dx; if (dy) m.y = (m.y ?? ed.scene?.loaded.movers?.[sel.i]?.sprite.def.y ?? 0) + dy; }
   remember(before);
   redraw.overlay();
   redraw.side();

@@ -186,6 +186,25 @@ export function checkSceneFile(data: unknown, id?: string): string[] {
     });
   }
   if (f.drift !== undefined && (!isNum(f.drift) || f.drift < 0)) out.push('drift must be a number of pixels, 0 or more');
+  // effects: what each needs, and how many the renderer draws
+  const effects = (key: string, max: number, needs: string[], extra?: (e: Record<string, unknown>, name: string) => void) => {
+    const list = f[key];
+    if (list === undefined) return;
+    if (!Array.isArray(list)) { out.push(`${key} must be a list`); return; }
+    if (list.length > max) out.push(`${key}: at most ${max} are drawn, this scene has ${list.length}`);
+    (list as Record<string, unknown>[]).forEach((e, i) => {
+      const missing = needs.filter((k) => !isNum(e?.[k]));
+      if (missing.length) out.push(`${key}[${i}] needs ${missing.join(', ')}`);
+      extra?.(e, `${key}[${i}]`);
+    });
+  };
+  effects('steam', 4, ['x', 'y', 'height', 'width'], (e, name) => { if (e?.kind !== 'steam' && e?.kind !== 'smoke') out.push(`${name}.kind must be "steam" or "smoke"`); });
+  effects('godrays', 4, ['x', 'y', 'strength', 'zone']);
+  effects('beacons', 32, ['x', 'y', 'phase']);
+  if (f.drips !== undefined) {
+    const d = f.drips as Record<string, unknown>;
+    if (!d || !['x0', 'x1', 'top', 'bottom'].every((k) => isNum(d[k]))) out.push('drips needs x0, x1, top and bottom');
+  }
   return out;
 }
 

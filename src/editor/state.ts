@@ -14,7 +14,15 @@ export type Selection =
   | { kind: 'hotspot'; i: number }
   | { kind: 'spawn'; id: string }
   | { kind: 'zone'; set: 'inside' | 'outside'; i: number }
-  | { kind: 'layer'; i: number };
+  | { kind: 'layer'; i: number }
+  | { kind: 'steam'; i: number }
+  | { kind: 'godray'; i: number }
+  | { kind: 'beacon'; i: number }
+  | { kind: 'drips' }
+  | { kind: 'mover'; i: number };
+
+/** How many of each effect the renderer draws: more are left out. */
+export const LIMITS = { steam: 4, godrays: 4, beacons: 32 };
 
 const el = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -88,5 +96,17 @@ export const remember = (before: string): void => {
  * on, where the game would have it with Lux where she stands (see the scene's drift).
  */
 export const viewX = (): number => (ed.lux.follow && ed.file.size[0] <= NW ? cameraTarget(ed.file, ed.lux.x) : ed.camX);
+
+/**
+ * Where something on a layer of its own parallax is drawn in the overlay, whose coordinates are the street's: as the camera
+ * moves, a thing further away (parallax under 1) moves less than the street.
+ */
+export const onLayer = (x: number, parallax = 1): number => x + viewX() * (1 - parallax);
+
+/** The parallax of a scene layer, by its asset; 1 (the street's) if it has none or is not found. */
+export const layerParallax = (asset: string): number => {
+  const i = ed.file.layers.findIndex((l) => l.asset === asset);
+  return i < 0 ? 1 : ed.file.layers[i].parallax ?? ed.scene?.loaded.sprites[i]?.def.parallax ?? 1;
+};
 
 export const esc = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');

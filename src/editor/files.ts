@@ -22,6 +22,22 @@ export function refresh(): void {
   redraw.overlay();
 }
 
+/**
+ * After a change to the effects: the built scene takes the file's steam, light shafts, beacons and drips again (an effect
+ * added to a scene that had none is a new list), and the runner reads the ones it keeps copies of. Movers share their
+ * settings with the file; a new one, or a new asset or layer for one, needs a rebuild.
+ */
+export function syncEffects(): void {
+  if (!ed.scene) return;
+  const d = ed.scene.loaded.def, f = ed.file;
+  d.steam = f.steam ?? [];
+  d.godrays = f.godrays ?? [];
+  d.beacons = f.beacons ?? [];
+  d.drips = f.drips;
+  ed.runner?.sync();
+  redraw.overlay();
+}
+
 export function syncScroll(): void {
   const max = Math.max(0, ed.file.size[0] - NW);
   dom.scroll.hidden = max === 0;
@@ -77,11 +93,17 @@ export async function save(): Promise<void> {
 export async function undo(): Promise<void> {
   const prev = undoStack.pop();
   if (!prev) return;
-  const layersBefore = JSON.stringify(ed.file.layers);
+  const layersBefore = JSON.stringify(ed.file.layers), moversBefore = JSON.stringify(ed.file.movers ?? []);
   ed.file = JSON.parse(prev) as SceneFile;
-  // lights and the rest are rebuilt from the file; layers only reload when they changed
-  if (JSON.stringify(ed.file.layers) !== layersBefore || !ed.scene) await rebuild();
-  else { ed.scene.loaded.def.lights = ed.file.lights; refresh(); }
+  // lights, effects and the rest are taken from the file again; layers and movers load again only when they changed
+  if (JSON.stringify(ed.file.layers) !== layersBefore || JSON.stringify(ed.file.movers ?? []) !== moversBefore || !ed.scene) await rebuild();
+  else {
+    ed.scene.loaded.def.lights = ed.file.lights;
+    // the movers' settings are the file's own objects: the ones just replaced by the undo
+    ed.scene.loaded.movers?.forEach((m, k) => { m.def = ed.file.movers![k]; });
+    syncEffects();
+    refresh();
+  }
   markDirty();
   if (!undoStack.length) setStatus('Undone to where you started');
   redraw.overlay();

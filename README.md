@@ -77,6 +77,9 @@ light on.
 - **Lights:** colour, strength, reach, height, cone, haze, shadows, flicker, whether they are behind, among or in
   front of the characters, Concierge view only, and machine lights.
 - **Adding:** new scenes from a built background, and layers from any built asset.
+- **Effects** (**+ Effect**): steam and smoke, light shafts, beacons, drips and movers, each drawn over the scene to
+  drag (a mover's band and its two ends), with its settings in the side panel; the scene's settings list them all.
+  Things on a far layer (a mover, a hotspot or light with a parallax) are drawn where they are with the camera moved.
 - **Layers:** each with its parallax, and whether it is drawn in front of the people. A scene no wider than the screen
   can have the camera follow Lux a little (its drift, in the scene's settings); **Move the camera with her** previews
   it with Lux where she stands in the editor.

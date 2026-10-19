@@ -366,4 +366,23 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .ed-overlay .lux { cursor: ew-resize; }
 .ed-overlay .lux path { fill: var(--amber); stroke: #000; }
 .ed-overlay .layer-box { fill: none; stroke: #ff6ad5; stroke-width: 2; stroke-dasharray: 8 4; cursor: move; }
+/* effects: steam and smoke, light shafts, beacons, drips, movers */
+.ed-overlay .fx { cursor: move; }
+.ed-overlay .fx.off { opacity: .4; }
+.ed-overlay .fx .hit { fill: transparent; stroke: none; }
+.ed-overlay .steam line { stroke: rgba(230, 236, 255, .8); stroke-width: 1.5; stroke-dasharray: 3 3; }
+.ed-overlay .steam circle { fill: rgba(230, 236, 255, .9); stroke: #000; }
+.ed-overlay .steam.smoke line { stroke: rgba(190, 190, 190, .8); }
+.ed-overlay .steam.sel line { stroke-width: 2.5; }
+.ed-overlay .godray circle:not(.hit) { fill: #ffe9a8; stroke: #000; }
+.ed-overlay .godray path { stroke: #ffe9a8; stroke-width: 1.5; }
+.ed-overlay .godray.ar circle:not(.hit), .ed-overlay .godray.ar path { stroke: var(--cyan); }
+.ed-overlay .godray.sel path { stroke-width: 3; }
+.ed-overlay .beacon circle:not(.hit) { fill: #ff4a4a; stroke: #000; }
+.ed-overlay .beacon.sel circle:not(.hit) { stroke: #fff; stroke-width: 2; }
+.ed-overlay .drips { fill: rgba(120, 170, 255, .06); stroke: #78aaff; stroke-dasharray: 2 3; }
+.ed-overlay .drips.sel { fill: rgba(120, 170, 255, .14); }
+.ed-overlay .mover rect { fill: rgba(255, 106, 213, .08); stroke: #ff6ad5; stroke-dasharray: 6 3; }
+.ed-overlay .mover text { fill: #ff6ad5; font: 500 11px var(--ui); paint-order: stroke; stroke: #000; stroke-width: 3; }
+.ed-overlay .mover.sel rect { fill: rgba(255, 106, 213, .18); stroke-width: 2; }
 .editor .look { top: 12px; right: 12px; }
