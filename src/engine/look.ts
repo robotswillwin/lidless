@@ -39,6 +39,11 @@ export interface Look {
   /** How far it is smeared sideways, in pixels: the soft, diffuse reflections of polished stone. */
   reflectDiffuse: number;
   /**
+   * How far below where things touch the ground their reflection goes from sharp to as soft as Streaks and Diffuse say,
+   * in pixels, as on a glossy floor; 0 for evenly soft.
+   */
+  reflectFade: number;
+  /**
    * On a ground the engine draws (a scene's "ground"): how wet it is, 0 dry to 1 soaked. Wet darkens it, lays a film of
    * water on it that mirrors in streaks, and fills its puddles, which mirror sharply and ripple in the rain.
    */
@@ -85,7 +90,7 @@ export interface Look {
 export const LOOK_DEFAULTS: Look = {
   pixelSize: 1, pixelShape: 0, shapeAmount: 0.5, colorLevels: 0, dither: 0.5,
   lights: 1, ambient: 1, haze: 1, glow: 1, bloom: 1, shafts: 1, streaks: 1, rawFog: 1, rawColour: 0.5, rain: 1,
-  reflect: 1, mirrorSet: 0, reflectReach: 1, reflectStreak: 0, reflectDiffuse: 0, wet: 0, polish: 0.5, wear: 0.5,
+  reflect: 1, mirrorSet: 0, reflectReach: 1, reflectStreak: 0, reflectDiffuse: 0, reflectFade: 0, wet: 0, polish: 0.5, wear: 0.5,
   charFill: 1, charRim: 1, charGlow: 0.05, charShadow: 0.55, charWrap: 0.6, actorPaint: 0, actorRed: 1, actorGreen: 1, actorBlue: 1,
   exposure: 0, contrast: 1, saturation: 1, temperature: 0, tint: 0,
   vignette: 1, grain: 1, aberration: 1, depthOfField: 1,
@@ -133,6 +138,7 @@ export const LOOK_CONTROLS: LookControl[] = [
   { key: 'reflectReach', label: 'Reach up (1 a mirror)', group: 'Reflections', min: 1, max: 6, step: 0.1 },
   { key: 'reflectStreak', label: 'Streaks (up and down), px', group: 'Reflections', min: 0, max: 80, step: 1 },
   { key: 'reflectDiffuse', label: 'Diffuse (sideways), px', group: 'Reflections', min: 0, max: 40, step: 1 },
+  { key: 'reflectFade', label: 'Sharp where things touch, soft after (px)', group: 'Reflections', min: 0, max: 120, step: 1 },
   { key: 'wet', label: 'Ground: wet (0 dry, 1 soaked)', group: 'Reflections', min: 0, max: 1, step: 0.05 },
   { key: 'polish', label: 'Ground: shine when dry', group: 'Reflections', min: 0, max: 1, step: 0.05 },
   { key: 'wear', label: 'Ground: wear and grime', group: 'Reflections', min: 0, max: 1, step: 0.05 },

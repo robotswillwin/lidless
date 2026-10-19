@@ -78,7 +78,7 @@
   }
  ],
  "walk": {
-  "y": 452,
+  "y": 470,
   "x0": 30,
   "x1": 820
  },
@@ -406,13 +406,14 @@
    "actorGreen": 1,
    "actorBlue": 1.08,
    "rawColour": 0.45,
-   "reflect": 0.22,
-   "reflectStreak": 70,
-   "reflectDiffuse": 40,
-   "reflectReach": 1.4,
+   "reflect": 0.9,
+   "reflectStreak": 40,
+   "reflectDiffuse": 4,
+   "reflectReach": 2.6,
    "wet": 0,
    "polish": 1,
-   "wear": 0.15
+   "wear": 0.15,
+   "reflectFade": 50
   },
   "mirrorSet": 1
  },

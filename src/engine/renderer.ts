@@ -108,7 +108,7 @@ export class Renderer {
   readonly gl: GL;
   private geo: ReturnType<typeof createGeometry>;
   private prog: Record<'sprite' | 'occ' | 'light' | 'comp' | 'bright' | 'blur' | 'gauss' | 'dofdown' | 'refldown' | 'streak' | 'final', Program>;
-  private t: Record<'gbuf' | 'ao1' | 'ao2' | 'fa' | 'fb' | 'd1' | 'd2' | 'r1' | 'r2' | 'q1' | 'q2' | 'e1' | 'e2' | 'a1' | 'a2', Target>;
+  private t: Record<'gbuf' | 'ao1' | 'ao2' | 'fa' | 'fb' | 'd1' | 'd2' | 'r1' | 'r2' | 'r3' | 'r4' | 'q1' | 'q2' | 'e1' | 'e2' | 'a1' | 'a2', Target>;
   private black: WebGLTexture;
   private q!: Quality;
   /** Image pixels per level pixel for the full-size images: the quality's render scale. */
@@ -155,6 +155,7 @@ export class Renderer {
       ao1: createTarget(gl, half.w, half.h), ao2: createTarget(gl, half.w, half.h),
       d1: createTarget(gl, half.w, half.h, { format: 'hdr' }), d2: createTarget(gl, half.w, half.h, { format: 'hdr' }),
       r1: createTarget(gl, half.w, half.h, { format: 'hdr' }), r2: createTarget(gl, half.w, half.h, { format: 'hdr' }),
+      r3: createTarget(gl, half.w, half.h, { format: 'hdr' }), r4: createTarget(gl, half.w, half.h, { format: 'hdr' }),
       q1: createTarget(gl, quarter.w, quarter.h, { format: 'hdr' }), q2: createTarget(gl, quarter.w, quarter.h, { format: 'hdr' }),
       e1: createTarget(gl, eighth.w, eighth.h, { format: 'hdr' }), e2: createTarget(gl, eighth.w, eighth.h, { format: 'hdr' }),
       a1: createTarget(gl, quarter.w, quarter.h, { format: 'hdr' }), a2: createTarget(gl, quarter.w, quarter.h, { format: 'hdr' }),
@@ -330,11 +331,18 @@ export class Renderer {
     // floor is glossy: the people are smudged into it with everything else instead of mirrored on their own
     const reflBlur = k.mirrorSet > 0 && (k.reflectStreak > 0 || k.reflectDiffuse > 0), smudge = reflBlur && k.reflectDiffuse >= GLOSSY;
     let refl = t.r1;
+    const fade = reflBlur && k.reflectFade > 0;
     if (reflBlur) {
       this.pass(this.prog.refldown, t.r1, (pr) => {
         this.bind(pr, 'tSrc', t.fa.tex[0], 0); this.bind(pr, 'tG3', t.gbuf.tex[3], 1);
         gl.uniform2f(pr.u.uSrcRes, NW * this.rs, NH * this.rs); gl.uniform1f(pr.u.uStep, 2 * this.rs); gl.uniform1f(pr.u.uPeople, smudge ? 1 : 0);
       });
+      // where things touch a glossy floor their reflection is sharp, softening away from them: a copy barely softened,
+      // a sixth as far, for the composite to go from
+      if (fade) {
+        this.pass(this.prog.gauss, t.r3, (pr) => { this.bind(pr, 'tSrc', t.r1.tex[0], 0); gl.uniform2f(pr.u.uDir, 1, 0); gl.uniform1f(pr.u.uSigma, k.reflectDiffuse / 24); });
+        this.pass(this.prog.gauss, t.r4, (pr) => { this.bind(pr, 'tSrc', t.r3.tex[0], 0); gl.uniform2f(pr.u.uDir, 0, 1); gl.uniform1f(pr.u.uSigma, k.reflectStreak / 24); });
+      }
       let other = t.r2;
       for (const [px, dx, dy] of [[k.reflectDiffuse, 1, 0], [k.reflectStreak, 0, 1]] as const) {
         if (px < 1) continue;
@@ -349,6 +357,7 @@ export class Renderer {
     this.pass(this.prog.comp, t.fb, (pr) => {
       this.bind(pr, 'tA', t.fa.tex[0], 0); this.bind(pr, 'tG3', t.gbuf.tex[3], 1); this.bind(pr, 'tDof', t.d1.tex[0], 2);
       this.bind(pr, 'tRefl', reflBlur ? refl.tex[0] : this.black, 7); gl.uniform1f(pr.u.uReflBlur, reflBlur ? 1 : 0);
+      this.bind(pr, 'tReflNear', fade ? t.r4.tex[0] : this.black, 8); gl.uniform1f(pr.u.uReflFade, fade ? k.reflectFade : 0);
       this.zoneUniforms(pr, f, 3);
       gl.uniform1f(pr.u.uTime, f.t); gl.uniform1f(pr.u.uDof, dof ? 1 : 0); gl.uniform1f(pr.u.uView, f.view);
       gl.uniform4fv(pr.u.uSteam, f.steam); gl.uniform4f(pr.u.uDrips, ...f.drips); gl.uniform1f(pr.u.uMirror, f.mirror);

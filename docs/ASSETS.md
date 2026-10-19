@@ -298,12 +298,14 @@ scene and per view, in the panel's Reflections group: **Reflections** (`reflect`
 mirror, more showing taller things squeezed into the ground, as a low camera over a wet street sees them; **Streaks**
 (`reflectStreak`) and **Diffuse** (`reflectDiffuse`), how far the reflections are smeared up and down (a wet street)
 and sideways, in pixels: the set is softened at half resolution with a wide Gaussian, the people over their own
-pixels. Smeared 16 pixels or more sideways, the floor is glossy: the people are smudged into it with everything
+pixels; **Sharp where things touch** (`reflectFade`), how far below where things touch the ground their reflection
+goes from sharp to that soft, as on a glossy floor (0: evenly soft). Smeared 16 pixels or more sideways, the floor is glossy: the people are smudged into it with everything
 else instead of mirrored on their own, and it shows colour and light rather than shapes. Live reflections are made
 from the picture as it is on screen, so they follow each layer's parallax: painted ones stayed put while what they
 reflected slid. The street, in raw view, is a wet street in the rain (strength 0.9, reach 3.5, streaks 28, diffuse
-3); in the Concierge's, a shiny floor of smudged colour and ambience (strength 0.22, reach 1.4, streaks 70, diffuse
-40), reaching up less so the tall city is not squeezed into stripes. Sharp mirrors with ripples broke into
+3); in the Concierge's, a glossy floor of polished stone that mirrors its neon in long soft streaks (strength 0.9,
+reach 2.6, streaks 40, diffuse 4, sharp for 50 pixels below where things touch). A floor of smudged colour alone
+(strength 0.22, diffuse 40) had looked flat. Sharp mirrors with ripples broke into
 horizontal lines; soft ones only waver. `npm run asset -- ground <recipe> --from <y>` takes painted reflections out of a
 picture's ground below the line, in both views: each stretch of each row keeps the colour of its darkest pixels,
 smoothed up and down by `--smooth` (20 level pixels), so the broad pools of light stay and the streaks go, and the
@@ -328,14 +330,19 @@ How the ground is, per view and per scene, is in the look panel's Reflections gr
 - **Wet** (`wet`, 0 dry to 1 soaked) darkens it, lays a film of water on it that mirrors in soft streaks broken up by
   its grain, and fills its puddles, which mirror sharply and ripple in the rain. Rain rings spread only in standing
   water; on the rest, drops splash.
-- **Shine when dry** (`polish`): the soft reflection of polished stone, smudged by Diffuse, sharper where things touch
-  the floor.
+- **Shine when dry** (`polish`): the reflection of polished stone, as soft as Streaks and Diffuse make it. Its slabs
+  are each laid a little askew, so each mirrors a little differently, and its polish is uneven: duller in patches,
+  drawn into streaks by fine scratches.
 - **Wear** (`wear`): stains, slabs of uneven tone, patched asphalt.
 
 Reflections are stronger far off, where the eye looks along the ground, than near, where it looks down at it. The
 street in raw view is wet, worn concrete with puddles (wet 1, shine 0.15, wear 1); in the Concierge's, dry polished
 stone (wet 0, shine 1, wear 0.15). The ground keeps to the flat look: its slabs, stains and puddles are simple shapes.
 In the scene editor, its settings are under Ground in the scene's settings. Scenes without a `ground` reflect as before.
+
+On the street, Lux walks on the pavement 18 pixels in front of the line its buildings stand on (walk line 470,
+reflection line 452), so she is on the ground rather than at its far edge, and just clear of the buttons along the
+bottom of the screen (they start at 475).
 
 In flat art, raw view is as simple as the Concierge's: age and dirt are duller colours and a few simple shapes, never
 texture. The pipeline's description of the raw world says so for `look: vector`, and a recipe's `rawAir` names the

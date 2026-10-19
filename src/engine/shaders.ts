@@ -262,6 +262,8 @@ void main() {
 export const COMP_FS = HEAD + ZONE + `
 uniform sampler2D tA, tG3, tDof;
 uniform sampler2D tRefl;  // the set without its people, blurred for its reflections (when uReflBlur is on)
+uniform sampler2D tReflNear; // the same barely softened, for where things touch a glossy floor (when uReflFade is on)
+uniform float uReflFade;  // the look: how far below the line, in level pixels, a reflection goes from sharp to soft; 0 evenly
 uniform float uReflBlur;  // 1: the set's reflection comes from tRefl, soft and streaked; 0: from the sharp picture
 uniform vec2 uReflSoft;   // the look: how far reflections smear sideways and up and down, in level pixels
 uniform float uSmudge;    // 1: a glossy floor, every reflection smudged into colour and light, the people's too
@@ -294,6 +296,7 @@ struct Ground {
   float face;   // 1 on the kerb's face, which mirrors nothing
   float edge;   // the kerb's top edge, catching the light
   float fres;   // reflections are stronger far off, where the eye looks along the ground, than near: 1 at the walk line
+  vec2 tilt;    // a slab never laid quite level mirrors a little askew: how far its reflection is moved
 };
 // how much of a pixel f wide a line hw either side of its middle covers, its middle d away
 float cover(float d, float hw, float f) { return clamp((min(d + 0.5 * f, hw) - max(d - 0.5 * f, -hw)) / f, 0.0, 1.0); }
@@ -304,7 +307,7 @@ float joints(float s, float size, float hw, float f) {
   return mix(cover(d, hw, f), 2.0 * hw / size, smoothstep(0.25, 0.7, f / size));
 }
 Ground groundAt(vec2 p, float GY) {
-  Ground o = Ground(vec3(1.0), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+  Ground o = Ground(vec3(1.0), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, vec2(0.0));
   float H = min(uGnd.x - uCam.y, GY - 8.0), cx = uRes.x * 0.5, lift = 0.0, wear = uState.z;
   bool road = false;
   if (uGnd.y > 0.0) {
@@ -335,7 +338,12 @@ Ground groundAt(vec2 p, float GY) {
       // paving slabs, each row half a slab along from the last, each a little lighter or darker
       vec2 sl = g / uSlab; sl.x += 0.5 * mod(floor(sl.y), 2.0);
       o.joint = max(joints(sl.x, uSlab.x, 0.8, fx), joints(sl.y, uSlab.y, 0.8, fz));
-      o.tint = vec3(1.0 + (hash(floor(sl) + 3.7) - 0.5) * mix(0.1, 0.2, wear));
+      vec2 id = floor(sl);
+      float h1 = hash(id + 3.7), h2 = hash(id + 8.1), h3 = hash(id + 1.3);
+      o.tint = vec3(1.0 + (h1 - 0.5) * mix(0.1, 0.2, wear));
+      // polished slabs are never laid quite level: each mirrors a little askew, and a little more or less
+      o.tilt = (vec2(h2, h3) - 0.5) * vec2(1.4, 3.0) * uState.y;
+      o.gloss = 0.8 + 0.4 * h2;
     }
   }
   // grime: stains in big soft blotches, and a grain that fades out where it would be finer than a pixel
@@ -345,6 +353,8 @@ Ground groundAt(vec2 p, float GY) {
   // a film of water mirrors less on rough ground, broken by its grain into the streaks of a wet street
   float spark = vn(vec2(g.x * 0.3, g.y * 0.035) + 5.0);
   o.film = mix(0.42, 0.25, rough) * mix(1.0, 0.3 + 1.4 * spark, rough * mix(0.5, 1.0, fine));
+  // polish is uneven: duller in patches, and its shine drawn into streaks by fine scratches along the eye's way
+  o.gloss *= mix(0.55, 1.0, smoothstep(0.3, 0.7, vn(g * vec2(0.007, 0.012) + 31.0))) * mix(1.0, 0.55 + 0.9 * spark, 0.45 * fine);
   // standing water: where the ground dips, filling as it gets wetter; with a kerb, on the road most, along the gutter
   float amt = clamp(uGnd.z * (uGnd.y > 0.0 && !road ? 0.5 : 1.0) + (road ? 0.35 * exp(-(g.y - uGnd.y) / 25.0) : 0.0), 0.0, 1.0);
   // two octaves, so they are simple shapes with smooth outlines, as the flat look draws them; amt is about the share covered
@@ -385,7 +395,7 @@ void main() {
     if (m > 0.0) c = mix(env / m, c, g3.b);
   }
   // the ground the scene has the engine draw, if this pixel is its floor
-  Ground G = Ground(vec3(1.0), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+  Ground G = Ground(vec3(1.0), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, vec2(0.0));
   bool gnd = uGnd.w > 0.5 && refl > 0.02 && p.y > GY && isActor(g3.a) < 0.5;
   if (gnd) G = groundAt(p, GY);
   if (refl > 0.02) {
@@ -402,7 +412,8 @@ void main() {
     // character above this bit of ground. If the set's mirror lands on a character standing elsewhere, take the set beside it
     // the set's reflection reaches uRefl.y times as far up as the pixel is below the line: a low camera over wet ground
     // sees tall things in it, squeezed
-    vec2 qs = vec2(p.x + rip, max(0.5, GY - (p.y - GY) * uRefl.y)), q = qs;
+    vec2 tilt = G.tilt * (1.0 + 0.06 * (p.y - GY)) * (1.0 - G.pud);
+    vec2 qs = vec2(p.x + rip + tilt.x, max(0.5, GY - (p.y - GY) * uRefl.y + tilt.y)), q = qs;
     float F = -1.0;
     if (uSmudge < 0.5) for (int k = 1; k <= 32; k++) { vec4 ga = T(tG3, vec2(p.x, p.y - float(k) * 3.0)); if (isActor(ga.a) > 0.5) { F = ga.g * uRes.y; break; } }
     bool mine = false;
@@ -418,9 +429,9 @@ void main() {
     // fading at her edges by how much of her is there
     float cover = 1.0;
     if (mine && uReflSoft.x + uReflSoft.y > 0.5) {
-      vec3 acc = vec3(0.0); float n = 0.0;
+      vec3 acc = vec3(0.0); float n = 0.0, soft = uReflFade > 0.0 ? mix(0.15, 1.0, smoothstep(0.0, uReflFade, p.y - F)) : 1.0;
       for (int j = -1; j <= 1; j++) for (int i = -2; i <= 2; i++) {
-        vec2 o = q + vec2(float(i) * 0.25 * uReflSoft.x, float(j) * 0.35 * uReflSoft.y);
+        vec2 o = q + vec2(float(i) * 0.25 * uReflSoft.x, float(j) * 0.35 * uReflSoft.y) * soft;
         if (isActor(T(tG3, o).a) > 0.5) { acc += T(tA, o).rgb; n += 1.0; }
       }
       if (n > 0.0) r = acc / n;
@@ -428,7 +439,13 @@ void main() {
     }
     // the set, softened: blurred sideways (diffuse, as in polished stone) and up and down (streaks, as in a wet street)
     float below = step(GY + 0.5, p.y);
-    if (!mine && uReflBlur > 0.5) { vec4 b = T(tRefl, vec2(q.x, min(GY - 1.0, q.y))); if (b.a > 0.02) r = b.rgb / b.a; }
+    if (!mine && uReflBlur > 0.5) {
+      vec2 qq = vec2(q.x, min(GY - 1.0, q.y));
+      vec4 b = T(tRefl, qq);
+      // a glossy floor mirrors sharply where things touch it, softer the further they are
+      if (uReflFade > 0.0) b = mix(T(tReflNear, qq), b, smoothstep(0.0, uReflFade, p.y - GY));
+      if (b.a > 0.02) r = b.rgb / b.a;
+    }
     float k, seen = keep * (mine ? cover : max(1.0 - uBakedC, uRefl.w * below)) * uRefl.x;
     if (gnd) {
       // its own colour: wet things are darker, standing water darker still, and so are the joints between slabs; the
@@ -437,11 +454,14 @@ void main() {
       c += G.edge * (c * 0.9 + 0.01);
       // dry, polished stone shines softly; wet, a film of water mirrors on anything, broken up by the grain under it;
       // standing water mirrors best, and sharply. All of it more far off than near
-      // a glossy reflection is sharper where the thing touches the ground, softer further from it
-      r = mix(r, rs, max(G.pud, 0.45 * exp(-(p.y - GY) / 5.0) * (1.0 - uState.x)));
+      r = mix(r, rs, G.pud);
       k = max(max(G.gloss * uState.y, G.film * uState.x), G.pud) * G.fres * (1.0 - 0.75 * G.joint) * (1.0 - G.face) * (1.0 - G.edge) * seen;
-    } else k = mix(0.42, 0.88, puddle) * (0.75 + 0.25 * smoothstep(GY, uRes.y, p.y)) * seen;
-    c = c * (1.0 - k * 0.5) + r * k;
+      // a shiny dry floor shows its reflection over its own colour: the shinier, the less of its colour
+      c = c * (1.0 - k * mix(0.5, 0.9, uState.y * (1.0 - uState.x))) + r * k;
+    } else {
+      k = mix(0.42, 0.88, puddle) * (0.75 + 0.25 * smoothstep(GY, uRes.y, p.y)) * seen;
+      c = c * (1.0 - k * 0.5) + r * k;
+    }
   }
   // raw view: the poisonous air between the eye and everything it sees, thicker with distance and outdoors
   if (raw > 0.0) {
