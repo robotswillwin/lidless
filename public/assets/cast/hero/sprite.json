@@ -1,8 +1,8 @@
 {
   "name": "hero",
-  "x": 405,
+  "x": 414,
   "y": 224,
-  "w": 151,
+  "w": 132,
   "h": 240,
   "maps": [
     "albedo.concierge",
@@ -20,7 +20,7 @@
   "reflectivity": 0,
   "object": 0,
   "anchor": [
-    75,
+    66,
     240
   ],
   "exists": "both",

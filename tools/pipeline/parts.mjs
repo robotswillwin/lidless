@@ -307,13 +307,15 @@ export function pose(parts, angles, { w, h, origin, far = [-14, -6], matrices = 
  * (degrees); flex: how far the hip dips as the leg takes her weight; arms: the swing of the upper arms (degrees);
  * elbow and elbowSwing: the elbows' bend, and how much more as the arm comes forward; lean: how far her torso leans
  * forward from upright (degrees), whatever angle the parts sheet drew it at, the head and the hanging arms staying as
- * they hang; back: how far behind the hip, as a fraction of the stride, the foot's time on the ground is centred, so the
- * body is carried over its feet instead of sitting back behind them; reach: how straight the legs get; coat: its
- * flutter. `idle` changes the same for her stance: weight on the near leg, the far leg free with its heel lifted (`heel`,
+ * they hang; back: how far behind the hip, as a fraction of the stride, the foot's time on the ground is centred;
+ * reach: how straight the legs get; coat: its flutter. The body is carried over its feet: the point the foot is centred
+ * on is not the ankle but where a standing person's weight falls, 40% along the foot from the heel (`WEIGHT`). `idle` changes the same for her stance: weight on the near leg, the far leg free with its heel lifted (`heel`,
  * degrees) and its foot a little forward (`step`).
  */
 export const GAIT = { frames: 16, stride: 1.35, stance: 0.62, lift: 0.11, strike: 12, toeOff: 24, flex: 0.008, arms: 10, elbow: 10, elbowSwing: 10, lean: 3, back: 0.04, reach: 0.993, coat: 2 };
 export const STAND = { step: 0.06, heel: 10, reach: 0.997, arm: -3, elbow: 9, farArm: 4, farElbow: 12, lean: 1 };
+/** Where along the foot, from the heel, a person's weight falls when they stand: the body is balanced over this point. */
+const WEIGHT = 0.4;
 
 /**
  * The torso's angle for the rig that makes it lean `forward` degrees from upright: the parts sheet may have drawn it
@@ -365,8 +367,9 @@ const softMin = (a, b, k) => Math.min(a, b) - k * Math.log(1 + Math.exp(-Math.ab
 export function walkCycle(parts, gaitIn = {}, far = [-14, -6]) {
   const g = { ...GAIT, ...gaitIn }, leg = legOf(parts), L = leg.L1 + leg.L2, S = g.stride * L, R = g.reach * L;
   const footLen = leg.toe[0] - leg.heel[0], heelOff = g.stance - 0.2;
-  // the heel lands so that the foot's time on the ground is centred a little behind her hip
-  const hx0 = S * (g.stance / 2 - g.back) - leg.heel[0];
+  // the heel lands so that, halfway through the foot's time on the ground, its weight point passes a little behind her
+  // hip: she is carried over her feet
+  const hx0 = S * (g.stance / 2 - g.back) - WEIGHT * footLen;
   const stanceAt = (p) => {
     const phi = p < 0.1 ? rad(g.strike) * (1 - smooth(p / 0.1)) : p < heelOff ? 0 : -rad(g.toeOff) * smooth((p - heelOff) / (g.stance - heelOff));
     // the foot stays where it landed: its heel's spot moves back under her as she walks on, and it turns on the heel
@@ -407,7 +410,8 @@ export function walkCycle(parts, gaitIn = {}, far = [-14, -6]) {
 export function standPose(parts, standIn = {}, far = [-14, -6]) {
   // the leg she stands on is straight, as a standing leg is: its knee only just short of locked
   const st = { ...STAND, ...standIn }, leg = legOf(parts), L = leg.L1 + leg.L2, R = st.reach * L;
-  const ax = 0.02 * L, G = groundFor([0, 0], ax, leg.heel[1], R);
+  // the foot she stands on is under her with its weight point below her hip, the ankle a little behind it
+  const ax = -(leg.heel[0] + WEIGHT * (leg.toe[0] - leg.heel[0])), G = groundFor([0, 0], ax, leg.heel[1], R);
   const near = reach(leg, [0, 0], [ax, G - leg.heel[1]], 0);
   const phi = -rad(st.heel), toeX = ax + leg.toe[0] + st.step * L, v = turnVec(leg.toe, phi);
   const free = reach(leg, far, [toeX - v[0], G - v[1]], phi), tor = torsoTurn(parts, st.lean);
