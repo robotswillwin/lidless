@@ -35,8 +35,11 @@ export interface SpriteDef {
   actor?: boolean;
   /** For an actor: how much of the set's glowing air shows over it, 0 to 1. Default: the look's "Glow showing over them". */
   haze?: number;
-  /** Animation frames side by side in every map, a transparent gutter between them; w and h are one frame. */
-  frames?: { count: number; gutter: number };
+  /**
+   * Animation frames in every map, in rows of `cols` (all in one row without it), a transparent gutter between them;
+   * w and h are one frame.
+   */
+  frames?: { count: number; gutter: number; cols?: number };
   /**
    * Named runs of frames. A walk has a stride: how far the body moves in one cycle, so the planted foot does not
    * slide. A loop has a speed in frames per second, and can give the order to play its frames in (repeats hold one).

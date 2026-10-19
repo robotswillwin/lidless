@@ -200,8 +200,11 @@ export class Renderer {
       gl.uniform4f(sp.u.uRect, d.x, d.y, dw, dh);
       gl.uniform1f(sp.u.uSS, sc < 0.9 ? Math.min(4, Math.ceil(1.5 / sc)) : 1);
       gl.uniform1f(sp.u.uFlip, d.flip ? 1 : 0);
-      const fr = def.frames, fi = fr ? Math.max(0, Math.min(fr.count - 1, d.frame ?? 0)) : 0, tw = fr ? fr.count * def.w + (fr.count - 1) * fr.gutter : def.w;
-      gl.uniform2f(sp.u.uUV, (fi * (def.w + (fr?.gutter ?? 0))) / tw, def.w / tw);
+      // the frame's place in the texture: frames run in rows of `cols`
+      const fr = def.frames, fi = fr ? Math.max(0, Math.min(fr.count - 1, d.frame ?? 0)) : 0, g = fr?.gutter ?? 0;
+      const cols = fr ? Math.min(fr.count, fr.cols ?? fr.count) : 1, rows = fr ? Math.ceil(fr.count / cols) : 1;
+      const tw = cols * def.w + (cols - 1) * g, th = rows * def.h + (rows - 1) * g;
+      gl.uniform4f(sp.u.uUV, ((fi % cols) * (def.w + g)) / tw, def.w / tw, (Math.floor(fi / cols) * (def.h + g)) / th, def.h / th);
       gl.uniform1f(sp.u.uHasMeta, s.hasMeta ? 1 : 0);
       // a character stands in front of the set: lights behind it rim it, and the set's glow mostly stays behind it
       gl.uniform1f(sp.u.uHaze, def.actor ?? def.kind === 'character' ? (def.haze ?? k.charGlow) : -1);

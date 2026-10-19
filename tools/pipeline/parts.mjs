@@ -422,5 +422,26 @@ export function standPose(parts, standIn = {}, far = [-14, -6]) {
   };
 }
 
+/**
+ * Standing, alive: one breath as a loop of frames around her stance. Breathing in lifts her chest and tips her torso
+ * back a touch, her head following only partly; her arms sway a little later than the breath, and her free knee softens
+ * as she breathes out. `breath` scales it all; the stance is `standPose`'s.
+ */
+export function idleCycle(parts, standIn = {}, far = [-14, -6], { frames = 16, breath = 1 } = {}) {
+  const base = standPose(parts, standIn, far), out = [];
+  for (let k = 0; k < frames; k++) {
+    const p = k / frames, b = Math.sin(2 * Math.PI * p) * breath, late = Math.sin(2 * Math.PI * (p - 0.12)) * breath;
+    out.push({
+      ...base,
+      torso: base.torso + 0.6 * b, head: base.head - 0.4 * b,
+      armUpper: base.armUpper + 0.9 * late, armLower: base.armLower + 0.7 * late,
+      armFarUpper: base.armFarUpper - 0.7 * late, armFarLower: base.armFarLower + 0.6 * late,
+      legFarUpper: base.legFarUpper + 0.6 * (1 - b) / 2, legFarLower: base.legFarLower - 1.6 * (1 - b) / 2,
+      coat: base.coat + 0.4 * b,
+    });
+  }
+  return out;
+}
+
 /** The grey shapes' own boxes, measured from the template. */
 export const measure = (templateCutout) => blobs(templateCutout);

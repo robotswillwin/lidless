@@ -107,5 +107,13 @@
   },
   "look": "vector",
   "framing": "One full-length figure in exact profile, seen straight from the side and facing right, standing in a neutral pose for animation: arms hanging relaxed and slightly away from the body, hands empty and open, legs straight and a little apart so both are fully visible, nothing held and nothing crossing the body. Feet at the bottom of the frame. Even, soft, frontal lighting with no cast shadows and no rim light. Transparent background, the whole figure in frame with a little space around it, no ground, no text, no border.",
-  "referenceNote": "character"
+  "referenceNote": "character",
+  "anims": {
+    "idle": {
+      "fps": 5
+    },
+    "idleLeft": {
+      "fps": 5
+    }
+  }
 }

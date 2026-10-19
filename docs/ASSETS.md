@@ -81,8 +81,9 @@ Without a `meta.png`, the sprite uses `occluder`, `depth`, `reflectivity` and `o
 
 ## Animated sprites
 
-A sprite with `frames` has every map laid out as a strip: the frames side by side, `w` and `h` being one frame,
-with a transparent gutter of `frames.gutter` pixels between them. `anims` names runs of frames:
+A sprite with `frames` has every map laid out as a grid: the frames in rows of `frames.cols` (all in one row without
+it), at most 2048 pixels wide so phones can load them, `w` and `h` being one frame, with a transparent gutter of
+`frames.gutter` pixels between them. `anims` names runs of frames:
 
 ```json
 "frames": { "count": 9, "gutter": 2 },
@@ -173,8 +174,13 @@ its cut so it tucks under the collar: no gap opens between them however she move
 into the boot, is split at the ankle into a shin and a foot so the foot can roll. `parts.proportionsByView` gives one
 view's own proportions where it has them (the Concierge's longer, sleeker ponytail).
 
-To change the walk by hand: open `art/cast/hero/rig/hero.blend` in Blender, pose the `rig` armature (frame 0 is her
-stance, frames 1 to 16 one cycle of the walk), save, and run `npm run asset -- rig art/cast/hero.json --render-only`,
+Standing, she breathes: a loop of 16 frames (`idleCycle` in tools/pipeline/parts.mjs) in which her chest rises and her
+torso tips back a touch, her head, arms and free knee follow, and in Blender her ponytail and coat sway on their
+springs; the recipe's `anims.idle.fps` (5) sets its pace.
+
+To change the walk by hand: open `art/cast/hero/rig/hero.blend` in Blender, pose the `rig` armature (frames 0 to 15
+are her idle loop, the 16 after it one cycle of the walk; markers name them), save, and run
+`npm run asset -- rig art/cast/hero.json --render-only`,
 then `build`. The walk is animated once and every outfit and side follows. Redrawing a part means replacing its image
 in the parts folder and running `parts --recut`, then `rig`. Set pieces (sleeping, eating, showering) are fixed-frame
 loops instead: a picture as frame 0 and a few frames where only part of it changes (`touch --frame`).

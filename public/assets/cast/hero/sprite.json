@@ -26,25 +26,28 @@
   "exists": "both",
   "kind": "character",
   "frames": {
-    "count": 34,
-    "gutter": 2
+    "count": 64,
+    "gutter": 2,
+    "cols": 15
   },
   "anims": {
     "idle": {
       "from": 0,
-      "count": 1
+      "count": 16,
+      "fps": 5
     },
     "walk": {
-      "from": 1,
+      "from": 16,
       "count": 16,
       "stride": 153
     },
     "idleLeft": {
-      "from": 17,
-      "count": 1
+      "from": 32,
+      "count": 16,
+      "fps": 5
     },
     "walkLeft": {
-      "from": 18,
+      "from": 48,
       "count": 16,
       "stride": 153
     }

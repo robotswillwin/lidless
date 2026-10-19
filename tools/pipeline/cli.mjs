@@ -12,7 +12,7 @@ import { blank, crop, readRGBA, resize, writePNG } from './image.mjs';
 import { edit, generate } from './openai.mjs';
 import { KINDS, ROOT, loadRecipe, recipeTemplate } from './recipe.mjs';
 import { blockoutPNG, camera as roomCamera } from './blockout.mjs';
-import { conciergePartsPrompt, cut as cutParts, EXTRA_PARTS, otherSidePrompt, PARTS as PARTS_NAMES, partsPromptFor, plant, pointOf, pose as posePartsRig, SHEET, standPose, template as partsTemplate, walkAngles, walkCycle } from './parts.mjs';
+import { conciergePartsPrompt, cut as cutParts, EXTRA_PARTS, idleCycle, otherSidePrompt, PARTS as PARTS_NAMES, partsPromptFor, plant, pointOf, pose as posePartsRig, SHEET, standPose, template as partsTemplate, walkAngles, walkCycle } from './parts.mjs';
 import { CHARACTER_REDRESS_NOTE, CHARACTER_SHEET_NOTE, conciergePrompt, extendPrompt, generationPrompt, LAYOUT_REFERENCES_NOTE, layoutNote, LOOKS, REDRESS_REFERENCES_NOTE, redressPrompt, reframePrompt, REFERENCE_NOTE, REFERENCE_NOTE_VECTOR, VARIANT_REFERENCES_NOTE } from './style.mjs';
 
 try { process.loadEnvFile(resolve(ROOT, '.env.local')); } catch { /* no .env.local: fine until an API call needs the key */ }
@@ -532,10 +532,15 @@ async function writeAnimated(r, raws, concs, { anchorX, anims }) {
       if (exists !== 'raw' && (glow.concierge ?? 'auto') === 'auto') add('glow.concierge', glowAuto(conc));
     }
   }
-  // frames side by side, with a transparent gutter so neighbours never bleed into each other
+  // frames in rows, at most 2048 pixels wide so every phone can load them, with a transparent gutter so neighbours
+  // never bleed into each other
+  const cols = Math.max(1, Math.min(n, Math.floor((2048 + G) / (w + G)))), rows = Math.ceil(n / cols);
   const strip = (imgs) => {
-    const out = blank(n * w + (n - 1) * G, h);
-    imgs.forEach((img, k) => { for (let y = 0; y < h; y++) out.d.set(img.d.subarray(y * w * 4, (y + 1) * w * 4), (y * out.w + k * (w + G)) * 4); });
+    const out = blank(cols * w + (cols - 1) * G, rows * h + (rows - 1) * G);
+    imgs.forEach((img, k) => {
+      const ox = (k % cols) * (w + G), oy = Math.floor(k / cols) * (h + G);
+      for (let y = 0; y < h; y++) out.d.set(img.d.subarray(y * w * 4, (y + 1) * w * 4), ((oy + y) * out.w + ox) * 4);
+    });
     return out;
   };
   const out = resolve(ROOT, 'public/assets', r.scene, r.name);
@@ -546,7 +551,7 @@ async function writeAnimated(r, raws, concs, { anchorX, anims }) {
   const sprite = {
     name: r.name, x: cx - anchor[0], y: base - h, w, h, maps: Object.keys(maps).sort(),
     depth: r.depth ?? spec.depth, parallax: r.parallax ?? 1, occluder: (r.occluder ?? spec.occluder) ? 1 : 0, reflectivity: r.reflectivity ?? 0, object: r.object ?? 0,
-    anchor, exists, kind: r.kind, frames: { count: n, gutter: G }, anims,
+    anchor, exists, kind: r.kind, frames: { count: n, gutter: G, cols }, anims,
   };
   await writeFile(join(out, 'sprite.json'), JSON.stringify(sprite, null, 2) + '\n');
   for (const f of await readdir(out)) if (f.endsWith('.png') && !sprite.maps.includes(f.slice(0, -4))) await rm(join(out, f));
@@ -853,15 +858,15 @@ async function cmdRig([file], opt) {
         pieces[name] = { size: [p.img.w, p.img.h], joints: p.joints };
       }
       sets.push({ name: v, left, coatFront: left ? r.parts?.left?.coat === 'front' : r.parts?.coat === 'front', parts: pieces });
-      if (v === 'raw') { walk = walkCycle(parts, gait, FAR); idle = standPose(parts, gait.idle, FAR); }
+      if (v === 'raw') { walk = walkCycle(parts, gait, FAR); idle = idleCycle(parts, gait.idle, FAR, { frames: gait.idleFrames ?? 16 }); }
     }
     if (!walk) throw new Error(`${r.name}: no raw parts to rig`);
     await writeFile(join(out, 'rig.json'), JSON.stringify({ blend: `${r.name}.blend`, percent: PERCENT, far: FAR, sets, walk, idle }, null, 1) + '\n');
   }
   await rm(tmp, { recursive: true, force: true });
   execFileSync('blender', ['-b', '--factory-startup', '--python', resolve(ROOT, 'tools/blender/rig.py'), '--', out, tmp, ...(opt['render-only'] ? ['--render-only'] : [])], { stdio: ['ignore', 'inherit', 'inherit'] });
-  // frame 0 is the stance, 1 to N the walk; a set seen from the left is mirrored back
-  const rig = JSON.parse(await readFile(join(out, 'rig.json'), 'utf8'));
+  // the first frames are the idle loop, the rest the walk; a set seen from the left is mirrored back
+  const rig = JSON.parse(await readFile(join(out, 'rig.json'), 'utf8')), nIdle = Array.isArray(rig.idle) ? rig.idle.length : 1;
   for (const s of rig.sets) {
     const look = s.name.replace('-left', ''), sfx = s.left ? 'Left' : '';
     const files = (await readdir(join(tmp, s.name))).filter((f) => f.endsWith('.png')).sort();
@@ -871,13 +876,13 @@ async function cmdRig([file], opt) {
       for (const f of await readdir(d)) if (f.startsWith(`${look}-`) && f.endsWith('.png')) await rm(join(d, f));
     }
     for (const [i, f] of files.entries()) {
-      const dst = join(r.dir, 'anims', (i ? 'walk' : 'idle') + sfx, `${look}-${String(i ? i - 1 : 0).padStart(2, '0')}.png`);
+      const idle = i < nIdle, dst = join(r.dir, 'anims', (idle ? 'idle' : 'walk') + sfx, `${look}-${String(idle ? i : i - nIdle).padStart(2, '0')}.png`);
       await (s.left ? sharp(join(tmp, s.name, f)).flop() : sharp(join(tmp, s.name, f))).png().toFile(dst);
     }
   }
   await writeFile(join(r.dir, 'anims', 'walk', 'stride.json'), JSON.stringify({ stride: (rig.walk.stride * PERCENT) / 100 }) + '\n');
   await writeFile(join(r.dir, 'anims', 'origin.json'), JSON.stringify({ x: (800 * PERCENT) / 100 }) + '\n');
-  console.log(`${r.name}: rigged in Blender (${rel(join(out, rig.blend))}), a stance and ${rig.walk.frames.length} walk frames for ${rig.sets.map((s) => s.name).join(', ')} → ${rel(join(r.dir, 'anims'))}. Build it with: npm run asset -- build ${rel(r.file)}`);
+  console.log(`${r.name}: rigged in Blender (${rel(join(out, rig.blend))}), ${nIdle} idle and ${rig.walk.frames.length} walk frames for ${rig.sets.map((s) => s.name).join(', ')} → ${rel(join(r.dir, 'anims'))}. Build it with: npm run asset -- build ${rel(r.file)}`);
 }
 
 /** The parts assembled and walked through the standard cycle, as an animated GIF beside the sheets, for checking. */

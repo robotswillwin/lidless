@@ -7,7 +7,8 @@
 # One skeleton carries every set of parts (an outfit seen from one side), so the walk is animated once for all of them.
 # The skeleton faces right; a set seen from the left is drawn mirrored to face right and its frames mirrored back.
 # The .blend saved in the rig dir is the file to open to change the walk by hand; --render-only renders it as it is,
-# without building it again. Frame 0 is the stance, frames 1 to N one cycle of the walk.
+# without building it again. Frames 0 to M - 1 are the idle loop, a breath standing; the M frames after it one cycle of
+# the walk (markers "idle" and "walk").
 
 import bpy
 import json
@@ -317,9 +318,10 @@ def spring_chain(target, n, omega, zeta, cycles=6, sub=64):
 
 
 def animate(arm):
-    """The stance at frame 0 and one cycle of the walk at frames 1 to N, with follow-through the gait leaves out."""
+    """The idle loop at frames 0 to M - 1 and one cycle of the walk after it, with follow-through the gait leaves out."""
     walk, idle = R['walk']['frames'], R['idle']
-    N = len(walk)
+    idle = idle if isinstance(idle, list) else [idle]
+    N, M = len(walk), len(idle)
     deg = math.radians
     # the coat: its front pushed forward by whichever leg leads, its back dragged by the trailing one, each a chain of
     # springs so the hem lags behind the hips
@@ -344,7 +346,21 @@ def animate(arm):
             pb.keyframe_insert('rotation_euler', frame=frame)
 
     rest = {pb.name: 0.0 for pb in arm.pose.bones}
-    key(0, {**rest, **{k: v for k, v in idle.items() if k in rest}})
+    # standing: the ponytail and the coat swing gently with her breath, a little behind it
+    ih = [f.get('head', 0.0) + f.get('torso', 0.0) for f in idle]
+    ic = [f.get('torso', 0.0) for f in idle]
+    ipony = spring_chain([2.0 * (h - sum(ih) / M) for h in ih], PONY_CHAIN, omega=2 * math.pi * 0.9, zeta=0.4) if M > 1 else None
+    icoat = spring_chain([1.5 * (c - sum(ic) / M) for c in ic], COAT_CHAIN, omega=2 * math.pi * 0.8, zeta=0.5) if M > 1 else None
+    for k, f in enumerate(idle):
+        a = {n: v for n, v in f.items() if n in rest}
+        for i in range(PONY_CHAIN):
+            if ipony:
+                a[f'pony{i + 1}'] = ipony[i][k] - (ipony[i - 1][k] if i else 0.0)
+        for i in range(COAT_CHAIN):
+            if icoat:
+                a[f'coatF{i + 1}'] = icoat[i][k] - (icoat[i - 1][k] if i else 0.0)
+                a[f'coatB{i + 1}'] = icoat[i][k] - (icoat[i - 1][k] if i else 0.0)
+        key(k, {**rest, **a})
     for k, f in enumerate(walk):
         p = k / N
         pitch = 0.7 * math.sin(4 * math.pi * (p - 0.1))
@@ -358,14 +374,14 @@ def animate(arm):
             a[f'coatB{i + 1}'] = back[i][k] - (back[i - 1][k] if i else 0.0)
         for i in range(PONY_CHAIN):
             a[f'pony{i + 1}'] = pony[i][k] - (pony[i - 1][k] if i else 0.0)
-        key(k + 1, {**rest, **a})
+        key(M + k, {**rest, **a})
     for fc in arm.animation_data.action.fcurves if arm.animation_data and arm.animation_data.action and hasattr(arm.animation_data.action, 'fcurves') else []:
         for kp in fc.keyframe_points:
             kp.interpolation = 'CONSTANT'
     scn = bpy.context.scene
-    scn.frame_start, scn.frame_end = 0, N
-    scn.timeline_markers.new('stance', frame=0)
-    scn.timeline_markers.new('walk', frame=1)
+    scn.frame_start, scn.frame_end = 0, M + N - 1
+    scn.timeline_markers.new('idle', frame=0)
+    scn.timeline_markers.new('walk', frame=M)
 
 
 def setup_render():

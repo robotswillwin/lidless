@@ -47,11 +47,11 @@ in vec2 aPos;
 uniform vec4 uRect;     // x, y, w, h in screen pixels, top-left origin
 uniform vec2 uScreen;
 uniform float uFlip;     // 1 mirrors the sprite horizontally
-uniform vec2 uUV;        // the frame: where it starts across the texture and how wide it is (0 and 1 for a single image)
+uniform vec4 uUV;        // the frame: where it starts across the texture and how wide it is, where it starts down it and how tall
 out vec2 vUv;
 void main() {
   vec2 p = uRect.xy + aPos * uRect.zw;
-  vUv = vec2(uUV.x + (uFlip > 0.5 ? 1.0 - aPos.x : aPos.x) * uUV.y, aPos.y);
+  vUv = vec2(uUV.x + (uFlip > 0.5 ? 1.0 - aPos.x : aPos.x) * uUV.y, uUV.z + aPos.y * uUV.w);
   gl_Position = vec4(p.x / uScreen.x * 2.0 - 1.0, 1.0 - p.y / uScreen.y * 2.0, 0.0, 1.0);
 }`;
 
@@ -66,7 +66,7 @@ uniform float uHasMeta;
 uniform float uHaze;       // a character: how much of the set's glowing air shows over it, 0 to 1; the set: -1
 uniform float uFoot;       // a character: the height of its feet on screen, 0 at the top to 1 at the bottom
 uniform float uSS;         // samples across each axis of a screen pixel: a sprite drawn smaller than it was made
-uniform vec2 uUV;          // the frame's start across the texture and its width, to keep the samples inside it
+uniform vec4 uUV;          // the frame's place in the texture, to keep the samples inside it
 layout(location = 0) out vec4 o0;
 layout(location = 1) out vec4 o1;
 layout(location = 2) out vec4 o2;
@@ -77,7 +77,9 @@ vec2 ssStep() { return vec2(dFdx(vUv.x), dFdy(vUv.y)) / uSS; }
 vec2 ssAt(int i, int j) {
   vec2 uv = vUv + (vec2(float(i), float(j)) - 0.5 * (uSS - 1.0)) * ssStep();
   float tw = 0.5 / float(textureSize(tAlbR, 0).x);
+  float th = 0.5 / float(textureSize(tAlbR, 0).y);
   uv.x = clamp(uv.x, uUV.x + tw, uUV.x + uUV.y - tw);
+  uv.y = clamp(uv.y, uUV.z + th, uUV.z + uUV.w - th);
   return uv;
 }
 vec4 ssColour(sampler2D t) {
