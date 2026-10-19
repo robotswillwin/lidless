@@ -146,6 +146,10 @@ Characters walk in front of the set, so lights and characters need to know which
 
 ### Characters: parts, rig and animation
 
+Lux's design comes from [art/LIDLESS_Lux_Character_Reference_v1_2026-10-19.md](art/LIDLESS_Lux_Character_Reference_v1_2026-10-19.md):
+her study sheets in `art/reference/lux/sheets/`, and the clothed panels cut from them (`art/reference/lux/ref-*.png`),
+the only ones to send to the image API.
+
 A character that walks is built from parts, so a person can take over any step later:
 
 | Folder | What is in it | Made by |
