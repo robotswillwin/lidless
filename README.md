@@ -144,7 +144,12 @@ itself whenever `build` runs.
   and `world.json` lists the scenes and where the game starts.
 - `art`: recipes and the chosen source images for the pipeline, in the same folders (generated candidates are not
   committed).
-- `tools/pipeline`: the asset pipeline. `tools/styleframe`: the hand-coded main street (sky, crowd and set), drawn in code.
+- `tools/pipeline`: the asset pipeline. `cli.mjs` is its command line; the commands are in `images.mjs` (pictures with
+  the image model), `build.mjs` (game sprites), `characters.mjs` (parts and rigs) and `scenes.mjs` (rooms, camera
+  pull-backs, layers), with `shared.mjs`; under them `clean.mjs`, `derive.mjs` and `image.mjs` (pixels and maps),
+  `parts.mjs` (cutting and posing parts), `split.mjs` and `depth.mjs` (layer maps), `style.mjs` (the prompts),
+  `openai.mjs`, `recipe.mjs` and `blockout.mjs`. `tools/blender`: the rig. `tools/styleframe`: the hand-coded main
+  street (sky, crowd and set), drawn in code.
 - `scripts`: headless checks: `play` walks the opening route, `shot` takes screenshots, `perf` measures frame times.
 - `docs`: the plan, the asset contract, the story documents and the art review; [docs/README.md](docs/README.md) lists
   them.
