@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import type { IncomingMessage, ServerResponse } from 'node:http';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
@@ -63,12 +64,30 @@ function assetWatch(): Plugin {
   };
 }
 
+/**
+ * Tunnels to the dev server, to try the game on a phone: ngrok gives a new address each time, so every address under its
+ * domains is let in (a leading dot takes in every subdomain).
+ */
+const TUNNELS = ['.ngrok-free.app', '.ngrok-free.dev', '.ngrok.app', '.ngrok.dev', '.ngrok.io'];
+
+/**
+ * The save endpoints write files in the project, so they only take requests made on this machine: through a tunnel,
+ * anyone with its address could otherwise change the game's files.
+ */
+function onlyHere(req: IncomingMessage, res: ServerResponse): boolean {
+  if (/^(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/.test(req.headers.host ?? '')) return true;
+  res.statusCode = 403;
+  res.end('Saving works on this machine only (localhost), not through a tunnel.');
+  return false;
+}
+
 /** On the dev server, the look panel's Save writes the look as public/assets/look.json: flat numbers only. */
 function lookSave(): Plugin {
   return {
     name: 'lidless-look-save',
     configureServer(server) {
       server.middlewares.use('/__look', (req, res) => {
+        if (!onlyHere(req, res)) return;
         if (req.method !== 'POST') { res.statusCode = 405; res.end('POST the look as JSON'); return; }
         let body = '';
         req.on('data', (chunk: Buffer) => { body += chunk; if (body.length > 100_000) req.destroy(); });
@@ -100,6 +119,7 @@ function sceneSave(): Plugin {
     name: 'lidless-scene-save',
     configureServer(server) {
       server.middlewares.use('/__scene', (req, res) => {
+        if (!onlyHere(req, res)) return;
         const id = new URL(req.url ?? '', 'http://x').searchParams.get('id') ?? '';
         if (req.method !== 'POST' || !/^[a-z0-9][a-z0-9-]{0,39}$/.test(id)) { res.statusCode = 400; res.end('POST a scene to /__scene?id=<id>, the id in lower case letters, digits and dashes'); return; }
         let body = '';
@@ -135,6 +155,7 @@ function sceneLookSave(): Plugin {
     name: 'lidless-scene-look-save',
     configureServer(server) {
       server.middlewares.use('/__scene-look', (req, res) => {
+        if (!onlyHere(req, res)) return;
         const id = new URL(req.url ?? '', 'http://x').searchParams.get('id') ?? '';
         if (req.method !== 'POST' || !/^[a-z0-9][a-z0-9-]{0,39}$/.test(id)) { res.statusCode = 400; res.end('POST a scene look to /__scene-look?id=<id>'); return; }
         let body = '';
@@ -165,6 +186,8 @@ function sceneLookSave(): Plugin {
 // Relative base so the same build runs from a subpath, from file:// in tests, and inside Capacitor and Tauri.
 export default defineConfig({
   base: './',
+  server: { allowedHosts: TUNNELS },
+  preview: { allowedHosts: TUNNELS },
   plugins: [ink(), assetWatch(), lookSave(), sceneSave(), sceneLookSave()],
   build: {
     target: 'es2022',
