@@ -242,12 +242,17 @@ gone (`art/home/cutaway.json`): her floor lit in the middle of the frame, the ne
 city on either side. The scene walks her along her floor; the city at the sides is outside (`zones`), so the rain
 falls there, and rings from the rain only show on ground that reflects.
 
-How the street was made: the two pictures of the look reference, scaled to 1920 by 1080, were imported as its two
-views. `touch` took Lux out of both and painted back what the scene's story needs: the woman at the dining machine (in
-raw first, then laid under the Concierge's picture so its woman in red kneels in the same place), the sleeper in raw,
-the shop's gold-leaf sign in both views, the Concierge's face on the billboard with a poster in its place in raw, and
-the moon. Raw lettering follows the world bible: the hotel sign reads ОТЕЛЬ and the machine's screen is blank. The
-earlier painted street is in git's history.
+How the street was made: the Concierge's picture of the look reference, scaled to 1920 by 1080, was imported, and
+`touch` took Lux out of it and added what the scene's story needs: the woman in red at the dining machine, the shop's
+gold-leaf sign, the Concierge's face on the billboard. Raw view was then redrawn from it with `redress --from
+concierge.png`: the same shapes, lined up within a pixel, dim and worn in amber-brown smog, with the sign reading
+РЕМОНТ РАДИО, a faded ОТЕЛЬ, a poster where the face hangs and the woman wire-thin at the machine; `touch` added the
+sleeper. The proposed raw picture itself, with its grime and pipes, had far too much detail for the look. The earlier
+streets are in git's history.
+
+In flat art, raw view is as simple as the Concierge's: age and dirt are duller colours and a few simple shapes, never
+texture. The pipeline's description of the raw world says so for `look: vector`, and a recipe's `rawAir` names the
+colour of its raw smog (yellow-green unless it says otherwise; the street's is amber-brown).
 
 Lux was designed again in the look: `art/cast/lux-concierge.json` generated her Concierge self in profile with the
 flat reference figure from the concept art, and `redress` made her raw self from it, the same outline in her worn

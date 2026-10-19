@@ -24,13 +24,16 @@ Lux walks along the bollards in both, about a fifth of the picture tall.
 - **Light.** The light is where the detail goes: glowing windows, lamps throwing cones through the air, neon, and long
   vertical reflections on the wet ground. The engine adds what moves: rain, drips, steam, light shafts, bloom, the
   traffic, the beacons, and the lights on the characters.
-- **The two views.** The same buildings in the same places. The Concierge's view is saturated violet, blue, pink and
-  cyan, warm and clean; raw view is the same street in amber-brown smog, industrial and rusted.
+- **The two views.** The same buildings in the same places, drawn equally simply. The Concierge's view is saturated
+  violet, blue, pink and cyan, warm and clean; raw view is the same shapes in amber-brown smog, dim and worn. Age and
+  dirt in raw view are duller, darker colours and a few simple shapes (smokestacks, a poster, dead plants), never
+  texture, stains or rust spots: the first raw street, with its grime and pipes, had far too much detail for the look.
 
 ## The street in the game
 
-`art/street/vista.json` is built from the two pictures at twice the level's resolution (see ASSETS.md, Resolution).
-What the scene's story needs was painted back in the same style, and everything else is as proposed:
+`art/street/vista.json` is built at twice the level's resolution (see ASSETS.md, Resolution). The Concierge's view is
+the proposed picture; raw view was redrawn from it, the same shapes in the colours of the proposed raw picture, so both
+views are equally simple and line up for the switch. What the scene's story needs was added in the same style:
 
 | Added | Why |
 | --- | --- |
@@ -62,4 +65,5 @@ the camera.
 ## Change log
 
 - **v1 · 2026-10-19:** the director's two pictures stored as the reference for the look; the main street built from
-  them, with what its story needs painted back in.
+  them, with what its story needs painted back in. The same day, raw view redrawn from the Concierge's picture, as
+  simple as it: the director found the first raw street far too detailed for the look.

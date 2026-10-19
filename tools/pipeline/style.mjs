@@ -26,17 +26,31 @@ export const HOUSE_STYLE = 'Adult noir mood in a rain-soaked future city. Realis
  * People, and the electronics they use, differ the most.
  */
 const RAW_COLOURS = 'Muted, faded colours that lean cold: concrete grey, slate blue-grey, dirty white tile, rust, and peeling paint in washed-out greens, browns and reds. Nothing bright or saturated, except small lights on machines: indicators, old screens.';
-/** Vector art paints its air in: the raw world's colour is its poisonous smog, as in the references. */
-const RAW_COLOURS_VECTOR = 'Sick, muted colours drowned in a poisonous yellow-green smog that glows where the light falls; nothing bright except lamps and the small lights of machines.';
+/**
+ * Vector art paints its air in: the raw world's colour is its poisonous smog, as in the references. A recipe's "rawAir"
+ * names another colour for it.
+ */
+const rawColoursVector = (r) => `Sick, muted colours drowned in a poisonous ${r.rawAir ?? 'yellow-green'} smog that glows where the light falls; nothing bright except lamps and the small lights of machines.`;
+const RAW_MATERIALS = 'Concrete panel blocks, cheap plastic, corrugated metal, rust, peeling paint, stained tiles.';
+const RAW_ELECTRONICS = 'Electronics that people use are grey and steampunk-like: dull grey metal casings, exposed valves, tubes, gauges, cables and rivets, patched together. No brass.';
+const RAW_HELMET = 'Everyone wears a partial helmet that covers one whole eye: here a heavy, grey, steampunk-like device of riveted metal plates, a round lens and small tubes.';
 const RAW_WORLD = [
   'This is the raw, unedited world: poisonous, cheap and post-Soviet.',
-  'Concrete panel blocks, cheap plastic, corrugated metal, rust, peeling paint, stained tiles.',
+  RAW_MATERIALS,
   'People look sick, pale and dull, out of shape and under-trained, in cheap, trashy, worn-out clothes.',
-  'Electronics that people use are grey and steampunk-like: dull grey metal casings, exposed valves, tubes, gauges, cables and rivets, patched together. No brass.',
-  'Everyone wears a partial helmet that covers one whole eye: here a heavy, grey, steampunk-like device of riveted metal plates, a round lens and small tubes.',
+  RAW_ELECTRONICS,
+  RAW_HELMET,
   'Hardly any text: old signs have peeled away or faded almost to nothing, and what little lettering survives is faint, in Russian or an invented script.',
   RAW_COLOURS,
 ].join(' ');
+/** In flat art, age and dirt are colours and a few shapes, never texture: the same world, said so it stays simple. */
+const rawWorld = (r, look = r.look) => (look === 'vector'
+  ? RAW_WORLD
+    .replace(RAW_MATERIALS, 'Concrete blocks, cheap plastic and corrugated metal, old and dirty: in this flat style that shows only as duller, darker colours and a few large simple shapes, never as texture, stains, rust spots or speckle.')
+    .replace(RAW_ELECTRONICS, 'Electronics that people use are grey, old and patched together, drawn as a few simple grey shapes. No brass.')
+    .replace(RAW_HELMET, 'Everyone wears a partial helmet that covers one whole eye: here a heavy grey device with a round lens.')
+    .replace(RAW_COLOURS, rawColoursVector(r))
+  : RAW_WORLD);
 const CONCIERGE_ELECTRONICS = 'Electronics that people use look futuristic: smooth white shells and blue light.';
 /**
  * Old analog devices are relics: nothing in them reports to the Concierge, so it shows them as they looked when new.
@@ -90,8 +104,8 @@ const RIG_POSE = 'A neutral standing pose for animation: arms hanging relaxed an
 export function generationPrompt(r, look = r.look ?? 'pixel') {
   const world = r.exists === 'concierge'
     ? `This does not exist: the city AI made it up and shows it in everyone's eye. Its world is ${conciergeWorld(r)}`
-    : RAW_WORLD;
-  return `${look ? `${LOOKS[look]} ` : ''}${HOUSE_STYLE} ${r.framing ?? frameNote(r, look)}${r.rig ? ` ${RIG_POSE}` : ''} ${look === 'vector' ? world.replace(RAW_COLOURS, RAW_COLOURS_VECTOR) : world} Subject: ${r.prompt}`;
+    : rawWorld(r, look);
+  return `${look ? `${LOOKS[look]} ` : ''}${HOUSE_STYLE} ${r.framing ?? frameNote(r, look)}${r.rig ? ` ${RIG_POSE}` : ''} ${world} Subject: ${r.prompt}`;
 }
 
 /** Put in front of the prompt when a layout image goes first: it sets the composition, the references the rendering. */
@@ -120,7 +134,7 @@ export function conciergePrompt(r) {
 }
 
 /** The world a view of the asset is in, for edits of an image that is already one view or the other. */
-const worldOf = (r, view) => (view === 'concierge' ? `It shows the city AI's augmented view, whose world is ${conciergeWorld(r)}` : RAW_WORLD);
+const worldOf = (r, view) => (view === 'concierge' ? `It shows the city AI's augmented view, whose world is ${conciergeWorld(r)}` : rawWorld(r));
 
 /** Re-dress the picked image of one view: the same picture, every outline in place, its surfaces changed as asked. */
 /**
