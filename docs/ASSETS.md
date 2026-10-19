@@ -237,9 +237,11 @@ a foot, the foot knowing where its heel and toe touch the ground. Each foot is p
 landing on its heel, rolling flat and pushing off from its toe, and swings forward for the rest; the legs reach the
 feet by inverse kinematics, and the hip rides as high as both legs allow, dipping at each heel strike. Baked at 16
 frames a cycle, a planted foot moves back exactly a sixteenth of the stride per frame, so in the game it stays where it
-landed. `parts.gait` changes it (`GAIT` in tools/pipeline/parts.mjs: stride 1.5 leg lengths, arms swinging 10°,
-elbows softly bent, an upright back), and `gait.idle` her stance: weight on the near leg, the far leg free with its heel
-lifted. The world's `hero.cadence` (strides a second, 1.0) sets her pace from her stride at her size in each scene, so
+landed. `parts.gait` changes it (`GAIT` in tools/pipeline/parts.mjs: stride 1.35 leg lengths, arms swinging 10°,
+elbows softly bent, the torso leaning 3° forward from upright whatever angle the parts sheet drew it at, the feet's time
+on the ground centred a little behind the hip so she is carried over them), and `gait.idle` her stance, upright: weight
+on the near leg, the far leg free with its heel
+lifted. The world's `hero.cadence` (strides a second, 1.1) sets her pace from her stride at her size in each scene, so
 the walk never turns into a scurry when she is drawn small.
 
 A character is softened into the scene: the pixels she only partly covers take the rest of their colour from the set

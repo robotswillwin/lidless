@@ -305,12 +305,25 @@ export function pose(parts, angles, { w, h, origin, far = [-14, -6], matrices = 
  * stride: ground covered in one cycle of two steps; stance: the part of the cycle a foot is on the ground; lift: how
  * high the ankle rises in the swing; strike and toeOff: the foot's angle as the heel lands and as the toe pushes off
  * (degrees); flex: how far the hip dips as the leg takes her weight; arms: the swing of the upper arms (degrees);
- * elbow and elbowSwing: the elbows' bend, and how much more as the arm comes forward; lean: the torso's lean (degrees,
- * the head staying level); coat: its flutter. `idle` changes the same for her stance: weight on the near leg, the far
- * leg free with its heel lifted (`heel`, degrees) and its foot a little forward (`step`).
+ * elbow and elbowSwing: the elbows' bend, and how much more as the arm comes forward; lean: how far her torso leans
+ * forward from upright (degrees), whatever angle the parts sheet drew it at, the head and the hanging arms staying as
+ * they hang; back: how far behind the hip, as a fraction of the stride, the foot's time on the ground is centred, so the
+ * body is carried over its feet instead of sitting back behind them; reach: how straight the legs get; coat: its
+ * flutter. `idle` changes the same for her stance: weight on the near leg, the far leg free with its heel lifted (`heel`,
+ * degrees) and its foot a little forward (`step`).
  */
-export const GAIT = { frames: 16, stride: 1.5, stance: 0.62, lift: 0.12, strike: 16, toeOff: 28, flex: 0.012, arms: 10, elbow: 10, elbowSwing: 10, lean: 1, coat: 2 };
-export const STAND = { step: 0.06, heel: 10, reach: 0.997, arm: -3, elbow: 9, farArm: 4, farElbow: 12, lean: 0 };
+export const GAIT = { frames: 16, stride: 1.35, stance: 0.62, lift: 0.11, strike: 12, toeOff: 24, flex: 0.008, arms: 10, elbow: 10, elbowSwing: 10, lean: 3, back: 0.04, reach: 0.993, coat: 2 };
+export const STAND = { step: 0.06, heel: 10, reach: 0.997, arm: -3, elbow: 9, farArm: 4, farElbow: 12, lean: 1 };
+
+/**
+ * The torso's angle for the rig that makes it lean `forward` degrees from upright: the parts sheet may have drawn it
+ * tilted. In the rig's angles a positive turn tips the torso back, as it swings a hanging limb forward.
+ */
+function torsoTurn(parts, forward) {
+  const t = parts.torso?.joints;
+  const drawn = t?.neck && t?.hip ? deg(Math.atan2(t.neck[0] - t.hip[0], t.hip[1] - t.neck[1])) : 0;
+  return -(forward - drawn);
+}
 
 const rad = (d) => (d * Math.PI) / 180, deg = (r) => (r * 180) / Math.PI;
 const smooth = (x) => { const t = Math.max(0, Math.min(1, x)); return t * t * (3 - 2 * t); };
@@ -350,10 +363,10 @@ const softMin = (a, b, k) => Math.min(a, b) - k * Math.log(1 + Math.exp(-Math.ab
  * over the standing leg. `far` is where the far hip sits from the near one.
  */
 export function walkCycle(parts, gaitIn = {}, far = [-14, -6]) {
-  const g = { ...GAIT, ...gaitIn }, leg = legOf(parts), L = leg.L1 + leg.L2, S = g.stride * L, R = 0.985 * L;
+  const g = { ...GAIT, ...gaitIn }, leg = legOf(parts), L = leg.L1 + leg.L2, S = g.stride * L, R = g.reach * L;
   const footLen = leg.toe[0] - leg.heel[0], heelOff = g.stance - 0.2;
-  // the heel lands so that the stance is centred under her
-  const hx0 = (S * g.stance) / 2 - leg.heel[0];
+  // the heel lands so that the foot's time on the ground is centred a little behind her hip
+  const hx0 = S * (g.stance / 2 - g.back) - leg.heel[0];
   const stanceAt = (p) => {
     const phi = p < 0.1 ? rad(g.strike) * (1 - smooth(p / 0.1)) : p < heelOff ? 0 : -rad(g.toeOff) * smooth((p - heelOff) / (g.stance - heelOff));
     // the foot stays where it landed: its heel's spot moves back under her as she walks on, and it turns on the heel
@@ -369,7 +382,7 @@ export function walkCycle(parts, gaitIn = {}, far = [-14, -6]) {
     return { x: a.x + (b.x - a.x) * smoother(u), oy: a.oy + (b.oy - a.oy) * smooth(u) + g.lift * L * Math.sin(Math.PI * Math.pow(u, 0.6)), phi };
   };
   const bell = (x) => { const w = ((x % 1) + 1.5) % 1 - 0.5; return Math.exp(-((w / 0.07) ** 2)); };
-  const frames = [];
+  const tor = torsoTurn(parts, g.lean), frames = [];
   for (let k = 0; k < g.frames; k++) {
     const p = k / g.frames, n = legAt(p), f = legAt(p + 0.5);
     // the ground under the hip: as low as the legs reach, a little lower as each leg takes her weight
@@ -377,10 +390,11 @@ export function walkCycle(parts, gaitIn = {}, far = [-14, -6]) {
     const nl = reach(leg, [0, 0], [n.x, G - n.oy], n.phi), fl = reach(leg, far, [f.x, G - f.oy], f.phi);
     const arm = (q) => ({ up: -g.arms * Math.cos(2 * Math.PI * (q - 0.05)), low: g.elbow + (g.elbowSwing * (1 - Math.cos(2 * Math.PI * (q - 0.05)))) / 2 });
     const an = arm(p), af = arm(p + 0.5);
+    // the head and the arms turn with the torso; turned back by as much, the head stays level and the arms hang
     frames.push({
-      torso: g.lean, head: -g.lean, coat: -2 + 0.15 * (nl.thighAbs + fl.thighAbs) + g.coat * Math.sin(4 * Math.PI * p + 0.9),
+      torso: tor, head: -tor, coat: -2 + 0.15 * (nl.thighAbs + fl.thighAbs) + g.coat * Math.sin(4 * Math.PI * p + 0.9),
       legUpper: nl.thigh, legLower: nl.knee, foot: nl.foot, legFarUpper: fl.thigh, legFarLower: fl.knee, footFar: fl.foot,
-      armUpper: an.up, armLower: an.low, armFarUpper: af.up, armFarLower: af.low,
+      armUpper: an.up - tor, armLower: an.low, armFarUpper: af.up - tor, armFarLower: af.low,
       // where the thighs point, for a coat or skirt that the legs push and drag; and how high the hip rides, for hair
       // that bounces with each step
       thighAbs: nl.thighAbs, thighAbsFar: fl.thighAbs, bob: G,
@@ -396,11 +410,11 @@ export function standPose(parts, standIn = {}, far = [-14, -6]) {
   const ax = 0.02 * L, G = groundFor([0, 0], ax, leg.heel[1], R);
   const near = reach(leg, [0, 0], [ax, G - leg.heel[1]], 0);
   const phi = -rad(st.heel), toeX = ax + leg.toe[0] + st.step * L, v = turnVec(leg.toe, phi);
-  const free = reach(leg, far, [toeX - v[0], G - v[1]], phi);
+  const free = reach(leg, far, [toeX - v[0], G - v[1]], phi), tor = torsoTurn(parts, st.lean);
   return {
-    torso: st.lean, head: -st.lean, coat: 0, legUpper: near.thigh, legLower: near.knee, foot: near.foot,
+    torso: tor, head: -tor, coat: 0, legUpper: near.thigh, legLower: near.knee, foot: near.foot,
     legFarUpper: free.thigh, legFarLower: free.knee, footFar: free.foot,
-    armUpper: st.arm, armLower: st.elbow, armFarUpper: st.farArm, armFarLower: st.farElbow,
+    armUpper: st.arm - tor, armLower: st.elbow, armFarUpper: st.farArm - tor, armFarLower: st.farElbow,
   };
 }
 
