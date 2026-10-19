@@ -134,6 +134,10 @@ itself whenever `build` runs.
   `hero.ts` (shared with the scene editor), `actions.ts` (what can be done with a thing), `input.ts` (pointer and keys),
   `scene.ts` (a scene's frame: layers, movers, people, effects), `scenefile.ts` (scene files), `world.ts` (her walk),
   `hud.ts` and `ui.ts` (the interface), `dialogue.ts`, `save.ts`. `src/main.ts` only boots it.
+- `src/editor`: the scene editor. `state.ts` (what is edited), `files.ts` (opening, building, saving, undo),
+  `overlay.ts` (what is drawn over the scene, and dragging it), `panels.ts` with `form.ts` (the side panel), `edit.ts`
+  (adding and deleting), `main.ts` (wiring and start). `src/bench.ts` is the asset bench, `src/look-panel.ts` the look
+  panel both use.
 - `src/story`: dialogue in Ink, compiled at build time. `main.ink` declares the variables and includes one file per scene; a tag on a line names its speaker (`#lux`, `#fixer`, `#concierge`), and untagged lines are narration.
 - `public/assets`: game assets in the format described in [docs/ASSETS.md](docs/ASSETS.md), one folder per scene
   (`home`, `backstreet`, `street`, `radio`) plus `cast` for recurring characters; `scenes/<id>/scene.json` places them,
