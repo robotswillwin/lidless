@@ -6,3 +6,5 @@ dist-shot/
 shots/
 art/**/candidates/
 art/**/layout-check.png
+art/**/rig/frames/
+*.blend1

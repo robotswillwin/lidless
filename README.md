@@ -40,6 +40,7 @@ Other commands:
 - `npm run shot -- "t=3" "t=3&view=raw" "bench.html?asset=cast/hero"` builds and saves screenshots to `shots/` with headless Chrome. No server needed.
 - `npm run play` builds and plays a scripted run (look, talk to the fixer, switch view, reload) with a screenshot per step.
 - `npm run perf` builds and reports the frame rate per quality tier, up to a 4K canvas.
+- `npm run asset -- rig art/cast/hero.json` rigs Lux in Blender and renders her walk (needs Blender: `brew install --cask blender`). See docs/ASSETS.md, "Characters".
 - `node tools/styleframe/export.mjs` regenerates the old hand-coded street layers in `public/assets/street` (sky, crowd, set), which the main street no longer uses.
 
 Address options: `new`, `view=raw` (skips the mod), `q=low|medium|high`, `t=<seconds>` to freeze time, `debug`,

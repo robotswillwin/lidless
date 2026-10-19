@@ -144,6 +144,30 @@ Characters walk in front of the set, so lights and characters need to know which
 - A scene's `ambient` and `exposure` (stops) can each be one number or one per view: a dark raw room can be a white
   apartment to the Concierge.
 
+### Characters: parts, rig and animation
+
+A character that walks is built from parts, so a person can take over any step later:
+
+| Folder | What is in it | Made by |
+| --- | --- | --- |
+| `art/cast/<name>/raw.png`, `concierge.png` | the design, standing in profile, in each view | `generate`, `redress` |
+| `art/cast/<name>/parts/<set>-sheet.png` | the parts sheet of each set (an outfit seen from one side) | `parts` |
+| `art/cast/<name>/parts/<set>/` | the parts cut from it, with their joints in `parts.json` | `parts --recut` |
+| `art/cast/<name>/rig/` | the parts as the rig uses them (to the recipe's proportions, the foot split from the shin), `rig.json`, and `<name>.blend` | `rig` |
+| `art/cast/<name>/anims/` | the rendered frames: `idle/`, `walk/`, and `idleLeft/`, `walkLeft/`, one PNG per view and frame | `rig` |
+| `public/assets/cast/<name>/` | the sprite the game loads | `build` |
+
+`npm run asset -- rig <recipe>` rigs the parts in Blender (tools/blender/rig.py): one skeleton for both outfits and
+both sides, the walk keyed from the gait (feet planted, the legs reaching them), the coat as two chains of springs
+the legs push and drag, the forearms trailing the upper arms, and every set rendered to anims/. Joints are meshes
+blended into the next bone, so knees, elbows and ankles bend instead of breaking.
+
+To change the walk by hand: open `art/cast/hero/rig/hero.blend` in Blender, pose the `rig` armature (frame 0 is her
+stance, frames 1 to 16 one cycle of the walk), save, and run `npm run asset -- rig art/cast/hero.json --render-only`,
+then `build`. The walk is animated once and every outfit and side follows. Redrawing a part means replacing its image
+in the parts folder and running `parts --recut`, then `rig`. Set pieces (sleeping, eating, showering) are fixed-frame
+loops instead: a picture as frame 0 and a few frames where only part of it changes (`touch --frame`).
+
 ### Painted scenes
 
 The main street is the first scene in the current look: flat, simple shapes with the drama in the light, like a modern

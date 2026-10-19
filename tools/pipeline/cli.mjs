@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // The asset pipeline. Run `npm run asset -- help` for the commands.
 
+import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { copyFile, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { basename, dirname, join, relative, resolve } from 'node:path';
@@ -58,6 +59,10 @@ const HELP = `Asset pipeline: generate art with an image AI, clean it and turn i
       The raw sheet is drawn from the recipe's parts.from image (default raw.png); the Concierge sheet is the raw
       sheet edited, so the parts match. --dry only writes the template.
       --preview walks the parts in a GIF; --bake renders a standing frame and the walk from them into anims/.
+  npm run asset -- rig <recipe> [--render-only]
+      Rig the character's parts in Blender: one skeleton for both outfits and sides, the walk keyed with the coat and
+      the arms following through, frames rendered into anims/ for build. Saves art/<scene>/<name>/rig/<name>.blend, the
+      file to change the walk in by hand; --render-only renders that file as it is. Needs Blender on the PATH.
   npm run asset -- erase <recipe> --file <image> --poly "x,y x,y x,y ..."
       Make everything inside the polygon transparent, to clear stray bits off cut-out art. Free; the old image is kept.
   npm run asset -- touch <recipe> --box x,y,w,h --prompt "what to change" [--view raw|concierge] [--quality low|medium] [--frame idle/1] [--dry]
@@ -773,6 +778,69 @@ async function bakeParts(r, dir) {
   console.log(`${r.name}: a standing frame and ${count} walk frames for ${done.join(', ')} → ${rel(join(r.dir, 'anims'))}, stride ${stride.toFixed(0)} px`);
 }
 
+/** A part image mirrored left to right, its joints with it. */
+const mirrorPart = (img, joints) => {
+  const out = blank(img.w, img.h);
+  for (let y = 0; y < img.h; y++) for (let x = 0; x < img.w; x++) out.d.set(img.d.subarray((y * img.w + x) * 4, (y * img.w + x) * 4 + 4), (y * img.w + (img.w - 1 - x)) * 4);
+  return { img: out, joints: Object.fromEntries(Object.entries(joints).map(([j, [x, y]]) => [j, [img.w - 1 - x, y]])) };
+};
+
+/**
+ * The character rigged in Blender (tools/blender/rig.py): its parts prepared as the bake prepares them (to the recipe's
+ * proportions, the lower leg split into shin and foot, a set seen from the left mirrored to face right), written with
+ * the walk to <recipe dir>/rig/; Blender builds one skeleton for every set, keys the walk with the coat and the arms
+ * following through, saves rig/<name>.blend and renders each set's frames, which land in anims/ for build. With
+ * --render-only it renders the saved .blend as it is, after the walk has been changed by hand.
+ */
+async function cmdRig([file], opt) {
+  const r = await loadRecipe(file), dir = join(r.dir, 'parts'), out = join(r.dir, 'rig'), tmp = join(out, 'frames'), FAR = [-14, -6], PERCENT = 50;
+  if (!opt['render-only']) {
+    const all = JSON.parse(await readFile(join(dir, 'parts.json'), 'utf8')), gait = r.parts?.gait ?? {}, sets = [];
+    let walk = null, idle = null;
+    for (const side of ['', '-left']) for (const look of ['raw', 'concierge']) {
+      const v = look + side;
+      if (!existsSync(join(dir, v, 'torso.png'))) continue;
+      const left = side === '-left', parts = {};
+      for (const [name, info] of Object.entries(all[v])) {
+        const img = await readRGBA(join(dir, v, `${name}.png`));
+        parts[name] = left ? mirrorPart(img, info.joints) : { img, joints: info.joints };
+      }
+      await proportion(parts, r.parts?.proportions);
+      if (!parts.foot) throw new Error(`${r.name}: the rig needs a separate foot: give parts.proportions a boot height`);
+      await mkdir(join(out, v), { recursive: true });
+      const pieces = {};
+      for (const [name, p] of Object.entries(parts)) {
+        await writePNG(join(out, v, `${name}.png`), p.img);
+        pieces[name] = { size: [p.img.w, p.img.h], joints: p.joints };
+      }
+      sets.push({ name: v, left, coatFront: left ? r.parts?.left?.coat === 'front' : r.parts?.coat === 'front', parts: pieces });
+      if (v === 'raw') { walk = walkCycle(parts, gait, FAR); idle = standPose(parts, gait.idle, FAR); }
+    }
+    if (!walk) throw new Error(`${r.name}: no raw parts to rig`);
+    await writeFile(join(out, 'rig.json'), JSON.stringify({ blend: `${r.name}.blend`, percent: PERCENT, far: FAR, sets, walk, idle }, null, 1) + '\n');
+  }
+  await rm(tmp, { recursive: true, force: true });
+  execFileSync('blender', ['-b', '--factory-startup', '--python', resolve(ROOT, 'tools/blender/rig.py'), '--', out, tmp, ...(opt['render-only'] ? ['--render-only'] : [])], { stdio: ['ignore', 'inherit', 'inherit'] });
+  // frame 0 is the stance, 1 to N the walk; a set seen from the left is mirrored back
+  const rig = JSON.parse(await readFile(join(out, 'rig.json'), 'utf8'));
+  for (const s of rig.sets) {
+    const look = s.name.replace('-left', ''), sfx = s.left ? 'Left' : '';
+    const files = (await readdir(join(tmp, s.name))).filter((f) => f.endsWith('.png')).sort();
+    for (const anim of ['idle', 'walk']) {
+      const d = join(r.dir, 'anims', anim + sfx);
+      await mkdir(d, { recursive: true });
+      for (const f of await readdir(d)) if (f.startsWith(`${look}-`) && f.endsWith('.png')) await rm(join(d, f));
+    }
+    for (const [i, f] of files.entries()) {
+      const dst = join(r.dir, 'anims', (i ? 'walk' : 'idle') + sfx, `${look}-${String(i ? i - 1 : 0).padStart(2, '0')}.png`);
+      await (s.left ? sharp(join(tmp, s.name, f)).flop() : sharp(join(tmp, s.name, f))).png().toFile(dst);
+    }
+  }
+  await writeFile(join(r.dir, 'anims', 'walk', 'stride.json'), JSON.stringify({ stride: (rig.walk.stride * PERCENT) / 100 }) + '\n');
+  await writeFile(join(r.dir, 'anims', 'origin.json'), JSON.stringify({ x: (800 * PERCENT) / 100 }) + '\n');
+  console.log(`${r.name}: rigged in Blender (${rel(join(out, rig.blend))}), a stance and ${rig.walk.frames.length} walk frames for ${rig.sets.map((s) => s.name).join(', ')} → ${rel(join(r.dir, 'anims'))}. Build it with: npm run asset -- build ${rel(r.file)}`);
+}
+
 /** The parts assembled and walked through the standard cycle, as an animated GIF beside the sheets, for checking. */
 async function previewParts(r, dir) {
   const views = ['raw', 'concierge'].filter((v) => existsSync(join(dir, v, 'torso.png')));
@@ -899,6 +967,6 @@ async function cmdTouch([file], opt) {
 }
 
 const [cmd, ...rest] = process.argv.slice(2), { pos, opt } = parse(rest);
-const run = { new: cmdNew, zoom: cmdZoom, extend: cmdExtend, generate: cmdGenerate, variant: cmdVariant, redress: cmdRedress, reframe: cmdReframe, blockout: cmdBlockout, pick: cmdPick, import: cmdImport, sheet: cmdSheet, touch: cmdTouch, erase: cmdErase, parts: cmdParts, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
+const run = { new: cmdNew, rig: cmdRig, zoom: cmdZoom, extend: cmdExtend, generate: cmdGenerate, variant: cmdVariant, redress: cmdRedress, reframe: cmdReframe, blockout: cmdBlockout, pick: cmdPick, import: cmdImport, sheet: cmdSheet, touch: cmdTouch, erase: cmdErase, parts: cmdParts, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
 if (!run) console.log(HELP);
 else run(pos, opt).catch((e) => { console.error(`error: ${e.message}`); process.exit(1); });

@@ -351,6 +351,8 @@ export function walkCycle(parts, gaitIn = {}, far = [-14, -6]) {
       torso: g.lean, head: -g.lean, coat: -2 + 0.15 * (nl.thighAbs + fl.thighAbs) + g.coat * Math.sin(4 * Math.PI * p + 0.9),
       legUpper: nl.thigh, legLower: nl.knee, foot: nl.foot, legFarUpper: fl.thigh, legFarLower: fl.knee, footFar: fl.foot,
       armUpper: an.up, armLower: an.low, armFarUpper: af.up, armFarLower: af.low,
+      // where the thighs point, for a coat or skirt that the legs push and drag
+      thighAbs: nl.thighAbs, thighAbsFar: fl.thighAbs,
     });
   }
   return { frames, stride: S };
