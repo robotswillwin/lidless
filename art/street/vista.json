@@ -48,7 +48,8 @@
       },
       {
         "name": "street",
-        "parallax": 1
+        "parallax": 1,
+        "fill": "the near street: the shop building at the left, and at the right the pavement, the dining machine and the tall building behind it"
       }
     ],
     "fixes": [

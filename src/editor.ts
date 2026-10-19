@@ -31,7 +31,7 @@ type Selection =
 
 let world: WorldFile, file: SceneFile, scene: Scene | null = null, runner: SceneRunner | null = null, hero: Sprite | null = null;
 let sel: Selection = { kind: 'scene' }, view = 1, switchedAt = -10, camX = 0, dirty = false, assets: string[] = [];
-let lux = { x: 480, facing: 1 as 1 | -1, show: true, lean: false };
+let lux = { x: 480, facing: 1 as 1 | -1, show: true, follow: false };
 const undoStack: string[] = [];
 const t0 = performance.now();
 
@@ -81,7 +81,7 @@ async function openScene(id: string): Promise<void> {
   sel = { kind: 'scene' };
   camX = 0;
   const first = Object.values(file.spawns)[0];
-  lux = { x: first?.x ?? file.size[0] / 2, facing: first?.facing ?? 1, show: true, lean: lux.lean };
+  lux = { x: first?.x ?? file.size[0] / 2, facing: first?.facing ?? 1, show: true, follow: lux.follow };
   await rebuild();
   sceneSel.value = id;
   window.history.replaceState(null, '', `?scene=${id}`);
@@ -111,19 +111,26 @@ function draw(): void {
   const t = (performance.now() - t0) / 1000, actors: DrawSprite[] = [];
   if (hero && lux.show) {
     const d = hero.def, [ax, ay] = d.anchor ?? [d.w / 2, d.h], sc = file.actorScale ?? 1;
-    actors.push({ sprite: hero, x: Math.round(lux.x - camX - ax * sc), y: Math.round(file.walk.y - ay * sc), scale: sc, frame: frameFor(d, false, 0, t, lux.facing) });
+    actors.push({ sprite: hero, x: lux.x - viewX() - ax * sc, y: Math.round(file.walk.y - ay * sc), scale: sc, frame: frameFor(d, false, 0, t, lux.facing) });
   }
-  // the camera's lean, as the game would have it with Lux where she stands here (see the scene's drift)
+  renderer.render(runner.frame(t, { view, sinceSwitch: t - switchedAt }, [viewX(), 0], actors, [-1000, -1000]));
+}
+
+/**
+ * The camera: where the editor is scrolled to, or in a scene no wider than the screen with "Move the camera with her"
+ * on, where the game would have it with Lux where she stands (see the scene's drift).
+ */
+function viewX(): number {
   const { x0, x1 } = file.walk, drift = file.drift ?? 0;
-  const lean = lux.lean && drift && file.size[0] <= NW && x1 > x0 ? drift * Math.max(-1, Math.min(1, (lux.x - (x0 + x1) / 2) / ((x1 - x0) / 2))) : 0;
-  renderer.render(runner.frame(t, { view, sinceSwitch: t - switchedAt }, [camX, 0], actors, [-1000, -1000], lean));
+  if (!lux.follow || !drift || file.size[0] > NW || x1 <= x0) return camX;
+  return drift * Math.max(-1, Math.min(1, (lux.x - (x0 + x1) / 2) / ((x1 - x0) / 2)));
 }
 
 const css = (c: [number, number, number]) => `rgb(${c.map((v) => Math.round(Math.min(1, Math.max(0, v)) * 255)).join(',')})`;
 const isSel = (s: Selection) => JSON.stringify(s) === JSON.stringify(sel);
 
 function drawOverlay(): void {
-  overlay.setAttribute('viewBox', `${camX} 0 ${NW} ${NH}`);
+  overlay.setAttribute('viewBox', `${viewX()} 0 ${NW} ${NH}`);
   const W = file.size[0], out: string[] = [];
   const handle = (x: number, y: number, k: string, extra = '') => `<rect class="handle" x="${x - 4}" y="${y - 4}" width="8" height="8" data-k="${k}" ${extra}/>`;
   // areas of the other kind
@@ -492,7 +499,7 @@ function sceneSide(): void {
     num('Walk from x', file.walk.x0, (v) => { file.walk.x0 = v; }), num('Walk to x', file.walk.x1, (v) => { file.walk.x1 = v; }),
     num('Reflection line y', file.mirror ?? file.walk.y - 8, (v) => { file.mirror = v; }, { after: refresh }),
     num('People’s size (1 standard, under 1 further back)', file.actorScale ?? 1, (v) => { if (v === 1) delete file.actorScale; else file.actorScale = v; }, { step: 0.05, min: 0.3, max: 3, after: refresh }),
-    num('Camera lean with Lux, px (0 none; a scene no wider than the screen)', file.drift ?? 0, (v) => { if (v) file.drift = v; else delete file.drift; }, { step: 1, min: 0, max: 60 }),
+    num('Camera follows Lux, px each way (0 none; a scene no wider than the screen)', file.drift ?? 0, (v) => { if (v) file.drift = v; else delete file.drift; }, { step: 1, min: 0, max: 60 }),
     num('Light painted into the art (0 to 1)', typeof file.baked === 'number' ? file.baked : 0, (v) => { if (v) file.baked = v; else delete file.baked; }, { step: 0.05, min: 0, max: 1, after: refresh }),
     str('The Concierge’s greeting', file.greeting ?? '', (v) => { if (v) file.greeting = v; else delete file.greeting; }),
     str('Its answer to Ring for assistance', file.assist ?? '', (v) => { if (v) file.assist = v; else delete file.assist; }, { area: true }),
@@ -500,7 +507,7 @@ function sceneSide(): void {
   side.append(heading('Lux', 'Drag the triangle at her feet to move her.'));
   side.append(
     check('Show Lux', lux.show, (v) => { lux.show = v; }),
-    check('Lean the camera with her, as in the game', lux.lean, (v) => { lux.lean = v; }),
+    check('Move the camera with her, as in the game', lux.follow, (v) => { lux.follow = v; }),
     choice('Lux faces', String(lux.facing), [['1', 'Right'], ['-1', 'Left']], (v) => { lux.facing = Number(v) as 1 | -1; }),
   );
   side.append(heading('Layers', 'Back to front. Click one to move it or change its depth.'));
@@ -524,7 +531,7 @@ function drawSide(): void {
 /* ---------- adding and deleting ---------- */
 
 /** Where new things go: the middle of what is on screen. */
-const centre = (): [number, number] => [Math.round(camX + NW / 2), Math.round(NH / 2)];
+const centre = (): [number, number] => [Math.round(viewX() + NW / 2), Math.round(NH / 2)];
 
 async function add(kind: string): Promise<void> {
   const before = snapshot(), [cx, cy] = centre();
@@ -603,7 +610,7 @@ async function newScene(): Promise<void> {
   undoStack.length = 0;
   sel = { kind: 'scene' };
   camX = 0;
-  lux = { x: Math.round(w / 2), facing: 1, show: true, lean: lux.lean };
+  lux = { x: Math.round(w / 2), facing: 1, show: true, follow: lux.follow };
   await rebuild();
   if (![...sceneSel.options].some((o) => o.value === id)) sceneSel.add(new Option(`${id} (new)`, id));
   sceneSel.value = id;

@@ -1,6 +1,6 @@
 // The 2D deferred renderer: sprites into a G-buffer, then lighting, composite, bloom and the final grade.
 
-import type { LightDef, MapName, Sprite } from './assets';
+import { smoothSampled, type LightDef, type MapName, type Sprite } from './assets';
 import { defaultLookSet, lookFor, type Look, type LookSet } from './look';
 import { createGeometry, createProgram, createTarget, deleteTarget, solidTexture, type GL, type Program, type Target } from './gl';
 import * as S from './shaders';
@@ -221,8 +221,8 @@ export class Renderer {
     gl.bindVertexArray(this.geo.quad);
     for (const d of f.sprites) {
       const s = d.sprite, def = s.def, sc = d.scale ?? 1, dw = def.w * sc, dh = def.h * sc;
-      // on whole pixels of the buffer, so a layer sliding slowly with the camera stays crisp at any render scale
-      const x = Math.round(d.x * this.rs) / this.rs, y = Math.round(d.y * this.rs) / this.rs;
+      // pixel art on whole pixels of the buffer, to stay crisp; smoothly sampled art anywhere, so a slow camera glides
+      const snap = !smoothSampled(def), x = snap ? Math.round(d.x * this.rs) / this.rs : d.x, y = snap ? Math.round(d.y * this.rs) / this.rs : d.y;
       if (x > NW || y > NH || x + dw < 0 || y + dh < 0) continue;
       MAP_ORDER.forEach(([m, u], i) => this.bind(sp, u, s.tex[m], i));
       gl.uniform4f(sp.u.uRect, x, y, dw, dh);

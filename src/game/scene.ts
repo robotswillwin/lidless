@@ -46,16 +46,12 @@ export class SceneRunner {
     return s;
   }
 
-  /**
-   * `actors` are drawn after the scene's sprites; `smoke` moves the scene's smoke emitter (the hero's cigarette). `lean`
-   * is how far the camera leans with the hero in a scene no wider than the screen: the street stays, and everything
-   * on another layer slides against it by how far it is from the street (see the scene file's drift).
-   */
-  frame(t: number, v: ViewState, cam: [number, number], actors: DrawSprite[] = [], smoke?: [number, number], lean = 0): Frame {
+  /** `actors` are drawn after the scene's sprites; `smoke` moves the scene's smoke emitter (the hero's cigarette). */
+  frame(t: number, v: ViewState, cam: [number, number], actors: DrawSprite[] = [], smoke?: [number, number]): Frame {
     const d = this.scene.def;
     if (smoke && this.smokeSlot >= 0) this.steam.set(smoke, this.smokeSlot * 4);
-    // where something placed in the scene is, in the scene's own pixels, for its parallax: the renderer takes off the camera
-    const along = (p = 1) => -(cam[0] + lean) * (p - 1);
+    // where something on a layer of its own parallax seems to be, in the street's pixels: the renderer takes the camera off
+    const along = (p = 1) => -cam[0] * (p - 1);
     // the set first, in the scene's order; then the people, the nearest last, so whoever stands nearer covers whoever is
     // behind; then anything nearer than them
     const isPerson = (def: SpriteDef) => def.actor ?? def.kind === 'character';
@@ -66,7 +62,7 @@ export class SceneRunner {
       // a character placed in the scene plays its idle loop, facing the way the scene says
       const draw = {
         sprite,
-        x: def.x - cam[0] * def.parallax - lean * (def.parallax - 1),
+        x: def.x - cam[0] * def.parallax,
         y: def.y - cam[1] * def.parallax,
         flip: facing < 0 && !hasLeft(def),
         frame: def.frames ? frameFor(def, false, 0, t, facing) : 0,

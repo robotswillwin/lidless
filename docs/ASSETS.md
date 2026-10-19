@@ -296,15 +296,16 @@ railing or a wall's edge nearer than the walk line). A layer's `parallax` is how
 with the street Lux walks on, under 1 further away (0 stays put, like a sky), over 1 nearer.
 
 - **Wide scenes**, wider than the screen, scroll: the camera follows her and each layer moves at its parallax.
-- **One-screen scenes** can lean instead: with `drift` in the scene file, the camera leans with her as she walks, by
-  `drift` pixels at the ends of the walk line. The street stays where it is, so its hotspots, lights and walk line
-  never move; the other layers slide against it by how far they are from it (a layer at 0.3 by 0.7 of the drift, one
-  at 1.2 by 0.2 the other way). Players who ask for less motion get no lean.
+- **One-screen scenes** can have the camera follow her a little: with `drift` in the scene file, it moves up to
+  `drift` pixels each way as she walks from one end of the walk line to the other, gently, after her. Every layer then
+  moves at its parallax, the street (1) the most and the far city the least, as through a real camera. Players who ask
+  for less motion get a still camera.
 - **Things on a far layer** take its parallax too, so they move with it: lights, light shafts and beacons (`parallax`
   on each), the flying traffic (`traffic.parallax`) and hotspots (`parallax`, so a click finds them where they are).
-- **Overscan:** a layer that slides needs art past the screen's edges, as far as it slides: a layer at 0.3 in a scene
-  with a drift of 20 needs 14 pixels more on each side.
-- Layers are placed at whole pixels of the render (half level pixels at render scale 2), so a slow slide stays crisp.
+- **Overscan:** every layer that moves needs art past the screen's edges, as far as it moves: the street the whole
+  drift, a layer at 0.3 a third of it. `split` gives every layer its `margin`.
+- Pixel art is placed at whole pixels of the render, to stay crisp; flat art and characters, sampled smoothly, move by
+  fractions of a pixel, so a slow camera glides instead of stepping.
 
 **Splitting a picture into layers.** A background drawn as one picture is cut into layers with `split`, by the
 recipe's `split`: its `layers`, far to near, each with its `parallax` (and `depth`, and what to `fill` behind nearer
@@ -318,9 +319,9 @@ All in level pixels. The street's is an example (`art/street/vista.json`).
    `layers.png`: one colour per layer, far to near blue, green, red, yellow, magenta, cyan. `layers-preview.png` lays
    it over the picture. Depth judges things by their surface, so a room seen through a window comes out further than
    its wall: that is what the fixes are for, or paint over the map in any paint program.
-2. `npm run asset -- split <recipe> --scene <id>` cuts each layer out of both views by the map. For every layer but the
-   nearest, the image model paints what nearer layers hide and the margins past the screen's edges, and something
-   narrow in front (a post, a lamp's head) is bridged from either side of it instead, since the model tends to paint
-   the thing itself again behind it. Each layer becomes an asset of its own, `<name>-<layer>`, with its own recipe,
+2. `npm run asset -- split <recipe> --scene <id>` cuts each layer out of both views by the map. For each layer the image
+   model paints the margins past the screen's edges, each row of a margin belonging to the layer the picture's edge
+   is in there, and, behind the nearer layers, what they hide; something narrow in front (a post, a lamp's head) is
+   bridged from either side of it instead, since the model tends to paint the thing itself again behind it. Each layer becomes an asset of its own, `<name>-<layer>`, with its own recipe,
    built at once; `--scene` puts them in that scene's file in place of the picture. A fill made from the same picture,
    mask and prompt is used again rather than paid for twice.

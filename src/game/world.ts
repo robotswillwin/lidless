@@ -71,7 +71,7 @@ export class World {
     return this.moving && Math.floor(this.walkT * 4.4) % 2 === 1 ? -1 : 0;
   }
 
-  /** `look` is how far the camera is from the scene's start, its lean included: far hotspots have moved less. */
+  /** `look` is how far the camera has moved from the scene's start: hotspots on far layers have moved less. */
   hotspotAt(x: number, y: number, raw: boolean, look = 0): Hotspot | null {
     const hs = this.level.hotspots;
     for (let i = hs.length - 1; i >= 0; i--) {

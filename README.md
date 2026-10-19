@@ -76,8 +76,8 @@ light on.
   front of the characters, Concierge view only, and machine lights.
 - **Adding:** new scenes from a built background, and layers from any built asset.
 - **Layers:** each with its parallax, and whether it is drawn in front of the people. A scene no wider than the screen
-  can have the camera lean with Lux (its drift, in the scene's settings); **Lean the camera with her** previews it with
-  Lux where she stands in the editor.
+  can have the camera follow Lux a little (its drift, in the scene's settings); **Move the camera with her** previews
+  it with Lux where she stands in the editor.
 - **Keys:** E switches view, L opens the look panel, Cmd+Z undoes, Cmd+S saves.
 
 Save writes the scene file, and an open game tab reloads the scene at once.

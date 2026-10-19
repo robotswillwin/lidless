@@ -61,15 +61,16 @@ async function boot(): Promise<void> {
   let scene!: Scene, runner: SceneRunner, world: World;
   const cam: [number, number] = [0, 0];
   let camX = 0;
-  /** Where the camera wants to be: her in the middle, the scene's ends never past the screen's. */
-  const camTarget = () => Math.max(0, Math.min(scene.file.size[0] - NW, world.heroX - NW / 2));
-  // in a scene no wider than the screen the camera leans with her instead: the scene's drift at the ends of the walk
-  // line, none in the middle, and none for players who asked for less motion
-  let lean = 0;
-  const leanTarget = () => {
-    const drift = scene.file.drift ?? 0, { x0, x1 } = scene.file.walk;
-    if (!drift || reduceMotion || scene.file.size[0] > NW || x1 <= x0) return 0;
-    return drift * Math.max(-1, Math.min(1, (world.heroX - (x0 + x1) / 2) / ((x1 - x0) / 2)));
+  /**
+   * Where the camera wants to be. Across a scene wider than the screen: her in the middle, the scene's ends never past
+   * the screen's. In one no wider: a little way toward her, the scene's drift at the ends of the walk line and none in
+   * the middle (none at all for players who asked for less motion); each layer then moves at its own parallax.
+   */
+  const camTarget = () => {
+    const f = scene.file;
+    if (f.size[0] > NW) return Math.max(0, Math.min(f.size[0] - NW, world.heroX - NW / 2));
+    const drift = reduceMotion ? 0 : f.drift ?? 0, { x0, x1 } = f.walk;
+    return drift && x1 > x0 ? drift * Math.max(-1, Math.min(1, (world.heroX - (x0 + x1) / 2) / ((x1 - x0) / 2))) : 0;
   };
   const enter = async (id: string, at: { spawn?: string; x?: number; facing?: 1 | -1 }) => {
     const next = await sceneById(id), sp = at.spawn ? next.file.spawns[at.spawn] : undefined;
@@ -80,8 +81,7 @@ async function boot(): Promise<void> {
     if (worldFile.hero.cadence && walk?.stride) next.level.hero.speed = worldFile.hero.cadence * walk.stride * (next.file.actorScale ?? 1);
     world = new World(next.level, at.x ?? sp?.x, at.facing ?? sp?.facing);
     camX = camTarget();
-    cam[0] = Math.round(camX);
-    lean = leanTarget();
+    cam[0] = camX;
   };
   // the scene to start in: asked for in the address, or the saved one, or where the world starts
   const askedScene = params.get('scene');
@@ -234,7 +234,7 @@ async function boot(): Promise<void> {
   // second click on the same thing (or a double-click) does the default. Right-click looks. On the ground, she walks
   canvas.addEventListener('pointermove', (e) => {
     if (e.pointerType !== 'mouse' || ui.dialogueOpen || travelling) return hud.showHover(null);
-    const [x, y] = toLevel(e, cam), h = world.hotspotAt(x, y, state.view < 0.5, cam[0] + lean);
+    const [x, y] = toLevel(e, cam), h = world.hotspotAt(x, y, state.view < 0.5, cam[0]);
     canvas.style.cursor = h ? 'pointer' : 'default';
     hud.showHover(h, e.clientX, e.clientY);
   });
@@ -243,7 +243,7 @@ async function boot(): Promise<void> {
   canvas.addEventListener('pointerdown', (e) => {
     if (ui.dialogueOpen || travelling) return;
     if (hud.panelOpen) return hud.closePanel();
-    const raw = state.view < 0.5, [x, y] = toLevel(e, cam), h = world.hotspotAt(x, y, raw, cam[0] + lean), again = h !== null && hud.ringFor === h;
+    const raw = state.view < 0.5, [x, y] = toLevel(e, cam), h = world.hotspotAt(x, y, raw, cam[0]), again = h !== null && hud.ringFor === h;
     hud.closeRing();
     if (!h) return world.walkTo(x);
     const actions = actionsFor(h, raw);
@@ -300,21 +300,20 @@ async function boot(): Promise<void> {
       const end = world.keyDir < 0 ? scene.file.walk.x0 : scene.file.walk.x1, exit = Math.abs(world.heroX - end) < 0.5 ? exitAt(end) : undefined;
       if (exit?.go) void travel(exit.go);
     }
-    // the camera follows her across a wide scene, in whole pixels so the pixel art stays crisp
-    camX += (camTarget() - camX) * Math.min(1, dt * 5);
-    cam[0] = Math.round(camX);
-    // and leans after her, slower, so the layers glide
-    lean += (leanTarget() - lean) * Math.min(1, dt * 1.5);
+    // the camera follows her: briskly across a wide scene, gently in one that only drifts. It moves by fractions of a
+    // pixel, so a slow camera glides; the renderer puts pixel art on whole pixels
+    camX += (camTarget() - camX) * Math.min(1, dt * (scene.file.size[0] > NW ? 5 : 1.5));
+    cam[0] = camX;
     if (wasMoving && !world.moving) persist();
     state.sinceSwitch = reduceMotion ? 10 : t - switchedAt;
     // facing left: the sprite's own left-facing frames, or its right-facing ones mirrored
     // she is drawn at the scene's scale: smaller where the camera is further back
     const sc = scene.file.actorScale ?? 1, flip = world.facing < 0 && !hasLeft(heroSprite.def), [ax, ay] = heroAnchor, w = heroSprite.def.w, bob = heroBob() * sc, hs = worldFile.hero.smoke;
-    const walkY = scene.file.walk.y, hx = Math.round(world.heroX - cam[0] - (flip ? w - ax : ax) * sc), hy = Math.round(walkY - cam[1] - ay * sc + bob);
+    const walkY = scene.file.walk.y, hx = world.heroX - cam[0] - (flip ? w - ax : ax) * sc, hy = Math.round(walkY - cam[1] - ay * sc + bob);
     // the scene's smoke emitter follows her cigarette, or goes off screen when she has none
     const smoke: [number, number] = hs ? [world.heroX + hs[0] * sc * world.facing, walkY + hs[1] * sc + bob] : [-1000, -1000];
     fitCanvas(canvas);
-    renderer.render(runner.frame(t, state, cam, [{ sprite: heroSprite, x: hx, y: hy, flip, scale: sc, frame: frameFor(heroSprite.def, world.moving, world.walked / sc, t, world.facing) }], smoke, lean));
+    renderer.render(runner.frame(t, state, cam, [{ sprite: heroSprite, x: hx, y: hy, flip, scale: sc, frame: frameFor(heroSprite.def, world.moving, world.walked / sc, t, world.facing) }], smoke));
     frames++;
     const now = performance.now();
     if (now - fpsAt > 500) { fps = (frames * 1000) / (now - fpsAt); frames = 0; fpsAt = now; }

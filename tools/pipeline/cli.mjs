@@ -1080,85 +1080,87 @@ async function cmdSplit([file], opt) {
   const layers = [];
   let cost = 0;
   for (let k = 0; k < N; k++) {
-    const layer = cfg.layers[k], name = `${r.name}-${layer.name}`, out = join(ROOT, 'art', r.scene, name), nearest = k === N - 1;
-    // the street, nearest, never slides: its own pixels are all it has. The others reach past the screen's edges
-    const m = nearest ? 0 : margin, CW = W + 2 * m, EH = nearest ? H : Math.ceil(H / 16) * 16;
+    const layer = cfg.layers[k], name = `${r.name}-${layer.name}`, out = join(ROOT, 'art', r.scene, name);
+    // every layer reaches past the screen's edges, as the camera moves; the picture is padded to the model's sizes
+    const m = margin, CW = W + 2 * m, EH = Math.ceil(H / 16) * 16;
     await mkdir(out, { recursive: true });
     for (const v of views) {
       const pic = pics[v], img = blank(CW, H);
-      const own = new Uint8Array(CW * EH), hidden = new Uint8Array(CW * EH);
+      // own: this layer's pixels. hidden: what nearer layers cover. past: the margins and the padding, painted, each row
+      // of a margin belonging to the layer of the picture's edge in that row: 1 this one, 2 a nearer one, 3 a further one
+      const own = new Uint8Array(CW * EH), hidden = new Uint8Array(CW * EH), past = new Uint8Array(CW * EH);
       for (let y = 0; y < EH; y++) for (let x = 0; x < CW; x++) {
-        const sx = x - m, i = y * CW + x, inside = sx >= 0 && sx < W && y < H, l = inside ? L[y * W + sx] : N;
-        if (l === k) { own[i] = 1; img.d.set(pic.d.subarray((y * W + sx) * 4, (y * W + sx) * 4 + 4), (y * CW + x) * 4); }
+        const sx = x - m, i = y * CW + x, l = y < H ? L[y * W + Math.min(W - 1, Math.max(0, sx))] : N;
+        if (y >= H || sx < 0 || sx >= W) past[i] = l === k ? 1 : l > k ? 2 : 3;
+        else if (l === k) { own[i] = 1; img.d.set(pic.d.subarray((y * W + sx) * 4, (y * W + sx) * 4 + 4), (y * CW + x) * 4); }
         else if (l > k) hidden[i] = 1;
       }
-      if (!nearest) {
-        // the model sees this layer and what is further away as they are, and paints what nearer layers and the margins
-        // hide, over a plain fill of the layer's own average colour so nothing of what stood there leads it astray
-        const avg = [0, 0, 0];
-        let n = 0;
-        for (let i = 0; i < own.length; i++) if (own[i]) { const j = i * 4; avg[0] += img.d[j]; avg[1] += img.d[j + 1]; avg[2] += img.d[j + 2]; n++; }
-        const fill = avg.map((c) => Math.round(c / Math.max(1, n)));
-        const input = blank(CW, EH, [...fill, 255]), mask = Buffer.alloc(CW * EH * 4, 255);
-        for (let y = 0; y < EH; y++) for (let x = 0; x < CW; x++) {
-          const sx = x - m, i = y * CW + x;
-          if (hidden[i]) { mask[i * 4 + 3] = 0; continue; }
-          if (sx >= 0 && sx < W && y < H) input.d.set(pic.d.subarray((y * W + sx) * 4, (y * W + sx) * 4 + 3), i * 4);
-        }
-        const prompt = `Fill the transparent area of the mask with ${layer.fill ?? `more of what is at this distance in the picture`}, continued naturally, as if the nearer buildings, objects and people in front of it were not there, and on past the picture's left and right edges. No people, no text. Everything else stays exactly as it is; match the style, colours and lighting of the picture around it.${r.look === 'vector' ? ' Keep the style exactly: clean, simple shapes with crisp edges, flat colour and soft planes of light and shadow, no texture and no fine detail.' : ''}`;
-        if (opt.dry) { console.log(`${name} ${v}: ${CW}×${EH}\n${prompt}`); continue; }
-        const piece = await sharp(Buffer.from(input.d.buffer, input.d.byteOffset, input.d.length), { raw: { width: CW, height: EH, channels: 4 } }).png().toBuffer();
-        const maskPNG = await sharp(mask, { raw: { width: CW, height: EH, channels: 4 } }).png().toBuffer();
-        // a fill made from exactly this picture, mask and prompt before is used again, not paid for twice
-        const key = createHash('sha1').update(piece).update(maskPNG).update(prompt).update(quality).digest('hex'), fillFile = join(out, `${v}-fill.png`), keyFile = join(out, `${v}-fill.key`);
-        let filled;
-        // --reuse keeps the fills already there whatever they were made from: after a split that stopped half way
-        if (existsSync(fillFile) && (opt.reuse || (existsSync(keyFile) && (await readFile(keyFile, 'utf8')).trim() === key))) filled = await readFile(fillFile);
-        else {
-          const got = await edit({ prompt, images: [{ name: 'layer.png', data: piece }], mask: maskPNG, size: `${CW}x${EH}`, quality, n: 1, background: 'opaque' });
-          if (!got.images.length) throw new Error('the API returned no image');
-          cost += got.cost ?? 0;
-          filled = got.images[0];
-          await writeFile(fillFile, filled);
-          await writeFile(keyFile, key + '\n');
-        }
-        const { data } = await sharp(filled).resize(CW, EH, { fit: 'fill' }).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
-        // what it painted goes in where nearer layers hide this one: everywhere for the furthest layer, which nothing is
-        // behind; for the others only a band behind the nearer ones' edges, as far as they can ever slide apart
-        const near = k === 0 ? null : distanceFrom(own, CW, EH);
-        for (let y = 0; y < H; y++) for (let x = 0; x < CW; x++) {
-          const i = y * CW + x;
-          if (!hidden[i] || (near && near[i] > band)) continue;
-          img.d.set(data.subarray(i * 4, i * 4 + 3), i * 4);
-          img.d[i * 4 + 3] = 255;
-        }
-        // something narrow in front, a post or a pole, is bridged from this layer's own pixels on either side instead:
-        // behind a thing that thin, the model tends to paint the thing again, and its double shows as the layers slide
-        // across first, for something upright; then up and down, for something lying across, such as a lamp's head or a sign
-        const thin = Math.round((cfg.thin ?? 24) * res), bridged = new Uint8Array(CW * H);
-        const bridge = (at, step, count) => {
-          let last = -1;
-          for (let n = 0; n < count; n++) {
-            const i = at + n * step;
-            if (!own[i]) continue;
-            if (last >= 0 && n - last > 1 && n - last - 1 <= thin) {
-              let behind = true;
-              for (let m = last + 1; m < n && behind; m++) behind = !!hidden[at + m * step];
-              // what is bridged already, across, stays as it is
-              if (behind) for (let m = last + 1; m < n; m++) {
-                if (bridged[at + m * step]) continue;
-                const t = (m - last) / (n - last), a0 = (at + last * step) * 4, a1 = i * 4, o = (at + m * step) * 4;
-                for (let c = 0; c < 3; c++) img.d[o + c] = Math.round(img.d[a0 + c] * (1 - t) + img.d[a1 + c] * t);
-                img.d[o + 3] = 255;
-                bridged[at + m * step] = 1;
-              }
-            }
-            last = n;
-          }
-        };
-        for (let y = 0; y < H; y++) bridge(y * CW, 1, CW);
-        for (let x = 0; x < CW; x++) bridge(x, CW, H);
+      // the model sees this layer and what is further away as they are, and paints what nearer layers and the margins
+      // hide, over a plain fill of the layer's own average colour so nothing of what stood there leads it astray
+      const avg = [0, 0, 0];
+      let n = 0;
+      for (let i = 0; i < own.length; i++) if (own[i]) { const j = i * 4; avg[0] += img.d[j]; avg[1] += img.d[j + 1]; avg[2] += img.d[j + 2]; n++; }
+      const fill = avg.map((c) => Math.round(c / Math.max(1, n)));
+      const input = blank(CW, EH, [...fill, 255]), mask = Buffer.alloc(CW * EH * 4, 255);
+      for (let y = 0; y < EH; y++) for (let x = 0; x < CW; x++) {
+        const sx = x - m, i = y * CW + x;
+        if (hidden[i] || past[i]) { mask[i * 4 + 3] = 0; continue; }
+        input.d.set(pic.d.subarray((y * W + sx) * 4, (y * W + sx) * 4 + 3), i * 4);
       }
+      const prompt = `Fill the transparent area of the mask with ${layer.fill ?? `more of what is at this distance in the picture`}, continued naturally, as if the nearer buildings, objects and people in front of it were not there, and on past the picture's left and right edges. No people, no text. Everything else stays exactly as it is; match the style, colours and lighting of the picture around it.${r.look === 'vector' ? ' Keep the style exactly: clean, simple shapes with crisp edges, flat colour and soft planes of light and shadow, no texture and no fine detail.' : ''}`;
+      if (opt.dry) { console.log(`${name} ${v}: ${CW}×${EH}\n${prompt}`); continue; }
+      const piece = await sharp(Buffer.from(input.d.buffer, input.d.byteOffset, input.d.length), { raw: { width: CW, height: EH, channels: 4 } }).png().toBuffer();
+      const maskPNG = await sharp(mask, { raw: { width: CW, height: EH, channels: 4 } }).png().toBuffer();
+      // a fill made from exactly this picture, mask and prompt before is used again, not paid for twice
+      const key = createHash('sha1').update(piece).update(maskPNG).update(prompt).update(quality).digest('hex'), fillFile = join(out, `${v}-fill.png`), keyFile = join(out, `${v}-fill.key`);
+      let filled;
+      // --reuse keeps the fills already there whatever they were made from: after a split that stopped half way
+      if (existsSync(fillFile) && (opt.reuse || (existsSync(keyFile) && (await readFile(keyFile, 'utf8')).trim() === key))) filled = await readFile(fillFile);
+      else {
+        const got = await edit({ prompt, images: [{ name: 'layer.png', data: piece }], mask: maskPNG, size: `${CW}x${EH}`, quality, n: 1, background: 'opaque' });
+        if (!got.images.length) throw new Error('the API returned no image');
+        cost += got.cost ?? 0;
+        filled = got.images[0];
+        await writeFile(fillFile, filled);
+        await writeFile(keyFile, key + '\n');
+      }
+      const { data } = await sharp(filled).resize(CW, EH, { fit: 'fill' }).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+      // what it painted goes in where nearer layers hide this one: everywhere for the furthest layer, which nothing is
+      // behind; for the others only a band behind the nearer ones' edges, as far as they can ever slide apart
+      // and past the edges, this layer's rows of the margins, and the rows of nearer layers as behind them
+      const near = k === 0 ? null : distanceFrom(own, CW, EH);
+      for (let y = 0; y < H; y++) for (let x = 0; x < CW; x++) {
+        const i = y * CW + x, behind = hidden[i] || past[i] === 2;
+        if (!(past[i] === 1 || (behind && !(near && near[i] > band)))) continue;
+        img.d.set(data.subarray(i * 4, i * 4 + 3), i * 4);
+        img.d[i * 4 + 3] = 255;
+      }
+      // something narrow in front, a post or a pole, is bridged from this layer's own pixels on either side instead:
+      // behind a thing that thin, the model tends to paint the thing again, and its double shows as the layers slide
+      // across first, for something upright; then up and down, for something lying across, such as a lamp's head or a sign
+      const thin = Math.round((cfg.thin ?? 24) * res), bridged = new Uint8Array(CW * H);
+      const bridge = (at, step, count) => {
+        let last = -1;
+        for (let n = 0; n < count; n++) {
+          const i = at + n * step;
+          if (!own[i]) continue;
+          if (last >= 0 && n - last > 1 && n - last - 1 <= thin) {
+            let behind = true;
+            for (let m = last + 1; m < n && behind; m++) behind = !!hidden[at + m * step];
+            // what is bridged already, across, stays as it is
+            if (behind) for (let m = last + 1; m < n; m++) {
+              if (bridged[at + m * step]) continue;
+              const t = (m - last) / (n - last), a0 = (at + last * step) * 4, a1 = i * 4, o = (at + m * step) * 4;
+              for (let c = 0; c < 3; c++) img.d[o + c] = Math.round(img.d[a0 + c] * (1 - t) + img.d[a1 + c] * t);
+              img.d[o + 3] = 255;
+              bridged[at + m * step] = 1;
+            }
+          }
+          last = n;
+        }
+      };
+      for (let y = 0; y < H; y++) bridge(y * CW, 1, CW);
+      for (let x = 0; x < CW; x++) bridge(x, CW, H);
       if (!opt.dry) await writePNG(join(out, `${v}.png`), img);
     }
     if (opt.dry) continue;

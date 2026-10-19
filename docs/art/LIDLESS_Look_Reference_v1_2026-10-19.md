@@ -60,7 +60,8 @@ Lux is drawn at the size the pictures show her, walking along the bollards (`act
 The street is split into three planes that move at their own speed (see ASSETS.md, Layers and parallax): the far
 city and the sky (parallax 0.3); the viaduct, its train and the buildings at its distance (0.6); and the street she
 walks on, with the shop, the lamp, the bollards, the dining machine and the wet ground (1). As she walks, the camera
-leans up to 16 pixels with her: the street stays, the city behind it slides. An artist can replace any plane on its own.
+follows her up to 18 pixels each way: the street moves the most, the city behind it the least. An artist can replace
+any plane on its own.
 
 ## Change log
 

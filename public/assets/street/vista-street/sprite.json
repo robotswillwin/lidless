@@ -1,8 +1,8 @@
 {
   "name": "vista-street",
-  "x": 0,
+  "x": -20,
   "y": 0,
-  "w": 960,
+  "w": 1000,
   "h": 540,
   "maps": [
     "albedo.concierge",
@@ -17,7 +17,7 @@
   "object": 0,
   "machine": 1,
   "anchor": [
-    480,
+    500,
     540
   ],
   "exists": "both",

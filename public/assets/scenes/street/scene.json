@@ -452,19 +452,39 @@
   "bottom": 448
  },
  "look": {
-  "rain": 0.35,
+  "pixelSize": 1,
+  "shapeAmount": 0.45,
+  "colorLevels": 0,
+  "dither": 1,
+  "streaks": 1.95,
+  "rain": 0.45,
+  "charFill": 1.7,
+  "charRim": 1.9,
+  "charGlow": 0.9,
+  "charShadow": 0.65,
+  "charWrap": 1,
   "actorPaint": 1,
+  "vignette": 1.8,
+  "grain": 1.6,
+  "aberration": 0.7,
   "depthOfField": 0,
+  "tint": 0.36,
+  "temperature": -0.04,
+  "saturation": 0.9,
+  "contrast": 1.1,
+  "exposure": 0.3,
   "raw": {
+   "rawFog": 1.05,
    "actorRed": 0.92,
    "actorGreen": 0.82,
    "actorBlue": 0.66
   },
   "concierge": {
-   "actorRed": 1.04,
-   "actorGreen": 0.86,
-   "actorBlue": 0.97
+   "actorRed": 0.97,
+   "actorGreen": 1,
+   "actorBlue": 1.08,
+   "rawColour": 0.45
   }
  },
- "drift": 16
+ "drift": 18
 }

@@ -171,6 +171,12 @@ export function spriteDefaults(gl: GL) {
   };
 }
 
+/**
+ * Sampled smoothly, not as pixel art: a character, drawn smaller or larger than it was made, and art with more than one
+ * texel per level pixel. Such sprites can also sit between pixels, so a slow camera glides.
+ */
+export const smoothSampled = (def: SpriteDef): boolean => (def.actor ?? def.kind === 'character') || (def.res ?? 1) > 1;
+
 /** `bust` is added to every URL to skip the browser cache when an asset was just rebuilt. */
 export async function loadSprite(gl: GL, base: string, name: string, fallback: ReturnType<typeof spriteDefaults>, bust = ''): Promise<Sprite> {
   const q = bust ? `?v=${bust}` : '';
@@ -179,7 +185,7 @@ export async function loadSprite(gl: GL, base: string, name: string, fallback: R
   const got = new Map<MapName, WebGLTexture>(imgs.map(([m, img]) => [m, textureFromImage(gl, img)]));
   // a character is drawn smaller or larger than it was made, and art with more than one texel per level pixel is
   // drawn at its own scale or shrunk, so both are sampled smoothly; packed flags never are
-  if ((def.actor ?? def.kind === 'character') || (def.res ?? 1) > 1) for (const [m, t] of got) if (m !== 'meta') setFilter(gl, t, false);
+  if (smoothSampled(def)) for (const [m, t] of got) if (m !== 'meta') setFilter(gl, t, false);
   const albR = got.get('albedo.raw'), albImg = imgs.find(([m]) => m === 'albedo.raw')?.[1];
   if (!albR || !albImg) throw new Error(`${name} has no albedo.raw map`);
   const glowR = got.get('glow.raw') ?? fallback.glow, normal = got.get('normal') ?? fallback.normal, material = got.get('material') ?? fallback.material;
