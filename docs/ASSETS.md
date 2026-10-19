@@ -307,6 +307,19 @@ with the street Lux walks on, under 1 further away (0 stays put, like a sky), ov
 - Pixel art is placed at whole pixels of the render, to stay crisp; flat art and characters, sampled smoothly, move by
   fractions of a pixel, so a slow camera glides instead of stepping.
 
+**Movers.** Things that move through a scene on their own go in the scene file's `movers`: an `asset`; the layer it
+is drawn `after`, by its asset, so the nearer layers cover it and it moves with that layer's parallax; where it can be
+seen, `x0` to `x1` in that layer's pixels, as it comes out from behind something at one end and goes behind something
+at the other; its `speed` in pixels a second; the `wait` between passes, in seconds, at random between two numbers;
+and `dir`, 1 always to the right, -1 always to the left, 0 (the default) each way in turn. Its sprite is drawn as
+built going right and mirrored going left, and its `y` is where its sprite.json puts it unless the mover gives one.
+The street's train runs along the viaduct after the middle layer, between the building at the viaduct's left end
+and the billboard's tower at its right, every 10 to 25 seconds, each way in turn. How it was made: `touch` painted
+the two trains out of both views of the street's picture, and the long one was cut out of the pictures from before,
+both views, by a traced outline of its back end, roof and nose (`art/street/train/`); built at the size it was
+painted (`art/street/train.json`, `height` 22 with the build's 2-texel border at `res` 2), it is the train in both
+directions.
+
 **Splitting a picture into layers.** A background drawn as one picture is cut into layers with `split`, by the
 recipe's `split`: its `layers`, far to near, each with its `parallax` (and `depth`, and what to `fill` behind nearer
 things with); `ground`, the walk line, below which everything is the street; `fixes`, rectangles moved to a layer;

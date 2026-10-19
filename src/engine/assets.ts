@@ -139,10 +139,37 @@ export interface Sprite {
   size: [number, number];
 }
 
+/**
+ * Something that moves through a scene on its own: a train along a viaduct, a car, a drone. It is drawn just after one of
+ * the scene's layers, so the nearer layers cover it, and moves with that layer's parallax.
+ */
+export interface MoverDef {
+  /** A built asset, scene/name, drawn as it was built going right and mirrored going left. */
+  asset: string;
+  /** The layer it is drawn after, by its asset: it moves with that layer's parallax. */
+  after: string;
+  /**
+   * Where it can be seen, from x0 to x1 in that layer's pixels: it comes out from behind something at one end and goes
+   * behind something at the other.
+   */
+  x0: number;
+  x1: number;
+  /** The top of the sprite, in the layer's pixels; by default where its sprite.json puts it. */
+  y?: number;
+  /** Pixels a second. */
+  speed: number;
+  /** Seconds from the end of one pass to the start of the next, at random between the two. */
+  wait: [number, number];
+  /** 1 always left to right, -1 always right to left, 0 (the default) each way in turn. */
+  dir?: 1 | -1 | 0;
+}
+
 export interface LoadedScene {
   def: SceneDef;
   sprites: Sprite[];
   zone: WebGLTexture;
+  /** The scene's movers, each with its sprite and the index of the layer it is drawn after. */
+  movers?: { def: MoverDef; sprite: Sprite; after: number }[];
 }
 
 function loadImage(url: string): Promise<HTMLImageElement> {

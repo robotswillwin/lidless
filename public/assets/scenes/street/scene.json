@@ -486,5 +486,18 @@
    "rawColour": 0.45
   }
  },
- "drift": 18
+ "drift": 18,
+ "movers": [
+  {
+   "asset": "street/train",
+   "after": "street/vista-mid",
+   "x0": 470,
+   "x1": 808,
+   "speed": 90,
+   "wait": [
+    10,
+    25
+   ]
+  }
+ ]
 }

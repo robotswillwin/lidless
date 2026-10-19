@@ -3,7 +3,7 @@
 // (built assets, placed), lights, its inside and outside areas, the walk line, places to arrive and hotspots, some of
 // which lead to other scenes.
 
-import { loadSprite, spriteDefaults, type GodrayDef, type LightDef, type LoadedScene, type SceneDef, type Sprite, type SteamDef } from '../engine/assets';
+import { loadSprite, spriteDefaults, type GodrayDef, type LightDef, type LoadedScene, type MoverDef, type SceneDef, type Sprite, type SteamDef } from '../engine/assets';
 import { textureFromImage, type GL } from '../engine/gl';
 import type { Hotspot, LevelDef } from './level';
 
@@ -81,6 +81,8 @@ export interface SceneFile {
    * has. Tuned in the look panel with "This scene", which saves here.
    */
   look?: Record<string, unknown>;
+  /** Things that move through the scene on their own, such as a train along a viaduct. */
+  movers?: MoverDef[];
   /**
    * In a scene no wider than the screen: how far the camera leans with the hero as she walks from one end to the other,
    * in pixels, 0 (the default) for none. The street she walks on stays put; the other layers slide against it by how
@@ -173,5 +175,10 @@ export async function buildScene(gl: GL, assets: string, file: SceneFile, world:
     hero: { sprite: world.hero.sprite, x: Object.values(file.spawns)[0]?.x ?? file.size[0] / 2, speed: world.hero.speed * Math.sqrt(file.actorScale ?? 1), smoke: world.hero.smoke },
     hotspots: file.hotspots,
   };
-  return { file, loaded: { def, sprites, zone }, level };
+  const movers = await Promise.all((file.movers ?? []).map(async (m) => {
+    const after = file.layers.findIndex((l) => l.asset === m.after);
+    if (after < 0) throw new Error(`${file.id}: a mover is drawn after ${m.after}, which is not one of its layers`);
+    return { def: m, sprite: await sprite(m.asset), after };
+  }));
+  return { file, loaded: { def, sprites, zone, movers }, level };
 }

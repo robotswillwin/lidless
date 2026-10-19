@@ -1,0 +1,24 @@
+{
+  "name": "train",
+  "scene": "street",
+  "kind": "prop",
+  "exists": "both",
+  "look": "vector",
+  "res": 2,
+  "prompt": "The elevated commuter train on the street's viaduct, in side view with its nose to the right: cut from the street's picture (art/street/vista, before its trains were painted out) by a traced outline, both views.",
+  "height": 22,
+  "position": [
+    610,
+    252
+  ],
+  "depth": 2,
+  "occluder": false,
+  "material": "metal",
+  "glow": {
+    "raw": "auto",
+    "concierge": "auto",
+    "machine": true
+  },
+  "palette": 0,
+  "references": []
+}

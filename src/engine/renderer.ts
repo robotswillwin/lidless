@@ -53,6 +53,8 @@ export interface DrawSprite {
   frame?: number;
   /** Drawn at this size, 1 as built: a character in a scene seen from further back, or closer. */
   scale?: number;
+  /** Only drawn between these x on screen: something that comes out from behind one thing and goes behind another. */
+  clip?: [number, number];
 }
 
 export interface Frame {
@@ -241,7 +243,14 @@ export class Renderer {
       gl.uniform1f(sp.u.uFoot, Math.min(1, Math.max(0, (y + dh) / NH)));
       gl.uniform4f(sp.u.uConst, def.occluder ?? 0, def.depth, def.reflectivity ?? 0, def.object ?? 0);
       gl.uniform3f(sp.u.uConstG, def.groupRaw ?? 0, def.groupConcierge ?? 0, def.machine ?? 0);
+      if (d.clip) {
+        const c0 = Math.max(0, Math.floor(d.clip[0] * this.rs)), c1 = Math.min(t.gbuf.w, Math.ceil(d.clip[1] * this.rs));
+        if (c1 <= c0) continue;
+        gl.enable(gl.SCISSOR_TEST);
+        gl.scissor(c0, 0, c1 - c0, t.gbuf.h);
+      }
       gl.drawArrays(gl.TRIANGLES, 0, 6);
+      if (d.clip) gl.disable(gl.SCISSOR_TEST);
     }
 
     // ambient occlusion from the occluders

@@ -1,6 +1,6 @@
 // Turns a loaded scene plus the current state into a frame for the renderer.
 
-import type { LoadedScene, SpriteDef } from '../engine/assets';
+import type { LoadedScene, MoverDef, SpriteDef } from '../engine/assets';
 import type { DrawSprite, Frame } from '../engine/renderer';
 import { frameFor, hasLeft } from './anim';
 
@@ -24,7 +24,13 @@ export function lightGroups(t: number): number[] {
 export const switchFade = (view: number, since: number): number => Math.max(0, 1 - since / (view < 0.5 ? 0.9 : 0.45));
 
 
+/** A mover's current pass: when it starts (or started), which way it goes, how many passes came before it. */
+interface Pass { from: number; dir: 1 | -1; n: number }
+
+const between = ([a, b]: [number, number]) => a + Math.random() * (b - a);
+
 export class SceneRunner {
+  private passes: Pass[] = [];
   private cars = new Float32Array(64);
   private beacons = new Float32Array(128);
   private steam = new Float32Array(16);
@@ -46,6 +52,25 @@ export class SceneRunner {
     return s;
   }
 
+  /**
+   * A mover where it is at time t, or nothing while it waits between passes. A pass takes it from just outside one end of
+   * where it can be seen to just outside the other; the next one starts a wait later, the other way unless it keeps one.
+   */
+  private mover(k: number, t: number, cam: [number, number], parallax: number): DrawSprite | null {
+    const { def, sprite } = this.scene.movers![k], m: MoverDef = def, w = sprite.def.w;
+    const dur = (m.x1 - m.x0 + w) / Math.max(1, m.speed), dirOf = (n: number): 1 | -1 => (m.dir ? m.dir : n % 2 ? -1 : 1);
+    let p = this.passes[k];
+    // the first pass soon after arriving, and again if the clock jumped (a tab left in the background, a reload)
+    if (!p || t < p.from - m.wait[1] - dur || t > p.from + dur + m.wait[1] + 60) p = this.passes[k] = { from: t + between(m.wait) * 0.25, dir: dirOf(p?.n ?? 0), n: p?.n ?? 0 };
+    while (t > p.from + dur) { p.n++; p.dir = dirOf(p.n); p.from += dur + between(m.wait); }
+    if (t < p.from) return null;
+    const run = (t - p.from) * m.speed, x = p.dir > 0 ? m.x0 - w + run : m.x1 - run;
+    return {
+      sprite, x: x - cam[0] * parallax, y: (m.y ?? sprite.def.y) - cam[1] * parallax, flip: p.dir < 0,
+      clip: [m.x0 - cam[0] * parallax, m.x1 - cam[0] * parallax],
+    };
+  }
+
   /** `actors` are drawn after the scene's sprites; `smoke` moves the scene's smoke emitter (the hero's cigarette). */
   frame(t: number, v: ViewState, cam: [number, number], actors: DrawSprite[] = [], smoke?: [number, number]): Frame {
     const d = this.scene.def;
@@ -56,8 +81,8 @@ export class SceneRunner {
     // behind; then anything nearer than them
     const isPerson = (def: SpriteDef) => def.actor ?? def.kind === 'character';
     const set: DrawSprite[] = [], people: DrawSprite[] = [], front: DrawSprite[] = [];
-    for (const sprite of this.scene.sprites) {
-      if (this.dynamic.has(sprite.def.name)) continue;
+    this.scene.sprites.forEach((sprite, i) => {
+      if (this.dynamic.has(sprite.def.name)) return;
       const def = sprite.def, facing = def.facing ?? 1;
       // a character placed in the scene plays its idle loop, facing the way the scene says
       const draw = {
@@ -69,7 +94,9 @@ export class SceneRunner {
         scale: isPerson(def) ? d.actorScale ?? 1 : 1,
       };
       (isPerson(def) ? people : def.front ? front : set).push(draw);
-    }
+      // what moves through the scene behind the nearer layers goes right after its own
+      this.scene.movers?.forEach((m, k) => { if (m.after === i) { const md = this.mover(k, t, cam, def.parallax); if (md) set.push(md); } });
+    });
     people.push(...actors);
     const foot = (d: DrawSprite) => d.y + d.sprite.def.h * (d.scale ?? 1);
     people.sort((a, b) => foot(a) - foot(b));

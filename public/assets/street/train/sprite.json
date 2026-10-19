@@ -1,0 +1,26 @@
+{
+  "name": "train",
+  "x": 516,
+  "y": 230,
+  "w": 188,
+  "h": 22,
+  "maps": [
+    "albedo.concierge",
+    "albedo.raw",
+    "glow.concierge",
+    "glow.raw"
+  ],
+  "depth": 2,
+  "parallax": 1,
+  "occluder": 0,
+  "reflectivity": 0,
+  "object": 0,
+  "machine": 1,
+  "anchor": [
+    94,
+    22
+  ],
+  "exists": "both",
+  "kind": "prop",
+  "res": 2
+}
