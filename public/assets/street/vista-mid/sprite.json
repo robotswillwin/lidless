@@ -1,0 +1,26 @@
+{
+  "name": "vista-mid",
+  "x": -20,
+  "y": 0,
+  "w": 1000,
+  "h": 540,
+  "maps": [
+    "albedo.concierge",
+    "albedo.raw",
+    "glow.concierge",
+    "glow.raw"
+  ],
+  "depth": 2,
+  "parallax": 1,
+  "occluder": 0,
+  "reflectivity": 2,
+  "object": 0,
+  "machine": 1,
+  "anchor": [
+    500,
+    540
+  ],
+  "exists": "both",
+  "kind": "background",
+  "res": 2
+}

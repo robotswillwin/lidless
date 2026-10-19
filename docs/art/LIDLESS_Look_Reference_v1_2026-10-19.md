@@ -55,15 +55,16 @@ Lux is drawn at the size the pictures show her, walking along the bollards (`act
   reference (`LIDLESS_Lux_Character_Reference_v1_2026-10-19.md`) until the director decides otherwise.
 - **Other places.** Lux's home, the backstreet and the radio repair are still in the earlier, more painted look.
 
-## Layers, later
+## Layers
 
-The street divides naturally into planes: the sky and the far towers; the viaduct and its train; the near street with
-the shop, the lamp, the bollards and the dining machine; and the wet ground with its reflections. Each plane can be
-drawn on its own with these pictures as reference, and a layer's `parallax` in its sprite sets how fast it moves with
-the camera.
+The street is split into three planes that move at their own speed (see ASSETS.md, Layers and parallax): the far
+city and the sky (parallax 0.3); the viaduct, its train and the buildings at its distance (0.6); and the street she
+walks on, with the shop, the lamp, the bollards, the dining machine and the wet ground (1). As she walks, the camera
+leans up to 16 pixels with her: the street stays, the city behind it slides. An artist can replace any plane on its own.
 
 ## Change log
 
 - **v1 · 2026-10-19:** the director's two pictures stored as the reference for the look; the main street built from
   them, with what its story needs painted back in. The same day, raw view redrawn from the Concierge's picture, as
-  simple as it: the director found the first raw street far too detailed for the look.
+  simple as it: the director found the first raw street far too detailed for the look. Then the street split into
+  three layers, with the camera leaning as she walks.

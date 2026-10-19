@@ -305,3 +305,22 @@ with the street Lux walks on, under 1 further away (0 stays put, like a sky), ov
 - **Overscan:** a layer that slides needs art past the screen's edges, as far as it slides: a layer at 0.3 in a scene
   with a drift of 20 needs 14 pixels more on each side.
 - Layers are placed at whole pixels of the render (half level pixels at render scale 2), so a slow slide stays crisp.
+
+**Splitting a picture into layers.** A background drawn as one picture is cut into layers with `split`, by the
+recipe's `split`: its `layers`, far to near, each with its `parallax` (and `depth`, and what to `fill` behind nearer
+things with); `ground`, the walk line, below which everything is the street; `fixes`, rectangles moved to a layer;
+`margin`, how far past the screen's edges the sliding layers reach; `thin`, the widest thing in front bridged across.
+All in level pixels. The street's is an example (`art/street/vista.json`).
+
+1. `npm run asset -- split <recipe> --map` judges the depth of both views with a model that runs on this machine
+   (Depth Anything V2 Small, downloaded once into `node_modules/.cache/lidless`, about 100 MB; nothing of it ships),
+   groups everything above the ground into as many bands as there are layers, applies the fixes, and writes
+   `layers.png`: one colour per layer, far to near blue, green, red, yellow, magenta, cyan. `layers-preview.png` lays
+   it over the picture. Depth judges things by their surface, so a room seen through a window comes out further than
+   its wall: that is what the fixes are for, or paint over the map in any paint program.
+2. `npm run asset -- split <recipe> --scene <id>` cuts each layer out of both views by the map. For every layer but the
+   nearest, the image model paints what nearer layers hide and the margins past the screen's edges, and something
+   narrow in front (a post, a lamp's head) is bridged from either side of it instead, since the model tends to paint
+   the thing itself again behind it. Each layer becomes an asset of its own, `<name>-<layer>`, with its own recipe,
+   built at once; `--scene` puts them in that scene's file in place of the picture. A fill made from the same picture,
+   mask and prompt is used again rather than paid for twice.

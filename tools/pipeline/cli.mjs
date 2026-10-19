@@ -2,6 +2,7 @@
 // The asset pipeline. Run `npm run asset -- help` for the commands.
 
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { copyFile, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { basename, dirname, join, relative, resolve } from 'node:path';
@@ -12,6 +13,8 @@ import { blank, crop, readRGBA, resize, writePNG } from './image.mjs';
 import { edit, generate } from './openai.mjs';
 import { KINDS, ROOT, loadRecipe, recipeTemplate } from './recipe.mjs';
 import { blockoutPNG, camera as roomCamera } from './blockout.mjs';
+import { depthOf } from './depth.mjs';
+import { distanceFrom, draftLayerMap, LAYER_COLOUR_NAMES, layerMapImage, layerPreview, readLayerMap } from './split.mjs';
 import { conciergePartsPrompt, cut as cutParts, EXTRA_PARTS, idleCycle, otherSidePrompt, PARTS as PARTS_NAMES, partsPromptFor, plant, pointOf, pose as posePartsRig, SHEET, standPose, template as partsTemplate, walkAngles, walkCycle } from './parts.mjs';
 import { CHARACTER_REDRESS_NOTE, CHARACTER_SHEET_NOTE, conciergePrompt, extendPrompt, generationPrompt, LAYOUT_REFERENCES_NOTE, layoutNote, LOOKS, REDRESS_REFERENCES_NOTE, redressPrompt, reframePrompt, REFERENCE_NOTE, REFERENCE_NOTE_VECTOR, VARIANT_REFERENCES_NOTE } from './style.mjs';
 
@@ -70,6 +73,15 @@ const HELP = `Asset pipeline: generate art with an image AI, clean it and turn i
       image's pixels. Only a window around it is sent, and only the box is pasted back; the old image is kept
       in candidates/. With --frame, the result becomes that animation frame instead (art/<scene>/<name>/anims/),
       the picked image staying frame 0: everything outside the box is identical in every frame.
+  npm run asset -- split <recipe> --map
+  npm run asset -- split <recipe> [--scene <id>] [--quality medium] [--reuse] [--dry]
+      Split a background into layers that move at their own speed (the recipe's "split": its layers, far to near, each
+      with its parallax, and the walk line). --map draws layers.png, one colour per layer, from the picture's depth
+      (a model run on this machine, downloaded once) and the recipe's fixes; check it in layers-preview.png and paint
+      over it if need be. Then each layer is cut from both views, GPT Image 2.5 Sunburst paints what nearer layers hide
+      behind it and a margin past the screen's edges, and it is built as an asset of its own, <name>-<layer>. --scene
+      puts the layers in that scene's file in place of the picture. A fill made from the same picture, mask and prompt
+      is used again; --reuse keeps the fills already made, whatever they were made from.
   npm run asset -- pick <recipe> <candidate>
       Use a candidate, e.g. raw-03 or concierge-01.
   npm run asset -- import <recipe> <image> [--as raw|concierge]
@@ -1031,6 +1043,149 @@ async function cmdTouch([file], opt) {
 }
 
 const [cmd, ...rest] = process.argv.slice(2), { pos, opt } = parse(rest);
-const run = { new: cmdNew, rig: cmdRig, zoom: cmdZoom, extend: cmdExtend, generate: cmdGenerate, variant: cmdVariant, redress: cmdRedress, reframe: cmdReframe, blockout: cmdBlockout, pick: cmdPick, import: cmdImport, sheet: cmdSheet, touch: cmdTouch, erase: cmdErase, parts: cmdParts, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
+/**
+ * A background split into layers that move at their own speed. The recipe's "split" names them, far to near, with their
+ * parallax; "ground" is the walk line (everything under it is the street, the nearest layer); "fixes" move rectangles of
+ * the map to a layer; "margin" is how far past the screen's edges the layers that slide reach, "band" how far behind
+ * nearer layers each one is painted, and "thin" how narrow a thing in front is bridged across instead, in level pixels.
+ */
+async function cmdSplit([file], opt) {
+  const r = await loadRecipe(file), cfg = r.split;
+  if (!cfg?.layers?.length) throw new Error(`${r.name}: say how to split it first, in the recipe: "split": { "layers": [{ "name": "far", "parallax": 0.3 }, ..., { "name": "street", "parallax": 1 }], "ground": <walk line y> }`);
+  const res = r.res ?? 1, names = cfg.layers.map((l) => l.name), N = names.length, mapFile = join(r.dir, 'layers.png');
+  if (N > 6) throw new Error('at most six layers');
+  const views = ['raw', 'concierge'].filter((v) => existsSync(join(r.dir, `${v}.png`)));
+  const pics = {};
+  for (const v of views) pics[v] = await readRGBA(join(r.dir, `${v}.png`));
+  const { w: W, h: H } = pics[views[0]];
+
+  if (opt.map) {
+    // the depth of both views together: they line up, and one's mistakes are not the other's
+    const deps = [];
+    for (const v of views) deps.push(await depthOf(pics[v]));
+    const depth = new Float32Array(W * H);
+    for (let i = 0; i < depth.length; i++) depth[i] = deps.reduce((a, d) => a + d.d[i], 0) / deps.length;
+    const layerOf = (n) => { const k = names.indexOf(n); if (k < 0) throw new Error(`no layer called ${n}`); return k; };
+    const fixes = (cfg.fixes ?? []).map((f) => ({ to: layerOf(f.to), from: f.from?.map(layerOf), rect: f.rect.map((v) => Math.round(v * res)) }));
+    const L = draftLayerMap(depth, W, H, { n: N, ground: Math.round((cfg.ground ?? H / res) * res), fixes });
+    await writePNG(mapFile, layerMapImage(L, W, H), { rgb: true });
+    await writePNG(join(r.dir, 'layers-preview.png'), layerPreview(L, pics[views.at(-1)]), { rgb: true });
+    return console.log(`${r.name}: layer map → ${rel(mapFile)}: ${names.map((n, k) => `${n} ${LAYER_COLOUR_NAMES[k]}`).join(', ')}. See it over the picture in layers-preview.png, paint over the map to fix it, then split without --map.`);
+  }
+
+  if (!existsSync(mapFile)) throw new Error(`${r.name}: no layer map yet; make one with: npm run asset -- split ${rel(r.file)} --map`);
+  const L = readLayerMap(await readRGBA(mapFile), N);
+  const margin = Math.round((cfg.margin ?? 20) * res), band = Math.round((cfg.band ?? 2 * (cfg.margin ?? 20)) * res), quality = opt.quality ?? 'medium';
+  const recipe = JSON.parse(await readFile(r.file, 'utf8'));
+  const layers = [];
+  let cost = 0;
+  for (let k = 0; k < N; k++) {
+    const layer = cfg.layers[k], name = `${r.name}-${layer.name}`, out = join(ROOT, 'art', r.scene, name), nearest = k === N - 1;
+    // the street, nearest, never slides: its own pixels are all it has. The others reach past the screen's edges
+    const m = nearest ? 0 : margin, CW = W + 2 * m, EH = nearest ? H : Math.ceil(H / 16) * 16;
+    await mkdir(out, { recursive: true });
+    for (const v of views) {
+      const pic = pics[v], img = blank(CW, H);
+      const own = new Uint8Array(CW * EH), hidden = new Uint8Array(CW * EH);
+      for (let y = 0; y < EH; y++) for (let x = 0; x < CW; x++) {
+        const sx = x - m, i = y * CW + x, inside = sx >= 0 && sx < W && y < H, l = inside ? L[y * W + sx] : N;
+        if (l === k) { own[i] = 1; img.d.set(pic.d.subarray((y * W + sx) * 4, (y * W + sx) * 4 + 4), (y * CW + x) * 4); }
+        else if (l > k) hidden[i] = 1;
+      }
+      if (!nearest) {
+        // the model sees this layer and what is further away as they are, and paints what nearer layers and the margins
+        // hide, over a plain fill of the layer's own average colour so nothing of what stood there leads it astray
+        const avg = [0, 0, 0];
+        let n = 0;
+        for (let i = 0; i < own.length; i++) if (own[i]) { const j = i * 4; avg[0] += img.d[j]; avg[1] += img.d[j + 1]; avg[2] += img.d[j + 2]; n++; }
+        const fill = avg.map((c) => Math.round(c / Math.max(1, n)));
+        const input = blank(CW, EH, [...fill, 255]), mask = Buffer.alloc(CW * EH * 4, 255);
+        for (let y = 0; y < EH; y++) for (let x = 0; x < CW; x++) {
+          const sx = x - m, i = y * CW + x;
+          if (hidden[i]) { mask[i * 4 + 3] = 0; continue; }
+          if (sx >= 0 && sx < W && y < H) input.d.set(pic.d.subarray((y * W + sx) * 4, (y * W + sx) * 4 + 3), i * 4);
+        }
+        const prompt = `Fill the transparent area of the mask with ${layer.fill ?? `more of what is at this distance in the picture`}, continued naturally, as if the nearer buildings, objects and people in front of it were not there, and on past the picture's left and right edges. No people, no text. Everything else stays exactly as it is; match the style, colours and lighting of the picture around it.${r.look === 'vector' ? ' Keep the style exactly: clean, simple shapes with crisp edges, flat colour and soft planes of light and shadow, no texture and no fine detail.' : ''}`;
+        if (opt.dry) { console.log(`${name} ${v}: ${CW}×${EH}\n${prompt}`); continue; }
+        const piece = await sharp(Buffer.from(input.d.buffer, input.d.byteOffset, input.d.length), { raw: { width: CW, height: EH, channels: 4 } }).png().toBuffer();
+        const maskPNG = await sharp(mask, { raw: { width: CW, height: EH, channels: 4 } }).png().toBuffer();
+        // a fill made from exactly this picture, mask and prompt before is used again, not paid for twice
+        const key = createHash('sha1').update(piece).update(maskPNG).update(prompt).update(quality).digest('hex'), fillFile = join(out, `${v}-fill.png`), keyFile = join(out, `${v}-fill.key`);
+        let filled;
+        // --reuse keeps the fills already there whatever they were made from: after a split that stopped half way
+        if (existsSync(fillFile) && (opt.reuse || (existsSync(keyFile) && (await readFile(keyFile, 'utf8')).trim() === key))) filled = await readFile(fillFile);
+        else {
+          const got = await edit({ prompt, images: [{ name: 'layer.png', data: piece }], mask: maskPNG, size: `${CW}x${EH}`, quality, n: 1, background: 'opaque' });
+          if (!got.images.length) throw new Error('the API returned no image');
+          cost += got.cost ?? 0;
+          filled = got.images[0];
+          await writeFile(fillFile, filled);
+          await writeFile(keyFile, key + '\n');
+        }
+        const { data } = await sharp(filled).resize(CW, EH, { fit: 'fill' }).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+        // what it painted goes in where nearer layers hide this one: everywhere for the furthest layer, which nothing is
+        // behind; for the others only a band behind the nearer ones' edges, as far as they can ever slide apart
+        const near = k === 0 ? null : distanceFrom(own, CW, EH);
+        for (let y = 0; y < H; y++) for (let x = 0; x < CW; x++) {
+          const i = y * CW + x;
+          if (!hidden[i] || (near && near[i] > band)) continue;
+          img.d.set(data.subarray(i * 4, i * 4 + 3), i * 4);
+          img.d[i * 4 + 3] = 255;
+        }
+        // something narrow in front, a post or a pole, is bridged from this layer's own pixels on either side instead:
+        // behind a thing that thin, the model tends to paint the thing again, and its double shows as the layers slide
+        // across first, for something upright; then up and down, for something lying across, such as a lamp's head or a sign
+        const thin = Math.round((cfg.thin ?? 24) * res), bridged = new Uint8Array(CW * H);
+        const bridge = (at, step, count) => {
+          let last = -1;
+          for (let n = 0; n < count; n++) {
+            const i = at + n * step;
+            if (!own[i]) continue;
+            if (last >= 0 && n - last > 1 && n - last - 1 <= thin) {
+              let behind = true;
+              for (let m = last + 1; m < n && behind; m++) behind = !!hidden[at + m * step];
+              // what is bridged already, across, stays as it is
+              if (behind) for (let m = last + 1; m < n; m++) {
+                if (bridged[at + m * step]) continue;
+                const t = (m - last) / (n - last), a0 = (at + last * step) * 4, a1 = i * 4, o = (at + m * step) * 4;
+                for (let c = 0; c < 3; c++) img.d[o + c] = Math.round(img.d[a0 + c] * (1 - t) + img.d[a1 + c] * t);
+                img.d[o + 3] = 255;
+                bridged[at + m * step] = 1;
+              }
+            }
+            last = n;
+          }
+        };
+        for (let y = 0; y < H; y++) bridge(y * CW, 1, CW);
+        for (let x = 0; x < CW; x++) bridge(x, CW, H);
+      }
+      if (!opt.dry) await writePNG(join(out, `${v}.png`), img);
+    }
+    if (opt.dry) continue;
+    // the layer's recipe: the background's own settings, placed with its margin
+    const keep = Object.fromEntries(Object.entries(recipe).filter(([key]) => !['name', 'prompt', 'concierge', 'references', 'conciergeReferences', 'framing', 'size', 'split'].includes(key)));
+    const layerRecipe = {
+      name, prompt: `The ${layer.name} layer of ${r.scene}/${r.name}, cut from its picture by split: change that picture and split it again.`,
+      ...keep, ...(layer.depth !== undefined ? { depth: layer.depth } : {}), layerOf: `${r.scene}/${r.name}`,
+    };
+    const layerFile = join(ROOT, 'art', r.scene, `${name}.json`);
+    await writeFile(layerFile, JSON.stringify(layerRecipe, null, 2) + '\n');
+    await buildOne(layerFile);
+    layers.push({ asset: `${r.scene}/${name}`, ...(layer.parallax !== 1 ? { parallax: layer.parallax } : {}) });
+  }
+  if (opt.dry) return;
+  if (cost) console.log(`Cost: $${cost.toFixed(4)}`);
+  // the scene: the layers in place of the picture, back to front
+  if (typeof opt.scene === 'string') {
+    const sceneFile = join(ROOT, 'public/assets/scenes', opt.scene, 'scene.json');
+    const scene = JSON.parse(await readFile(sceneFile, 'utf8')), at = scene.layers.findIndex((l) => l.asset === `${r.scene}/${r.name}` || l.asset.startsWith(`${r.scene}/${r.name}-`));
+    scene.layers = scene.layers.filter((l) => !(l.asset === `${r.scene}/${r.name}` || l.asset.startsWith(`${r.scene}/${r.name}-`)));
+    scene.layers.splice(at < 0 ? 0 : at, 0, ...layers);
+    await writeFile(sceneFile, JSON.stringify(scene, null, 1) + '\n');
+    console.log(`${rel(sceneFile)}: ${layers.map((l) => l.asset).join(', ')} in place of ${r.scene}/${r.name}`);
+  } else console.log(`For the scene file's layers:\n${JSON.stringify(layers, null, 1)}`);
+}
+
+const run = { new: cmdNew, rig: cmdRig, zoom: cmdZoom, extend: cmdExtend, generate: cmdGenerate, variant: cmdVariant, redress: cmdRedress, reframe: cmdReframe, blockout: cmdBlockout, pick: cmdPick, import: cmdImport, sheet: cmdSheet, touch: cmdTouch, split: cmdSplit, erase: cmdErase, parts: cmdParts, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
 if (!run) console.log(HELP);
 else run(pos, opt).catch((e) => { console.error(`error: ${e.message}`); process.exit(1); });

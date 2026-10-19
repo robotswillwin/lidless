@@ -5,10 +5,14 @@
     "set",
     "sky",
     "sleeper",
-    "vista"
+    "vista-far",
+    "vista-mid",
+    "vista-street"
   ],
   "backgrounds": [
-    "vista"
+    "vista-far",
+    "vista-mid",
+    "vista-street"
   ],
-  "latest": "vista"
+  "latest": "vista-street"
 }

@@ -107,7 +107,9 @@ npm run asset -- build art/street/dock-worker.json
 guide its painting must follow (see [docs/ASSETS.md](docs/ASSETS.md)); `touch` changes one marked area of a picked image, `redress`
 re-dresses a whole view while keeping its layout, `generate --layout` follows a rough picture's composition (the radio
 repair's inside was laid out from the shop seen through its window), `reframe` shrinks a set to the characters' scale,
-and `parts` makes a character that walks (see [docs/ASSETS.md](docs/ASSETS.md)).
+`parts` makes a character that walks, and `split` cuts a background into layers that move at their own speed (see
+[docs/ASSETS.md](docs/ASSETS.md)). `split` judges depth with a model that runs on this machine, downloaded once
+(about 100 MB) into `node_modules/.cache/lidless`; nothing of it ships with the game.
 
 The image AI needs an OpenAI API key in `.env.local` as `OPENAI_API_KEY=...`. That file is never committed.
 

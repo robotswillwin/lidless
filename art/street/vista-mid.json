@@ -1,0 +1,25 @@
+{
+  "name": "vista-mid",
+  "prompt": "The mid layer of street/vista, cut from its picture by split: change that picture and split it again.",
+  "scene": "street",
+  "kind": "background",
+  "exists": "both",
+  "look": "vector",
+  "res": 2,
+  "rawAir": "amber-brown",
+  "height": 540,
+  "position": [
+    480,
+    540
+  ],
+  "depth": 2,
+  "material": "stone",
+  "glow": {
+    "raw": "auto",
+    "concierge": "auto",
+    "machine": true
+  },
+  "palette": 0,
+  "reflectivity": 2,
+  "layerOf": "street/vista"
+}

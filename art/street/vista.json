@@ -29,5 +29,86 @@
   "palette": 0,
   "framing": "A wide cinematic side view at street level: a standing adult is about a fifth of the image height. A row of bollards along a flat pavement at about five sixths of the image height, and below it a wet street across the whole width. Lit at night by its own lights. People appear only where the prompt places them. No border, no caption.",
   "size": "1936x1088",
-  "reflectivity": 2
+  "reflectivity": 2,
+  "split": {
+    "ground": 452,
+    "margin": 20,
+    "layers": [
+      {
+        "name": "far",
+        "parallax": 0.3,
+        "depth": 1,
+        "fill": "the distant city and the sky behind everything: towers with their windows, signs, lights and smoke, as they are around it"
+      },
+      {
+        "name": "mid",
+        "parallax": 0.6,
+        "depth": 2,
+        "fill": "the elevated viaduct and the buildings at its distance, the viaduct running on behind where nearer things stood"
+      },
+      {
+        "name": "street",
+        "parallax": 1
+      }
+    ],
+    "fixes": [
+      {
+        "to": "street",
+        "rect": [
+          0,
+          0,
+          372,
+          452
+        ]
+      },
+      {
+        "to": "street",
+        "rect": [
+          372,
+          196,
+          36,
+          256
+        ]
+      },
+      {
+        "to": "street",
+        "rect": [
+          372,
+          70,
+          125,
+          110
+        ],
+        "from": [
+          "mid"
+        ]
+      },
+      {
+        "to": "street",
+        "rect": [
+          416,
+          274,
+          22,
+          178
+        ],
+        "from": [
+          "mid",
+          "far"
+        ]
+      },
+      {
+        "to": "street",
+        "rect": [
+          416,
+          274,
+          44,
+          27
+        ],
+        "from": [
+          "mid",
+          "far"
+        ]
+      }
+    ],
+    "thin": 48
+  }
 }

@@ -9,7 +9,15 @@
  ],
  "layers": [
   {
-   "asset": "street/vista"
+   "asset": "street/vista-far",
+   "parallax": 0.3
+  },
+  {
+   "asset": "street/vista-mid",
+   "parallax": 0.6
+  },
+  {
+   "asset": "street/vista-street"
   }
  ],
  "lights": [
@@ -65,7 +73,8 @@
     1,
     0.45
    ],
-   "haze": 0.3
+   "haze": 0.3,
+   "parallax": 0.6
   },
   {
    "x": 640,
@@ -94,7 +103,8 @@
    "i": 0.6,
    "zone": 0,
    "ar": 1,
-   "g": 6
+   "g": 6,
+   "parallax": 0.6
   },
   {
    "x": 388,
@@ -216,7 +226,8 @@
     "concierge": "At your service",
     "raw": "it paints its face over him"
    },
-   "ask": "I am always here, guest. Is there anything you need?"
+   "ask": "I am always here, guest. Is there anything you need?",
+   "parallax": 0.6
   },
   {
    "id": "moon",
@@ -231,7 +242,8 @@
    "look": "The moon. You'd forgotten it was still up there.",
    "tag": {
     "raw": "still up there"
-   }
+   },
+   "parallax": 0.3
   },
   {
    "id": "sign",
@@ -340,22 +352,26 @@
   {
    "x": 585,
    "y": 36,
-   "phase": 0
+   "phase": 0,
+   "parallax": 0.3
   },
   {
    "x": 478,
    "y": 68,
-   "phase": 1.7
+   "phase": 1.7,
+   "parallax": 0.3
   },
   {
    "x": 780,
    "y": 42,
-   "phase": 3.1
+   "phase": 3.1,
+   "parallax": 0.3
   },
   {
    "x": 858,
    "y": 22,
-   "phase": 0.9
+   "phase": 0.9,
+   "parallax": 0.3
   }
  ],
  "steam": [
@@ -378,7 +394,8 @@
    "x": 570,
    "y": 380,
    "strength": 0.15,
-   "zone": 2
+   "zone": 2,
+   "parallax": 0.6
   },
   {
    "x": 165,
@@ -391,7 +408,8 @@
    "y": 160,
    "strength": 0.22,
    "zone": 2,
-   "ar": 1
+   "ar": 1,
+   "parallax": 0.6
   }
  ],
  "traffic": {
@@ -402,7 +420,8 @@
   "perLane": 2,
   "x0": 420,
   "span": 360,
-  "ar": 1
+  "ar": 1,
+  "parallax": 0.3
  },
  "zones": {
   "inside": [
@@ -446,5 +465,6 @@
    "actorGreen": 0.86,
    "actorBlue": 0.97
   }
- }
+ },
+ "drift": 16
 }

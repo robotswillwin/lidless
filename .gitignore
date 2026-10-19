@@ -8,3 +8,7 @@ art/**/candidates/
 art/**/layout-check.png
 art/**/rig/frames/
 *.blend1
+# what split had the image model paint behind nearer layers, and the map laid over the picture: made again on demand
+art/**/*-fill.png
+art/**/*-fill.key
+art/**/layers-preview.png
