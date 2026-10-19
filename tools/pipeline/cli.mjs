@@ -396,6 +396,8 @@ async function updateBenchList(scene, name, kind) {
 
 async function buildOne(file) {
   const r = await loadRecipe(file), spec = r.spec, exists = r.exists ?? 'both', rawPath = join(r.dir, 'raw.png'), concPath = join(r.dir, 'concierge.png');
+  // a picture split into layers is built as its layers, by split; a sprite of the whole picture would only take room
+  if (r.split?.layers?.length) return console.log(`${r.name}: split into layers (${r.split.layers.map((l) => `${r.name}-${l.name}`).join(', ')}), so not built as a sprite of its own; after changing its pictures, split it again: npm run asset -- split ${rel(r.file)} --scene <scene id>`);
   // frames baked from parts, or touched up one by one, make an animated sprite
   if (existsSync(join(r.dir, 'anims'))) return assembleOne(r);
   const main = exists === 'concierge' ? concPath : rawPath;

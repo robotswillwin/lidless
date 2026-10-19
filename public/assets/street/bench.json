@@ -6,13 +6,11 @@
     "sky",
     "sleeper",
     "train",
-    "vista",
     "vista-far",
     "vista-mid",
     "vista-street"
   ],
   "backgrounds": [
-    "vista",
     "vista-far",
     "vista-mid",
     "vista-street"

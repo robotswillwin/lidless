@@ -337,4 +337,5 @@ All in level pixels. The street's is an example (`art/street/vista.json`).
    is in there, and, behind the nearer layers, what they hide; something narrow in front (a post, a lamp's head) is
    bridged from either side of it instead, since the model tends to paint the thing itself again behind it. Each layer becomes an asset of its own, `<name>-<layer>`, with its own recipe,
    built at once; `--scene` puts them in that scene's file in place of the picture. A fill made from the same picture,
-   mask and prompt is used again rather than paid for twice.
+   mask and prompt is used again rather than paid for twice. From then on the picture is only the source of its
+   layers: `build` and `touch` leave it unbuilt, and after changing it, `split` it again.
