@@ -16,6 +16,9 @@ const params = new URLSearchParams(location.search);
 const canvas = document.getElementById('game') as HTMLCanvasElement;
 const stats = document.getElementById('stats') as HTMLElement;
 const errorBox = document.getElementById('error') as HTMLElement;
+// held upright on a phone, the game asks to be turned sideways (style.css), until told to play upright anyway
+const turn = document.getElementById('turn');
+turn?.querySelector('button')?.addEventListener('click', () => turn.classList.add('dismissed'));
 const number = (key: string) => (params.has(key) ? Number(params.get(key)) : null);
 
 function pickTier(): Tier {

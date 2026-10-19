@@ -33,6 +33,14 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .fade.on { opacity: 1; }
 @media (prefers-reduced-motion: reduce) { .fade { transition: none; } }
 .error { position: absolute; z-index: 5; inset: auto 16px 16px 16px; margin: 0; padding: 12px 14px; background: #200; color: #fbb; font: 14px/1.4 var(--ui); }
+/* a phone held upright: the street is wide, so it asks to be turned sideways; it can be played upright anyway */
+.turn { display: none; position: absolute; inset: 0; z-index: 6; flex-direction: column; align-items: center; justify-content: center; gap: 18px; background: rgba(0, 0, 0, .92); color: var(--ink); font: 400 16px/1.4 var(--ui); letter-spacing: .08em; text-align: center; }
+.turn p { margin: 0; }
+.turn-phone { width: 76px; fill: none; stroke: var(--amber); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.turn-anyway { padding: 10px 16px; border: 1px solid #44445a; border-radius: 4px; background: transparent; color: var(--muted); font: 400 13px/1 var(--ui); letter-spacing: .06em; cursor: pointer; }
+@media (orientation: portrait) and (pointer: coarse) { .turn:not(.dismissed) { display: flex; } }
+@media (orientation: portrait) and (pointer: coarse) and (prefers-reduced-motion: no-preference) { .turn-phone { animation: turn-phone 2.4s ease-in-out infinite; } }
+@keyframes turn-phone { 0%, 25% { transform: rotate(0deg); } 50%, 75% { transform: rotate(-90deg); } 100% { transform: rotate(0deg); } }
 @media (prefers-reduced-motion: reduce) { .view { transition: none; } }
 
 /* short captions: what you see when you look at something */
