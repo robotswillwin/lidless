@@ -268,13 +268,18 @@ scene and per view, in the panel's Reflections group: **Reflections** (`reflect`
 (`mirrorSet`), 1 for a painted scene whose ground had its reflections taken out; **Reach up** (`reflectReach`), 1 a
 mirror, more showing taller things squeezed into the ground, as a low camera over a wet street sees them; **Streaks**
 (`reflectStreak`) and **Diffuse** (`reflectDiffuse`), how far the reflections are smeared up and down (a wet street)
-and sideways (polished stone), in pixels: the set is softened at half resolution, the people over their own pixels.
-Live reflections are made from the picture as it is on screen, so they follow each layer's parallax: painted ones
-stayed put while what they reflected slid. The street mirrors its set (reach 3.5): in raw view a wet street in the
-rain (strength 0.9, streaks 28, diffuse 3), in the Concierge's a dry floor of polished stone (strength 0.3, streaks
-12, diffuse 14). Sharp mirrors with ripples broke into horizontal lines; soft ones only waver. `npm run asset -- ground <recipe> --from <y>` takes painted reflections out of a
+and sideways, in pixels: the set is softened at half resolution with a wide Gaussian, the people over their own
+pixels. Smeared 16 pixels or more sideways, the floor is glossy: the people are smudged into it with everything
+else instead of mirrored on their own, and it shows colour and light rather than shapes. Live reflections are made
+from the picture as it is on screen, so they follow each layer's parallax: painted ones stayed put while what they
+reflected slid. The street, in raw view, is a wet street in the rain (strength 0.9, reach 3.5, streaks 28, diffuse
+3); in the Concierge's, a shiny floor of smudged colour and ambience (strength 0.22, reach 1.4, streaks 70, diffuse
+40), reaching up less so the tall city is not squeezed into stripes. Sharp mirrors with ripples broke into
+horizontal lines; soft ones only waver. `npm run asset -- ground <recipe> --from <y>` takes painted reflections out of a
 picture's ground below the line, in both views: each stretch of each row keeps the colour of its darkest pixels,
-smoothed, so the broad pools of light stay and the streaks go. Then split or build again.
+smoothed up and down by `--smooth` (20 level pixels), so the broad pools of light stay and the streaks go, and the
+lines painted across the ground (planks, ripples) too: kept row by row, they had shown as horizontal bands. Then
+split or build again.
 
 In flat art, raw view is as simple as the Concierge's: age and dirt are duller colours and a few simple shapes, never
 texture. The pipeline's description of the raw world says so for `look: vector`, and a recipe's `rawAir` names the

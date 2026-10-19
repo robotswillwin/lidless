@@ -301,7 +301,9 @@ export async function cmdSplit([file], opt) {
 export async function cmdGround([file], opt) {
   const r = await loadRecipe(file), res = r.res ?? 1, from = Number(opt.from);
   if (!Number.isFinite(from)) throw new Error('usage: ground <recipe> --from <y in level pixels: the reflection line>');
-  const BLOCK = Math.round(24 * res), LOW = 0.12;
+  // --smooth: how far up and down each stretch is averaged, in level pixels; lines across the painted ground (planks, wet
+  // ripples) are narrower than that, so they go, and its broad pools of light stay
+  const BLOCK = Math.round(24 * res), LOW = 0.12, R = Math.round(Number(opt.smooth ?? 20) * res);
   for (const v of ['raw', 'concierge']) {
     const f = join(r.dir, `${v}.png`);
     if (!existsSync(f)) continue;
@@ -323,7 +325,7 @@ export async function cmdGround([file], opt) {
       for (let k = 0; k < n; k++) for (let c = 0; c < 3; c++) base[o + c] += px[k][c + 1] / n;
     }
     // smoothed across the blocks and down the rows, so the ground is a calm, flat surface
-    const R = 6, rows = h - y0, smooth = new Float32Array(base.length);
+    const rows = h - y0, smooth = new Float32Array(base.length);
     for (let y = 0; y < rows; y++) for (let b = 0; b < nb; b++) for (let c = 0; c < 3; c++) {
       let sum = 0, n = 0;
       for (let dy = -R; dy <= R; dy++) for (let db = -1; db <= 1; db++) {

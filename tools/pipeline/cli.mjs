@@ -65,10 +65,11 @@ const HELP = `Asset pipeline: generate art with an image AI, clean it and turn i
       image's pixels. Only a window around it is sent, and only the box is pasted back; the old image is kept
       in candidates/. With --frame, the result becomes that animation frame instead (art/<scene>/<name>/anims/),
       the picked image staying frame 0: everything outside the box is identical in every frame.
-  npm run asset -- ground <recipe> --from <y>
+  npm run asset -- ground <recipe> --from <y> [--smooth 20]
       Take the painted reflections out of a picture's wet ground, below the reflection line y (level pixels), in both
       views, so the engine's live ones (the look's "Mirror the set") are the only ones: painted reflections stay put
-      while what they reflect slides with the camera. The old pictures are kept in candidates/. Free.
+      while what they reflect slides with the camera. --smooth (level pixels) is how far up and down the ground is
+      averaged, so lines across it go. The old pictures are kept in candidates/. Free.
   npm run asset -- split <recipe> --map
   npm run asset -- split <recipe> [--scene <id>] [--quality medium] [--reuse] [--dry]
       Split a background into layers that move at their own speed (the recipe's "split": its layers, far to near, each

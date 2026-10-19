@@ -262,6 +262,7 @@ uniform sampler2D tA, tG3, tDof;
 uniform sampler2D tRefl;  // the set without its people, blurred for its reflections (when uReflBlur is on)
 uniform float uReflBlur;  // 1: the set's reflection comes from tRefl, soft and streaked; 0: from the sharp picture
 uniform vec2 uReflSoft;   // the look: how far reflections smear sideways and up and down, in level pixels
+uniform float uSmudge;    // 1: a glossy floor, every reflection smudged into colour and light, the people's too
 uniform float uTime, uDof, uView, uRawFog;
 uniform float uWrap;      // the look: how much a character's outline softens into the light around it, and takes it on
 uniform float uRain;      // how hard it rains in raw view, 0 to 1
@@ -316,11 +317,11 @@ void main() {
     // sees tall things in it, squeezed
     vec2 qs = vec2(p.x + rip, max(0.5, GY - (p.y - GY) * uRefl.y)), q = qs;
     float F = -1.0;
-    for (int k = 1; k <= 32; k++) { vec4 ga = T(tG3, vec2(p.x, p.y - float(k) * 3.0)); if (isActor(ga.a) > 0.5) { F = ga.g * uRes.y; break; } }
+    if (uSmudge < 0.5) for (int k = 1; k <= 32; k++) { vec4 ga = T(tG3, vec2(p.x, p.y - float(k) * 3.0)); if (isActor(ga.a) > 0.5) { F = ga.g * uRes.y; break; } }
     bool mine = false;
     if (F > 0.0 && p.y > F) { vec2 qa = vec2(p.x + rip, 2.0 * F - p.y); if (isActor(T(tG3, qa).a) > 0.5) { q = qa; mine = true; } }
     float keep = 1.0;
-    if (!mine && isActor(T(tG3, qs).a) > 0.5) {
+    if (!mine && uSmudge < 0.5 && isActor(T(tG3, qs).a) > 0.5) {
       keep = 0.0;
       for (int j = 1; j <= 4; j++) for (int s = -1; s <= 1; s += 2) { vec2 b = qs + vec2(float(s * j) * 14.0, 0.0); if (keep < 0.5 && isActor(T(tG3, b).a) < 0.5) { q = b; keep = 1.0; } }
     }
@@ -393,14 +394,27 @@ void main() { vec2 base = floor(gl_FragCoord.xy) * 2.0; vec4 acc = vec4(0.0);
   o = acc * 0.25; }`;
 
 /**
- * The set for its reflections, at half the level's resolution: four samples of each two by two level pixels, without the
- * people (they are mirrored around their own feet), premultiplied by how much of the set there is, to be blurred.
+ * The set for its reflections, at half the level's resolution: every pixel of the picture under each of its pixels (two
+ * by two level pixels, four by four at a render scale of 2), premultiplied by how much of it is set. The people are left
+ * out (they are mirrored around their own feet), unless uPeople is 1: then they are smudged into it with the set.
  */
 export const REFLDOWN_FS = HEAD + `
-uniform sampler2D tSrc, tG3; uniform vec2 uSrcRes;
-void main() { vec2 base = floor(gl_FragCoord.xy) * 2.0; vec4 acc = vec4(0.0);
-  for (int j = 0; j < 2; j++) for (int i = 0; i < 2; i++) { vec2 q = (base + vec2(float(i), float(j)) + 0.5) / uSrcRes; float w = 1.0 - isActor(texture(tG3, q).a); acc += vec4(texture(tSrc, q).rgb * w, w); }
-  o = acc * 0.25; }`;
+uniform sampler2D tSrc, tG3; uniform vec2 uSrcRes; uniform float uStep, uPeople;
+void main() { int n = int(uStep + 0.5); vec2 base = floor(gl_FragCoord.xy) * uStep; vec4 acc = vec4(0.0);
+  for (int j = 0; j < 4; j++) for (int i = 0; i < 4; i++) { if (i >= n || j >= n) continue; vec2 q = (base + vec2(float(i), float(j)) + 0.5) / uSrcRes;
+    float w = max(uPeople, 1.0 - isActor(texture(tG3, q).a)); acc += vec4(texture(tSrc, q).rgb * w, w); }
+  o = acc / float(n * n); }`;
+
+/**
+ * A wide Gaussian blur along uDir, sigma uSigma in this target's pixels, in one pass: taps a pixel apart up to a sigma of
+ * 8, further apart beyond, out to three sigmas. For smudging reflections, where the shared blur would take many passes.
+ */
+export const GAUSS_FS = HEAD + `
+uniform sampler2D tSrc; uniform vec2 uDir; uniform float uSigma;
+void main() { vec2 uv = gl_FragCoord.xy / uRes; vec4 s = texture(tSrc, uv); float ws = 1.0, st = max(1.0, uSigma / 8.0);
+  for (int i = 1; i <= 24; i++) { float x = float(i) * st; if (x > 3.0 * uSigma) break; float w = exp(-0.5 * x * x / (uSigma * uSigma)); vec2 off = uDir * x / uRes;
+    s += (texture(tSrc, uv + off) + texture(tSrc, uv - off)) * w; ws += 2.0 * w; }
+  o = s / ws; }`;
 
 /** Anamorphic streaks: a long horizontal blur of the brightest light. */
 export const STREAK_FS = HEAD + `

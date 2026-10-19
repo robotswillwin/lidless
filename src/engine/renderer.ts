@@ -94,6 +94,9 @@ export interface Frame {
   nShadows?: number;
 }
 
+/** Reflections smudged at least this far sideways (the look's pixels) are a glossy floor: the people are smudged in too. */
+const GLOSSY = 16;
+
 const MAP_ORDER: [MapName, string][] = [
   ['albedo.raw', 'tAlbR'], ['albedo.concierge', 'tAlbC'], ['normal', 'tNrm'], ['normal.concierge', 'tNrmC'], ['material', 'tMat'],
   ['material.concierge', 'tMatC'], ['meta', 'tMeta'], ['glow.raw', 'tGlowR'], ['glow.concierge', 'tGlowC'],
@@ -102,7 +105,7 @@ const MAP_ORDER: [MapName, string][] = [
 export class Renderer {
   readonly gl: GL;
   private geo: ReturnType<typeof createGeometry>;
-  private prog: Record<'sprite' | 'occ' | 'light' | 'comp' | 'bright' | 'blur' | 'dofdown' | 'refldown' | 'streak' | 'final', Program>;
+  private prog: Record<'sprite' | 'occ' | 'light' | 'comp' | 'bright' | 'blur' | 'gauss' | 'dofdown' | 'refldown' | 'streak' | 'final', Program>;
   private t: Record<'gbuf' | 'ao1' | 'ao2' | 'fa' | 'fb' | 'd1' | 'd2' | 'r1' | 'r2' | 'q1' | 'q2' | 'e1' | 'e2' | 'a1' | 'a2', Target>;
   private black: WebGLTexture;
   private q!: Quality;
@@ -137,6 +140,7 @@ export class Renderer {
       blur: createProgram(gl, S.BLUR_FS),
       dofdown: createProgram(gl, S.DOFDOWN_FS),
       refldown: createProgram(gl, S.REFLDOWN_FS),
+      gauss: createProgram(gl, S.GAUSS_FS),
       streak: createProgram(gl, S.STREAK_FS),
       final: createProgram(gl, S.FINAL_FS),
     };
@@ -312,21 +316,23 @@ export class Renderer {
       }
     }
 
-    // the set for its reflections, softened at half resolution: sideways for diffuse ones, up and down for streaks. Each
-    // pass of the shared blur reaches about 6.4 of its pixels each way at most without gaps, so longer ones take more
-    const reflBlur = k.mirrorSet > 0 && (k.reflectStreak > 0 || k.reflectDiffuse > 0);
+    // the set for its reflections, softened at half resolution: sideways for diffuse ones (a glossy floor), up and down for
+    // streaks (a wet street), each a Gaussian whose spread is half the look's pixels. Smudged far enough sideways, the
+    // floor is glossy: the people are smudged into it with everything else instead of mirrored on their own
+    const reflBlur = k.mirrorSet > 0 && (k.reflectStreak > 0 || k.reflectDiffuse > 0), smudge = reflBlur && k.reflectDiffuse >= GLOSSY;
     let refl = t.r1;
     if (reflBlur) {
-      this.pass(this.prog.refldown, t.r1, (pr) => { this.bind(pr, 'tSrc', t.fa.tex[0], 0); this.bind(pr, 'tG3', t.gbuf.tex[3], 1); gl.uniform2f(pr.u.uSrcRes, NW, NH); });
+      this.pass(this.prog.refldown, t.r1, (pr) => {
+        this.bind(pr, 'tSrc', t.fa.tex[0], 0); this.bind(pr, 'tG3', t.gbuf.tex[3], 1);
+        gl.uniform2f(pr.u.uSrcRes, NW * this.rs, NH * this.rs); gl.uniform1f(pr.u.uStep, 2 * this.rs); gl.uniform1f(pr.u.uPeople, smudge ? 1 : 0);
+      });
       let other = t.r2;
       for (const [px, dx, dy] of [[k.reflectDiffuse, 1, 0], [k.reflectStreak, 0, 1]] as const) {
-        // in its own pixels, two level pixels each; passes add up like the spreads of a bell curve
-        const reach = px / 2, n = Math.ceil(reach / 9.6), s = reach / Math.sqrt(Math.max(1, n)) / 6.4;
-        for (let i = 0; i < n; i++) {
-          const from = refl;
-          this.pass(this.prog.blur, other, (pr) => { this.bind(pr, 'tSrc', from.tex[0], 0); gl.uniform2f(pr.u.uDir, dx * s, dy * s); });
-          [refl, other] = [other, refl];
-        }
+        if (px < 1) continue;
+        const from = refl;
+        // half the look's pixels is the spread in level pixels, half again in this target's
+        this.pass(this.prog.gauss, other, (pr) => { this.bind(pr, 'tSrc', from.tex[0], 0); gl.uniform2f(pr.u.uDir, dx, dy); gl.uniform1f(pr.u.uSigma, px / 4); });
+        [refl, other] = [other, refl];
       }
     }
 
@@ -339,7 +345,7 @@ export class Renderer {
       gl.uniform4fv(pr.u.uSteam, f.steam); gl.uniform4f(pr.u.uDrips, ...f.drips); gl.uniform1f(pr.u.uMirror, f.mirror);
       gl.uniform1f(pr.u.uRawFog, k.rawFog); gl.uniform1f(pr.u.uWrap, k.charWrap); gl.uniform1f(pr.u.uRain, k.rain); gl.uniform1f(pr.u.uBakedC, f.baked ?? 0);
       gl.uniform4f(pr.u.uRefl, k.reflect, k.reflectReach, k.reflectStreak, k.mirrorSet);
-      gl.uniform2f(pr.u.uReflSoft, k.reflectDiffuse, k.reflectStreak);
+      gl.uniform2f(pr.u.uReflSoft, k.reflectDiffuse, k.reflectStreak); gl.uniform1f(pr.u.uSmudge, smudge ? 1 : 0);
     });
 
     // bloom at a quarter and an eighth of the resolution

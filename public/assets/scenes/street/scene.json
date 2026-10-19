@@ -480,19 +480,20 @@
    "actorBlue": 0.66,
    "reflect": 0.9,
    "reflectStreak": 28,
-   "reflectDiffuse": 3
+   "reflectDiffuse": 3,
+   "reflectReach": 3.5
   },
   "concierge": {
    "actorRed": 0.97,
    "actorGreen": 1,
    "actorBlue": 1.08,
    "rawColour": 0.45,
-   "reflect": 0.3,
-   "reflectStreak": 12,
-   "reflectDiffuse": 14
+   "reflect": 0.22,
+   "reflectStreak": 70,
+   "reflectDiffuse": 40,
+   "reflectReach": 1.4
   },
-  "mirrorSet": 1,
-  "reflectReach": 3.5
+  "mirrorSet": 1
  },
  "drift": 18,
  "movers": [
