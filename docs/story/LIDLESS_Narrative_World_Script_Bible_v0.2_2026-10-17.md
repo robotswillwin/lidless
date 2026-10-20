@@ -205,10 +205,10 @@ Its key research objection is not “digital minds certainly lack self-awareness
 
 `home` ↔ `backstreet` ↔ `street` ↔ `radio`
 
-- **`home` (planned):** Luna's one-room flat. Calm clean sanctuary in CO view; damp, cramped and cold in Raw View. The mirror becomes an ideal private first encounter with her physical self.
+- **`home` (built):** Luna's one-room flat. Calm clean sanctuary in CO view; damp, cramped and cold in Raw View. The mirror becomes an ideal private first encounter with her physical self.
 - **`backstreet` (built):** An intimate lane of glossy apartments, a store panel and Entrance 3 in CO view; ageing concrete blocks, rust, cheap window frames and patched cables in Raw View.
 - **`street` (built):** The main neon street with the gold-lettered RADIO REPAIR sign, a feeding kiosk, stylish crowds, walkway, missing-person poster, bar and bakery. In Raw View a near-empty wet street, polluted fog, a thin woman locked to a feeding cradle, and someone overlooked on a bench.
-- **`radio` (planned):** The fixer's vintage repair shop. Charming and warm in CO view; narrow, cluttered, analogue and chilly in Raw View. Back-room chair and old instruments for the optical biohack.
+- **`radio` (built):** The fixer's vintage repair shop. Charming and warm in CO view; narrow, cluttered, analogue and chilly in Raw View. Back-room chair and old instruments for the optical biohack.
 
 **[DIRECTION]** The first hours must work as enjoyable adventure before becoming sinister: errands, collecting components, social encounters, attractive city life, character introductions, small puzzles, CO's helpful hints. The first raw-view reveal should make players re-evaluate places they have already visited. Players must not be pushed immediately into “kill the AI.”
 
