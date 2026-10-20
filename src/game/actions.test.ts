@@ -19,6 +19,9 @@ describe('verbs', () => {
     expect(actionFor(dock, 'take', true)).toBeNull();
     expect(actionFor({ ...dock, use: 'It hums.', take: 'Mine now.' }, 'hands', true)).toMatchObject({ kind: 'hands', label: 'use' });
     expect(actionFor({ ...dock, take: 'Mine now.' }, 'take', false)).toMatchObject({ kind: 'take', label: 'Take' });
+    // her wardrobe, and the shower that leaves her in her bathrobe, are used with nothing written for it
+    expect(actionFor({ ...dock, wardrobe: true }, 'hands', false)).toMatchObject({ kind: 'hands' });
+    expect(actionFor({ ...dock, wear: 'robe' }, 'hands', true)).toMatchObject({ kind: 'hands', label: 'use' });
   });
 
   it('asks the Concierge only in its view', () => {

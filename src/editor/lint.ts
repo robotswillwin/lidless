@@ -87,7 +87,7 @@ export function lintScene(file: SceneFile, ctx: LintContext): Problem[] {
     const sel: Selection = { kind: 'hotspot', i }, name = nameOf(h.name) || h.id, r = h.rect;
     const texts = (t?: ViewText) => (t === undefined ? [] : typeof t === 'string' ? [t] : [t.concierge, t.raw]);
     if (texts(h.name).includes(PLACEHOLDER.name) || texts(h.look).includes(PLACEHOLDER.look)) warn(`${name} still has the placeholder ${texts(h.name).includes(PLACEHOLDER.name) ? 'name' : 'look text'} it was made with`, sel);
-    if (!h.look && !h.talk && !h.use && !h.take && !h.ask && !h.go && !h.wardrobe) warn(`${name}: nothing to do with it. Give it a look, talk, use or take text, an answer to Ask, or make it an exit`, sel);
+    if (!h.look && !h.talk && !h.use && !h.take && !h.ask && !h.go && !h.wardrobe && !h.wear) warn(`${name}: nothing to do with it. Give it a look, talk, use or take text, an answer to Ask, or make it an exit`, sel);
     if (h.talk && ctx.knots && !ctx.knots.has(h.talk.split('.')[0])) err(`${name} talks with “${h.talk}”, which the story does not have`, sel);
     if (h.stand !== undefined && (h.stand < x0 || h.stand > x1)) warn(`${name}: she stands at x ${h.stand} to use it, off the walk line (${x0} to ${x1})`, sel);
     if (r[0] + r[2] < 0 || r[0] > W || r[1] + r[3] < 0 || r[1] > H) warn(`${name} is off the scene`, sel);

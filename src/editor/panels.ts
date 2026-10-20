@@ -143,6 +143,8 @@ function hotspotSide(i: number): void {
   } else {
     side(...viewText('Look text', h.look, (v) => { if (v === undefined) delete h.look; else h.look = v; }, true));
     side(check('Her wardrobe: Use picks what she wears', !!h.wardrobe, (v) => { if (v) h.wardrobe = true; else delete h.wardrobe; }));
+    const outfits = ed.world.hero.outfits ?? {};
+    if (Object.keys(outfits).length) side(choice('Using it, she changes into', h.wear ?? '', [['', 'Nothing: she stays as she is'], ...Object.entries(outfits).map(([k, o]) => [k, o.name] as [string, string])], (v) => { if (v) h.wear = v; else delete h.wear; }));
     side(str('Conversation (Ink knot)', h.talk ?? '', (v) => { if (v) h.talk = v; else delete h.talk; }));
     // what the Use and Take verbs do to it: without a text, they do nothing to it and it does not light up for them
     side(...viewText('Use text', h.use, (v) => { if (v === undefined) delete h.use; else h.use = v; }, true));

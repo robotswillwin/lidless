@@ -24,7 +24,7 @@ export function actionFor(h: Hotspot, v: Verb, raw: boolean): Action | null {
     return { kind: 'eyes', label: raw ? (stare ? 'look closely' : 'look') : 'Look', cost: stare ? 1 : 0 };
   }
   if (v === 'heart') return h.talk ? { kind: 'heart', label: verbName(v, raw) } : null;
-  if (v === 'hands') return h.use || h.wardrobe ? { kind: 'hands', label: verbName(v, raw) } : null;
+  if (v === 'hands') return h.use || h.wardrobe || h.wear ? { kind: 'hands', label: verbName(v, raw) } : null;
   if (v === 'take') return h.take ? { kind: 'take', label: verbName(v, raw) } : null;
   return !raw && h.ask ? { kind: 'ask', label: 'Ask' } : null;
 }

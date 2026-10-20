@@ -234,10 +234,10 @@ export class Game {
     this.talk.show([], [...keys.map((k) => `${outfits[k].name}${k === this.outfit ? ' (wearing)' : ''}`), 'Never mind']);
   }
 
-  /** She changes clothes where she stands, behind a moment's fade. */
-  private async change(key: string): Promise<void> {
+  /** She changes clothes where she stands, behind a moment's fade, held for `hold` ms more where a while passes. */
+  private async change(key: string, hold = 0): Promise<void> {
     this.s.fade.classList.add('on');
-    await new Promise((r) => setTimeout(r, this.s.reduceMotion ? 0 : 260));
+    await new Promise((r) => setTimeout(r, this.s.reduceMotion ? 0 : 260 + hold));
     try {
       await this.wear(key);
       this.fitGaits(this.scene);
@@ -368,6 +368,8 @@ export class Game {
       this.hud.note(h, pick(h.look, raw), this.boxOf(h));
       if (a.cost) this.raiseAttention(a.cost);
     } else if (a.kind === 'hands' && h.wardrobe) this.openWardrobe();
+    // the shower: a while passes behind the fade, and she comes out of it in her bathrobe; what she finds, after
+    else if (a.kind === 'hands' && h.wear) void this.change(h.wear, 900).then(() => { if (h.use) this.hud.note(h, pick(h.use, raw), this.boxOf(h)); });
     else if (a.kind === 'hands' && h.use) this.hud.note(h, pick(h.use, raw), this.boxOf(h));
     else if (a.kind === 'take' && h.take) this.hud.note(h, pick(h.take, raw), this.boxOf(h));
     else if (a.kind === 'ask' && h.ask) this.hud.toast(h.ask);

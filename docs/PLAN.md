@@ -64,7 +64,7 @@ The design: https://claude.ai/artifact/X65FknT3sqWZBgJaHgHboZ. In code: `src/gam
   a text size setting.
 - **What she wears.** At home she changes at the coat hook, picking from her outfits as from her answers: home
   clothes (a T-shirt and shorts), a cardigan, a bathrobe, a party dress. She takes her coat off coming home and puts it on over home clothes going out;
-  she goes out in the party dress, and not in the bathrobe. Each outfit walks and stands; she runs only in her coat.
+  she goes out in the party dress, and not in the bathrobe. Her shower leaves her in her bathrobe. Each outfit walks and stands; she runs only in her coat.
 - **Data.** A hotspot's `tag` and `ask`, a scene's `greeting` and `assist`, `public/assets/items.json` for her things
   and `public/assets/notebook.json` for her notebook, whose entries appear as Ink variables come true.
 - **Not built yet.** Use and Take only say what happens (a hotspot's `use` and `take`): what she takes does not go into

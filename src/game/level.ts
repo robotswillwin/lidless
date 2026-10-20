@@ -39,6 +39,8 @@ export interface Hotspot {
   views?: Partial<Record<'raw' | 'concierge', Partial<Place>>>;
   /** Her wardrobe: using it, she picks what to wear. */
   wardrobe?: boolean;
+  /** Using it, she changes into this outfit, a while passing behind a fade: the shower leaves her in her bathrobe. */
+  wear?: string;
 }
 
 /** Where a hotspot is: its area, where she stands to use it and which way she faces then. */
