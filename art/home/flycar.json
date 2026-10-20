@@ -1,0 +1,23 @@
+{
+  "name": "flycar",
+  "scene": "home",
+  "kind": "prop",
+  "exists": "concierge",
+  "look": "vector",
+  "res": 2,
+  "prompt": "A flying car crossing the Concierge's city behind Luna's building, in side view with its nose to the right: cut from the flat's picture (art/home/cutaway, before it was painted out) by a traced outline, its light trail left behind.",
+  "height": 21.5,
+  "position": [
+    480,
+    270
+  ],
+  "depth": 1,
+  "occluder": false,
+  "material": "metal",
+  "glow": {
+    "concierge": "auto",
+    "machine": true
+  },
+  "palette": 0,
+  "references": []
+}

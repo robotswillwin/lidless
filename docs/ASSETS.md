@@ -570,8 +570,12 @@ slides with the city. All in level pixels. The street's is an example (`art/stre
 and around the building at 0.3, seen at both sides and through her window, and the building, the cutaway of its three
 floors. The camera leans 24 px each way as she crosses the flat, so the city slides about 34 px against the building
 from one end to the other. What moves out there: smoke from two smokestacks and red lights blinking on the towers in
-raw view; in the Concierge's, flying traffic in two lanes (one seen through her window), its neon signs flickering and
-its hologram breathing; and in the flats around hers a failing bulb below and a screen's glow above. Her window is
+raw view; in the Concierge's, flying traffic in two lanes (one seen through her window), a flying car crossing the
+city behind the building every 6 to 16 seconds, each way in turn, seen at both sides and through her window, its neon
+signs flickering and its hologram breathing; and in the flats around hers a failing bulb below and a screen's glow
+above. The flying car is a mover (`art/home/flycar`), cut from the Concierge's picture by a traced outline like the
+street's train, its light trail left behind; `touch` painted the picture's two still cars out, and one of its two KAZE
+signs. Her window is
 outside (`zones`), so rain falls past it. `split` places a layer 3.5 px right of and 4 px below where the picture was,
 so the flat's layers are placed back (`x` -23.5, `y` 0) and its lights, hotspots and walk line stay where they were.
 

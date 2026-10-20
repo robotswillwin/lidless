@@ -592,5 +592,20 @@
   "span": 1040,
   "ar": 1,
   "parallax": 0.3
- }
+ },
+ "movers": [
+  {
+   "asset": "home/flycar",
+   "after": "home/cutaway-far",
+   "x0": -80,
+   "x1": 1060,
+   "y": 244,
+   "speed": 48,
+   "wait": [
+    6,
+    16
+   ],
+   "only": "concierge"
+  }
+ ]
 }
