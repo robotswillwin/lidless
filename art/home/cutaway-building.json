@@ -1,0 +1,24 @@
+{
+  "name": "cutaway-building",
+  "prompt": "The building layer of home/cutaway, cut from its picture by split: change that picture and split it again.",
+  "scene": "home",
+  "kind": "background",
+  "interior": true,
+  "exists": "both",
+  "look": "vector",
+  "res": 2,
+  "height": 540,
+  "position": [
+    484,
+    544
+  ],
+  "depth": 3,
+  "material": "stone",
+  "glow": {
+    "raw": "auto",
+    "concierge": "auto",
+    "machine": true
+  },
+  "palette": 0,
+  "layerOf": "home/cutaway"
+}

@@ -246,7 +246,10 @@ export function checkSceneFile(data: unknown, id?: string): string[] {
       extra?.(e, `${key}[${i}]`);
     });
   };
-  effects('steam', 4, ['x', 'y', 'height', 'width'], (e, name) => { if (e?.kind !== 'steam' && e?.kind !== 'smoke') out.push(`${name}.kind must be "steam" or "smoke"`); });
+  effects('steam', 4, ['x', 'y', 'height', 'width'], (e, name) => {
+    if (e?.kind !== 'steam' && e?.kind !== 'smoke') out.push(`${name}.kind must be "steam" or "smoke"`);
+    if (e?.parallax !== undefined && !isNum(e.parallax)) out.push(`${name}.parallax must be a number`);
+  });
   effects('godrays', 4, ['x', 'y', 'strength', 'zone']);
   effects('beacons', 32, ['x', 'y', 'phase']);
   if (f.drips !== undefined) {

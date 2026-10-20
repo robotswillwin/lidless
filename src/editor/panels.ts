@@ -256,7 +256,7 @@ const SHAFT_ZONES: [string, string][] = [['0', 'Everywhere'], ['1', 'Inside area
 
 function steamSide(i: number): void {
   const e = ed.file.steam![i], shown = shownView(), v = asIn(e, shown), m = (row: HTMLElement, ...keys: string[]) => markOwn(row, () => ownIn(e, ...keys));
-  side(heading(e.kind === 'smoke' ? `Smoke ${i + 1}` : `Steam ${i + 1}`, `Rising from the dot. The first smoke follows Luna’s cigarette when she smokes. At most ${LIMITS.steam} are drawn in a view.`));
+  side(heading(e.kind === 'smoke' ? `Smoke ${i + 1}` : `Steam ${i + 1}`, `Rising from the dot. The first smoke on the street’s layer follows Luna’s cigarette when she smokes. On a far layer (parallax under 1) it moves with that layer and shows only where that layer does, as from a chimney in the city. At most ${LIMITS.steam} are drawn in a view.`));
   modeNote(inViewOf(e.only, ed.view));
   side(
     shownIn(e.only, (o) => { if (o) e.only = o; else delete e.only; }, () => { syncEffects(); reselect(); }),
@@ -264,6 +264,7 @@ function steamSide(i: number): void {
     m(num('x', v.x, (n) => setFor(e, 'x', n), { after: syncEffects }), 'x'), m(num('y (where it starts)', v.y, (n) => setFor(e, 'y', n), { after: syncEffects }), 'y'),
     m(slider('Height it rises, px', v.height, (n) => setFor(e, 'height', n), { min: 4, max: 400, step: 1, after: syncEffects }), 'height'),
     m(slider('Width, px', v.width, (n) => setFor(e, 'width', n), { min: 1, max: 60, step: 1, after: syncEffects }), 'width'),
+    slider('Parallax (on a far layer: its parallax)', e.parallax ?? 1, (n) => { if (n === 1) delete e.parallax; else e.parallax = n; }, { min: 0, max: 2, step: 0.05, mark: 1, after: syncEffects }),
   );
   side(effectButtons(e, shown));
 }

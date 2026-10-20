@@ -67,7 +67,7 @@ export function drawOverlay(): void {
   });
   // effects: steam and smoke, light shafts, blinking beacons, the drip curtain, and where movers run
   (file.steam ?? []).forEach((e0, i) => {
-    const e = asIn(e0, view), s = isSel({ kind: 'steam', i }), top = e.y - e.height, half = Math.max(3, e.width), off = i >= LIMITS.steam ? ' off' : '';
+    const e1 = asIn(e0, view), e = { ...e1, x: onLayer(e1.x, e1.parallax) }, s = isSel({ kind: 'steam', i }), top = e.y - e.height, half = Math.max(3, e.width), off = i >= LIMITS.steam ? ' off' : '';
     if (!shown('effects', s)) return;
     out.push(`<g class="fx steam${e.kind === 'smoke' ? ' smoke' : ''}${s ? ' sel' : ''}${off}${lit({ kind: 'steam', i })}${away(inViewOf(e.only, ed.view))}" data-k="steam" data-i="${i}"><line x1="${e.x}" y1="${e.y}" x2="${e.x}" y2="${top}"/><line x1="${e.x - half}" y1="${top}" x2="${e.x + half}" y2="${top}"/><circle cx="${e.x}" cy="${e.y}" r="5"/><title>${e.kind === 'smoke' ? 'Smoke' : 'Steam'} ${i + 1}${off ? ': not drawn, at most 4' : ''}</title></g>`);
   });

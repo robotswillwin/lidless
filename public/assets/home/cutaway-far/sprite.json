@@ -1,0 +1,26 @@
+{
+  "name": "cutaway-far",
+  "x": -20,
+  "y": 4,
+  "w": 1008.5,
+  "h": 540,
+  "maps": [
+    "albedo.concierge",
+    "albedo.raw",
+    "glow.concierge",
+    "glow.raw"
+  ],
+  "depth": 1,
+  "parallax": 1,
+  "occluder": 0,
+  "reflectivity": 0,
+  "object": 0,
+  "machine": 1,
+  "anchor": [
+    504,
+    540
+  ],
+  "exists": "both",
+  "kind": "background",
+  "res": 2
+}

@@ -120,7 +120,8 @@ export function asIn<T extends { views?: Views<T> }>(o: T, view: Only): T {
   return own ? { ...o, ...own } : o;
 }
 
-export interface SteamDef { x: number; y: number; height: number; width: number; kind: 'steam' | 'smoke'; only?: Only; views?: Views<SteamDef> }
+/** `parallax`: smoke from a chimney on a far layer moves with that layer, and is drawn only where that layer shows. */
+export interface SteamDef { x: number; y: number; height: number; width: number; kind: 'steam' | 'smoke'; parallax?: number; only?: Only; views?: Views<SteamDef> }
 /**
  * `parallax` for things on a layer that is not the street's: they move with that layer, as lights and beacons can.
  * `ar` (1) is the older way to say only in the Concierge's view.

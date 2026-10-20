@@ -1,10 +1,14 @@
 {
   "assets": [
     "cutaway",
+    "cutaway-building",
+    "cutaway-far",
     "room"
   ],
   "backgrounds": [
     "cutaway",
+    "cutaway-building",
+    "cutaway-far",
     "room"
   ]
 }

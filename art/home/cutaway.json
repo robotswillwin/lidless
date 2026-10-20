@@ -28,5 +28,48 @@
   "conciergeReferences": [
     "art/reference/street-concierge-panel.png"
   ],
-  "palette": 0
+  "palette": 0,
+  "split": {
+    "margin": 24,
+    "layers": [
+      {
+        "name": "far",
+        "parallax": 0.3,
+        "depth": 1,
+        "fill": "only the city behind the apartment block, as it is around it: towers, panel blocks and chimneys in the haze, the elevated road and the night sky; no part of the apartment block, no pipes, no window frame"
+      },
+      {
+        "name": "building",
+        "parallax": 1,
+        "fill": "the apartment block in cross-section: its floors, rooms, walls, pipes and the balcony"
+      }
+    ],
+    "fixes": [
+      {
+        "to": "building",
+        "rect": [
+          436,
+          226,
+          141,
+          80
+        ]
+      }
+    ],
+    "thin": 48,
+    "soft": 4,
+    "windows": [
+      [
+        444,
+        233,
+        42,
+        69
+      ],
+      [
+        492,
+        233,
+        77,
+        69
+      ]
+    ]
+  }
 }

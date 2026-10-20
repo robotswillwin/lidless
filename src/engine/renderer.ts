@@ -80,6 +80,8 @@ export interface Frame {
   beacons: Float32Array;
   nBeacons: number;
   steam: Float32Array;
+  /** 1 for each steam emitter on a far layer: drawn only where that layer shows. */
+  steamFar?: Float32Array;
   godrays: Float32Array;
   drips: [number, number, number, number];
   mirror: number;
@@ -98,6 +100,8 @@ export interface Frame {
 
 /** Reflections smudged at least this far sideways (the look's pixels) are a glossy floor: the people are smudged in too. */
 const GLOSSY = 16;
+/** No steam emitter on a far layer. */
+const NO_FAR = new Float32Array(4);
 
 const MAP_ORDER: [MapName, string][] = [
   ['albedo.raw', 'tAlbR'], ['albedo.concierge', 'tAlbC'], ['normal', 'tNrm'], ['normal.concierge', 'tNrmC'], ['material', 'tMat'],
@@ -362,7 +366,7 @@ export class Renderer {
       this.bind(pr, 'tReflNear', fade ? t.r4.tex[0] : this.black, 8); gl.uniform1f(pr.u.uReflFade, fade ? k.reflectFade : 0);
       this.zoneUniforms(pr, f, 3);
       gl.uniform1f(pr.u.uTime, f.t); gl.uniform1f(pr.u.uDof, dof ? 1 : 0); gl.uniform1f(pr.u.uView, f.view);
-      gl.uniform4fv(pr.u.uSteam, f.steam); gl.uniform4f(pr.u.uDrips, ...f.drips); gl.uniform1f(pr.u.uMirror, f.mirror);
+      gl.uniform4fv(pr.u.uSteam, f.steam); gl.uniform4fv(pr.u.uSteamFar, f.steamFar ?? NO_FAR); gl.uniform4f(pr.u.uDrips, ...f.drips); gl.uniform1f(pr.u.uMirror, f.mirror);
       gl.uniform1f(pr.u.uRawFog, k.rawFog); gl.uniform1f(pr.u.uWrap, k.charWrap); gl.uniform1f(pr.u.uRain, k.rain); gl.uniform1f(pr.u.uFog, k.fog); gl.uniform1f(pr.u.uBakedC, baked);
       gl.uniform4f(pr.u.uRefl, k.reflect, k.reflectReach, k.reflectStreak, k.mirrorSet);
       gl.uniform2f(pr.u.uReflSoft, k.reflectDiffuse, k.reflectStreak); gl.uniform1f(pr.u.uSmudge, smudge ? 1 : 0);

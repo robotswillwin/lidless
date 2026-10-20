@@ -35,6 +35,8 @@ export class SceneRunner {
   private cars = new Float32Array(64);
   private beacons = new Float32Array(128);
   private steam = new Float32Array(16);
+  private steamFar = new Float32Array(4);
+  private steamDefs: LoadedScene['def']['steam'] = [];
   private godrays = new Float32Array(16);
   private shadows = new Float32Array(32);
   private smokeSlot = -1;
@@ -52,11 +54,14 @@ export class SceneRunner {
     const vn = view >= 0.5 ? 'concierge' : 'raw';
     const d = this.scene.def, steam = d.steam.filter((e) => inViewOf(e.only, view)).map((e) => asIn(e, vn)), beacons = d.beacons.filter((b) => inViewOf(b.only, view)).map((b) => asIn(b, vn));
     this.syncedFor = view;
-    this.smokeSlot = steam.findIndex((e) => e.kind === 'smoke');
+    // her cigarette: the first smoke on the street's own layer (a chimney's on a far layer stays where it is)
+    this.smokeSlot = steam.findIndex((e) => e.kind === 'smoke' && (e.parallax ?? 1) === 1);
     this.beacons.fill(0);
     this.steam.fill(0);
     beacons.slice(0, 32).forEach((b, i) => this.beacons.set([b.x, b.y, b.phase, 1], i * 4));
-    steam.slice(0, 4).forEach((e, i) => this.steam.set([e.x, e.y, e.height, e.kind === 'smoke' ? -e.width : e.width], i * 4));
+    this.steamFar.fill(0);
+    this.steamDefs = steam.slice(0, 4);
+    this.steamDefs.forEach((e, i) => { this.steam.set([e.x, e.y, e.height, e.kind === 'smoke' ? -e.width : e.width], i * 4); this.steamFar[i] = (e.parallax ?? 1) < 1 ? 1 : 0; });
     this.nBeacons = Math.min(32, beacons.length);
     this.beaconDefs = beacons;
   }
@@ -94,9 +99,10 @@ export class SceneRunner {
     const d = this.scene.def, view = v.view >= 0.5 ? 1 : 0, viewName = view ? 'concierge' : 'raw';
     // what is only in one view comes and goes with it
     if (view !== this.syncedFor) this.sync(view);
-    if (smoke && this.smokeSlot >= 0) this.steam.set(smoke, this.smokeSlot * 4);
     // where something on a layer of its own parallax seems to be, in the street's pixels: the renderer takes the camera off
     const along = (p = 1) => -cam[0] * (p - 1);
+    this.steamDefs.forEach((e, i) => { this.steam[i * 4] = e.x + along(e.parallax); });
+    if (smoke && this.smokeSlot >= 0) this.steam.set(smoke, this.smokeSlot * 4);
     // the set first, in the scene's order; then the people, the nearest last, so whoever stands nearer covers whoever is
     // behind; then anything nearer than them
     const isPerson = (def: SpriteDef) => def.actor ?? def.kind === 'character';
@@ -168,6 +174,7 @@ export class SceneRunner {
       beacons: this.beacons,
       nBeacons: this.nBeacons,
       steam: this.steam,
+      steamFar: this.steamFar,
       godrays: this.godrays,
       drips: dr ? [dr.x0, dr.x1, dr.top, dr.bottom] : [0, 0, 0, 0],
       mirror: d.mirror,

@@ -321,6 +321,13 @@ export async function cmdSplit([file], opt) {
           for (let y = y0; y < Math.min(H, y1); y++) for (let x = 0; x < pw; x++, k2++) if (tpl[k2][3] > 0) img.d.set(tpl[k2], (y * CW + x0 + x) * 4);
         }
       }
+      // see-through windows (cfg.windows, [x, y, w, h] in level px): cut out of every layer nearer than the furthest, which
+      // the image model painted behind them, as the map gives them to a nearer layer. The city through a window then
+      // slides with the city as the camera leans, not with the wall
+      if (k > 0) for (const [wx, wy, ww, wh] of cfg.windows ?? []) {
+        for (let y = Math.max(0, Math.round(wy * res)); y < Math.min(H, Math.round((wy + wh) * res)); y++)
+          for (let x = Math.max(0, m + Math.round(wx * res)); x < Math.min(CW, m + Math.round((wx + ww) * res)); x++) img.d[(y * CW + x) * 4 + 3] = 0;
+      }
       if (!opt.dry) await writePNG(join(out, `${v}.png`), img);
     }
     if (opt.dry) continue;

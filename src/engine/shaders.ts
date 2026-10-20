@@ -335,6 +335,7 @@ uniform float uBakedC;    // how much of the set is painted, its reflections too
 uniform vec4 uRefl;       // the look: reflections' strength; how far up the set's reaches (1 a mirror); how far its lights
                           // streak down, in pixels; how much the set is mirrored in a painted scene, below the line
 uniform vec4 uSteam[4];
+uniform vec4 uSteamFar;   // 1 for each emitter on a far layer: its plume only where a far layer is in front
 uniform vec4 uDrips;      // world x0, x1, top, bottom of the drip curtain; z <= 0 turns it off
 uniform float uMirror;    // world y of the reflection line
 uniform vec4 uGnd;        // the ground the engine draws over a painted floor: the horizon's world y; the kerb's distance in
@@ -538,10 +539,13 @@ void main() {
     c = mix(c, fogC, min(1.0, fdf * mix(0.45, 1.0, z.g * (1.0 - z.r)) * uFog));
   }
   for (int s = 0; s < 4; s++) {
-    vec4 e = uSteam[s]; if (e.z <= 0.0) continue; vec2 r = p - (e.xy - uCam); float up = -r.y; if (up < -4.0 || up > e.z) continue;
+    vec4 e = uSteam[s]; if (e.z <= 0.0) continue; vec2 r = p - (e.xy - uCam); float up = -r.y; if (up < -4.0 || up > e.z || abs(r.x) > abs(e.w) * 3.4 + 9.0) continue;
+    // a smokestack's, on a far layer: only where that layer shows, rising slowly, its dark smoke darkening the smog
+    float far = uSteamFar[s]; if (far > 0.5 && dep > 0.4) continue;
     float smoke = step(e.w, 0.0), k = up / e.z, sway = sin(k * 5.0 + uTime * 0.8) * 8.0 * k, wdt = abs(e.w) * (0.35 + k * (1.0 + 2.0 * smoke));
-    float n = fbm(vec2((r.x - sway) * 0.05, (r.y + uTime * 26.0) * 0.045));
+    float n = fbm(vec2((r.x - sway) * 0.05, (r.y + uTime * mix(26.0, 9.0, far)) * 0.045));
     float d = smoothstep(wdt, wdt * 0.2, abs(r.x - sway)) * smoothstep(0.75, 0.25, k * n) * n * (1.0 - k);
+    if (far > 0.5) { c = mix(c, c * 0.45, min(0.85, d * 1.6)); continue; }
     vec3 vapour = mix(vec3(0.025, 0.025, 0.03), vec3(0.16, 0.16, 0.18), smoke);
     c += (mix(near, tone(near, RAW_AIR), raw * 0.6) * 1.4 + mix(vapour, tone(vapour, RAW_AIR) * 1.2, raw)) * d * mix(0.9, 1.3, smoke);
   }
