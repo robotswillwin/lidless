@@ -37,7 +37,10 @@ const ready = () => page.waitForFunction(() => document.documentElement.dataset.
 const where = () => page.evaluate(() => { const s = JSON.parse(localStorage.getItem('lidless.save.v1') ?? '{}'); return `${s.scene} x=${s.heroX}`; });
 // a verb from the ball in the bottom right corner; then pressing on something it does something to lights it up, and
 // letting go does it
-const verb = async (v) => { await page.click('.hud-ball.verbs'); await wait(200); await page.click(`.hud-menu [data-verb="${v}"]`); await wait(150); };
+// (the verbs stay out once slid out, until the ball is tapped again)
+const verb = async (v) => { if (!(await page.$('.hud-menu.verbs'))) { await page.click('.hud-ball.verbs'); await wait(250); } await page.click(`.hud-menu [data-verb="${v}"]`); await wait(150); };
+// what she found is written at the thing
+const found = () => text('.hud-note p');
 const hold = async (key, ms) => { await page.keyboard.down(key); await wait(ms); await page.keyboard.up(key); await wait(1500); };
 
 // the opening route: the game starts in Lux's flat
@@ -73,18 +76,19 @@ console.log('lit:', await text('.hud-mark-label'));
 await shot('look-lit');
 await page.mouse.click(870, 160);
 await wait(300);
-console.log('caption:', await text('.caption'), '| verb put down:', await page.$eval('.hud-ball.verbs', (b) => b.getAttribute('aria-pressed')));
+console.log('found:', await found(), '| verb put down:', await page.$eval('.hud-ball.verbs', (b) => b.getAttribute('aria-pressed')), '| verbs still out:', !!(await page.$('.hud-menu.verbs')));
 await shot('look-sky');
 await verb('ask');
 await page.mouse.click(870, 160);
 await wait(300);
 console.log('asked:', await text('.hud-toast'));
 
-// her things, in the left ball: her things, her notebook and the Concierge's bell
+// her things, in the left ball: her things, her notebook and the Concierge's bell; the verbs go in as they come out
 await page.click('.hud-ball.things');
 await wait(250);
 console.log('things:', await page.$$eval('.hud-menu [data-menu]', (b) => b.map((e) => e.getAttribute('aria-label')).join(', ')));
 await shot('things');
+console.log('verbs put away:', !(await page.$('.hud-menu.verbs')));
 await page.keyboard.press('Escape');
 
 // into the radio repair, through its door on the street, and talk to the fixer at his bench
@@ -125,7 +129,7 @@ await wait(600);
 await verb('eyes');
 await page.mouse.click(865, 420);
 await wait(600);
-console.log('caption:', await text('.caption'), '| attention:', await page.$eval('.hud-eye', (e) => e.dataset.level));
+console.log('found:', await found(), '| attention:', await page.$eval('.hud-eye', (e) => e.dataset.level));
 await shot('raw-dock');
 
 // her notebook, and what is really in her pockets

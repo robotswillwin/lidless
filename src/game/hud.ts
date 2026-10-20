@@ -5,8 +5,9 @@
 //
 // Two balls at the bottom corners, made for thumbs, and nothing that needs a mouse to hover: her things on the left
 // (her pockets, her notebook, the view switch, the Concierge's bell), what she can do on the right (look, talk, use,
-// take, ask). A ball opens its choices on an arc around it. With a verb chosen, what her finger is over lights up if
-// the verb does something to it, and letting go does it.
+// take, ask). A ball slides its choices out sideways along the bottom, and they stay out until it is tapped again or
+// the other one is. With a verb chosen, what her finger is over lights up if the verb does something to it, and
+// letting go does it; what she finds is written at the thing.
 
 import { verbName, verbsIn, type Verb } from './actions';
 import { note, pick, type Hotspot, type ViewText } from './level';
@@ -134,6 +135,9 @@ export class Hud {
   private menuKind: 'things' | 'verbs' | null = null;
   private markEl: HTMLElement | null = null;
   private markOf: Hotspot | null = null;
+  private noteEl: HTMLElement | null = null;
+  private noteOf: Hotspot | null = null;
+  private noteTimer = 0;
   private panel: HTMLElement | null = null;
   private panelKind: 'things' | 'notebook' | null = null;
   private items: Record<string, Item> = {};
@@ -192,10 +196,13 @@ export class Hud {
     }
   }
 
-  /** The verb chosen, or none: the right ball shows it, and names it beside it until it is used or put down. */
+  /** The verb chosen, or none: the right ball shows it, its slot is lit, and with the verbs put away it is named beside the ball. */
   setVerb(v: Verb | null): void {
     this.verb = v;
-    this.closeMenu();
+    this.menu?.querySelectorAll<HTMLElement>('[data-verb]').forEach((b) => {
+      b.classList.toggle('default', b.dataset.verb === v);
+      b.setAttribute('aria-pressed', String(b.dataset.verb === v));
+    });
     this.drawBalls();
   }
 
@@ -266,14 +273,14 @@ export class Hud {
   }
 
   /**
-   * A ball's choices on a quarter circle around it: the verbs from straight up round to the left of the right ball,
-   * her things from straight up round to the right of the left one, each labelled outward. The chosen verb is lit, and
-   * choosing it again puts it down.
+   * A ball's choices, slid out sideways along the bottom so they cover little of the street: the verbs to the left of
+   * the right ball, her things to the right of the left one, each labelled above, spaced so no two labels touch. They
+   * stay out until the ball is tapped again, or the other one; the chosen verb is lit, and choosing it again puts it down.
    */
   private openMenu(kind: 'things' | 'verbs'): void {
     this.closeMenu();
-    this.closePanel();
-    // like a panel, the choices clear what she was looking at off the bottom of the screen
+    if (kind === 'verbs') this.closePanel();
+    // like a panel, the choices clear the caption off the bottom of the screen
     this.onPanel();
     const ball = kind === 'verbs' ? this.verbBall : this.thingsBall;
     const choices: { id: string; icon: string; label: string; on?: boolean; co?: boolean; badge?: number; run: () => void }[] = kind === 'verbs'
@@ -281,45 +288,91 @@ export class Hud {
       : [
           { id: 'things', icon: 'satchel', label: this.raw ? 'pockets' : 'Your things', badge: this.raw ? undefined : this.thingCount(), run: () => this.togglePanel('things') },
           { id: 'notebook', icon: 'notebook', label: this.raw ? 'notebook' : 'Notebook', run: () => this.togglePanel('notebook') },
-          ...(this.unlocked ? [{ id: 'view', icon: 'temple', label: this.raw ? 'back to its view' : 'see it as it is', run: () => { this.closeMenu(); this.onTemple(); } }] : []),
-          ...(this.raw ? [] : [{ id: 'bell', icon: 'ask', label: 'Ring for assistance', co: true, run: () => { this.closeMenu(); this.onBell(); } }]),
+          ...(this.unlocked ? [{ id: 'view', icon: 'temple', label: this.raw ? 'back to its view' : 'see it as it is', run: () => this.onTemple() }] : []),
+          ...(this.raw ? [] : [{ id: 'bell', icon: 'ask', label: 'Assistance', co: true, run: () => this.onBell() }]),
         ];
-    const root = this.root.getBoundingClientRect(), b = ball.getBoundingClientRect(), slot = b.width / 1.15;
+    const root = this.root.getBoundingClientRect(), b = ball.getBoundingClientRect(), slot = b.width / 1.15, dir = kind === 'verbs' ? -1 : 1;
     const menu = (this.menu = el('div', `hud-menu ${kind}`, this.root));
     this.menuKind = kind;
     ball.setAttribute('aria-expanded', 'true');
     menu.style.left = `${b.left + b.width / 2 - root.left}px`;
     menu.style.top = `${b.top + b.height / 2 - root.top}px`;
-    const n = choices.length, r = Math.max(slot * 2.1, ((slot + 12) * (n - 1)) / (Math.PI / 2));
-    const from = -90, span = kind === 'verbs' ? -90 : 90;
-    menu.insertAdjacentHTML('beforeend', `<svg class="arc" width="${2 * r}" height="${2 * r}" viewBox="${-r} ${-r} ${2 * r} ${2 * r}" aria-hidden="true"><g filter="${this.raw ? 'url(#lidless-pencil)' : 'none'}"><path d="M0 ${-r}A${r} ${r} 0 0 ${kind === 'verbs' ? 0 : 1} ${kind === 'verbs' ? -r : r} 0" fill="none"/></g></svg>`);
-    const arc = menu.querySelector('svg.arc') as SVGElement;
-    arc.style.left = `${-r}px`;
-    arc.style.top = `${-r}px`;
-    choices.forEach((c, i) => {
-      const deg = from + span * (n > 1 ? i / (n - 1) : 0.5), rad = (deg * Math.PI) / 180, cx = Math.cos(rad), cy = Math.sin(rad);
+    const rail = el('div', 'rail', menu);
+    const made = choices.map((c) => {
       const s = button(`hud-slot${c.on ? ' default' : ''}${c.co ? ' co' : ''}`, c.label, menu, c.run);
       s.dataset[kind === 'verbs' ? 'verb' : 'menu'] = c.id;
-      s.style.left = `${r * cx}px`;
-      s.style.top = `${r * cy}px`;
+      if (kind === 'verbs') s.setAttribute('aria-pressed', String(!!c.on));
       s.innerHTML = this.raw
         ? `<svg class="loop" viewBox="0 0 54 54" ${SVG_ATTRS}><g filter="url(#lidless-pencil)"><path d="${LOOP}"/></g></svg>${icon(c.icon, 24, true)}`
         : icon(c.icon, 24);
       if (c.badge !== undefined) el('span', 'badge', s, String(c.badge));
-      // the label further out along the same line, its near edge towards the slot
-      const label = el('div', `hud-slot-label${c.co ? ' co' : ''}`, menu, c.label), out = r + slot / 2 + 8;
-      label.style.left = `${out * cx}px`;
-      label.style.top = `${out * cy}px`;
-      label.style.transform = `translate(${cx < -0.3 ? '-100%' : cx > 0.3 ? '0' : '-50%'}, ${cy < -0.3 ? '-100%' : cy > 0.3 ? '0' : '-50%'})`;
+      return { s, label: el('div', `hud-slot-label${c.co ? ' co' : ''}`, menu, c.label) };
     });
+    // out from the ball, each slot as wide as its label needs, the slots sliding out from behind it one after another
+    let x = b.width / 2 + 12;
+    made.forEach(({ s, label }, i) => {
+      const room = Math.max(slot, label.offsetWidth + 8), cx = dir * (x + room / 2);
+      s.style.left = `${cx}px`;
+      s.style.top = '0px';
+      s.style.setProperty('--from', `${-cx}px`);
+      s.style.animationDelay = label.style.animationDelay = `${i * 28}ms`;
+      label.style.left = `${cx}px`;
+      label.style.top = `${-slot / 2 - 7}px`;
+      x += room + 6;
+    });
+    rail.style.width = `${x - b.width / 2 - 6}px`;
+    rail.style.left = dir < 0 ? `${-(x - 6)}px` : `${b.width / 2}px`;
+    this.drawBalls();
   }
 
   closeMenu(): void {
+    const was = this.menu;
     this.menu?.remove();
     this.menu = null;
     this.menuKind = null;
     this.verbBall.setAttribute('aria-expanded', 'false');
     this.thingsBall.setAttribute('aria-expanded', 'false');
+    if (was) this.drawBalls();
+  }
+
+  /**
+   * What she found, written at the thing, where her eye already is: in the Concierge's view its card, in raw view her
+   * note in pencil. Above the thing, or under it when there is no room above, kept on screen. It stays as long as it
+   * takes to read (about 15 characters a second, from 2.5 to 9 seconds), and goes sooner when she is given something
+   * else to do, or when it is tapped.
+   */
+  note(h: Hotspot, text: string, box: [number, number, number, number]): void {
+    this.dismissNote();
+    const n = (this.noteEl = el('div', 'hud-note', this.root));
+    this.noteOf = h;
+    n.setAttribute('role', 'status');
+    el('div', 'name', n, pick(h.name, this.raw));
+    el('p', 'text', n, text);
+    n.addEventListener('pointerdown', (e) => { e.stopPropagation(); this.dismissNote(); });
+    this.placeNote(box);
+    this.noteTimer = window.setTimeout(() => this.dismissNote(), Math.min(9000, Math.max(2500, 800 + text.length * 66)));
+  }
+
+  /** The thing the note is written at, while there is one. */
+  get noteFor(): Hotspot | null { return this.noteOf; }
+
+  /** Where the note goes for a thing at `box` (the HUD's pixels): above it, else under it, on screen and clear of the balls. */
+  placeNote(box: [number, number, number, number]): void {
+    const n = this.noteEl;
+    if (!n) return;
+    const W = this.root.clientWidth, H = this.root.clientHeight, m = Math.min(34, Math.max(12, W * 0.024)), w = n.offsetWidth, h = n.offsetHeight;
+    const [x, y, bw, bh] = box, top = this.raw ? m : m + 70, bottom = H - m - this.verbBall.offsetHeight - 40;
+    const above = y - 14 - h, below = y + bh + 14;
+    const ny = above >= top ? above : below + h <= bottom ? below : Math.max(top, Math.min(bottom - h, above));
+    n.style.left = `${Math.max(m, Math.min(W - m - w, x + bw / 2 - w / 2))}px`;
+    n.style.top = `${ny}px`;
+  }
+
+  dismissNote(): void {
+    window.clearTimeout(this.noteTimer);
+    this.noteEl?.remove();
+    this.noteEl = null;
+    this.noteOf = null;
   }
 
   /** A message from the Concierge, under its greeting. Only in its view: raw view has no Concierge to show it. */
@@ -345,11 +398,12 @@ export class Hud {
     this.toastEl = null;
   }
 
-  /** Close what the HUD has open: a ball's choices, a panel, what a verb has lit. */
+  /** Close what the HUD has open: a ball's choices, a panel, what a verb has lit, what she found. */
   closeAll(): void {
     this.closeMenu();
     this.closePanel();
     this.mark(null);
+    this.dismissNote();
   }
 
   togglePanel(kind: 'things' | 'notebook'): void {
@@ -386,7 +440,8 @@ export class Hud {
     this.verbBall.innerHTML = `${loop}${icon(this.verb ?? 'verbs', 26, this.raw)}`;
     this.verbBall.setAttribute('aria-pressed', String(this.verb !== null));
     this.verbBall.setAttribute('aria-label', this.verb ? `${verbName(this.verb, this.raw)}: choose another, or put it down` : 'What she can do: look, talk, use, take');
-    this.verbLabel.hidden = !this.verb;
+    // with the verbs out, the lit slot names it; put away, the name sits beside the ball
+    this.verbLabel.hidden = !this.verb || this.menuKind === 'verbs';
     if (this.verb) {
       this.verbLabel.replaceChildren();
       el('div', 'verb', this.verbLabel, verbName(this.verb, this.raw));
@@ -395,7 +450,6 @@ export class Hud {
   }
 
   private openPanel(kind: 'things' | 'notebook'): void {
-    this.closeMenu();
     this.panel?.remove();
     this.panelKind = kind;
     const p = (this.panel = el('section', `hud-panel ${kind === 'notebook' ? 'notebook' : this.raw ? 'pockets' : 'things'}`, this.root));

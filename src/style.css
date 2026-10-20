@@ -116,15 +116,28 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .hud-eye[data-level="3"] { color: #e2553d; animation: hud-watched 1.6s ease-in-out infinite; }
 @keyframes hud-watched { 50% { opacity: .55; } }
 
-/* a ball's choices: slots on a quarter circle around it, each labelled outward */
+/* a ball's choices, slid out sideways along the bottom on a rail, each labelled above */
 .hud-menu { position: absolute; width: 0; height: 0; }
-.hud-menu .arc { position: absolute; overflow: visible; pointer-events: none; }
-.hud-menu .arc path { stroke: rgba(143, 240, 234, .4); stroke-width: 1; }
-.hud[data-skin="raw"] .hud-menu .arc path { stroke: rgba(240, 178, 90, .5); stroke-width: 1.6; }
-.hud-menu .hud-slot { animation: hud-open .16s ease-out both; }
+.hud-menu .rail { position: absolute; top: 0; height: 1px; background: linear-gradient(90deg, rgba(143, 240, 234, .05), rgba(143, 240, 234, .45), rgba(143, 240, 234, .05)); pointer-events: none; }
+.hud[data-skin="raw"] .hud-menu .rail { height: 0; background: none; border-top: 1.6px dashed rgba(240, 178, 90, .45); }
+.hud-menu .hud-slot { animation: hud-slide .22s cubic-bezier(.2, .8, .3, 1) both; }
+.hud-menu .hud-slot-label { transform: translate(-50%, -100%); animation: hud-fade .22s ease-out both; }
 .hud-menu .hud-slot .badge { position: absolute; right: -6px; top: -6px; min-width: 18px; height: 18px; border-radius: 9px; background: var(--cyan); color: #05060a; font: 500 10px/18px var(--ui); letter-spacing: 0; text-align: center; }
-@keyframes hud-open { from { opacity: 0; transform: scale(.6); } }
-@media (prefers-reduced-motion: reduce) { .hud-menu .hud-slot { animation: none; } }
+.hud-menu .hud-slot.default + .hud-slot-label, .hud-menu .hud-slot[aria-pressed="true"] + .hud-slot-label { color: #fff; }
+@keyframes hud-slide { from { opacity: 0; transform: translateX(var(--from, 0)) scale(.5); } }
+@keyframes hud-fade { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .hud-menu :is(.hud-slot, .hud-slot-label) { animation: none; } }
+
+/* what she found, written at the thing: the Concierge's card in its view, her pencil note in raw view */
+.hud-note { position: absolute; z-index: 1; width: max-content; max-width: min(360px, 40cqw); pointer-events: auto; animation: hud-fade .2s ease-out both; }
+.hud-note p { margin: 0; text-wrap: pretty; }
+.hud[data-skin="concierge"] .hud-note { padding: 10px 14px 12px; background: rgba(6, 10, 20, .84); border: 1px solid var(--co-line); border-radius: 2px; box-shadow: 0 0 22px rgba(143, 240, 234, .18); }
+.hud[data-skin="concierge"] .hud-note .name { margin-bottom: 4px; font: 400 clamp(9px, .75cqw, 11px)/1.3 var(--ui); letter-spacing: .2em; text-transform: uppercase; color: var(--cyan); }
+.hud[data-skin="concierge"] .hud-note p { font: italic 500 clamp(14px, 1.3cqw, 18px)/1.4 var(--serif); color: var(--co-text); }
+.hud[data-skin="raw"] .hud-note { padding: 8px 12px 10px; border-radius: 10px; background: radial-gradient(closest-side, rgba(8, 6, 4, .78), rgba(8, 6, 4, .55)); color: var(--amber); font-family: var(--hand); text-shadow: 0 1px 2px #000; }
+.hud[data-skin="raw"] .hud-note .name { font-size: clamp(14px, 1.2cqw, 17px); opacity: .8; }
+.hud[data-skin="raw"] .hud-note p { font-size: clamp(17px, 1.55cqw, 22px); line-height: 1.25; }
+.hud[data-talking] .hud-note { visibility: hidden; }
 .hud-slot {
   position: absolute; width: var(--slot); height: var(--slot); margin: calc(var(--slot) / -2) 0 0 calc(var(--slot) / -2); padding: 0; border-radius: 50%;
   display: grid; place-items: center; border: 1px solid rgba(143, 240, 234, .6); background: rgba(6, 10, 20, .78); color: #dff8f6;
@@ -192,7 +205,7 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .hud-mark-label .cost circle { fill: #e2553d; stroke: none; }
 
 /* panels over the street: the Concierge's catalogue, her pockets, her notebook */
-.hud-panel { position: absolute; left: var(--m); right: var(--m); bottom: calc(var(--m) + clamp(54px, 4.6cqw, 70px)); max-height: calc(100% - 2 * var(--m) - 80px); overflow: auto; }
+.hud-panel { position: absolute; left: var(--m); right: var(--m); bottom: calc(var(--m) + var(--slot) * 1.15 + 36px); max-height: calc(100% - 2 * var(--m) - var(--slot) * 1.15 - 46px); overflow: auto; }
 .hud-close { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; flex: none; padding: 0; border: 0; background: none; }
 .hud-panel.things { display: grid; gap: 16px; padding: 18px 22px 22px; background: rgba(5, 8, 16, .92); border: 1px solid var(--co-line); border-radius: 2px; }
 .hud-panel.things .head { display: flex; align-items: baseline; gap: 20px; }

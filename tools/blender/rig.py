@@ -349,7 +349,7 @@ def animate(arm):
                 a[f'coatF{i + 1}'] = icoat[i][k] - (icoat[i - 1][k] if i else 0.0)
                 a[f'coatB{i + 1}'] = icoat[i][k] - (icoat[i - 1][k] if i else 0.0)
         key(k, {**rest, **a})
-    def cycle(start, frames, pitch_k, coat_k, pony_trail, pony_gain):
+    def cycle(start, frames, pitch_k, coat_k, pony_trail, pony_gain, arm_lag):
         """One cycle of a gait keyed from frame `start`: the coat its legs push and drag, the ponytail its steps swing,
         the forearms trailing the upper arms, the torso pitching with each step."""
         n = len(frames)
@@ -364,8 +364,8 @@ def animate(arm):
         lo, hi = min(bob), max(bob)
         mid, half = (lo + hi) / 2, max(1e-6, (hi - lo) / 2)
         pony = spring_chain([pony_trail - pony_gain * (b - mid) / half for b in bob], PONY_CHAIN, omega=2 * math.pi * 1.8, zeta=0.35)
-        # the forearms trail the upper arms a little
-        lag = max(1, round(n * 0.07))
+        # the forearms trail the upper arms a little, walking; running, the arms are held and pumped, and do not
+        lag = round(n * arm_lag)
         for k, f in enumerate(frames):
             p = k / n
             pitch = pitch_k * math.sin(4 * math.pi * (p - 0.1))
@@ -381,10 +381,10 @@ def animate(arm):
                 a[f'pony{i + 1}'] = pony[i][k] - (pony[i - 1][k] if i else 0.0)
             key(start + k, {**rest, **a})
 
-    cycle(M, walk, 0.7, 1.0, PONY_TRAIL, PONY_GAIN)
-    # running, the coat flies out further behind, the ponytail streams back and bounces harder, the torso pitches more
+    cycle(M, walk, 0.7, 1.0, PONY_TRAIL, PONY_GAIN, 0.07)
+    # running, the coat flies out further behind, the ponytail streams back and bounces harder
     if run:
-        cycle(M + N, run, 1.6, 1.5, PONY_TRAIL * 3.0, PONY_GAIN * 1.6)
+        cycle(M + N, run, 0.8, 1.5, PONY_TRAIL * 3.0, PONY_GAIN * 1.6, 0.0)
     for fc in arm.animation_data.action.fcurves if arm.animation_data and arm.animation_data.action and hasattr(arm.animation_data.action, 'fcurves') else []:
         for kp in fc.keyframe_points:
             kp.interpolation = 'CONSTANT'

@@ -315,12 +315,20 @@ export function pose(parts, angles, { w, h, origin, far = [-14, -6], matrices = 
  */
 export const GAIT = { frames: 16, stride: 1.35, stance: 0.62, lift: 0.11, strike: 12, toeOff: 24, flex: 0.008, arms: 10, elbow: 10, elbowSwing: 10, lean: 3, back: 0.04, reach: 0.993, coat: 2, dip: 0.08 };
 /**
- * How she runs, a recipe's `parts.run` changing any of it: the walk's settings, the stride longer and the time on the
- * ground shorter than half the cycle, so both feet are off it between steps; the heel kicks up behind, the knee drives
- * forward, the torso leans into it, the arms are bent and swing hard, and the hip dips most halfway through each step
- * (`dip`: when in the cycle, after the foot lands).
+ * How she runs, a recipe's `parts.run` changing any of it. Lengths are fractions of her leg (hip to ankle). stride: ground
+ * covered in one cycle of two steps; stance: the part of the cycle a foot is on the ground, under half, so she is in
+ * the air between steps; land: how far in front of the hip a foot lands. The foot in the air follows a path through
+ * points measured from her hip (forward, down): `kick` (the heel up behind her), `drive` (the knee driving forward, the
+ * foot high under it) and `reach` (the foot out in front, about to land), so it rises and falls with her. bend: how
+ * long the leg on the ground is let be as it lands, halfway and as it pushes off (it gives under her, then
+ * straightens); hop: how high she rises between steps. strike and toeOff: the foot's angle landing and pushing off
+ * (degrees). armsForward and armsBack: how far the upper arms swing each way (degrees), driving back further than
+ * forward; elbow and elbowSwing: the elbows' bend, a little more as the arm comes forward; lean: how far she leans into it.
  */
-export const RUN = { frames: 16, stride: 2.3, stance: 0.36, lift: 0.3, strike: 4, toeOff: 30, flex: 0.03, arms: 46, elbow: 80, elbowSwing: 16, lean: 11, back: 0.02, reach: 0.985, coat: 5, dip: 0.17 };
+export const RUN = {
+  frames: 16, stride: 2.1, stance: 0.35, land: 0.2, kick: [-0.3, 0.5], drive: [0.18, 0.6], reach: [0.34, 0.85],
+  bend: [0.955, 0.9, 0.985], hop: 0.045, strike: 6, toeOff: 38, armsForward: 32, armsBack: 50, elbow: 86, elbowSwing: 12, lean: 15, coat: 5,
+};
 export const STAND = { step: 0.06, heel: 10, reach: 0.997, arm: -3, elbow: 9, farArm: 4, farElbow: 12, lean: 1 };
 /** Where along the foot, from the heel, a person's weight falls when they stand: the body is balanced over this point. */
 const WEIGHT = 0.4;
@@ -417,8 +425,74 @@ export function walkCycle(parts, gaitIn = {}, far = [-14, -6], base = GAIT) {
   return { frames, stride: S };
 }
 
-/** One run cycle: the walk's model with the run's settings (`RUN`, a recipe's `parts.run` over them). */
-export const runCycle = (parts, runIn = {}, far = [-14, -6]) => walkCycle(parts, runIn, far, RUN);
+/** A smooth curve through points, in order: Catmull-Rom between the middle two of each four. */
+const catmull = (a, b, c, d, t) => 0.5 * (2 * b + (c - a) * t + (2 * a - 5 * b + 4 * c - d) * t * t + (3 * b - a - 3 * c + d) * t * t * t);
+
+/**
+ * One run cycle for parts that have a foot, as an animator keys one: the rig's angles for each frame and the stride.
+ * A foot lands a little in front of her hip and rolls back under her while the leg gives and straightens again; it
+ * pushes off from the toe, kicks up behind, is carried forward high under the driving knee, reaches out and lands. Her
+ * hip rides on the leg on the ground, and between steps, with both feet off it, it rises and falls on an arc. `air`
+ * says how far the lowest foot is off the ground in each frame, for build to set her down that far up.
+ */
+export function runCycle(parts, runIn = {}, far = [-14, -6]) {
+  const g = { ...RUN, ...runIn }, leg = legOf(parts), L = leg.L1 + leg.L2, S = g.stride * L, st = g.stance;
+  const footLen = leg.toe[0] - leg.heel[0];
+  // the foot on the ground: its ankle from landing, a little in front of the hip, back by as far as she goes meanwhile;
+  // x from the hip, oy its height above the ground
+  const xLand = g.land * L, xOff = xLand - S * st;
+  const onGround = (s) => {
+    const phi = s < 0.15 ? rad(g.strike) * (1 - smooth(s / 0.15)) : s < 0.55 ? 0 : -rad(g.toeOff) * smooth((s - 0.55) / 0.45);
+    const hx = xLand - (xLand - xOff) * s - WEIGHT * footLen, [cx, rel] = phi >= 0 ? [hx, leg.heel] : [hx + footLen, leg.toe], v = turnVec(rel, phi);
+    return { x: cx - v[0], oy: v[1], phi };
+  };
+  // how far below the hip the ground is while a foot is on it: the leg as long as it is let be, giving and straightening
+  const lenAt = (s) => L * (s < 0.5 ? g.bend[0] + (g.bend[1] - g.bend[0]) * smooth(s / 0.5) : g.bend[1] + (g.bend[2] - g.bend[1]) * smooth((s - 0.5) / 0.5));
+  const groundAt = (s) => { const ft = onGround(s); return groundFor([0, 0], ft.x, ft.oy, lenAt(s)); };
+  const takeOff = groundAt(1), landing = groundAt(0);
+  // the foot in the air, from her hip (x forward, y down): from pushing off, through the kick, the drive and the reach,
+  // to landing, the kick early, the drive past halfway, the reach late
+  const off = onGround(1), on = onGround(0);
+  const keys = [[off.x, takeOff - off.oy, off.phi], [g.kick[0] * L, g.kick[1] * L, rad(-55)], [g.drive[0] * L, g.drive[1] * L, rad(-25)], [g.reach[0] * L, g.reach[1] * L, rad(4)], [on.x, landing - on.oy, on.phi]];
+  const at = [0, 0.3, 0.6, 0.85, 1];
+  const inAir = (u) => {
+    const k = Math.max(0, Math.min(3, at.findIndex((_, i) => u <= at[i + 1]))), t = (u - at[k]) / (at[k + 1] - at[k]);
+    const P = (i) => keys[Math.max(0, Math.min(4, i))], f = (j) => catmull(P(k - 1)[j], P(k)[j], P(k + 1)[j], P(k + 2)[j], t);
+    return { x: f(0), y: f(1), phi: f(2) };
+  };
+  // the lowest point of a foot below its ankle, turned to phi
+  const depth = (phi) => Math.max(...[leg.heel, leg.toe].map((pt) => turnVec(pt, phi)[1]));
+  const tor = torsoTurn(parts, g.lean), frames = [];
+  for (let k = 0; k < g.frames; k++) {
+    const p = k / g.frames, ph = [p, (p + 0.5) % 1], ground = ph.map((q) => (q < st ? q / st : -1));
+    // the ground under the hip: from the leg on it, or between steps on an arc from pushing off to landing
+    const stand = ground.findIndex((s) => s >= 0);
+    let G;
+    if (stand >= 0) G = groundAt(ground[stand]);
+    else { const u = ((p % 0.5) - st) / (0.5 - st); G = takeOff + (landing - takeOff) * u + 4 * g.hop * L * u * (1 - u); }
+    // each ankle, from the near hip: on the ground where the foot stands, in the air where its path has it
+    const feet = ph.map((q, i) => {
+      if (ground[i] >= 0) { const ft = onGround(ground[i]); return { x: ft.x, y: G - ft.oy, phi: ft.phi }; }
+      return inAir((q - st) / (1 - st));
+    });
+    const [n, f] = feet, nl = reach(leg, [0, 0], [n.x, n.y], n.phi), fl = reach(leg, far, [f.x, f.y], f.phi);
+    const air = stand >= 0 ? 0 : Math.max(0, Math.min(...feet.map((ft) => G - ft.y - depth(ft.phi))));
+    // the arms pump, each with the opposite leg, further back than forward, the elbows bent near square
+    const arm = (q) => {
+      const c = Math.cos(2 * Math.PI * (q - 0.05)), half = (g.armsForward + g.armsBack) / 2, mid = (g.armsForward - g.armsBack) / 2;
+      return { up: mid - half * c, low: g.elbow + (g.elbowSwing * (1 + c)) / 2 };
+    };
+    const an = arm(p), af = arm(p + 0.5);
+    frames.push({
+      torso: tor, head: -tor, coat: -2 + 0.15 * (nl.thighAbs + fl.thighAbs) + g.coat * Math.sin(4 * Math.PI * p + 0.9),
+      legUpper: nl.thigh, legLower: nl.knee, foot: nl.foot, legFarUpper: fl.thigh, legFarLower: fl.knee, footFar: fl.foot,
+      armUpper: an.up - tor, armLower: an.low, armFarUpper: af.up - tor, armFarLower: af.low,
+      thighAbs: nl.thighAbs, thighAbsFar: fl.thighAbs, bob: G, air,
+    });
+  }
+  return { frames, stride: S };
+}
+
 
 /** Her stance for parts that have a foot: weight on the near leg, its foot flat under her; the far leg free, a little forward, heel lifted. */
 export function standPose(parts, standIn = {}, far = [-14, -6]) {

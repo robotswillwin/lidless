@@ -19,13 +19,15 @@ Then open the address Vite prints.
 - Made for a phone held sideways; a mouse works the same way, and nothing needs it to hover. Tap anywhere to walk
   there; far off, she runs. Tapping a door or the end of the street walks her there and through. Arrow keys or A/D
   walk too, with Shift she runs.
-- **The ball at the bottom right** holds what she can do: Look, Talk, Use, Take, and in Concierge view Ask (its bell).
-  Choose one, then press and slide over the scene: what that verb does something to lights up under your finger
-  (framed by the Concierge in its view, ringed in her pencil in raw view), and letting go does it. Right-click puts the
-  verb down, or looks; **Esc** puts it down.
-- **The ball at the bottom left** holds her things (her pockets in raw view), her notebook, the view switch once she
-  has it, and in Concierge view *Ring for assistance*, which asks the Concierge for a hint. **N** opens the notebook,
-  **I** her things, **Esc** closes.
+- **The ball at the bottom right** slides out what she can do along the bottom: Look, Talk, Use, Take, and in
+  Concierge view Ask (its bell). They stay out until the ball is tapped again, or the other one. Choose one, then press
+  and slide over the scene: what that verb does something to lights up under your finger (framed by the Concierge in
+  its view, ringed in her pencil in raw view), and letting go does it. What she finds is written at the thing, the
+  Concierge's card in its view, her pencil note in raw view, for as long as it takes to read; tapping it, or giving her
+  something else to do, clears it. Right-click puts the verb down, or looks; **Esc** puts it down.
+- **The ball at the bottom left** slides out her things (her pockets in raw view), her notebook, the view switch once
+  she has it, and in Concierge view *Assistance*, which asks the Concierge for a hint. **N** opens the notebook, **I**
+  her things, **Esc** closes.
 - Talk to the fixer in the radio shop. Once he has opened your eye, **E** or her temple (with her things) switches
   between Concierge view and raw view, and many things read differently. On the dev server, E works from the start.
 - Number keys pick answers in a conversation. **Q** cycles the quality tiers.

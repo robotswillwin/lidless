@@ -229,12 +229,16 @@ Standing, she breathes: a loop of 16 frames (`idleCycle` in tools/pipeline/parts
 torso tips back a touch, her head, arms and free knee follow, and in Blender her ponytail and coat sway on their
 springs; the recipe's `anims.idle.fps` (5) sets its pace.
 
-Running, she follows the same model with the run's settings (`RUN` in tools/pipeline/parts.mjs, a recipe's
-`parts.run` changing any of them): a longer stride, each foot on the ground for less than half the cycle so she is in
-the air between steps, the heel kicking up behind, the knee driving forward, a lean into it and bent arms swinging
-hard; in Blender the coat flies out further and the ponytail streams back. Each run frame records how far she is off
-the ground, and `build` sets it down that far up, so the flight stays in. The game runs her when she is sent further
-than 2.5 times her height (`runFrom` in world.json), at her run stride and `runCadence`.
+Running is keyed the way an animator keys a run (`runCycle` and `RUN` in tools/pipeline/parts.mjs, a recipe's
+`parts.run` changing any of it): a foot lands a little in front of her hip and rolls back under her while the leg gives
+and straightens again; it pushes off from the toe, kicks up behind, is carried forward high under the driving knee,
+reaches out and lands, along a path measured from her hip so it rises and falls with her. Between steps, both feet off
+the ground, her hip rides an arc. She leans into it and her arms pump, bent near square, driving back further than
+forward; in Blender the coat flies out further, the ponytail streams back, and the forearms are held instead of
+trailing. (The walk's model with longer strides had looked like a prance: stiff standing leg, upright, no knee drive.)
+Each run frame records how far she is off the ground, and `build` sets it down that far up, so the flight stays in.
+The game runs her when she is sent further than 2.5 times her height (`runFrom` in world.json), at her run stride and
+`runCadence`.
 
 To change the walk by hand: open `art/cast/hero/rig/hero.blend` in Blender, pose the `rig` armature (frames 0 to 15
 are her idle loop, the 16 after it one cycle of the walk, then 16 of the run; markers name them), save, and run

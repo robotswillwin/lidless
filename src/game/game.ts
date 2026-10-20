@@ -264,10 +264,11 @@ export class Game {
       this.hud.setTalking(true);
       this.ui.showDialogue(this.dialogue.start(h.talk, raw), this.dialogue.choices);
     } else if (a.kind === 'eyes' && h.look) {
-      this.ui.showCaption(pick(h.look, raw));
+      // what she finds is written at the thing, where her eye already is
+      this.hud.note(h, pick(h.look, raw), this.boxOf(h));
       if (a.cost) this.raiseAttention(a.cost);
-    } else if (a.kind === 'hands' && h.use) this.ui.showCaption(pick(h.use, raw));
-    else if (a.kind === 'take' && h.take) this.ui.showCaption(pick(h.take, raw));
+    } else if (a.kind === 'hands' && h.use) this.hud.note(h, pick(h.use, raw), this.boxOf(h));
+    else if (a.kind === 'take' && h.take) this.hud.note(h, pick(h.take, raw), this.boxOf(h));
     else if (a.kind === 'ask' && h.ask) this.hud.toast(h.ask);
   }
 
@@ -326,11 +327,13 @@ export class Game {
   /**
    * A finger or the mouse button went down on the scene. With a verb chosen, what is under it lights up. Without one,
    * she goes there: up to a thing, through a way out (a door, the end of the street), running if it is far. A finger
-   * held down and moved steers her. Right-click puts the verb down, or looks.
+   * held down and moved steers her. Right-click puts the verb down, or looks. The balls' choices stay out; a panel
+   * closes, and what she found goes as she is given something else to do.
    */
   pointerDown(clientX: number, clientY: number, button: number): void {
     if (this.ui.dialogueOpen || this.travelling) return;
-    if (this.hud.menuOpen || this.hud.panelOpen) return this.hud.closeAll();
+    if (this.hud.panelOpen) return this.hud.closePanel();
+    this.hud.dismissNote();
     if (button === 2) {
       if (this.verb) return this.setVerb(null);
       const [x, y] = this.toLevel(clientX, clientY), h = this.world.hotspotAt(x, y, this.raw, this.cam[0]), a = h && actionFor(h, 'eyes', this.raw);
@@ -426,8 +429,10 @@ export class Game {
     const hero = this.s.hero, sc = file.actorScale ?? 1, bob = (hero.def.anims?.walk ? 0 : world.bob) * sc, hs = this.s.world.hero.smoke;
     const smoke: [number, number] = hs ? [world.heroX + hs[0] * sc * world.facing, file.walk.y + hs[1] * sc + bob] : [-1000, -1000];
     const her = heroDrawing(hero, { x: world.heroX, walkY: file.walk.y, cam: this.cam, scale: sc, facing: world.facing, bob, frame: frameFor(hero.def, world.moving, world.walked / sc, t, world.facing, world.running) });
-    // what a verb lights up stays on the thing as the camera follows her
+    // what a verb lights up, and what she found, stay on the thing as the camera follows her
     if (this.marked) { this.marked.box = this.boxOf(this.marked.h); this.hud.mark(this.marked); }
+    const noted = this.hud.noteFor;
+    if (noted) this.hud.placeNote(this.boxOf(noted));
     fitCanvas(this.s.canvas);
     this.s.renderer.render(this.runner.frame(t, this.state, this.cam, [her], smoke));
   }

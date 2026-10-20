@@ -1,8 +1,8 @@
 {
   "name": "hero",
-  "x": 394,
+  "x": 378,
   "y": 224,
-  "w": 173.6,
+  "w": 203.2,
   "h": 240,
   "maps": [
     "albedo.concierge",
@@ -15,7 +15,7 @@
   "reflectivity": 0,
   "object": 0,
   "anchor": [
-    86.4,
+    101.6,
     240
   ],
   "exists": "both",
@@ -23,7 +23,7 @@
   "frames": {
     "count": 96,
     "gutter": 2,
-    "cols": 9
+    "cols": 8
   },
   "anims": {
     "idle": {
@@ -39,7 +39,7 @@
     "run": {
       "from": 32,
       "count": 16,
-      "stride": 260.67
+      "stride": 238
     },
     "idleLeft": {
       "from": 48,
@@ -54,7 +54,7 @@
     "runLeft": {
       "from": 80,
       "count": 16,
-      "stride": 260.67
+      "stride": 238
     }
   },
   "res": 1.25

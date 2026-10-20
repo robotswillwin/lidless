@@ -50,10 +50,17 @@ The design: https://claude.ai/artifact/X65FknT3sqWZBgJaHgHboZ. In code: `src/gam
   augmented eye, and what is left is Lux's own: her handwriting, her pockets, her notebook, her sense of being watched
   and the temple switch.
 - **Two balls, for thumbs.** Tap to walk (far off, she runs; a door or the street's end, she goes through). The right
-  ball holds the verbs, her properties: Eyes look, Heart talks, Hands use and take, and the Concierge's bell asks it.
-  With a verb chosen, pressing and sliding over the scene lights up what it does something to, and letting go does it:
-  nothing depends on a mouse hovering. The left ball holds her things, her notebook, the view switch and the bell's
-  *Ring for assistance*; later, her eye's mods and using a thing she carries on another.
+  ball slides the verbs out along the bottom, her properties: Eyes look, Heart talks, Hands use and take, and the
+  Concierge's bell asks it; they stay out until a ball is tapped. With a verb chosen, pressing and sliding over the
+  scene lights up what it does something to, and letting go does it: nothing depends on a mouse hovering. The left
+  ball slides out her things, her notebook, the view switch and the bell's *Assistance*; later, her eye's mods and
+  using a thing she carries on another.
+- **What she finds is written at the thing**, where the eye already is: the Concierge's card in its view (its
+  annotation of the world), her pencil note in raw view. It stays for the time it takes to read (about 15 characters
+  a second, 2.5 to 9 seconds) and goes when tapped or when she is given something else to do. Conversations keep their
+  panel. Studied against LucasArts-style lines over the speaker, Sierra's text boxes, bubbles anchored to speakers
+  (Oxenfree, Night in the Woods), a log (Disco Elysium) and film subtitles; to come: a log of what she has found, and
+  a text size setting.
 - **Data.** A hotspot's `tag` and `ask`, a scene's `greeting` and `assist`, `public/assets/items.json` for her things
   and `public/assets/notebook.json` for her notebook, whose entries appear as Ink variables come true.
 - **Not built yet.** Use and Take only say what happens (a hotspot's `use` and `take`): what she takes does not go into
