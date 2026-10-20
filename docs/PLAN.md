@@ -71,11 +71,60 @@ The design: https://claude.ai/artifact/X65FknT3sqWZBgJaHgHboZ. In code: `src/gam
   her pockets yet, and giving and using a thing she carries on another wait for items in the story. The Concierge's
   offers (rest, disposal) only answer for now.
 
-## Next, when the director says go
+## Next, when the director says go: ready for a full game
 
-The director's feedback of 20 October, with the plan for each point: `docs/art/LIDLESS_Feedback_v0.2_2026-10-20.md`
-(the bathrobe, her proportions in the new outfits, running in every outfit, outdoor clothes and underwear at home, her
-pace, a new character study, and wider outdoor scenes for more parallax).
+Reviewed on 20 October, after the director's feedback of that day was done
+(`docs/art/LIDLESS_Feedback_v0.2_2026-10-20.md`). Times are my own working time.
+
+**What holds at the size of a full game.** The renderer costs the same per frame however big the game gets (up to 32
+lights a frame). Ink is made for deep branching (Inkle wrote 80 Days and Heaven's Vault in it): what she has seen,
+inventories and quest states as lists, the whole story saved as one state. Scenes are data, one file each, placed in
+the scene editor: content grows by adding files, not code. A painted scene costs about 1.5 to 2 hours and $1 to $3, a
+rigged character about an hour and $1: forty scenes is a question of production, not technology.
+
+**What comes first**, before a full game's content goes in, about 10 hours in this order:
+
+1. **Scenes in and out of memory (about 3 hours).** Every scene she visits stays in GPU memory for the session: at
+   desktop resolution the main street alone is 189 MB, the backstreet and her flat 66 MB each, the radio repair 33 MB,
+   and Luna in her coat 112 MB (a phone takes about a quarter of that). Fine with four scenes; a phone runs out past
+   twenty. And a scene's 8 to 19 MB is fetched only as she walks in, so on a phone the fade can stall for seconds.
+   - Keep the scene she is in and the ones its exits lead to; free the rest.
+   - Load those neighbours in the background while she is in a scene, and put them on the GPU during the fade.
+   - Glow maps at half resolution: about a third less memory per scene.
+2. **The story drives the world (about 4 hours)**, for a deep plot, side missions and many objects. Today the story
+   runs only conversations: Look, Use and Take show a hotspot's fixed text, taking gives her nothing (her pockets are a
+   fixed list in world.json), nothing in a scene can appear, change or go as the story moves on, and there is no "use
+   this on that".
+   - Conditions read from the story on hotspots, people, exits and lights: there only once something has happened, or
+     changed by it.
+   - An object that matters gets its own knot in the story, a stitch for each verb; simple ones keep their plain texts.
+   - Her inventory and her quests as Ink lists; the notebook already reads the story. Using a thing she carries on
+     another goes to the story.
+   - Tags on a story's lines as commands (walk there, change, go to a scene, fade, set the city's conditions), so a
+     short cutscene needs no code.
+3. **Checks and playthroughs (about 2 hours).** With hundreds of branches, broken references are what breaks: a check
+   that every knot, variable, item, scene and place to arrive at that a scene or the story names exists, in both
+   views; quest playthroughs run in the tests without a browser; and the browser checks run during the work so far
+   (outfits, walking, the editor) brought into the repository.
+4. **Saves (about an hour, before any public release).** Versioned, so a save survives changes to the story; a few
+   slots; saved only where it is safe, never in the middle of a conversation.
+
+Along the way, game.ts (scenes, input, outfits, conversations, the HUD and saving in one file) is split into the
+scenes' loading, the story's hold on the world, and what the verbs do.
+
+**Not built yet for a full game**: sound (none so far: music and ambience per scene and view, sound effects), a title,
+menu and settings screen, and translations, if other languages are wanted. That one is decided early: it decides
+where the objects' texts live, in the story or in tables of their own.
+
+**Loading between screens.** No logo between scenes: with the neighbours loaded beforehand, the quarter-second fade is
+the whole way from one scene to the next. If a scene is not ready when the fade ends (a slow network, a jump across the
+map), the screen stays dark, and after about 0.3 seconds something small from the world shows: the Concierge's ring
+turning in its view, her eyepiece's iris in raw view. A quick load never shows it. The logo is for the first load: a
+title screen while the first scene and her outfit load. The browser keeps the game's files, so a returning player
+downloads nothing twice.
+
+**Later, if memory still runs short**: textures compressed for the GPU (KTX2, ASTC on phones), about four times less
+memory and download. Half a day, and the flat style has to survive the compression.
 
 ## Milestones
 
