@@ -314,7 +314,7 @@ export class Game {
 
   /** Where a speaker's lines go: over her head, over whoever she is talking to, or (narration) at the top. */
   private speakerAt(speaker: string): [number, number] | null {
-    if (speaker === 'lux') {
+    if (speaker === 'luna') {
       const c = this.s.canvas.getBoundingClientRect(), hud = this.hud.root.getBoundingClientRect(), k = c.width / NW;
       const head = this.scene.file.walk.y - this.s.hero.def.h * (this.scene.file.actorScale ?? 1);
       return [(this.world.heroX - this.cam[0]) * k + c.left - hud.left, (head - this.cam[1]) * k + c.top - hud.top - 6];

@@ -11,7 +11,7 @@ const isSel = (s: Selection) => JSON.stringify(s) === JSON.stringify(ed.sel);
 const text = (t: ViewText | undefined) => (t === undefined ? '' : typeof t === 'string' ? t : t.concierge);
 
 export function drawOverlay(): void {
-  const file = ed.file, lux = ed.lux, sel = ed.sel;
+  const file = ed.file, luna = ed.luna, sel = ed.sel;
   dom.overlay.setAttribute('viewBox', `${viewX()} 0 ${NW} ${NH}`);
   const W = file.size[0], out: string[] = [];
   const handle = (x: number, y: number, k: string, extra = '') => `<rect class="handle" x="${x - 4}" y="${y - 4}" width="8" height="8" data-k="${k}" ${extra}/>`;
@@ -79,8 +79,8 @@ export function drawOverlay(): void {
     out.push(`<g class="fx mover${s ? ' sel' : ''}" data-k="mover" data-i="${i}"><rect x="${x0}" y="${y}" width="${Math.max(1, x1 - x0)}" height="${h}"/><text x="${x0 + 4}" y="${y - 4}">${esc(m.asset)}</text><title>Mover: ${esc(m.asset)}, behind what is in front of ${esc(m.after)}</title></g>`);
     if (s) out.push(handle(x0, y + h / 2, 'mover-x0', `data-i="${i}"`), handle(x1, y + h / 2, 'mover-x1', `data-i="${i}"`));
   });
-  // Lux, to judge the light on: drag her along the walk line
-  if (lux.show) out.push(`<g class="lux" data-k="lux"><path d="M ${lux.x - 7} ${file.walk.y + 14} L ${lux.x} ${file.walk.y + 4} L ${lux.x + 7} ${file.walk.y + 14} Z"/><title>Lux, to judge the light on</title></g>`);
+  // Luna, to judge the light on: drag her along the walk line
+  if (luna.show) out.push(`<g class="luna" data-k="luna"><path d="M ${luna.x - 7} ${file.walk.y + 14} L ${luna.x} ${file.walk.y + 4} L ${luna.x + 7} ${file.walk.y + 14} Z"/><title>Luna, to judge the light on</title></g>`);
   // the selected layer's outline
   if (sel.kind === 'layer' && ed.scene) {
     const d = ed.scene.loaded.sprites[sel.i]?.def;
@@ -115,7 +115,7 @@ function down(e: PointerEvent): void {
   else if (k === 'walk-x1') orig = [file.walk.x1];
   else if (k === 'walk-y') orig = [file.walk.y];
   else if (k === 'mirror') orig = [file.mirror ?? file.walk.y - 8];
-  else if (k === 'lux') orig = [ed.lux.x];
+  else if (k === 'luna') orig = [ed.luna.x];
   else if (k === 'layer') { const l = file.layers[i], d = ed.scene!.loaded.sprites[i].def; orig = [l.x ?? d.x, l.y ?? d.y]; ref = { kind: 'layer', i }; }
   else if (k === 'steam') { const e = file.steam![i]; orig = [e.x, e.y]; ref = { kind: 'steam', i }; }
   else if (k === 'godray') { const g = file.godrays![i]; orig = [g.x, g.y]; ref = { kind: 'godray', i }; }
@@ -136,10 +136,10 @@ function down(e: PointerEvent): void {
 }
 
 function move(e: PointerEvent): void {
-  // Lux can follow the pointer along the walk line, to see how the lights fall on her as she walks
-  if (!drag && ed.lux.track && ed.lux.show) {
+  // Luna can follow the pointer along the walk line, to see how the lights fall on her as she walks
+  if (!drag && ed.luna.track && ed.luna.show) {
     const [x] = toLevel(e), { x0, x1 } = ed.file.walk;
-    ed.lux.x = Math.round(Math.max(x0, Math.min(x1, x)));
+    ed.luna.x = Math.round(Math.max(x0, Math.min(x1, x)));
     drawOverlay();
     return;
   }
@@ -158,7 +158,7 @@ function move(e: PointerEvent): void {
   else if (k === 'walk-x1') file.walk.x1 = o[0] + dx;
   else if (k === 'walk-y') file.walk.y = o[0] + dy;
   else if (k === 'mirror') file.mirror = o[0] + dy;
-  else if (k === 'lux') ed.lux.x = o[0] + dx;
+  else if (k === 'luna') ed.luna.x = o[0] + dx;
   else if (k === 'layer' && s?.kind === 'layer') {
     const l = file.layers[s.i];
     l.x = o[0] + dx;
@@ -186,7 +186,7 @@ function move(e: PointerEvent): void {
 
 function end(): void {
   if (!drag) return;
-  if (drag.moved && drag.k !== 'lux') remember(drag.before);
+  if (drag.moved && drag.k !== 'luna') remember(drag.before);
   drag = null;
   redraw.side();
 }

@@ -68,7 +68,7 @@ function lightSide(i: number): void {
 
 function hotspotSide(i: number): void {
   const h = ed.file.hotspots[i], sceneIds = ed.world.scenes;
-  side(heading(h.go ? 'Exit' : 'Hotspot', h.go ? 'Using it goes to another scene. Put one over an end of the walk line to leave by walking into it.' : 'Drag to move, the corner to resize. Stand is where Lux walks to before using it.'));
+  side(heading(h.go ? 'Exit' : 'Hotspot', h.go ? 'Using it goes to another scene. Put one over an end of the walk line to leave by walking into it.' : 'Drag to move, the corner to resize. Stand is where Luna walks to before using it.'));
   side(str('Id', h.id, (v) => { h.id = v; }));
   side(...viewText('Name', h.name, (v) => { h.name = v ?? ''; }));
   const [x, y, w, hh] = h.rect;
@@ -172,7 +172,7 @@ const SHAFT_ZONES: [string, string][] = [['0', 'Everywhere'], ['1', 'Inside area
 
 function steamSide(i: number): void {
   const e = ed.file.steam![i];
-  side(heading(e.kind === 'smoke' ? `Smoke ${i + 1}` : `Steam ${i + 1}`, `Rising from the dot. The first smoke follows Lux’s cigarette when she smokes. At most ${LIMITS.steam} are drawn.`));
+  side(heading(e.kind === 'smoke' ? `Smoke ${i + 1}` : `Steam ${i + 1}`, `Rising from the dot. The first smoke follows Luna’s cigarette when she smokes. At most ${LIMITS.steam} are drawn.`));
   side(
     choice('Kind', e.kind, [['steam', 'Steam: broad, slow, pale'], ['smoke', 'Smoke: thin, drifting']], (v) => { e.kind = v as 'steam' | 'smoke'; }, syncEffects),
     num('x', e.x, (v) => { e.x = v; }, { after: syncEffects }), num('y (where it starts)', e.y, (v) => { e.y = v; }, { after: syncEffects }),
@@ -249,7 +249,7 @@ function effectsList(): HTMLDivElement {
 }
 
 function sceneSide(): void {
-  const file = ed.file, lux = ed.lux;
+  const file = ed.file, luna = ed.luna;
   side(heading(file.name || file.id, `Scene ${file.id}: ${file.size[0]}×${file.size[1]} px. Click a light, hotspot, spawn or area to edit it.`));
   side(
     str('Name', file.name, (v) => { file.name = v; }),
@@ -259,7 +259,7 @@ function sceneSide(): void {
     num('Walk from x', file.walk.x0, (v) => { file.walk.x0 = v; }), num('Walk to x', file.walk.x1, (v) => { file.walk.x1 = v; }),
     num('Reflection line y', file.mirror ?? file.walk.y - 8, (v) => { file.mirror = v; }, { after: refresh }),
     num('People’s size (1 standard, under 1 further back)', file.actorScale ?? 1, (v) => { if (v === 1) delete file.actorScale; else file.actorScale = v; }, { step: 0.05, min: 0.3, max: 3, after: refresh }),
-    num('Camera follows Lux, px each way (0 none; a scene no wider than the screen)', file.drift ?? 0, (v) => { if (v) file.drift = v; else delete file.drift; }, { step: 1, min: 0, max: 60 }),
+    num('Camera follows Luna, px each way (0 none; a scene no wider than the screen)', file.drift ?? 0, (v) => { if (v) file.drift = v; else delete file.drift; }, { step: 1, min: 0, max: 60 }),
     num('Light painted into the art (0 to 1)', typeof file.baked === 'number' ? file.baked : 0, (v) => { if (v) file.baked = v; else delete file.baked; }, { step: 0.05, min: 0, max: 1, after: refresh }),
     str('The Concierge’s greeting', file.greeting ?? '', (v) => { if (v) file.greeting = v; else delete file.greeting; }),
     str('Its answer to Ring for assistance', file.assist ?? '', (v) => { if (v) file.assist = v; else delete file.assist; }, { area: true }),
@@ -274,12 +274,12 @@ function sceneSide(): void {
     num('Kerb, px in front of the walk line (0: none, no road)', g.kerb ?? 0, (v) => { if (v > 0) g.kerb = v; else delete g.kerb; }, { min: 0, max: 800, step: 5, after: refresh }),
     num('Puddles when wet (0 to 1)', g.puddles ?? 0, (v) => { g.puddles = Math.min(1, Math.max(0, v)); }, { min: 0, max: 1, step: 0.05, after: refresh }),
   );
-  side(heading('Lux', 'Drag the triangle at her feet to move her.'));
+  side(heading('Luna', 'Drag the triangle at her feet to move her.'));
   side(
-    check('Show Lux', lux.show, (v) => { lux.show = v; }),
-    check('Move the camera with her, as in the game', lux.follow, (v) => { lux.follow = v; }),
-    check('She follows the pointer along the walk line', lux.track, (v) => { lux.track = v; }),
-    choice('Lux faces', String(lux.facing), [['1', 'Right'], ['-1', 'Left']], (v) => { lux.facing = Number(v) as 1 | -1; }),
+    check('Show Luna', luna.show, (v) => { luna.show = v; }),
+    check('Move the camera with her, as in the game', luna.follow, (v) => { luna.follow = v; }),
+    check('She follows the pointer along the walk line', luna.track, (v) => { luna.track = v; }),
+    choice('Luna faces', String(luna.facing), [['1', 'Right'], ['-1', 'Left']], (v) => { luna.facing = Number(v) as 1 | -1; }),
   );
   side(heading('Layers', 'Back to front. Click one to move it or change its depth.'));
   const list = document.createElement('div');

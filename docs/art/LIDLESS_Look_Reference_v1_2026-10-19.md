@@ -15,7 +15,7 @@ In `art/reference/look/`, the main street in both views, as the director propose
 | `flat-street-concierge.webp` | The Concierge's street: a warm bar upstairs, the radio shop glowing gold, a red neon ホテル, a city of violet, blue, pink and cyan towers, a train on the viaduct, the dining machine with its blue ring. |
 | `flat-street-raw.webp` | The same street in raw view: the same building dim and worn, smokestacks and refinery towers in amber-brown smog, the machine rusted, with pipes. |
 
-Lux walks along the bollards in both, about a fifth of the picture tall.
+Luna walks along the bollards in both, about a fifth of the picture tall.
 
 ## What makes the look
 
@@ -44,16 +44,16 @@ views are equally simple and line up for the switch. What the scene's story need
 | A pale moon in the raw smog | Hotspot `moon` |
 | Raw lettering: the corner sign reads ОТЕЛЬ, the dining machine's screen shows no text | The world bible: raw view's signs are faint Russian or gone (Decided) |
 
-Lux is drawn at the size the pictures show her, walking along the bollards (`actorScale` 0.46, walk line 452).
+Luna is drawn at the size the pictures show her, walking along the bollards (`actorScale` 0.46, walk line 452).
 
 ## Open points
 
 - **Raw colour.** The raw picture is warm amber and brown. The world bible describes raw view as cold, lit a sterile
   white, with the colour in a yellow-green fog. The street keeps the picture's colours; the bible's description is the
   director's to update or keep.
-- **Lux.** In the pictures she wears the long red coat closed, the same in both views. Her sprite follows her character
-  reference (`LIDLESS_Lux_Character_Reference_v1_2026-10-19.md`) until the director decides otherwise.
-- **Other places.** Lux's home, the backstreet and the radio repair are still in the earlier, more painted look.
+- **Luna.** In the pictures she wears the long red coat closed, the same in both views. Her sprite follows her character
+  reference (`LIDLESS_Luna_Character_Reference_v1_2026-10-19.md`) until the director decides otherwise.
+- **Other places.** Luna's home, the backstreet and the radio repair are still in the earlier, more painted look.
 
 ## Layers
 
@@ -64,7 +64,7 @@ follows her up to 18 pixels each way: the street moves the most, the city behind
 any plane on its own. The train on the viaduct is an asset of its own that drives by every 10 to 25 seconds, each way
 in turn, in both views. The wet ground's reflections are made live, so they move with what they reflect: wet and rippled
 by rain in raw view, a soft gloss in the Concierge's, where it never rains. The woman at the dining machine and the
-machine are at Lux's scale, on her walk line.
+machine are at Luna's scale, on her walk line.
 
 ## Change log
 

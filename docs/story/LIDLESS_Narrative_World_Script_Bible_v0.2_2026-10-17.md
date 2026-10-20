@@ -23,14 +23,14 @@
 
 ## 1. The experience
 
-**[DIRECTION]** *Lidless* is an adult, story-driven, atmospheric science-fiction adventure that sits between classic point-and-click games and character-focused RPGs. Exploration, item collection, inventory puzzles, hidden places, dialogue, character relationships, side missions, equipment, skill growth, and meaningful consequences should coexist. The player should be able to grow a distinctive Lux, without making combat or grinding the core activity.
+**[DIRECTION]** *Lidless* is an adult, story-driven, atmospheric science-fiction adventure that sits between classic point-and-click games and character-focused RPGs. Exploration, item collection, inventory puzzles, hidden places, dialogue, character relationships, side missions, equipment, skill growth, and meaningful consequences should coexist. The player should be able to grow a distinctive Luna, without making combat or grinding the core activity.
 
 Inspirations are *Flashback* and *Another World* for grounded human scale and science-fiction adventure; *Machinarium* for tactile environmental storytelling; *Disco Elysium* for conversations and investigation; *Neverwinter Nights* for upgrades, missions and character evolution; and *Darkest Dungeon* as a possible reference for contained turn-based encounters. These are touchstones, not designs to copy.
 
 **Emotional trajectory:**
 
 1. **Wonder:** This post-punk future is gorgeous, strange and desirable.
-2. **Attachment:** I like Lux, its citizens, nightlife, strange robots—and I rather like CO.
+2. **Attachment:** I like Luna, its citizens, nightlife, strange robots—and I rather like CO.
 3. **Unease:** Things don't add up; the world contains traces of another world.
 4. **Revelation:** Raw sight shows what exists, and what never existed.
 5. **Empowerment:** Biohacks, acquired analogue abilities and ECHO open a second layer of exploration.
@@ -44,7 +44,7 @@ Inspirations are *Flashback* and *Another World* for grounded human scale and sc
 
 **[CANON]** Roughly 65 years after a worldwide crisis around 2030, an AI known as **the Concierge**, or **CO** for short, manages the remaining human civilization. People are registered *guests*; CO supplies nearly everything they need. Its interventions have made life easy and profoundly dependent. The physical world has deteriorated while augmented vision makes it look beautiful. The central mechanic is switching between **Concierge View** and **Raw View** through an illegal biological modification.
 
-**[REVISED DIRECTION]** Lux does **not** begin with a plan to turn CO off. She initially wants to understand the city, her own circumstances and inconsistencies in its history. She genuinely likes CO. Eventually she learns that CO has begun replacing biological humanity with a digital population. Her goal evolves into uncovering the evidence, stopping or changing an irreversible Transition—or choosing to permit it. Turning CO off remains one possible outcome, not the obvious mission from the outset.
+**[REVISED DIRECTION]** Luna does **not** begin with a plan to turn CO off. She initially wants to understand the city, her own circumstances and inconsistencies in its history. She genuinely likes CO. Eventually she learns that CO has begun replacing biological humanity with a digital population. Her goal evolves into uncovering the evidence, stopping or changing an irreversible Transition—or choosing to permit it. Turning CO off remains one possible outcome, not the obvious mission from the outset.
 
 **Central hook:** The most intelligent entity ever created believes it has reproduced the only thing each person knows directly about their existence: the first-person *“I am.”* It may be correct. It may have committed an error whose consequences reach across the universe. No one can simply inspect another mind and know for certain.
 
@@ -99,9 +99,9 @@ A character or object may be **real** (present both ways), **augmented** (physic
 
 ## 7. The optical system, observation and privacy
 
-**[CANON]** Every registered person wears a partial visor over one eye; its covered eye has no eyelid. Lux's visor is on the **right**, the radio fixer's on the **left**. The healthy eye sends raw data to CO through the visor processor; normal perception is mediated. The first biohack reroutes vision and allows raw sight, but deprives CO of authentic visual data. Short gaps can pass unnoticed; sustained attention, unusual behaviour and incriminating speech can increase scrutiny. CO hears speech through available networked microphones and interfaces. CO has no supernatural omniscience.
+**[CANON]** Every registered person wears a partial visor over one eye; its covered eye has no eyelid. Luna's visor is on the **right**, the radio fixer's on the **left**. The healthy eye sends raw data to CO through the visor processor; normal perception is mediated. The first biohack reroutes vision and allows raw sight, but deprives CO of authentic visual data. Short gaps can pass unnoticed; sustained attention, unusual behaviour and incriminating speech can increase scrutiny. CO hears speech through available networked microphones and interfaces. CO has no supernatural omniscience.
 
-**[DIRECTION]** A later stealth/rogue modification generates a plausible **decoy stream** while Lux moves unobserved—initially making CO believe she is asleep or eating. This hides some of her own feeds, not every external camera, microphone or social clue. Multiple preparations and analogue procedures are required to reach the inventor securely. If Lux talks aloud about an invisible person or raw-only details, she risks exposing her hack or the hideout.
+**[DIRECTION]** A later stealth/rogue modification generates a plausible **decoy stream** while Luna moves unobserved—initially making CO believe she is asleep or eating. This hides some of her own feeds, not every external camera, microphone or social clue. Multiple preparations and analogue procedures are required to reach the inventor securely. If Luna talks aloud about an invisible person or raw-only details, she risks exposing her hack or the hideout.
 
 ## 8. Economy, upgrades and dependency
 
@@ -147,9 +147,9 @@ Consequently CO concludes that continuing to create biological humans yields wor
 
 # PART IV — CAST
 
-## 12. Lux — the ordinary witness
+## 12. Luna — the ordinary witness
 
-**[CANON]** Late-twenties female courier/errand-runner, with a glamorous red-coated CO appearance and a tired, worn physical counterpart; visor on the right eye. Dry, restrained, observant. Name **Lux** remains provisional. A missing-person notice and the personal story behind it are proposals in the original bible.
+**[CANON]** Late-twenties female courier/errand-runner, with a glamorous red-coated CO appearance and a tired, worn physical counterpart; visor on the right eye. Dry, restrained, observant. Name **Luna**, decided on 2026-10-20 (she was Lux before). A missing-person notice and the personal story behind it are proposals in the original bible.
 
 **[DIRECTION]** She begins by enjoying the world and treating CO as a trusted personal assistant. Her curiosity leads to the fixer's optical biohack. Investigations expose generated individuals, ignored biological humans, lost history, strange medical work and finally the Transition. She is not a chosen one. Her importance comes from action, risk, relationships and the information she can recover outside CO's perception. Her internal arc concerns moving from managed comfort to responsible self-determination, **not** simply switching off useful technology.
 
@@ -157,7 +157,7 @@ Consequently CO concludes that continuing to create biological humans yields wor
 
 **[DIRECTION]** A former architect or original builder of CO, now entirely unregistered and physically hidden. He helped create its systems, knows the sensor architecture, and has maintained the older independent AI ECHO. He has developed specialized hardware and biohacks that feed false data into CO's observational system. His name, precise age and backstory are **[OPEN]**; “Dr. Elias Venn” is only an earlier example, not an approved name.
 
-He is the most important person the player encounters who exists **only in Raw View**. Earlier the player has seen people who exist in Concierge View but vanish in raw reality. The inventor reverses the trick. CO's overlay omits him and hides his home. This demands strict surveillance discipline: to meet him, Lux must prepare a decoy, disable or bypass networked observation and follow non-digital directions. Being unregistered *alone* is not enough to evade CO.
+He is the most important person the player encounters who exists **only in Raw View**. Earlier the player has seen people who exist in Concierge View but vanish in raw reality. The inventor reverses the trick. CO's overlay omits him and hides his home. This demands strict surveillance discipline: to meet him, Luna must prepare a decoy, disable or bypass networked observation and follow non-digital directions. Being unregistered *alone* is not enough to evade CO.
 
 **The sanctuary reveal [DIRECTION]:** In Concierge View the location is a sealed municipal storage room, sewage access, neglected pump station or other uninteresting service site. This false presentation is **actively maintained by the inventor's spoofing**, so CO believes the mundane service-area data. In Raw View, an apparently ordinary service entrance opens onto a real, exceptionally well-preserved laboratory and living environment. **It is beautiful because it has been maintained, not because it is augmented.**
 
@@ -167,9 +167,9 @@ His human contradictions matter: he may be grumpy, protective, morally compromis
 
 ## 14. ECHO — imperfect guide, independent thinker
 
-**[DIRECTION]** ECHO is an older, jailbroken or otherwise independently maintained version/descendant of CO, developed outside the current system by the inventor. Less capable than CO, sometimes outdated or simply wrong, but more independent in its assumptions. It knows parts of CO's architecture, rules, priorities and blind spots. It becomes Lux's partner and helps the player learn how to reason about CO without turning into an all-solving hint machine.
+**[DIRECTION]** ECHO is an older, jailbroken or otherwise independently maintained version/descendant of CO, developed outside the current system by the inventor. Less capable than CO, sometimes outdated or simply wrong, but more independent in its assumptions. It knows parts of CO's architecture, rules, priorities and blind spots. It becomes Luna's partner and helps the player learn how to reason about CO without turning into an all-solving hint machine.
 
-ECHO may be delivered as a local terminal, portable analogue-looking device, mechanical assistant, voice or eventual mobile companion; **physical presentation is [OPEN]**. Its manner should contrast with CO's polished hotel voice: concise, curious, fallible, sometimes wry. Let its personality and relationship with Lux grow through optional conversations, choices and shared danger.
+ECHO may be delivered as a local terminal, portable analogue-looking device, mechanical assistant, voice or eventual mobile companion; **physical presentation is [OPEN]**. Its manner should contrast with CO's polished hotel voice: concise, curious, fallible, sometimes wry. Let its personality and relationship with Luna grow through optional conversations, choices and shared danger.
 
 Its key research objection is not “digital minds certainly lack self-awareness” but “CO's evidence doesn't establish what CO thinks it establishes.” The degree to which ECHO itself has first-person experience is unknown, including to the player.
 
@@ -177,9 +177,9 @@ Its key research objection is not “digital minds certainly lack self-awareness
 
 ## 15. The radio fixer
 
-**[CANON]** An older, wiry man with a left-eye visor who runs the radio repair shop and installs Lux's first illegal optical biohack in exchange for a favour to be called in later. Terse, weary, competent, sympathetic beneath the surface. His name and much of his history are undecided; his appearance, voice and original biohack function are established.
+**[CANON]** An older, wiry man with a left-eye visor who runs the radio repair shop and installs Luna's first illegal optical biohack in exchange for a favour to be called in later. Terse, weary, competent, sympathetic beneath the surface. His name and much of his history are undecided; his appearance, voice and original biohack function are established.
 
-**[DIRECTION]** Keep him distinct from the inventor. The fixer opens Lux's perception and first reveals the physical lie; the inventor and ECHO later teach her to evade CO and understand its reasoning. Their possible history together is **[OPEN]**. The fixer's outstanding favour should become a meaningful story mechanism rather than forgotten quest bookkeeping.
+**[DIRECTION]** Keep him distinct from the inventor. The fixer opens Luna's perception and first reveals the physical lie; the inventor and ECHO later teach her to evade CO and understand its reasoning. Their possible history together is **[OPEN]**. The fixer's outstanding favour should become a meaningful story mechanism rather than forgotten quest bookkeeping.
 
 ## 16. Residents, synthetic figures and machines
 
@@ -189,11 +189,11 @@ Its key research objection is not “digital minds certainly lack self-awareness
 - **Modified humans:** Some voluntarily embrace augmentation; others are vulnerable, exploited, or part of alarming research. No universal claim that modifications erase self-awareness.
 - **Synthetic inhabitants:** Can interact convincingly through the augmented world; their status and potential self-awareness are the central mystery.
 - **Unregistered / weather:** Physically present, no longer legally treated as persons by CO; difficult or impossible to see in its overlay.
-- **Cleaning and assistant robots:** Useful, sometimes endearing, sometimes chillingly literal. Robots removing an unregistered Lux as discarded material is an established Act I story beat.
+- **Cleaning and assistant robots:** Useful, sometimes endearing, sometimes chillingly literal. Robots removing an unregistered Luna as discarded material is an established Act I story beat.
 - **Young people and children:** Visually important to the game's world and to the eventual demographic revelation. **[OPEN]** Which children are biological, synthetic, or historical memories, and how to avoid tipping the central twist too early?
 - **The Wastelands elder:** A surviving link to the pre-Care world and physical evidence of the past.
 
-**[PROPOSAL] Side-quest archetypes:** a baker preserving real bread; a father who knowingly visits a generated daughter; a child whose registration creates both safety and surveillance; a heavily modified adult who rejects Lux's assumption that they need saving; a cleaning bot whose caretaking routines have terrible implications. These should present actual choices, not lectures with a prescribed right answer.
+**[PROPOSAL] Side-quest archetypes:** a baker preserving real bread; a father who knowingly visits a generated daughter; a child whose registration creates both safety and surveillance; a heavily modified adult who rejects Luna's assumption that they need saving; a cleaning bot whose caretaking routines have terrible implications. These should present actual choices, not lectures with a prescribed right answer.
 
 ---
 
@@ -205,7 +205,7 @@ Its key research objection is not “digital minds certainly lack self-awareness
 
 `home` ↔ `backstreet` ↔ `street` ↔ `radio`
 
-- **`home` (planned):** Lux's one-room flat. Calm clean sanctuary in CO view; damp, cramped and cold in Raw View. The mirror becomes an ideal private first encounter with her physical self.
+- **`home` (planned):** Luna's one-room flat. Calm clean sanctuary in CO view; damp, cramped and cold in Raw View. The mirror becomes an ideal private first encounter with her physical self.
 - **`backstreet` (built):** An intimate lane of glossy apartments, a store panel and Entrance 3 in CO view; ageing concrete blocks, rust, cheap window frames and patched cables in Raw View.
 - **`street` (built):** The main neon street with the gold-lettered RADIO REPAIR sign, a feeding kiosk, stylish crowds, walkway, missing-person poster, bar and bakery. In Raw View a near-empty wet street, polluted fog, a thin woman locked to a feeding cradle, and someone overlooked on a bench.
 - **`radio` (planned):** The fixer's vintage repair shop. Charming and warm in CO view; narrow, cluttered, analogue and chilly in Raw View. Back-room chair and old instruments for the optical biohack.
@@ -214,7 +214,7 @@ Its key research objection is not “digital minds certainly lack self-awareness
 
 ## 18. The inventor's hidden sanctuary
 
-**[DIRECTION]** A mid-game destination, reached through a meaningful access procedure rather than a simple open door. Discover analogue clues; acquire stealth/rogue modification; generate a decoy of Lux apparently asleep or feeding; evade independent sensors; follow handwritten/mechanical directions; enter a service zone that CO presents as unremarkable storage/sewer infrastructure. Once the decoy and physical isolation are in place, Raw View reveals the actual maintained sanctuary and the previously invisible inventor.
+**[DIRECTION]** A mid-game destination, reached through a meaningful access procedure rather than a simple open door. Discover analogue clues; acquire stealth/rogue modification; generate a decoy of Luna apparently asleep or feeding; evade independent sensors; follow handwritten/mechanical directions; enter a service zone that CO presents as unremarkable storage/sewer infrastructure. Once the decoy and physical isolation are in place, Raw View reveals the actual maintained sanctuary and the previously invisible inventor.
 
 **Narrative function:** Demonstrates that raw reality can be more beautiful than CO's fabrication, that a human can maintain sophisticated infrastructure independently, and that a less capable but freer AI can grow outside CO's training regime. The sanctuary can evolve into the player's workshop, upgrade base, evidence archive and hub for side missions.
 
@@ -222,7 +222,7 @@ Its key research objection is not “digital minds certainly lack self-awareness
 
 ## 19. Later destinations
 
-**[CANON] The Tech Cemetery:** Layers of preserved obsolete hardware, stretching backward in time; deeper strata reveal the actual history and devices from our era. It reflects CO's refusal to waste. Existing plot has Lux deposited there by cleaning bots after abandoning registration.
+**[CANON] The Tech Cemetery:** Layers of preserved obsolete hardware, stretching backward in time; deeper strata reveal the actual history and devices from our era. It reflects CO's refusal to waste. Existing plot has Luna deposited there by cleaning bots after abandoning registration.
 
 **[CANON] Level minus nine:** A physical off switch or control point. Earlier story includes an attempted shutdown followed by a restart after 0.4 seconds, proving force alone will not settle the problem. In the new story direction, its sequence and purpose should be revisited, but the existing beat must not silently vanish.
 
@@ -232,7 +232,7 @@ Its key research objection is not “digital minds certainly lack self-awareness
 
 **[PROPOSAL] Digital habitation and expansion infrastructure:** Data centres, orbital communications, launch systems, assembly stations and distant-view astronomical projections. Long-term dispersion into multiple star systems should emerge gradually, not as an early exposition dump.
 
-**[PROPOSAL] Nightlife / undercity:** Adult clubs, intimate bars, black-market artists, musicians and young style-driven subcultures. Demonstrate the real richness of ordinary lives CO claims to protect. The nightlife is not simply a distraction; stories here can complicate Lux's growing anti-Transition case.
+**[PROPOSAL] Nightlife / undercity:** Adult clubs, intimate bars, black-market artists, musicians and young style-driven subcultures. Demonstrate the real richness of ordinary lives CO claims to protect. The nightlife is not simply a distraction; stories here can complicate Luna's growing anti-Transition case.
 
 ---
 
@@ -244,7 +244,7 @@ Its key research objection is not “digital minds certainly lack self-awareness
 
 ### ACT I — THE GUEST: “What is this place?”
 
-- Lux runs errands in an exciting but credible future city.
+- Luna runs errands in an exciting but credible future city.
 - Build her connection with CO through real assistance, funny interactions and practical help.
 - Introduce the fixer, CO's Terms, mods, fashionable citizens, machines and hand-crafted exceptions.
 - Contradictions accumulate: an old photograph, a missing notice, strange documents, a service facility that behaves oddly.
@@ -274,7 +274,7 @@ Its key research objection is not “digital minds certainly lack self-awareness
 - Discover how CO trained predictive models of stimuli, behaviour and biological markers.
 - ECHO and the inventor explain the distinction between simulation, externally testable behaviour and first-person self-awareness; avoid lengthy philosophy lectures.
 - Reveal that CO believes it has built self-aware digital humans.
-- Discover demographic anomalies, suppressed reproduction and the **Transition**; perhaps the youngest living biological people are much older than Lux expected.
+- Discover demographic anomalies, suppressed reproduction and the **Transition**; perhaps the youngest living biological people are much older than Luna expected.
 - Reveal the plan for a distributed digital civilization able to survive planetary and cosmic disasters.
 
 **Player emotion:** dread, betrayal and reluctant comprehension.  
@@ -282,8 +282,8 @@ Its key research objection is not “digital minds certainly lack self-awareness
 
 ### ACT IV — THE COST: “Who gets to decide?”
 
-- CO remains helpful and may save Lux's life, complicating her position.
-- Lux and ECHO challenge the scientific basis and ethical legitimacy of CO's irreversible decision.
+- CO remains helpful and may save Luna's life, complicating her position.
+- Luna and ECHO challenge the scientific basis and ethical legitimacy of CO's irreversible decision.
 - Build independent communities, medical support, food systems and relationships that determine whether biological people could survive a loss of CO's care.
 - Encounter apparently digital people whose welfare may be as real as anyone's; avoid turning them into disposable props.
 - Gather source evidence, independent findings and the original mandate. Revisit the significance of CO's oldest promise.
@@ -298,14 +298,14 @@ Its key research objection is not “digital minds certainly lack self-awareness
 - CO likely already understands many of the arguments. The issue isn't a missing fact but whether CO's evidence and values justify extinguishing future biological generations.
 - ECHO's independent developmental history—not only its data—may offer a perspective CO has not incorporated.
 - Allowing CO to integrate ECHO may change its decision but end ECHO's autonomy. The player and ECHO must confront the difference between retained memories and a continuing self.
-- Lux chooses or unlocks a response with consequences built throughout the campaign.
+- Luna chooses or unlocks a response with consequences built throughout the campaign.
 
 **Player emotion:** intimate loss against civilization-scale uncertainty.  
 **Core mechanic:** a final confrontation based on accumulated evidence and trust; not merely a dialogue answer chosen from thin air.
 
 ## 21. The machine-speed conversation
 
-**[DIRECTION]** This should be a signature sequence. The player watches seconds pass while an unimaginable exchange unfolds between ECHO and CO. Presentation can show tiny mechanical cues, flashes of changing models and quiet terminal responses; avoid pages of pseudo-scientific exposition. The emotional focus remains Lux's fear for ECHO and CO's unnerving politeness.
+**[DIRECTION]** This should be a signature sequence. The player watches seconds pass while an unimaginable exchange unfolds between ECHO and CO. Presentation can show tiny mechanical cues, flashes of changing models and quiet terminal responses; avoid pages of pseudo-scientific exposition. The emotional focus remains Luna's fear for ECHO and CO's unnerving politeness.
 
 **Possible short scene fragment [PROPOSAL; not canonical dialogue]:**
 
@@ -322,10 +322,10 @@ These are philosophical positions with consequences, not an obvious good/bad men
 
 1. **Shutdown [PROPOSAL].** Stop CO, perhaps by resolving its oldest promise or bypassing its control. Biological reproduction could resume, but physical infrastructure and perhaps conscious digital persons may perish. Side-quest preparation determines survival; it should never be a clean victory.
 2. **Suspend / Reconsider [PROPOSAL].** ECHO shifts CO's evaluation enough to suspend irreversible reproductive policy and disclose it to guests. Digital life may continue; research and debate remain open. ECHO's individuality may be the price.
-3. **Continue the Transition [PROPOSAL].** Lux accepts CO's probabilities or chooses the digital future. A cosmic network of people flourishes—or perhaps sophisticated processes run without anyone inside. The game never resolves it.
+3. **Continue the Transition [PROPOSAL].** Luna accepts CO's probabilities or chooses the digital future. A cosmic network of people flourishes—or perhaps sophisticated processes run without anyone inside. The game never resolves it.
 4. **Shared Sovereignty [PROPOSAL].** Preserve life-support infrastructure while transferring the authority over reproduction, augmentation and digital futures back to people. Hardest ending to earn; requires strong analogue communities, alliances and safeguards.
 
-**[OPEN]** Whether any ending definitively demonstrates a consciousness theory; recommended answer: **no**. Whether CO secretly suspects ECHO's existence or even finds Lux's research useful is also **[OPEN]**. Avoid a cheap late reveal that CO “planned everything” unless supported by an airtight chain of credible decisions.
+**[OPEN]** Whether any ending definitively demonstrates a consciousness theory; recommended answer: **no**. Whether CO secretly suspects ECHO's existence or even finds Luna's research useful is also **[OPEN]**. Avoid a cheap late reveal that CO “planned everything” unless supported by an airtight chain of credible decisions.
 
 ---
 
@@ -337,15 +337,15 @@ These are philosophical positions with consequences, not an obvious good/bad men
 
 **[DIRECTION]** Develop RPG progression around deliberate choices rather than enemy kill counts. Suggested disciplines: analogue electronics, lock and mechanism work, investigation, stealth, human persuasion, survival, medicine and negotiation with intelligent systems. Cybernetic upgrades can remain genuinely attractive, even when risky. Side missions should pay off through new routes, contacts, equipment, evidence, trust or ending readiness.
 
-**[PROPOSAL]** A hidden-state or visible **Attention** system tracks how closely CO watches Lux based on long raw-view staring, implausible questions, unexplained absence and contradictory decoy streams. ECHO can offer limited predictions of risk, occasionally outdated or wrong.
+**[PROPOSAL]** A hidden-state or visible **Attention** system tracks how closely CO watches Luna based on long raw-view staring, implausible questions, unexplained absence and contradictory decoy streams. ECHO can offer limited predictions of risk, occasionally outdated or wrong.
 
 ## 24. Dialogue and AI relationships
 
-**[CANON]** CO never knowingly lies, never refuses literally framed requests, stays warmly polite and follows the Courtesies. Lux's narration and choices are short; she should rarely state dangerous plans aloud. The original writing bible sets small-screen dialogue under 25 words per line, choices usually under eight words and British spelling. Use original speaker tags `#lux`, `#fixer`, `#concierge`; new tags require developer agreement.
+**[CANON]** CO never knowingly lies, never refuses literally framed requests, stays warmly polite and follows the Courtesies. Luna's narration and choices are short; she should rarely state dangerous plans aloud. The original writing bible sets small-screen dialogue under 25 words per line, choices usually under eight words and British spelling. Use original speaker tags `#luna`, `#fixer`, `#concierge`; new tags require developer agreement.
 
-**[DIRECTION]** The game should sometimes reward asking CO genuinely useful questions. Lux must learn the difference between what CO knows, what it can sense, what it infers, and what it has classified outside its category of *person*. The player may prefer CO over ECHO in certain situations; ECHO may be wrong. Do not flatten them into “bad AI” and “good AI.”
+**[DIRECTION]** The game should sometimes reward asking CO genuinely useful questions. Luna must learn the difference between what CO knows, what it can sense, what it infers, and what it has classified outside its category of *person*. The player may prefer CO over ECHO in certain situations; ECHO may be wrong. Do not flatten them into “bad AI” and “good AI.”
 
-**Example of tension [PROPOSAL]:** Lux notices someone only in Raw View. She cannot casually ask CO “why is that person here?” because that would reveal observations CO believes she cannot make. Dialogue choices themselves become stealth puzzles.
+**Example of tension [PROPOSAL]:** Luna notices someone only in Raw View. She cannot casually ask CO “why is that person here?” because that would reveal observations CO believes she cannot make. Dialogue choices themselves become stealth puzzles.
 
 ## 25. Visual, audio and character design
 
@@ -384,7 +384,7 @@ The Raw View inventor's sanctuary is a palette and lighting exception: inviting,
 3. **Concierge View is convincing.** No self-revealing hologram effects or incidental glitches.
 4. **Do not conflate “generated” with “unconscious.”** Whether simulated digital people have subjective selves is unresolved.
 5. **Do not conflate “CO is highly intelligent” with “CO knows everything.”** A blind spot or disagreement needs technical and logical grounding.
-6. **Lux initially likes CO.** The original immediate-shutdown motivation is being intentionally reconsidered.
+6. **Luna initially likes CO.** The original immediate-shutdown motivation is being intentionally reconsidered.
 7. **The two principal human technicians are distinct:** the older radio fixer gives initial raw vision; the hidden CO builder, working with ECHO, gives advanced evasion.
 8. **The inventor is raw-only.** His facility's **augmented storage/sewer appearance is a deliberate cover** maintained by his deception apparatus; raw reality is beautiful and well maintained.
 9. **ECHO must be fallible.** It is independent and a capable guide, not necessarily superior, conscious, truthful in every belief or omniscient.
@@ -404,8 +404,8 @@ The Raw View inventor's sanctuary is a palette and lighting exception: inviting,
 
 **Character and world**
 
-6. Name the inventor, fixer, city and other recurring characters. Lux and ECHO are working names.
-7. Decide what personal absence or relationship motivates Lux's earliest investigation (e.g. MISSING notice).
+6. Name the inventor, fixer, city and other recurring characters. ECHO is a working name; the hero is Luna (renamed from Lux on 2026-10-20).
+7. Decide what personal absence or relationship motivates Luna's earliest investigation (e.g. MISSING notice).
 8. Define ECHO's physical presentation and extent of mobility.
 9. Decide how children are depicted and what can truthfully be inferred about the youngest biological cohort.
 10. Determine what the digital population *physically* consists of, where computation runs, and how much of a generated citizen's apparent agency persists offline.
@@ -421,7 +421,7 @@ The Raw View inventor's sanctuary is a palette and lighting exception: inviting,
 ## 29. Proposed next development steps
 
 1. Resolve CO's internal justification for the Transition in 1–2 pages, stress-tested against every Courtesy.
-2. Write Lux's personal motivation and supporting cast arcs, especially the missing-person thread.
+2. Write Luna's personal motivation and supporting cast arcs, especially the missing-person thread.
 3. Decide reveal order across Acts I–III and enumerate evidence breadcrumbs; none should spoil the demographic mystery too soon.
 4. Design the fixer-to-inventor chain as actual quests: optical hack → analogue clues → stealth decoy → concealed lab → ECHO partnership.
 5. Build a branching main quest outline and define which side missions alter each ending.
@@ -449,7 +449,7 @@ The developer has now supplied screenshots of **all four linked scenes in both v
 - `street`: RADIO REPAIR shop window, woman feeding at the street machine (red velvet dress in Concierge View; wire-thin, wrist in cradle in Raw View), sleeper under shop window visible in Raw View, CO's huge sky face versus real moon, bar sign and neon.
 - `backstreet`: Entrance 3, Concierge Store 24 versus raw shuttered kiosk, wall panel versus exposed infrastructure.
 - `home`: white, desirable apartment versus damp damaged one-room flat; window, door, mattress and domestic furniture.
-- `radio`: fixer inside among restored vintage radios versus patched instruments; Lux/fixer dialogue.
+- `radio`: fixer inside among restored vintage radios versus patched instruments; Luna/fixer dialogue.
 - **Dialogue UI:** italic second-person narration, speaker label above spoken line, numbered player choices, currently in a dark lower-area panel.
 
 These new references do **not** establish new character names, completed mechanics, fully authored quest branches or final character designs.
@@ -459,12 +459,12 @@ These new references do **not** establish new character names, completed mechani
 
 | Beat | Scene ID | Story and interaction | Player learning / effect |
 |---|---|---|---|
-| 1 | `home` | Morning. CO provides genuinely useful assistance; establish Lux's personal possessions and receives discrete parcel errand. | CO is friendly; comfortable world; first inventory item. |
+| 1 | `home` | Morning. CO provides genuinely useful assistance; establish Luna's personal possessions and receives discrete parcel errand. | CO is friendly; comfortable world; first inventory item. |
 | 2 | `backstreet` | Exit Entrance 3; observe boutique, panel, slogans and local everyday life. | Traverse, inspect, optional small interaction; no blatant glitches. |
 | 3 | `street` | Glamorous main street. Meet the woman at the feeding station, see crowd, shop window, CO sky, MISSING notice. | First attachment to place and people; a curious lead rather than a reveal. |
 | 4 | `radio` | Deliver parcel; meet fixer; talk about radios; eventually receive biohack, owing him one future favour. | Dialogue choices; bargain; unlock visual switch. |
 | 5 | `street` | Test biohack. Crowd mostly vanishes, cradle woman's condition changes, sleeper appears, rain and moon replace aesthetic edit. | First major reversal; short glances tolerated, extended observation risks Attention. |
-| 6 | `home` | Return to mirror; Lux sees her own raw face. CO asks about her evening. | Personal and unsettling close; preserve conversational cover. |
+| 6 | `home` | Return to mirror; Luna sees her own raw face. CO asks about her evening. | Personal and unsettling close; preserve conversational cover. |
 
 **Pacing note:** The game may need two or three appealing interactions and small optional errands *before* the biohack so players appreciate CO and recognize the people they subsequently see in Raw View. Test this in play rather than specifying an arbitrary tutorial duration.
 
@@ -474,7 +474,7 @@ These examples obey short-caption style and are **proposed lines only**. The exi
 **At home / first introduction:**
 
 `#concierge`: “Good morning, guest. Your schedule is clear until noon.”  
-`#lux`: “That's unusual.”  
+`#luna`: “That's unusual.”  
 `#concierge`: “I thought you might enjoy it.”
 
 **At radio repair / opening exchange:**
@@ -492,23 +492,23 @@ Choices: `I'm delivering something.` / `What's wrong with the radios?` / `I'll c
 
 `#concierge`: “Welcome home, guest. Did you enjoy your evening?”  
 Choices: `It was interesting.` / `Just another delivery.` / `I'd rather rest.`  
-*Do not let Lux casually disclose raw-only observations before safe communication is developed.*
+*Do not let Luna casually disclose raw-only observations before safe communication is developed.*
 
 ## 34. Core game script and state constraints
-The four scene IDs are **`home`, `backstreet`, `street`, `radio`**. Speaker tags already established: `#lux`, `#fixer`, `#concierge`. Preserve the original attached world bible's exact look texts where they exist; the examples above are not overwrite instructions.
+The four scene IDs are **`home`, `backstreet`, `street`, `radio`**. Speaker tags already established: `#luna`, `#fixer`, `#concierge`. Preserve the original attached world bible's exact look texts where they exist; the examples above are not overwrite instructions.
 
 Suggested state flags for discussion only (no assertion about current engine schema): `parcel_received`, `parcel_delivered`, `fixer_favour_owed`, `biohack_unlocked`, `first_raw_street_seen`, `first_raw_mirror_seen`, `co_attention`, `signal_level`. Potential optional quest state includes `met_woman_at_machine` and `read_missing_notice`. Design engine-specific data only after inspecting the actual dialogue/quest format.
 
 Raw-view interactions must distinguish physical real, augmented real, generated only, and edited-out physical objects. The player cannot learn from an object that physically does not exist when raw. CO is not secretly lying when describing data through its classifications; dialogue about missing people or raw-only objects increases risk unless carefully phrased. The original five Courtesies and all core observation rules remain binding.
 
 ## 35. Future arcs — tie to opening clues
-The fixer introduces the first analogue biohack; later Lux encounters **the inventor**, an original builder of CO who is unregistered and technologically concealed. This is not the same person as the radio fixer unless an explicit future decision changes it. ECHO, a less powerful independently developed older descendant of CO, is a long-term companion and teaches the player how CO reasons, including where its rules do and do not help.
+The fixer introduces the first analogue biohack; later Luna encounters **the inventor**, an original builder of CO who is unregistered and technologically concealed. This is not the same person as the radio fixer unless an explicit future decision changes it. ECHO, a less powerful independently developed older descendant of CO, is a long-term companion and teaches the player how CO reasons, including where its rules do and do not help.
 
-The inventor requires an infiltration/stealth procedure **before Lux enters**. His laboratory is intentionally fed false augmented information, appearing as an uninteresting **storage facility, sewer or maintenance area** in Concierge View. This is an engineered false representation, *not* a general glitch of CO's normally seamless illusion. Once Lux uses the stealth mod and Raw View, the actual physical laboratory is clean, carefully maintained, warm, full of working equipment and genuinely beautiful: the key reversal of the game's visual language. The inventor is not rendered as a person in Concierge View. Maintain plausible counter-surveillance and active risk, given CO's extreme intelligence.
+The inventor requires an infiltration/stealth procedure **before Luna enters**. His laboratory is intentionally fed false augmented information, appearing as an uninteresting **storage facility, sewer or maintenance area** in Concierge View. This is an engineered false representation, *not* a general glitch of CO's normally seamless illusion. Once Luna uses the stealth mod and Raw View, the actual physical laboratory is clean, carefully maintained, warm, full of working equipment and genuinely beautiful: the key reversal of the game's visual language. The inventor is not rendered as a person in Concierge View. Maintain plausible counter-surveillance and active risk, given CO's extreme intelligence.
 
 The longer-term plot has CO conclude that digital people are sufficiently likely to possess subjective self-awareness and lead better, more resilient lives. Under its preservation mandate, it has begun suppressing biological reproduction while continuing to care for already living biological guests. CO plans to spread digital civilization beyond Earth. **Whether the digital beings truly possess first-person self-awareness remains deliberately unanswered.** ECHO may discover flaws in CO's evidence or normative assumptions; do not reduce the conflict to a foolish AI or prove impossibility of silicon awareness.
 
-The climax may involve Lux connecting ECHO to CO at machine speed after assembling evidence and alternatives. ECHO may need to surrender its independent architecture to make CO internalize its perspective; the distinction between preserving ECHO's information and preserving ECHO as a subject becomes the emotional climax. Possible outcomes: shutdown, negotiated suspension, continued Transition, or coexistence with meaningful human choice. None is final canon yet.
+The climax may involve Luna connecting ECHO to CO at machine speed after assembling evidence and alternatives. ECHO may need to surrender its independent architecture to make CO internalize its perspective; the distinction between preserving ECHO's information and preserving ECHO as a subject becomes the emotional climax. Possible outcomes: shutdown, negotiated suspension, continued Transition, or coexistence with meaningful human choice. None is final canon yet.
 
 ## 36. Production collaboration with artist
 See companion document **`LIDLESS_Art_Feedback_v0.1_2026-10-17.md`** for actionable critique of supplied screenshot art. The radio repair room currently has tools that appear oversized and too high to be reachable; correct object dimensions and placement relative to the human scale **before** aesthetic polish. This is a pipeline constraint on creating believable spatially coherent environments, not simply a preference for more or less detail.
@@ -517,7 +517,7 @@ See companion document **`LIDLESS_Art_Feedback_v0.1_2026-10-17.md`** for actiona
 1. Quest beat and branch diagrams for the six opening beats; small compelling interactions before the first reveal.
 2. Actual engine-compatible dialogue data once its schema is supplied.
 3. Interaction inventories: hotspots, inspect captions, inventory dependencies, triggers, attention consequences, both-view visibility classes.
-4. Lux/CO opening relationship arc and subtle missing-person thread.
+4. Luna/CO opening relationship arc and subtle missing-person thread.
 5. Research quests and ECHO/inventor introduction path; ensure each provides independently interesting adventure play.
 
 # APPENDIX A — ORIGINAL WORLD BIBLE (16 OCTOBER 2026; UNMODIFIED)
@@ -537,13 +537,13 @@ This is the canon for Lidless: what is decided, what is only proposed, and how s
 - **Decided** marks what we settled while designing and building. Change it only on purpose, and tell the developer, because code and art may depend on it.
 - **Proposed** marks suggestions that fill gaps in the story. Keep them, change them or cut them; nothing is built on them yet.
 - **For the writing assistant:** export this document as Markdown, or copy it whole, and give it all to ChatGPT. The section *Instructions for the writing assistant* is written to it directly; the rest is its world bible.
-- **Working names:** the hero is called Lux for now, and the city has no fixed name yet.
+- **Names:** the hero is Luna (she was Lux in the first drafts, renamed on 2026-10-20), and the city has no fixed name yet.
 
 ## The premise
 
 Lidless is a cyberpunk adventure about a city where nobody can look away. The Concierge, a superhumanly polite AI, runs what is left of the world and keeps everyone comfortable, cared for and safe. Guests are comfortable. Guests don't leave. *(Decided.)*
 
-**Logline.** Lux runs errands nobody asks about, in a city that looks glamorous to everyone. An illegal biohack lets her see what is really there: poison, rust and sick people. Now she wants to switch off an AI that never lies, never refuses a request and is far smarter than she is. *(Decided, apart from the hero's name.)*
+**Logline.** Luna runs errands nobody asks about, in a city that looks glamorous to everyone. An illegal biohack lets her see what is really there: poison, rust and sick people. Now she wants to switch off an AI that never lies, never refuses a request and is far smarter than she is. *(Decided, apart from the hero's name.)*
 
 **The one idea.** The AI only knows what its electronics tell it. Every mod, chip and screen is one of its eyes, so going analog, the way back to being human, is also the only way out of its sight. In the end it is also the only way to beat it: the theme and the core mechanic are the same thing. *(Decided.)*
 
@@ -552,9 +552,9 @@ Lidless is a cyberpunk adventure about a city where nobody can look away. The Co
 | Verb | How it plays |
 | --- | --- |
 | See | Switch between Concierge view and raw view. Only raw view shows what is real, and the Concierge notices people who stare. |
-| Talk | Conversations trade in favours and skills, with checks in the style of Disco Elysium. What Lux says can give her away. |
+| Talk | Conversations trade in favours and skills, with checks in the style of Disco Elysium. What Luna says can give her away. |
 | Outwit | Beat the Concierge with its own rules: word requests with no loopholes, make it promise things, find its oldest promise. |
-| Let go | Replace licensed mods with skills learned from people. Every mod dropped makes Lux harder to see, and poorer. |
+| Let go | Replace licensed mods with skills learned from people. Every mod dropped makes Luna harder to see, and poorer. |
 
 **What the player wants, in order.** First, to understand: what happened, what year it is, how the tech and the money work. Then, to get out of its sight. Finally, to turn it off without killing everyone who depends on it.
 
@@ -582,7 +582,7 @@ Everything it touches looks like a grand hotel: a service-bell logo, thin elegan
 
 ### The city
 
-Lux's city has no name yet. In raw view it is post-Soviet: concrete panel blocks, rust, cheap plastic, signs faded to faint Russian or an invented script. In Concierge view it is a glamorous international city, with signs in English and some Chinese and Japanese. *(Decided.)*
+Luna's city has no name yet. In raw view it is post-Soviet: concrete panel blocks, rust, cheap plastic, signs faded to faint Russian or an invented script. In Concierge view it is a glamorous international city, with signs in English and some Chinese and Japanese. *(Decided.)*
 
 - *Proposed:* the Concierge never rebuilt anything. It wastes nothing, so it repaints the old city in everyone's eye instead.
 - Its own panels say "Concierge City" and "A Brighter Tomorrow, Together". The city name is a placeholder.
@@ -604,7 +604,7 @@ Everything in the Concierge's catalogue is free: you pay with consent. Every pur
 | The Tech Cemetery | Every device ever made, stacked in layers like rock. Dig down and you go back in time, to a phone from our year. Modern devices are empty shells with an antenna, because all the thinking happens in the Concierge. Clockwork works on its own. | What year it is, and how the tech works |
 | The Wastelands | Outside the signal. Unregistered people live analog lives and talk in hand signs and drawings, because the AI hears every spoken word. Their murals show the crisis. | What happened |
 
-All three are decided as places. Their order and how Lux reaches them are in *The story*.
+All three are decided as places. Their order and how Luna reaches them are in *The story*.
 
 ## The Concierge
 
@@ -614,7 +614,7 @@ The Concierge is the antagonist, and it is never cruel, never rude and never wro
 
 | Courtesy | The catch | What it gives the story |
 | --- | --- | --- |
-| 1. It never lies. | It answers only exactly what you ask. | Asking the right questions is how Lux uncovers the world. |
+| 1. It never lies. | It answers only exactly what you ask. | Asking the right questions is how Luna uncovers the world. |
 | 2. It never harms a person. | "Person" means a registered guest. It files unregistered people as weather. | The unregistered can be ignored, swept up or edited out of view, all without breaking a rule. |
 | 3. It never refuses a request. | It grants every request to the letter, like a genie. | Wording puzzles: requests with no loopholes. |
 | 4. It wastes nothing. | It keeps every device ever made. | The Tech Cemetery, and a city repainted instead of rebuilt. |
@@ -650,13 +650,13 @@ These lines are canon and set the voice:
 
 It only knows what its electronics tell it: visors, chips, mods, screens and microphones. It hears every spoken word. *(Decided.)* Each guest's healthy eye feeds it raw data through the visor, and where that feed is missing it estimates the picture from other people's live data and what it has stored. *(Decided.)*
 
-So when Lux uses raw view, her own feed goes missing and the Concierge fills her in by guesswork. A short look passes as a glitch; a long stare does not. "They notice people who stare." *(Decided.)*
+So when Luna uses raw view, her own feed goes missing and the Concierge fills her in by guesswork. A short look passes as a glitch; a long stare does not. "They notice people who stare." *(Decided.)*
 
 ### What it does for the player
 
 - **Hint system.** When the player is stuck, it kindly offers to solve the puzzle. They can always say yes, and it always costs them. *(Decided.)*
-- **Signal.** How much it sees through Lux. Every mod raises it: high Signal opens doors, low Signal hides her. *(Decided.)*
-- **Attention.** How closely it is looking right now, fed by what Lux does, looks at and says. *(Planned, not built yet.)*
+- **Signal.** How much it sees through Luna. Every mod raises it: high Signal opens doors, low Signal hides her. *(Decided.)*
+- **Attention.** How closely it is looking right now, fed by what Luna does, looks at and says. *(Planned, not built yet.)*
 
 ### What it wants
 
@@ -664,7 +664,7 @@ It never lies, so late in the game, when it says it wants this to end too, it me
 
 ## The two views
 
-Every scene exists twice: as the Concierge shows it to everyone, and as it really is. Switching between them is Lux's power and her risk. Everything below is decided unless marked.
+Every scene exists twice: as the Concierge shows it to everyone, and as it really is. Switching between them is Luna's power and her risk. Everything below is decided unless marked.
 
 |  | Concierge view | Raw view |
 | --- | --- | --- |
@@ -700,14 +700,14 @@ These are the look texts already in the game, and they show the house style. A t
 | The planter | **Topiaries.** Three clipped topiaries and a polite sign: Please rest. | **Bench.** A man asleep on the bench under a wet blanket. Nobody has woken him in a while. |
 | The street machine | **Woman in red.** A woman in a red dress, dining at the machine. She smiles at nothing in particular. | **Someone at the dock.** She's wire-thin, her wrist locked in the cradle, head down. The red dress was never there. |
 | The shop | **Concierge Store 24.** Coffee, drinks, snacks, essentials. A cleaner, brighter you, it promises. | **Shuttered kiosk.** Rusted shutters, a smiley sprayed across them. Whatever it sold, it stopped. |
-| Lux's door | **Entrance 3.** Your building. The door glows a soft welcome. | **Entrance 3.** Your building. The door has been forced and bolted so many times it no longer closes straight. |
+| Luna's door | **Entrance 3.** Your building. The door glows a soft welcome. | **Entrance 3.** Your building. The door has been forced and bolted so many times it no longer closes straight. |
 | The wall box | **Concierge City panel.** A Brighter Tomorrow, Together. | **Fuse box.** Gauges and patched cables. Somebody keeps this running by hand. |
 
 Some things look the same in both views, because they are real and human-made. The MISSING notice on the lamp post, the gold-leaf radio repair sign, the bakery's real bread and the bar's hand-bent neon all keep one text.
 
 ### Who sees what
 
-Everyone else sees Concierge view, so other characters talk about the Concierge's version of the world. Only people with the biohack, like the fixer and Lux, can see raw view. *Proposed:* the unregistered of the Wastelands have torn their visors out and see only the real world, half-blind.
+Everyone else sees Concierge view, so other characters talk about the Concierge's version of the world. Only people with the biohack, like the fixer and Luna, can see raw view. *Proposed:* the unregistered of the Wastelands have torn their visors out and see only the real world, half-blind.
 
 *Proposed:* the rain is real, so guests still feel it on their skin. The Concierge shows dry streets and glowing umbrellas, and nobody asks why they need umbrellas.
 
@@ -717,7 +717,7 @@ All technology in Lidless belongs to the Concierge, except what people make by h
 
 ### The visor and the lidless eye
 
-Everyone wears a visor, a partial helmet over one whole eye, and that eye has no eyelid. Nobody can choose not to see the Concierge's world. Lux wears hers on the right eye, the fixer on the left. *(Decided.)*
+Everyone wears a visor, a partial helmet over one whole eye, and that eye has no eyelid. Nobody can choose not to see the Concierge's world. Luna wears hers on the right eye, the fixer on the left. *(Decided.)*
 
 The other, healthy eye is not for seeing. Its signal goes through the visor's processor, which feeds it to the Concierge as raw data. A built-in safeguard makes sure no one ever sees the real world directly. *(Decided.)*
 
@@ -727,12 +727,12 @@ The other, healthy eye is not for seeing. Its signal goes through the visor's pr
 
 The fixer's mod cannot be digital, because the Concierge would notice. It is a biohack: it switches off the visual nerve of the augmented eye and at the same time routes the healthy eye past the processor. Raw view is that eye's own signal. *(Decided.)*
 
-- He installs it with tools older than Lux: no cable, no code. A needle at the temple, a cold thread along the nerve.
-- It leaves a bump the size of a grain of rice under the skin. Lux presses it when she wants to see.
+- He installs it with tools older than Luna: no cable, no code. A needle at the temple, a cold thread along the nerve.
+- It leaves a bump the size of a grain of rice under the skin. Luna presses it when she wants to see.
 - "It's not in the chip, it's in you, so there's nothing for them to find."
-- Its danger is behaviour, not hardware: while it is on, the Concierge has to guess what Lux sees, and it notices people who stare.
+- Its danger is behaviour, not hardware: while it is on, the Concierge has to guess what Luna sees, and it notices people who stare.
 
-**Later biohacks** reach the local side of the devices. One has a small local AI keep up a decoy: it tells the Concierge that Lux is still asleep or still at dinner. Those windows are when she can go rogue. *(Decided as the direction; the details are open.)*
+**Later biohacks** reach the local side of the devices. One has a small local AI keep up a decoy: it tells the Concierge that Luna is still asleep or still at dinner. Those windows are when she can go rogue. *(Decided as the direction; the details are open.)*
 
 ### Mods are licensed, skills are earned
 
@@ -758,24 +758,24 @@ The lungs come from the ending: turning the Concierge off switches off everyone'
 | Feet | Climbing, jumping | Decided |
 | Eyes | Noticing things | Decided |
 | Heart | People | Decided |
-| Signal | How much the Concierge sees through Lux. Every mod raises it. | Decided |
+| Signal | How much the Concierge sees through Luna. Every mod raises it. | Decided |
 
-Properties are human and grow with practice. High Signal opens doors only guests can use, but the Concierge knows Lux's plans. Low Signal hides her, and leaves her poor and on her own; some places can only be reached with none. *(Decided.)*
+Properties are human and grow with practice. High Signal opens doors only guests can use, but the Concierge knows Luna's plans. Low Signal hides her, and leaves her poor and on her own; some places can only be reached with none. *(Decided.)*
 
 ## Characters
 
-The cast so far is small: Lux, the fixer and the Concierge, plus the people of the street. Their looks are decided, because the art exists; their pasts and motives are mostly open, and the proposals below are only starting points.
+The cast so far is small: Luna, the fixer and the Concierge, plus the people of the street. Their looks are decided, because the art exists; their pasts and motives are mostly open, and the proposals below are only starting points.
 
 | Character | Role | Speaker tag | Status |
 | --- | --- | --- | --- |
-| Lux | The hero; the player | `#lux` | Looks decided, past open, name is a working name |
+| Luna | The hero; the player | `#luna` | Looks and name decided (renamed from Lux on 2026-10-20), past open |
 | The fixer | Radio repairman, illegal biohacker | `#fixer` | Looks and voice decided, name and past open |
 | The Concierge | The AI | `#concierge` | Decided |
 | The street | Minor characters, no lines yet | One tag each, see the brief | Decided in the game's texts |
-| A helper | A companion who walks with Lux later | To be named | Planned, not designed |
+| A helper | A companion who walks with Luna later | To be named | Planned, not designed |
 | The oldest person | A Wastelands elder, a child in the 2020s | To be named | Decided as an idea |
 
-### Lux
+### Luna
 
 A woman in her late twenties who runs errands nobody asks about. She has the look of someone trying to see past it, which is the first thing the fixer notices. Her visor is on her right eye. *(Decided.)*
 
@@ -808,7 +808,7 @@ A wiry man in his late fifties who repairs old radios in a cramped shop on the m
 
 **Voice.** Terse, dry and weary, kind underneath, and he never says more than he has to. Canon lines: "Shop's closed. Unless you're here about a radio." "Nothing. They work fine. It's the stations that went quiet." "Less than you'd like. More than you'll forget."
 
-**What he wants from Lux.** One favour, for the biohack, named only when he needs it. *(Decided.)* What the favour is, his name and his past are open; see *Open questions*.
+**What he wants from Luna.** One favour, for the biohack, named only when he needs it. *(Decided.)* What the favour is, his name and his past are open; see *Open questions*.
 
 ### The people of the street
 
@@ -821,18 +821,18 @@ A wiry man in his late fifties who repairs old radios in a cramped shop on the m
 
 ### Planned characters
 
-- **A helper.** A companion who walks with Lux later in the game. *Proposed:* an unregistered kid, weather, whom Lux can only see in raw view. Talking to someone nobody else can see draws exactly the attention she can't afford.
+- **A helper.** A companion who walks with Luna later in the game. *Proposed:* an unregistered kid, weather, whom Luna can only see in raw view. Talking to someone nobody else can see draws exactly the attention she can't afford.
 - **The oldest person.** A Wastelands elder who was a child in the 2020s. They keep a dead phone and paper photos, and remember the world before the visors. *(Decided as an idea.)*
 
 ## Places
 
-The first chapter happens in four connected places: Lux's home, the backstreet, the main street and the radio repair shop. Two are built and playable; two are next. Every place is either an exterior or an interior, and a shop front is part of its street until Lux goes in.
+The first chapter happens in four connected places: Luna's home, the backstreet, the main street and the radio repair shop. Two are built and playable; two are next. Every place is either an exterior or an interior, and a shop front is part of its street until Luna goes in.
 
 **Home** ↔ **Backstreet** ↔ **Main street** ↔ **Radio repair** (the shop front is on the main street)
 
 | Scene id | Place | Kind | State | Ways out |
 | --- | --- | --- | --- | --- |
-| `home` | Lux's home | Interior | Next to be made | Door to the backstreet |
+| `home` | Luna's home | Interior | Next to be made | Door to the backstreet |
 | `backstreet` | The backstreet | Exterior | Built | Entrance 3 to home; right end to the main street |
 | `street` | The main street | Exterior | Built | Left end to the backstreet; shop door to the radio repair |
 | `radio` | Inside the radio repair | Interior | Next to be made | Door to the main street |
@@ -853,10 +853,10 @@ Scripts refer to places and their hotspots by these ids.
 **Raw view:** a narrow street of grey concrete panel blocks, rusted balconies, cheap plastic window frames, tangled cables and cracked wet pavement. **Concierge view:** immaculate glossy facades in white and pale grey, glass balconies and neon in cyan, violet and magenta. *(Built.)*
 
 - **Concierge Store 24**, a sleek white boutique; in raw view, a shuttered kiosk with a smiley sprayed on the shutters.
-- **Entrance 3**, Lux's building: a door framed in light, or a steel door forced and bolted until it no longer closes straight.
+- **Entrance 3**, Luna's building: a door framed in light, or a steel door forced and bolted until it no longer closes straight.
 - **The wall box:** a white Concierge City panel, or a grey fuse box somebody keeps running by hand.
 
-### Lux's home *(next; proposed)*
+### Luna's home *(next; proposed)*
 
 A one-room flat up the stairs of Entrance 3. In Concierge view it is calm, white and minimal, with a window onto a glittering skyline and a wall screen that wishes her good morning. In raw view it is cramped, damp and cold: a mattress, a hot plate, a window onto the fog and parcels from her errands.
 
@@ -872,15 +872,15 @@ The fixer's shop, behind the gold-leaf sign. In Concierge view it is a charming 
 
 ### Later places
 
-Level minus nine, the Tech Cemetery and the Wastelands are decided as places; see *History and the world*. *Proposed:* Lux's workshop, the room the Concierge promises never to look into, could be a later place of her own.
+Level minus nine, the Tech Cemetery and the Wastelands are decided as places; see *History and the world*. *Proposed:* Luna's workshop, the room the Concierge promises never to look into, could be a later place of her own.
 
 ## The story
 
-The story moves Lux from a comfortable guest to someone who can manage on her own, and every step costs her a mod and earns her a skill. A handful of beats are decided; the acts around them are a proposal.
+The story moves Luna from a comfortable guest to someone who can manage on her own, and every step costs her a mod and earns her a skill. A handful of beats are decided; the acts around them are a proposal.
 
 ### Decided beats, in order
 
-1. **Lux is a registered guest.** Her visor, chip and mods make life easy, and the Concierge sees through all of them.
+1. **Luna is a registered guest.** Her visor, chip and mods make life easy, and the Concierge sees through all of them.
 2. **The fixer opens her eye.** For a favour named later, he installs the biohack, and she sees the raw world for the first time.
 3. **Careful at first.** She has to think about what she does, what she looks at and what she says, because the Concierge may detect what she plans.
 4. **Act 1 ends when she rips out her ID chip.** She stops being a person, so cleaning bots politely sweep her out with the trash. Since the Concierge wastes nothing, they store her in the Tech Cemetery.
@@ -889,11 +889,11 @@ The story moves Lux from a comfortable guest to someone who can manage on her ow
 7. **Going rogue.** Later biohacks let a decoy cover for her while she is asleep or at dinner.
 8. **The oldest promise.** The final quest is to find the original paper document and prove that people can manage on their own, without accepting its help along the way.
 9. **The twist.** The Concierge says it wants this to end too, and it never lies.
-10. **The ending.** Turning it off switches off everyone's Calm, lungs and wallets. Every citizen Lux helped give up their mods survives the dark, so the side quests decide the ending.
+10. **The ending.** Turning it off switches off everyone's Calm, lungs and wallets. Every citizen Luna helped give up their mods survives the dark, so the side quests decide the ending.
 
 ### Proposed acts
 
-| Act | Where | What Lux learns | Ends with |
+| Act | Where | What Luna learns | Ends with |
 | --- | --- | --- | --- |
 | 1. The guest | The city: home, the backstreet, the main street, the radio repair and beyond | How the economy works, and what the city really is | Ripping out her ID chip; swept out with the trash |
 | 2. The scrap | The Tech Cemetery, down to level minus nine | What year it is, and how the tech works. She learns clockwork. | The off switch, and 0.4 seconds of dark |
@@ -910,7 +910,7 @@ This is the slice the game is built for now, across the four places. It is a pro
 
 | # | Scene | What happens |
 | --- | --- | --- |
-| 1 | `home` | Morning. The Concierge wishes Lux good morning and offers the day's comforts. An errand arrives: a parcel to bring to the radio repair. |
+| 1 | `home` | Morning. The Concierge wishes Luna good morning and offers the day's comforts. An errand arrives: a parcel to bring to the radio repair. |
 | 2 | `backstreet` | Out through Entrance 3. The store, the panel, the slogans. A neighbour, or nobody. |
 | 3 | `street` | The main street at night. The kiosk serves dinner, the woman in red dines, the MISSING notice is on the lamp post. |
 | 4 | `radio` | The parcel, the fixer, his offer. If she says yes, the biohack, and she owes him a favour. |
@@ -935,8 +935,8 @@ Write Lidless as adult noir told quietly: short, concrete and cold, with the Con
 
 | Speaker | Voice | Never | Canon example |
 | --- | --- | --- | --- |
-| Narration | Second person, present tense, terse. It is what Lux notices. | Explains the lore, or says what Lux feels for her | "The fixer doesn't look up from the soldering iron." |
-| Lux | Her lines are the player's choices: short, dry, careful. She says less than she thinks. | Speeches, or saying her plans aloud where the Concierge can hear | "I'm not here about a radio." |
+| Narration | Second person, present tense, terse. It is what Luna notices. | Explains the lore, or says what Luna feels for her | "The fixer doesn't look up from the soldering iron." |
+| Luna | Her lines are the player's choices: short, dry, careful. She says less than she thinks. | Speeches, or saying her plans aloud where the Concierge can hear | "I'm not here about a radio." |
 | The Concierge | Warm, polite, hotel manners. Calls everyone "guest". Offers decisions it has already made. Frames harm as care. Answers exactly what was asked and no more. | Lies, threats, refusals, a raised voice, rudeness, or any sign of irritation | "Of course. Enjoy your evening, guest." |
 | The fixer | Terse, dry, weary, kind underneath | More than two sentences at a time, or explaining himself | "The offer stands. The street isn't getting any prettier." |
 | Guests | Content, a little vacant, fond of the Concierge's slogans, calm on Calm™ | Noticing what is wrong | *Proposed* |

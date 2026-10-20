@@ -106,10 +106,14 @@ export const otherSidePrompt = [
   'Transparent background, no text.',
 ].join(' ');
 
-/** Concierge parts: the raw sheet edited, so every part keeps its place and shape. */
-export const conciergePartsPrompt = (description) => [
+/**
+ * Concierge parts: the raw sheet edited, so every part keeps its place and shape. `reshape` (a recipe's
+ * `parts.reshape`) names the parts whose outline the augmented look changes, such as fuller hair, and how.
+ */
+export const conciergePartsPrompt = (description, reshape = '') => [
   'Edit this cut-out animation parts sheet into the same character\'s augmented look. Keep every part exactly where it is,',
-  'with the same outline and size, separate and complete; change only surfaces, colours and details.',
+  `with the same outline and size, separate and complete; change only surfaces, colours and details${reshape ? ', except as follows, where a part\'s outline changes but it stays in its place, at its joints' : ''}.`,
+  ...(reshape ? [reshape] : []),
   `The augmented look: ${description}`,
   'Transparent background, no text.',
 ].join(' ');
@@ -349,6 +353,32 @@ const smoother = (x) => { const t = Math.max(0, Math.min(1, x)); return t * t * 
 /** A vector turned the way the rig turns its parts: positive swings a hanging limb forward, and lifts a foot's toe. */
 const turnVec = ([x, y], a) => { const c = Math.cos(a), s = Math.sin(a); return [c * x + s * y, -s * x + c * y]; };
 
+/**
+ * How far forward the arm is drawn, in the rig's degrees (positive swings a hanging limb forward): the upper arm from
+ * its shoulder to its elbow, and the forearm from its elbow to its fingertips, turned from the upper arm. An image model
+ * draws them slanting as often as not; turned back by as much, the arm hangs as the angles below say, from straight down.
+ */
+export function armRest(parts) {
+  const u = parts.upperArm?.joints, f = parts.forearm;
+  if (!u?.shoulder || !u?.elbow) return { up: 0, low: 0 };
+  const up = deg(Math.atan2(u.elbow[0] - u.shoulder[0], u.elbow[1] - u.shoulder[1]));
+  if (!f?.joints?.elbow || !f.img?.d) return { up, low: 0 };
+  // the fingertips: the middle of the lowest rows of the forearm, the hand's end
+  let tip = null;
+  for (let y = f.img.h - 1; y >= 0 && !tip; y--) { const sp = span(f.img, y); if (sp) tip = [(sp[0] + sp[1]) / 2, y]; }
+  if (!tip) return { up, low: 0 };
+  const e = f.joints.elbow, abs = deg(Math.atan2(tip[0] - e[0], tip[1] - e[1]));
+  return { up, low: abs - up };
+}
+
+/** Where a row of a part is opaque: its first and last opaque x, or null. */
+function span(img, y) {
+  const row = Math.max(0, Math.min(img.h - 1, Math.round(y)));
+  let x0 = -1, x1 = -1;
+  for (let x = 0; x < img.w; x++) if (img.d[(row * img.w + x) * 4 + 3] >= 128) { if (x0 < 0) x0 = x; x1 = x; }
+  return x0 < 0 ? null : [x0, x1];
+}
+
 /** The leg as the rig sees it: its bones' lengths and the angles they are drawn at, and the foot's heel and toe from its ankle. */
 function legOf(parts) {
   const t = parts.thigh, sh = parts.shin, f = parts.foot;
@@ -401,7 +431,7 @@ export function walkCycle(parts, gaitIn = {}, far = [-14, -6], base = GAIT) {
     return { x: a.x + (b.x - a.x) * smoother(u), oy: a.oy + (b.oy - a.oy) * smooth(u) + g.lift * L * Math.sin(Math.PI * Math.pow(u, 0.6)), phi };
   };
   const bell = (x) => { const w = ((x % 1) + 1.5) % 1 - 0.5; return Math.exp(-((w / 0.07) ** 2)); };
-  const tor = torsoTurn(parts, g.lean), frames = [];
+  const tor = torsoTurn(parts, g.lean), arm0 = armRest(parts), frames = [];
   for (let k = 0; k < g.frames; k++) {
     const p = k / g.frames, n = legAt(p), f = legAt(p + 0.5);
     // the ground under the hip: as low as the legs reach, a little lower as each leg takes her weight
@@ -416,7 +446,7 @@ export function walkCycle(parts, gaitIn = {}, far = [-14, -6], base = GAIT) {
     frames.push({
       torso: tor, head: -tor, coat: -2 + 0.15 * (nl.thighAbs + fl.thighAbs) + g.coat * Math.sin(4 * Math.PI * p + 0.9),
       legUpper: nl.thigh, legLower: nl.knee, foot: nl.foot, legFarUpper: fl.thigh, legFarLower: fl.knee, footFar: fl.foot,
-      armUpper: an.up - tor, armLower: an.low, armFarUpper: af.up - tor, armFarLower: af.low,
+      armUpper: an.up - tor - arm0.up, armLower: an.low - arm0.low, armFarUpper: af.up - tor - arm0.up, armFarLower: af.low - arm0.low,
       // where the thighs point, for a coat or skirt that the legs push and drag; and how high the hip rides, for hair
       // that bounces with each step
       thighAbs: nl.thighAbs, thighAbsFar: fl.thighAbs, bob: G, air,
@@ -462,7 +492,7 @@ export function runCycle(parts, runIn = {}, far = [-14, -6]) {
   };
   // the lowest point of a foot below its ankle, turned to phi
   const depth = (phi) => Math.max(...[leg.heel, leg.toe].map((pt) => turnVec(pt, phi)[1]));
-  const tor = torsoTurn(parts, g.lean), frames = [];
+  const tor = torsoTurn(parts, g.lean), arm0 = armRest(parts), frames = [];
   for (let k = 0; k < g.frames; k++) {
     const p = k / g.frames, ph = [p, (p + 0.5) % 1], ground = ph.map((q) => (q < st ? q / st : -1));
     // the ground under the hip: from the leg on it, or between steps on an arc from pushing off to landing
@@ -486,7 +516,7 @@ export function runCycle(parts, runIn = {}, far = [-14, -6]) {
     frames.push({
       torso: tor, head: -tor, coat: -2 + 0.15 * (nl.thighAbs + fl.thighAbs) + g.coat * Math.sin(4 * Math.PI * p + 0.9),
       legUpper: nl.thigh, legLower: nl.knee, foot: nl.foot, legFarUpper: fl.thigh, legFarLower: fl.knee, footFar: fl.foot,
-      armUpper: an.up - tor, armLower: an.low, armFarUpper: af.up - tor, armFarLower: af.low,
+      armUpper: an.up - tor - arm0.up, armLower: an.low - arm0.low, armFarUpper: af.up - tor - arm0.up, armFarLower: af.low - arm0.low,
       thighAbs: nl.thighAbs, thighAbsFar: fl.thighAbs, bob: G, air,
     });
   }
@@ -502,11 +532,11 @@ export function standPose(parts, standIn = {}, far = [-14, -6]) {
   const ax = -(leg.heel[0] + WEIGHT * (leg.toe[0] - leg.heel[0])), G = groundFor([0, 0], ax, leg.heel[1], R);
   const near = reach(leg, [0, 0], [ax, G - leg.heel[1]], 0);
   const phi = -rad(st.heel), toeX = ax + leg.toe[0] + st.step * L, v = turnVec(leg.toe, phi);
-  const free = reach(leg, far, [toeX - v[0], G - v[1]], phi), tor = torsoTurn(parts, st.lean);
+  const free = reach(leg, far, [toeX - v[0], G - v[1]], phi), tor = torsoTurn(parts, st.lean), arm0 = armRest(parts);
   return {
     torso: tor, head: -tor, coat: 0, legUpper: near.thigh, legLower: near.knee, foot: near.foot,
     legFarUpper: free.thigh, legFarLower: free.knee, footFar: free.foot,
-    armUpper: st.arm - tor, armLower: st.elbow, armFarUpper: st.farArm - tor, armFarLower: st.farElbow,
+    armUpper: st.arm - tor - arm0.up, armLower: st.elbow - arm0.low, armFarUpper: st.farArm - tor - arm0.up, armFarLower: st.farElbow - arm0.low,
   };
 }
 

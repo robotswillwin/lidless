@@ -7,7 +7,7 @@
 The visual concept is compelling: beautiful, persuasive Concierge View contrasted with the wet, decaying physical city. Main Street and the warm Radio Repair interior are strongest. **The principal issue to fix before adding detail is believable physical scale, perspective, and consistency.** This is the sort of structural error that makes AI-assisted art feel generated even when lighting and textures are attractive. Characters, props and scenery must share one physical world, not merely a colour palette.
 
 ## Priority-zero: scale, placement, geometry and visual plausibility
-**Radio Repair interior:** the tools and instruments mounted on the wall behind the fixer appear **too large and too high** relative to the human figures, workbench, shelves and reachable working height. Rebuild their dimensions and locations against a consistent real-world scale. Do not just shrink all objects uniformly: decide what each tool is, whether it is hung, shelved or in use, and how someone would reach, hold and operate it. Verify the pegs, hooks, radio chassis, lamp, shelf depths, tools, furniture and door against Lux and the fixer.
+**Radio Repair interior:** the tools and instruments mounted on the wall behind the fixer appear **too large and too high** relative to the human figures, workbench, shelves and reachable working height. Rebuild their dimensions and locations against a consistent real-world scale. Do not just shrink all objects uniformly: decide what each tool is, whether it is hung, shelved or in use, and how someone would reach, hold and operate it. Verify the pegs, hooks, radio chassis, lamp, shelf depths, tools, furniture and door against Luna and the fixer.
 
 **Required art pass for every environment:**
 1. Pick a shared character-height reference, camera height, horizon and floor plane; construct a simple perspective/scale overlay.
@@ -32,24 +32,24 @@ The visual concept is compelling: beautiful, persuasive Concierge View contraste
 
 ### `street` — Main Street
 **Keep:** shop frontage/window, warm/cold colour contrast, framing, street machine and looming CO presence.  
-**Fix:** the feeding woman's pose must read as a *single physical pose* in both views; the cradle/hand contact and knee positions should align. Clarify the curled sleeper as a person in Raw View without making him an obvious clue in Concierge View. Lux should inherit amber spill near the window and cooler magenta/cyan light outdoors; maintain contact shadow and reflections. The sky-face should look completely credible *inside the illusion*, not like faulty hologram technology. Validate lamppost, railing, vending unit, shop dimensions against Lux's height.  
+**Fix:** the feeding woman's pose must read as a *single physical pose* in both views; the cradle/hand contact and knee positions should align. Clarify the curled sleeper as a person in Raw View without making him an obvious clue in Concierge View. Luna should inherit amber spill near the window and cooler magenta/cyan light outdoors; maintain contact shadow and reflections. The sky-face should look completely credible *inside the illusion*, not like faulty hologram technology. Validate lamppost, railing, vending unit, shop dimensions against Luna's height.  
 **Weather consistency:** original canon states augmented streets *look dry* while physical rain is present; plan convincing visual handling of umbrellas and wet pavement rather than treating rain in the two renders as arbitrary.
 
 ### `backstreet` — Entrance 3 / Concierge Store 24
 **Keep:** clear door, shop, pipes, panel, matching buildings.  
 **Fix:** vary Raw View values so kiosk shutter, utilities, entrances and traversable ground remain legible. Add a small number of story-bearing details (neighbour, service bot, human maintenance, lit window) instead of generic clutter. Check shop window/storefront, signage, door dimensions, handle heights and drainpipe widths. Props added to one view need a classified reason to be absent or altered in the other.
 
-### `home` — Lux's apartment
+### `home` — Luna's apartment
 **Keep:** clean white comfort vs damp room, matched layout and window.  
-**Fix:** give Lux personal possessions so this is a home rather than a showroom; use a few real objects that persist across views (photograph, keepsake, tool, note). Check mattress width, stool height, sink/fixtures, window sill and Lux's reach against her sprite. Use the same room geometry between views. The augmented room should feel genuinely appealing, not antiseptic; Raw View needs readable local light and human texture, not only dark decay.
+**Fix:** give Luna personal possessions so this is a home rather than a showroom; use a few real objects that persist across views (photograph, keepsake, tool, note). Check mattress width, stool height, sink/fixtures, window sill and Luna's reach against her sprite. Use the same room geometry between views. The augmented room should feel genuinely appealing, not antiseptic; Raw View needs readable local light and human texture, not only dark decay.
 
 ### `radio` — interior
-**Keep:** inviting amber workshop, dense analogue culture, fixer/Lux staging and dialogue scene.  
+**Keep:** inviting amber workshop, dense analogue culture, fixer/Luna staging and dialogue scene.  
 **Top-priority fix:** wall tools **too big and too high**; shelf and bench proportions inconsistent with humans. Adjust work zone ergonomics before further decoration. Check that radios can sit on benches, the fixer can grip the object he holds, lamp lights fall on the right surfaces, and the room architecture matches both views. In Raw View, retain warm physical sources (real desk lamp, green oscilloscope, functioning bulb), though the furnishings may be worn and equipment patched. Raw is *real*, not inherently colourless.
 
 ## Characters: one shared sprite/rendering system
 - Agree on canonical standing height, head-to-body ratio, limb proportions, walking stride and camera-angle conventions.
-- Current Lux/fixer often differ in sharpness, palette and painterly treatment; unify silhouette and pixel-cluster density.
+- Current Luna/fixer often differ in sharpness, palette and painterly treatment; unify silhouette and pixel-cluster density.
 - Avoid high-frequency speckle that reads like downsampled photography. Simplify clothing into deliberate shape families and selective accents.
 - Maintain consistent feet-to-ground, shadows, reflections, visor side and proportions through scenes and both views.
 - Make animation and action poses physically believable; hands must actually reach knobs, objects and cradles.

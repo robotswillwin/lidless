@@ -2,8 +2,8 @@
 // `generate --layout`. Every object gets its real size against the characters, so the image model paints a place
 // people could use: a bench at hip height, tools within reach, a door taller than a person.
 //
-// The camera looks straight at the back wall from Lux's eye height. Two numbers set the scale: pixels per metre at the
-// back wall, and pixels per metre where the characters walk, some way in front of it (Lux, 1.7 m, is 240 px there).
+// The camera looks straight at the back wall from Luna's eye height. Two numbers set the scale: pixels per metre at the
+// back wall, and pixels per metre where the characters walk, some way in front of it (Luna, 1.7 m, is 240 px there).
 // Everything else follows from the perspective, so near things are bigger and far things smaller, as they should be.
 
 import sharp from 'sharp';

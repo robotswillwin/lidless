@@ -1,4 +1,4 @@
-// The scene editor's state: the scene file being edited and what is built from it, the selection, the view, Lux, undo,
+// The scene editor's state: the scene file being edited and what is built from it, the selection, the view, Luna, undo,
 // and the page's elements. Every part of the editor works on this one object.
 
 import type { Sprite } from '../engine/assets';
@@ -61,10 +61,10 @@ export const ed = {
   /** Every built asset, as scene/name: for new layers and scenes. */
   assets: [] as string[],
   /**
-   * Lux, to judge the light on: where she stands, which way she faces, whether the camera follows her as in the game, and
+   * Luna, to judge the light on: where she stands, which way she faces, whether the camera follows her as in the game, and
    * whether she follows the pointer along the walk line.
    */
-  lux: { x: 480, facing: 1 as 1 | -1, show: true, follow: false, track: false },
+  luna: { x: 480, facing: 1 as 1 | -1, show: true, follow: false, track: false },
   /** The lighting view: only what the lights do. */
   lightView: false,
   look: null as LookPanel | null,
@@ -98,9 +98,9 @@ export const remember = (before: string): void => {
 
 /**
  * The camera: where the editor is scrolled to, or in a scene no wider than the screen with "Move the camera with her"
- * on, where the game would have it with Lux where she stands (see the scene's drift).
+ * on, where the game would have it with Luna where she stands (see the scene's drift).
  */
-export const viewX = (): number => (ed.lux.follow && ed.file.size[0] <= NW ? cameraTarget(ed.file, ed.lux.x) : ed.camX);
+export const viewX = (): number => (ed.luna.follow && ed.file.size[0] <= NW ? cameraTarget(ed.file, ed.luna.x) : ed.camX);
 
 /**
  * Where something on a layer of its own parallax is drawn in the overlay, whose coordinates are the street's: as the camera

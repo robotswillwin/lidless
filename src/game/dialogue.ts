@@ -3,7 +3,7 @@
 import { Story } from 'inkjs';
 import storyJson from '../story/main.ink';
 
-/** A speaker tag on a line names who says it: a lowercase id such as lux, fixer or concierge. */
+/** A speaker tag on a line names who says it: a lowercase id such as luna, fixer or concierge. */
 const SPEAKER_TAG = /^[a-z][a-z0-9_]*$/;
 
 export interface Line {

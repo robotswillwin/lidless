@@ -43,7 +43,7 @@ const verb = async (v) => { if (!(await page.$('.hud-menu.verbs'))) { await page
 const found = () => text('.hud-note p');
 const hold = async (key, ms) => { await page.keyboard.down(key); await wait(ms); await page.keyboard.up(key); await wait(1500); };
 
-// the opening route: the game starts in Lux's flat
+// the opening route: the game starts in Luna's flat
 await page.goto(`${url}?new`);
 await ready();
 await shot('home');

@@ -3,8 +3,8 @@
   "scene": "cast",
   "kind": "character",
   "exists": "both",
-  "prompt": "This is the real woman under the city AI's version of her: keep her pose, her proportions and the outline of her body, head, ponytail and coat. Her hair is the same asymmetric sidecut with the right side shaved, grown out and messier, tied in a looser ponytail with loose strands falling over her face, the green dye faded to a dull dark teal, no pink. Her face is pale and tired, with no make-up and plain lips. Over her right eye, instead of the white visor, a round mechanical monocle of dull dark grey metal with a few rivets and a small glowing orange lens, held by a thin strap around her head; no brass. The same long coat, but a cheap one, worn thin and faded to a dull rust brown, frayed at the hem, its collar lying flat, no trims. Under it a worn grey crop top and faded dark denim shorts instead of the bodysuit, and scuffed flat black lace-up boots to mid-calf instead of the heeled boots. Her legs thinner and paler. The same flat-shaded style: two or three flat tones per surface, crisp edges, no texture.",
-  "concierge": "Lux, the hero, as the city AI shows her: a beautiful woman of about 27, tall and slim, with perfect upright posture, adult proportions, long legs and an hourglass figure. A distinctive angular face with a slightly pointed chin and a recognisable nose and jaw; bold make-up and glossy dark-red lips. Her hair: an asymmetric cyberpunk sidecut, the right side of her head shaved short, the rest pulled back into a sleek high ponytail that hangs down her back; the hair green with bright pink accents. Over her right eye, the one we see in this side view, a sleek white visor with an ice-blue glow covers that one eye only. She wears a long glossy red coat reaching her ankles, with a high collar and thin cyan trims, open over a strapless black bodysuit; her legs are bare, and she wears black heeled ankle boots. The coat a bright saturated red with a deep crimson shadow side; the bodysuit near-black with one dark grey lit plane.",
+  "prompt": "This is Luna, the real woman under the city AI's version of her: about 27, tall and slim, with adult proportions and long legs. Her hair is straight, dull ash blonde, pulled back into a plain, fairly thin high ponytail that hangs down her back close to her body, a few strands over her forehead. Over her eyes, a pair of old goggles: round lenses of glowing amber-orange glass in dark bronze metal frames with a few rivets, on a thin dark strap around her head. Her face is pale and tired, with plain lips and no make-up. A long, worn rust-brown coat reaching below her calves, with a high stand-up collar and wide flared sleeves, open at the front, its tails hanging straight behind her. Under it a plain fitted black top tucked into her trousers, covering her stomach completely, a black belt, and dark charcoal-grey baggy cargo trousers with a pocket on the thigh, tucked into scuffed black lace-up combat boots with thick soles. The same flat-shaded style: two or three flat tones per surface, crisp edges, no texture.",
+  "concierge": "Luna, the hero, as the city AI shows her: a beautiful woman of about 27, tall and slim, with perfect upright posture and a curvy hourglass figure with a full bust. Her hair is glossy black, in a long, voluminous high ponytail with bold hot-pink and teal streaks running through it, tied with a pink band. Over her right eye only, the one we see in this side view, a sleek visor of glowing ice-blue light covers that one eye and nothing else; her left eye is uncovered and made up. Bold make-up and glossy red lips. A long, glossy bright red coat reaching below her calves, with a high stand-up collar, wide flared sleeves and a deep crimson shadow side, open over a fitted black top with a low neckline, tucked into slim black trousers and covering her stomach completely, and black heeled ankle boots. The same flat-shaded style: two or three flat tones per surface, crisp edges, no texture.",
   "height": 240,
   "position": [
     480,
@@ -17,28 +17,26 @@
     "machine": false
   },
   "references": [
-    "art/reference/lux/ref-raw-turnaround.png",
-    "art/reference/lux/ref-raw-coat.png",
-    "art/reference/lux/ref-raw-face.png"
+    "art/cast/hero/raw.png"
   ],
   "parts": {
     "from": "raw.png",
     "left": {
       "mirror": true,
       "coat": "front",
-      "raw": "Seen from her left side: her left eye is uncovered, the long, unshaved side of her hair is pulled back into the ponytail, and only the thin strap of her eye device crosses her hair above the ear; the device itself is on her right eye, out of sight.",
-      "concierge": "Seen from her left side: her left eye is uncovered and made up, the long, unshaved side of her green-and-pink hair is pulled back sleekly into the ponytail; the visor and the shaved side are on her right, out of sight."
+      "raw": "Seen from her left side: the goggles' left lens over her left eye, the strap around her head, the ponytail behind.",
+      "concierge": "Seen from her left side: her left eye is uncovered, made up, with no visor or glow over it at all; the visor is on her right eye, out of sight. Only the pink band of her ponytail and the hair show above her ear."
     },
-    "right": "Seen from her right side: the shaved side of her head and her eye device over her right eye.",
+    "right": "Seen from her right side: the goggles' right lens over her right eye in raw view, the glowing visor over her right eye in the Concierge's.",
     "proportions": {
       "head": 0.15,
       "torso": 0.26,
       "coat": 0.455,
-      "upperArm": 0.14,
-      "forearm": 0.19,
+      "upperArm": 0.16,
+      "forearm": 0.21,
       "thigh": 0.245,
       "shin": 0.325,
-      "ponytail": 0.18
+      "ponytail": 0.3
     },
     "gait": {
       "idle": {
@@ -51,59 +49,44 @@
     ],
     "proportionsByView": {
       "concierge": {
-        "ponytail": 0.27
+        "ponytail": 0.34
       }
     },
     "at": {
-      "head": [
-        172,
-        208
-      ],
       "ponytail": [
-        405,
-        232
+        143,
+        299
+      ],
+      "head": [
+        340,
+        136
       ],
       "torso": [
-        700,
-        295
-      ],
-      "coat": [
-        982,
-        477
+        649,
+        244
       ],
       "upperArm": [
-        1225,
-        297
+        970,
+        209
       ],
       "forearm": [
-        1413,
-        308
+        1200,
+        232
+      ],
+      "coat": [
+        595,
+        753
       ],
       "thigh": [
-        366,
-        716
+        970,
+        683
       ],
       "shin": [
-        613,
-        782
+        1295,
+        744
       ]
     },
-    "joints": {
-      "torso": {
-        "neck": [
-          0.5,
-          0.05
-        ],
-        "shoulder": [
-          0.4,
-          0.15
-        ],
-        "hip": [
-          0.6,
-          0.86
-        ]
-      }
-    }
+    "reshape": "The ponytail piece, on its own at the far left of the sheet, is fuller: about one and a half times as wide, with spiky strands, and it stays a separate piece with clear empty space between it and the head, never touching it. The torso's bust is fuller and rounder under the black top, the collar, shoulders, waist and hips staying where they are. The thigh piece becomes slim, fitted black trousers with no pockets, a little narrower. The lower leg piece becomes a slim black trouser leg going into a sleek black ankle boot with a slender high heel, the knee where it was and the sole at the same height."
   },
   "look": "vector",
   "res": 1.25,
@@ -116,5 +99,9 @@
     "idleLeft": {
       "fps": 5
     }
-  }
+  },
+  "conciergeReferences": [
+    "art/cast/hero/concierge.png",
+    "art/reference/luna/v2/ar-head.png"
+  ]
 }

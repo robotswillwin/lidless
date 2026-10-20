@@ -136,7 +136,7 @@ export async function newScene(): Promise<void> {
   undoStack.length = 0;
   ed.sel = { kind: 'scene' };
   ed.camX = 0;
-  ed.lux = { x: Math.round(w / 2), facing: 1, show: true, follow: ed.lux.follow, track: ed.lux.track };
+  ed.luna = { x: Math.round(w / 2), facing: 1, show: true, follow: ed.luna.follow, track: ed.luna.track };
   await rebuild();
   if (![...dom.sceneSel.options].some((o) => o.value === id)) dom.sceneSel.add(new Option(`${id} (new)`, id));
   dom.sceneSel.value = id;
@@ -191,7 +191,7 @@ export async function suggestFromArt(): Promise<void> {
     layers.push({ raw: await map('glow.raw'), concierge: await map('glow.concierge'), scale: 2, x0: def.x, y0: def.y, parallax: def.parallax, street: def.parallax === 1 && !def.front });
   }
   // outside, the ground below the reflection line glows with the lights' reflections and pools, not lights of its own;
-  // inside, below the floor can be another room (the cutaway of Lux's block)
+  // inside, below the floor can be another room (the cutaway of Luna's block)
   const floor = ed.file.kind === 'exterior' ? ed.file.mirror ?? ed.file.walk.y - 8 : Infinity;
   if (!layers.some((l) => l.raw || l.concierge)) { setStatus('Nothing to read lights from: no layer has glow maps (art in the flat look has them)'); return; }
   const found = suggestLights(layers, ed.file.lights.map(resolveLight), { floor });

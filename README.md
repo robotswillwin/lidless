@@ -55,7 +55,7 @@ Other commands:
 - `npm run shot -- "t=3" "t=3&view=raw" "bench.html?asset=cast/hero"` builds and saves screenshots to `shots/` with headless Chrome. No server needed.
 - `npm run play` builds and plays a scripted run (look, talk to the fixer, switch view, reload) with a screenshot per step.
 - `npm run perf` builds and reports the frame rate per quality tier, up to a 4K canvas.
-- `npm run asset -- rig art/cast/hero.json` rigs Lux in Blender and renders her walk (needs Blender: `brew install --cask blender`). See docs/ASSETS.md, "Characters".
+- `npm run asset -- rig art/cast/hero.json` rigs Luna in Blender and renders her walk (needs Blender: `brew install --cask blender`). See docs/ASSETS.md, "Characters".
 - `node tools/styleframe/export.mjs` regenerates the old hand-coded street layers in `public/assets/street` (sky, crowd, set), which the main street no longer uses.
 
 Address options: `new`, `view=raw` (skips the mod), `q=low|medium|high`, `t=<seconds>` to freeze time, `debug`,
@@ -75,10 +75,10 @@ The world is `public/assets/world.json`: its scenes, where the game starts and w
 
 A hotspot with `go` is an exit to another scene. Over an end of the walk line, walking into it leaves too.
 
-The scenes so far: Lux's home (`home`), the backstreet, the main street and the radio repair (`radio`). Entrance 3 on the
+The scenes so far: Luna's home (`home`), the backstreet, the main street and the radio repair (`radio`). Entrance 3 on the
 backstreet leads home, and the radio repair's door on the main street leads into the shop, where the fixer works.
 
-**The scene editor**, `/editor.html` on the dev server, shows a scene rendered as in the game, and Lux to judge the
+**The scene editor**, `/editor.html` on the dev server, shows a scene rendered as in the game, and Luna to judge the
 light on.
 
 - **Moving:** drag lights, hotspots, exits, spawns, areas, the walk line and the reflection line; arrows nudge the
@@ -93,15 +93,15 @@ light on.
 - **Ground** (the scene's settings): the floor the engine draws below the reflection line, its slabs, kerb and
   puddles; how wet, shiny and worn it is in each view is in the look panel (see
   [docs/ASSETS.md](docs/ASSETS.md#painted-scenes)).
-- **Lux:** drag her, turn her, have the camera move with her, or have her follow the pointer along the walk line to
+- **Luna:** drag her, turn her, have the camera move with her, or have her follow the pointer along the walk line to
   see the light fall on her as she walks.
 - **Adding:** new scenes from a built background, and layers from any built asset.
 - **Effects** (**+ Effect**): steam and smoke, light shafts, beacons, drips and movers, each drawn over the scene to
   drag (a mover's band and its two ends), with its settings in the side panel; the scene's settings list them all.
   Things on a far layer (a mover, a hotspot or light with a parallax) are drawn where they are with the camera moved.
 - **Layers:** each with its parallax, and whether it is drawn in front of the people. A scene no wider than the screen
-  can have the camera follow Lux a little (its drift, in the scene's settings); **Move the camera with her** previews
-  it with Lux where she stands in the editor.
+  can have the camera follow Luna a little (its drift, in the scene's settings); **Move the camera with her** previews
+  it with Luna where she stands in the editor.
 - **Keys:** E switches view, L opens the look panel, G the lighting view, Cmd+Z undoes, Cmd+S saves.
 
 Save writes the scene file, and an open game tab reloads the scene at once. In the game on the dev server, the key left
@@ -163,7 +163,7 @@ itself whenever `build` runs.
   `overlay.ts` (what is drawn over the scene, and dragging it), `panels.ts` with `form.ts` (the side panel), `edit.ts`
   (adding and deleting), `main.ts` (wiring and start). `src/bench.ts` is the asset bench, `src/look-panel.ts` the look
   panel both use.
-- `src/story`: dialogue in Ink, compiled at build time. `main.ink` declares the variables and includes one file per scene; a tag on a line names its speaker (`#lux`, `#fixer`, `#concierge`), and untagged lines are narration.
+- `src/story`: dialogue in Ink, compiled at build time. `main.ink` declares the variables and includes one file per scene; a tag on a line names its speaker (`#luna`, `#fixer`, `#concierge`), and untagged lines are narration.
 - `public/assets`: game assets in the format described in [docs/ASSETS.md](docs/ASSETS.md), one folder per scene
   (`home`, `backstreet`, `street`, `radio`) plus `cast` for recurring characters; `scenes/<id>/scene.json` places them,
   and `world.json` lists the scenes and where the game starts.

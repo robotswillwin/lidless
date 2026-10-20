@@ -45,7 +45,7 @@ const HELP = `Asset pipeline: generate art with an image AI, clean it and turn i
   npm run asset -- blockout <recipe>
       Draw the recipe's "blockout", a room built from boxes in metres, in true perspective, as layout.png: the guide
       for generate --layout, so every object comes out at its real size against the characters. layout-check.png
-      shows Lux and the fixer standing in it, to judge the scale by eye. Free.
+      shows Luna and the fixer standing in it, to judge the scale by eye. Free.
   npm run asset -- sheet <recipe>
       Lay all candidates side by side at game size, finished as the build would, to choose between them.
   npm run asset -- parts <recipe> [--view raw|concierge] [--quality low|medium] [--dry]

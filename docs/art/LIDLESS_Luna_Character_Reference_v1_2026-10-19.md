@@ -1,14 +1,14 @@
-# LIDLESS — Lux: character reference v1
-**19 October 2026 · the current reference for Lux's final design**
+# LIDLESS — Luna: character reference v1
+**19 October 2026 · the current reference for Luna's final design**
 
-Lux's final design is made from this reference: nine sheets of studies in both views, and the two prompts behind
-them. It replaces the earlier Lux references (`art/reference/lux-flat-*`, and Lux as she appears in
+Luna's final design is made from this reference: nine sheets of studies in both views, and the two prompts behind
+them. It replaces the earlier Luna references (`art/reference/lux-flat-*`, and Luna as she appears in
 `art/reference/style-*`). Where the sheets disagree with each other or with the prompts, the prompts win, and the
 proposed resolutions below apply until the director decides otherwise.
 
 ## The sheets
 
-All in `art/reference/lux/sheets/`. Each sheet was generated on its own, so details drift between them (see below).
+All in `art/reference/luna/sheets/`. Each sheet was generated on its own, so details drift between them (see below).
 
 | Sheet | What it shows |
 | --- | --- |
@@ -27,7 +27,7 @@ the image API.
 
 ## References for the image pipeline
 
-Clothed panels cut from the sheets, in `art/reference/lux/`. Only these go to the image model: OpenAI's image API
+Clothed panels cut from the sheets, in `art/reference/luna/`. Only these go to the image model: OpenAI's image API
 refuses nudity and sexual content, and has refused far less (a long dress) before.
 
 | File | From sheet | What it is for |
@@ -88,7 +88,7 @@ The visual objective is:
 EXTREMELY SIMPLE GEOMETRY + EXTRAORDINARY LIGHTING.
 ```
 
-## Character: Lux
+## Character: Luna
 
 ```
 CHARACTER: LUX
@@ -96,7 +96,7 @@ PROJECT: LIDLESS
 AGE: Adult woman, approximately 25–30 years old.
 
 IDENTITY:
-Lux is a young adult human woman living in a world
+Luna is a young adult human woman living in a world
 where an artificial intelligence called the Concierge
 controls everyone's augmented visual experience.
 
@@ -124,7 +124,7 @@ identical between realities.
 
 EYE DEVICE — CRITICAL:
 A partial head-mounted optical device covers
-Lux's ANATOMICAL RIGHT EYE ONLY.
+Luna's ANATOMICAL RIGHT EYE ONLY.
 
 When viewed from the front, the covered eye appears
 on the LEFT SIDE OF THE IMAGE.
@@ -132,7 +132,7 @@ on the LEFT SIDE OF THE IMAGE.
 Her anatomical LEFT eye is completely uncovered.
 
 This device remains on the SAME anatomical eye
-when Lux turns or changes direction.
+when Luna turns or changes direction.
 
 NEVER use a full-face helmet.
 NEVER cover both eyes.
@@ -168,7 +168,7 @@ resolutions on 2026-10-19, and her sprite is built to them:
 
 ## For the game
 
-- **Size.** Lux is 106 to 139 pixels tall in the scenes, her head about 15. Her expressions do not show on the sprite;
+- **Size.** Luna is 106 to 139 pixels tall in the scenes, her head about 15. Her expressions do not show on the sprite;
   they are for dialogue portraits and close-ups. The sprite is her silhouette, her colours and the glow of her eye
   device.
 - **Her side.** The game sees her in profile. Facing right shows her right side: the eye device and the shaved side.
@@ -179,7 +179,7 @@ resolutions on 2026-10-19, and her sprite is built to them:
 - **Outfits.** One walking outfit per view first: in AR the long red coat open over the black bodysuit, with heels; in
   raw the same coat worn to rust, over a crop top and cargo trousers, with boots. The other outfits become further
   part sets on the same rig.
-- **The world bible.** Its description of Lux (Characters, Lux) is updated to this design. The narrative bible
+- **The world bible.** Its description of Luna (Characters, Luna) is updated to this design. The narrative bible
   (docs/story) still has the earlier table and is for the script agent to bring in line.
 - **Her sprite.** `art/cast/hero/raw.png` and `concierge.png` are the design in profile, generated from the clothed
   panels; the parts, the rig and the walk are built from them (see ASSETS.md, Characters).

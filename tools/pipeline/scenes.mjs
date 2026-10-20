@@ -88,7 +88,7 @@ export async function cmdBlockout([file]) {
   await mkdir(r.dir, { recursive: true });
   const guide = await blockoutPNG(r.blockout, W, H), out = join(r.dir, 'layout.png');
   await writeFile(out, guide);
-  // the same, with the characters standing on the walk line: Lux near the left, the fixer at the bench
+  // the same, with the characters standing on the walk line: Luna near the left, the fixer at the bench
   const figure = async (asset, frameW, sceneX) => {
     const src = resolve(ROOT, 'public/assets', asset, 'albedo.raw.png'), { height } = await sharp(src).metadata();
     const img = await sharp(src).extract({ left: 0, top: 0, width: frameW, height }).resize(Math.round(frameW * k), Math.round(height * k), { kernel: 'nearest' }).png().toBuffer();
@@ -96,7 +96,7 @@ export async function cmdBlockout([file]) {
   };
   const people = [await figure('cast/hero', 143, 230), await figure('cast/fixer', 106, 600)];
   await sharp(guide).composite(people).png().toFile(join(r.dir, 'layout-check.png'));
-  console.log(`${r.name}: ${r.blockout.objects.length} objects → ${rel(out)}, and ${rel(join(r.dir, 'layout-check.png'))} with Lux and the fixer in it`);
+  console.log(`${r.name}: ${r.blockout.objects.length} objects → ${rel(out)}, and ${rel(join(r.dir, 'layout-check.png'))} with Luna and the fixer in it`);
 }
 
 /**

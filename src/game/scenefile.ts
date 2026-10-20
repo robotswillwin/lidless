@@ -76,7 +76,7 @@ export interface SceneFile {
   baked?: number | { raw?: number; concierge?: number };
   /**
    * How big the people are drawn here, 1 by default: under 1 the camera is further back (0.6 shows more of the place
-   * around a smaller Lux), over 1 a closeup. Her pace on screen goes with the square root of it: smaller, but not a crawl.
+   * around a smaller Luna), over 1 a closeup. Her pace on screen goes with the square root of it: smaller, but not a crawl.
    */
   actorScale?: number;
   /**

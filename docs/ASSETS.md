@@ -29,15 +29,15 @@ that view.
 
 ## Scale
 
-Every scene is drawn at one scale, set by the characters and one camera. The camera's eye is at Lux's eye height,
+Every scene is drawn at one scale, set by the characters and one camera. The camera's eye is at Luna's eye height,
 1.6 m, looking straight at the back wall: there a metre is 110 px, and on the walk line, 1.4 m in front of it, 141 px,
-which makes Lux (1.7 m) 240 px tall and a 2.05 m door about 225 px. She is a little taller than a door because she is
+which makes Luna (1.7 m) 240 px tall and a 2.05 m door about 225 px. She is a little taller than a door because she is
 nearer, as in most 2D adventures.
 
 Rooms are built from a blockout: `asset blockout` draws the recipe's `blockout`, boxes in metres, in that perspective,
 and `asset redress --from <recipe dir>/layout.png` paints over it keeping every object where and how big it is, so a
 bench is at hip height and tools are within reach. (Given as a mere layout reference with `generate --layout`, the image
-model re-composes and drifts back to its own scale.) `layout-check.png` shows Lux and the fixer standing in the
+model re-composes and drifts back to its own scale.) `layout-check.png` shows Luna and the fixer standing in the
 blockout, and the blockout also places hotspots and lights: `toScene` in tools/pipeline/blockout.mjs turns a point
 in metres into scene pixels. A set drawn too big can also be shrunk with `asset reframe`, which keeps what is in it and
 paints the new edges. People in a scene are characters built at
@@ -51,14 +51,14 @@ engine draws it at a render scale: 1 on the low and medium tiers (phones, 960 by
 1080), and the browser fits that to the screen. `?q=medium` or `?q=high` forces a tier.
 
 Art can carry more detail than a level pixel: a recipe's `res` is texels per level pixel, written into the
-`sprite.json`. The street and Lux's home are built at 2 and Lux at 1.25 (her 64 frames then fit in 2048 by 2048,
+`sprite.json`. The street and Luna's home are built at 2 and Luna at 1.25 (her 64 frames then fit in 2048 by 2048,
 drawn at about one texel per screen pixel on the street at render scale 2). The size and place of the sprite stay in
 level pixels whatever its `res`; the build divides the texels by it. At render scale 1, art at 2 is shrunk by
 averaging, so phones show the same picture, only softer, from the same files.
 
 Flat vector art (`look: vector`, or `flatMaps` in the recipe) has only colour and glow maps: it has no relief or shine
 of its own to light, and one set of flags for all of it, so its `sprite.json` carries the flags instead of a
-`meta.png`. That is three or four maps instead of eight or nine, which pays for the extra resolution: Lux at 1.25 takes
+`meta.png`. That is three or four maps instead of eight or nine, which pays for the extra resolution: Luna at 1.25 takes
 less memory than she did at 1 with all her maps.
 
 ## Maps
@@ -122,7 +122,7 @@ flickers:
 - **Characters that walk** (`parts`): the image model draws the character as a sheet of separate body parts (head,
   torso, coat, upper arm, forearm, thigh, shin) following a template; the parts are cut out with their joints, posed
   through the walk and baked into frames (`parts --bake`). The left-facing side is the right side mirrored, with
-  touch-ups only where the two differ, so it stays the same person. Lux is made this way.
+  touch-ups only where the two differ, so it stays the same person. Luna is made this way.
 - **Characters that stand** (`touch --frame idle/N`): each frame repaints one area, such as a hand or a face, and
   everything outside it is identical in every frame. The recipe's `anims.idle` sets `fps` and `seq`. The fixer's
   soldering loop is made this way.
@@ -164,7 +164,7 @@ preset**. The main street's lights are all of a kind.
    low in the street hang among the people; lights on a far layer move with it. Outside, the ground below the
    reflection line is left out: its glow is the lights' reflections. It needs art in the flat look (glow maps).
 2. Keep, move or discard them (dashed rings until kept), and give the ones that are a kind their preset.
-3. **Lighting view** (G) shows only what the lights do, every surface a flat grey; have Lux follow the pointer to see
+3. **Lighting view** (G) shows only what the lights do, every surface a flat grey; have Luna follow the pointer to see
    them fall on her along the walk line.
 
 ## Scenes
@@ -198,8 +198,8 @@ Characters walk in front of the set, so lights and characters need to know which
 
 ### Characters: parts, rig and animation
 
-Lux's design comes from [art/LIDLESS_Lux_Character_Reference_v1_2026-10-19.md](art/LIDLESS_Lux_Character_Reference_v1_2026-10-19.md):
-her study sheets in `art/reference/lux/sheets/`, and the clothed panels cut from them (`art/reference/lux/ref-*.png`),
+Luna's design comes from [art/LIDLESS_Luna_Character_Reference_v1_2026-10-19.md](art/LIDLESS_Luna_Character_Reference_v1_2026-10-19.md):
+her study sheets in `art/reference/luna/sheets/`, and the clothed panels cut from them (`art/reference/luna/ref-*.png`),
 the only ones to send to the image API.
 
 A character that walks is built from parts, so a person can take over any step later:
@@ -283,13 +283,13 @@ painted in, and the engine adds what moves and what lights the characters.
 - A light with `raw: 1` exists only in raw view, as `ar: 1` only in the Concierge's: the moon, a machine's own eye.
 - Its hotspots and lights were placed on the picture by a coordinate grid over the built albedo maps.
 
-Small places, such as Lux's flat, are drawn as a cutaway of their building, like a doll's house with its front wall
+Small places, such as Luna's flat, are drawn as a cutaway of their building, like a doll's house with its front wall
 gone (`art/home/cutaway.json`): her floor lit in the middle of the frame, the neighbours' flats dim above and below, the
 city on either side. The scene walks her along her floor; the city at the sides is outside (`zones`), so the rain
 falls there, and rings from the rain only show on ground that reflects.
 
 How the street was made: the Concierge's picture of the look reference, scaled to 1920 by 1080, was imported, and
-`touch` took Lux out of it and added what the scene's story needs: the woman in red at the dining machine, the shop's
+`touch` took Luna out of it and added what the scene's story needs: the woman in red at the dining machine, the shop's
 gold-leaf sign, the Concierge's face on the billboard. Raw view was then redrawn from it with `redress --from
 concierge.png`: the same shapes, lined up within a pixel, dim and worn in amber-brown smog, with the sign reading
 РЕМОНТ РАДИО, a faded ОТЕЛЬ, a poster where the face hangs and the woman wire-thin at the machine; `touch` added the
@@ -297,7 +297,7 @@ sleeper. The proposed raw picture itself, with its grime and pipes, had far too 
 streets are in git's history.
 
 Later, for the moving camera: the painted reflections were taken out of the wet ground (`asset ground`, below) for
-the engine's live ones, and the woman at the dining machine and the machine itself were shrunk to Lux's scale. They
+the engine's live ones, and the woman at the dining machine and the machine itself were shrunk to Luna's scale. They
 had been painted about a third too big for someone kneeling on her walk line: `touch` painted the corner without them,
 and the two were cut out of the pictures from before by traced outlines, shrunk by 0.78 around the machine's foot and
 laid back, with the hotspots, the machine's lights and the end of the walk line moved to match.
@@ -356,7 +356,7 @@ Concierge's, dry, dark polished stone with none of the painted floor (wet 0, shi
 stone 0.25). The ground keeps to the flat look: its slabs, stains and puddles are simple shapes.
 In the scene editor, its settings are under Ground in the scene's settings. Scenes without a `ground` reflect as before.
 
-On the street, Lux walks on the pavement 18 pixels in front of the line its buildings stand on (walk line 470,
+On the street, Luna walks on the pavement 18 pixels in front of the line its buildings stand on (walk line 470,
 reflection line 452), so she is on the ground rather than at its far edge, and just clear of the buttons along the
 bottom of the screen (they start at 475).
 
@@ -364,7 +364,21 @@ In flat art, raw view is as simple as the Concierge's: age and dirt are duller c
 texture. The pipeline's description of the raw world says so for `look: vector`, and a recipe's `rawAir` names the
 colour of its raw smog (yellow-green unless it says otherwise; the street's is amber-brown).
 
-Lux was designed again in the look: `art/cast/lux-concierge.json` generated her Concierge self in profile with the
+Luna's current design is the character study of 2026-10-20 (`art/reference/luna/sheets/10-study-v2-goggles.webp`,
+its side views and heads cropped into `art/reference/luna/v2/`), with these changes asked for after it: ash-blonde hair
+in raw view, in a thinner ponytail; a top that covers her stomach in both views; a fuller bust in the Concierge's. In
+raw view: the ponytail, old bronze goggles with amber lenses, a worn rust-brown coat with a high collar and flared
+sleeves, a black top, baggy charcoal cargo trousers and lace-up combat boots. In the Concierge's: a voluminous black
+ponytail streaked hot pink and teal, a glowing ice-blue visor over her right eye only (seen from her left her eye is
+bare and made up), a glossy red coat, slim black trousers and heeled ankle boots. Made with `generate` (the sheet's
+crops as references) and `pick` for raw view, `variant` for the Concierge's, `redress` for the hair and the changes
+above, and a `touch` of the goggles; then `parts` for raw view, `parts --view concierge` with the recipe's
+`parts.reshape` naming what changes shape in its view (the fuller ponytail, the bust, the slimmer legs and heels,
+which an edit otherwise keeps to the raw outlines), `--side left --mirror` for both, a `touch --file` of the left
+Concierge sheet taking the visor off her left eye, and `rig`. The recipe's `parts.at` gives where the model drew each
+part on the sheet, the ponytail among them: without it the ponytail has no place to be matched to.
+
+Before that she was Lux, in an earlier design: `art/cast/lux-concierge.json` generated her Concierge self in profile with the
 flat reference figure from the concept art, and `redress` made her raw self from it, the same outline in her worn
 raincoat, bun and grey eye device. `parts` drew the raw parts sheet from that (its layout in the recipe's `parts.at`),
 `redress --ref` the Concierge sheet from the raw one, `--mirror` and a `touch` of each head the sheets seen from her
@@ -398,7 +412,7 @@ air over her made her read as far away.
 
 A scene is drawn from its layers, back to front, then its people, nearest last, then any layer marked `front` (a
 railing or a wall's edge nearer than the walk line). A layer's `parallax` is how fast it moves with the camera: 1
-with the street Lux walks on, under 1 further away (0 stays put, like a sky), over 1 nearer.
+with the street Luna walks on, under 1 further away (0 stays put, like a sky), over 1 nearer.
 
 - **Wide scenes**, wider than the screen, scroll: the camera follows her and each layer moves at its parallax.
 - **One-screen scenes** can have the camera follow her a little: with `drift` in the scene file, it moves up to

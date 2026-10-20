@@ -4,7 +4,7 @@
   "kind": "character",
   "exists": "concierge",
   "look": "vector",
-  "prompt": "Lux, the hero, as the city AI shows her: a beautiful woman of about 27, tall and slim, with perfect upright posture, adult proportions, long legs and an hourglass figure. A distinctive angular face with a slightly pointed chin and a recognisable nose and jaw; bold make-up and glossy dark-red lips. Her hair: an asymmetric cyberpunk sidecut, the right side of her head shaved short, the rest pulled back into a sleek high ponytail that hangs down her back; the hair green with bright pink accents. Over her right eye, the one we see in this side view, a sleek white visor with an ice-blue glow covers that one eye only. She wears a long glossy red coat reaching her ankles, with a high collar and thin cyan trims, open over a strapless black bodysuit; her legs are bare, and she wears black heeled ankle boots. The coat a bright saturated red with a deep crimson shadow side; the bodysuit near-black with one dark grey lit plane.",
+  "prompt": "Luna, the hero, as the city AI shows her: a beautiful woman of about 27, tall and slim, with perfect upright posture, adult proportions, long legs and an hourglass figure. A distinctive angular face with a slightly pointed chin and a recognisable nose and jaw; bold make-up and glossy dark-red lips. Her hair: an asymmetric cyberpunk sidecut, the right side of her head shaved short, the rest pulled back into a sleek high ponytail that hangs down her back; the hair green with bright pink accents. Over her right eye, the one we see in this side view, a sleek white visor with an ice-blue glow covers that one eye only. She wears a long glossy red coat reaching her ankles, with a high collar and thin cyan trims, open over a strapless black bodysuit; her legs are bare, and she wears black heeled ankle boots. The coat a bright saturated red with a deep crimson shadow side; the bodysuit near-black with one dark grey lit plane.",
   "framing": "One full-length figure in exact profile, seen straight from the side and facing right, standing in a neutral pose for animation: arms hanging relaxed and slightly away from the body, hands empty and open, legs straight and a little apart so both are fully visible, nothing held and nothing crossing the body. Feet at the bottom of the frame. Even, soft, frontal lighting with no cast shadows and no rim light. Transparent background, the whole figure in frame with a little space around it, no ground, no text, no border.",
   "height": 240,
   "material": "cloth",
@@ -14,9 +14,9 @@
     "machine": false
   },
   "references": [
-    "art/reference/lux/ref-ar-turnaround.png",
-    "art/reference/lux/ref-ar-coat.png",
-    "art/reference/lux/ref-ar-face.png"
+    "art/reference/luna/ref-ar-turnaround.png",
+    "art/reference/luna/ref-ar-coat.png",
+    "art/reference/luna/ref-ar-face.png"
   ],
   "referenceNote": "character"
 }

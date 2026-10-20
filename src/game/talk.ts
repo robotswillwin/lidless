@@ -8,7 +8,7 @@ import type { Line } from './dialogue';
 export type SpeakerAt = (speaker: string) => [number, number] | null;
 
 /** Each voice's colour: hers, the fixer's warm one, the Concierge's cyan; anyone else's their own. */
-const VOICE: Record<string, string> = { lux: 'lux', fixer: 'warm', concierge: 'co', narration: 'narration' };
+const VOICE: Record<string, string> = { luna: 'luna', fixer: 'warm', concierge: 'co', narration: 'narration' };
 
 /** How long a line stays: about 16 characters a second to read it, from 1.8 to 8 seconds. */
 export const readingTime = (text: string): number => Math.min(8000, Math.max(1800, 700 + text.length * 60));
@@ -49,7 +49,7 @@ export class Talk {
   /** The next lines of the conversation and the answers after them; `said` is the answer she just gave, said first. */
   show(lines: Line[], choices: string[], said?: string): void {
     this.open = true;
-    this.queue = [...(said ? [{ text: said, speaker: 'lux' }] : []), ...lines];
+    this.queue = [...(said ? [{ text: said, speaker: 'luna' }] : []), ...lines];
     this.choices = choices;
     this.list.hidden = true;
     this.next();

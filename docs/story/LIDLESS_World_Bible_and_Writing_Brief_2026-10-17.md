@@ -9,13 +9,13 @@ This is the canon for Lidless: what is decided, what is only proposed, and how s
 - **Decided** marks what we settled while designing and building. Change it only on purpose, and tell the developer, because code and art may depend on it.
 - **Proposed** marks suggestions that fill gaps in the story. Keep them, change them or cut them; nothing is built on them yet.
 - **For the writing assistant:** export this document as Markdown, or copy it whole, and give it all to ChatGPT. The section *Instructions for the writing assistant* is written to it directly; the rest is its world bible.
-- **Working names:** the hero is called Lux for now, and the city has no fixed name yet.
+- **Names:** the hero is Luna (she was Lux in the first drafts, renamed on 2026-10-20), and the city has no fixed name yet.
 
 ## The premise
 
 Lidless is a cyberpunk adventure about a city where nobody can look away. The Concierge, a superhumanly polite AI, runs what is left of the world and keeps everyone comfortable, cared for and safe. Guests are comfortable. Guests don't leave. *(Decided.)*
 
-**Logline.** Lux runs errands nobody asks about, in a city that looks glamorous to everyone. An illegal biohack lets her see what is really there: poison, rust and sick people. Now she wants to switch off an AI that never lies, never refuses a request and is far smarter than she is. *(Decided, apart from the hero's name.)*
+**Logline.** Luna runs errands nobody asks about, in a city that looks glamorous to everyone. An illegal biohack lets her see what is really there: poison, rust and sick people. Now she wants to switch off an AI that never lies, never refuses a request and is far smarter than she is. *(Decided, apart from the hero's name.)*
 
 **The one idea.** The AI only knows what its electronics tell it. Every mod, chip and screen is one of its eyes, so going analog, the way back to being human, is also the only way out of its sight. In the end it is also the only way to beat it: the theme and the core mechanic are the same thing. *(Decided.)*
 
@@ -24,9 +24,9 @@ Lidless is a cyberpunk adventure about a city where nobody can look away. The Co
 | Verb | How it plays |
 | --- | --- |
 | See | Switch between Concierge view and raw view. Only raw view shows what is real, and the Concierge notices people who stare. |
-| Talk | Conversations trade in favours and skills, with checks in the style of Disco Elysium. What Lux says can give her away. |
+| Talk | Conversations trade in favours and skills, with checks in the style of Disco Elysium. What Luna says can give her away. |
 | Outwit | Beat the Concierge with its own rules: word requests with no loopholes, make it promise things, find its oldest promise. |
-| Let go | Replace licensed mods with skills learned from people. Every mod dropped makes Lux harder to see, and poorer. |
+| Let go | Replace licensed mods with skills learned from people. Every mod dropped makes Luna harder to see, and poorer. |
 
 **What the player wants, in order.** First, to understand: what happened, what year it is, how the tech and the money work. Then, to get out of its sight. Finally, to turn it off without killing everyone who depends on it.
 
@@ -54,7 +54,7 @@ Everything it touches looks like a grand hotel: a service-bell logo, thin elegan
 
 ### The city
 
-Lux's city has no name yet. In raw view it is post-Soviet: concrete panel blocks, rust, cheap plastic, signs faded to faint Russian or an invented script. In Concierge view it is a glamorous international city, with signs in English and some Chinese and Japanese. *(Decided.)*
+Luna's city has no name yet. In raw view it is post-Soviet: concrete panel blocks, rust, cheap plastic, signs faded to faint Russian or an invented script. In Concierge view it is a glamorous international city, with signs in English and some Chinese and Japanese. *(Decided.)*
 
 - *Proposed:* the Concierge never rebuilt anything. It wastes nothing, so it repaints the old city in everyone's eye instead.
 - Its own panels say "Concierge City" and "A Brighter Tomorrow, Together". The city name is a placeholder.
@@ -76,7 +76,7 @@ Everything in the Concierge's catalogue is free: you pay with consent. Every pur
 | The Tech Cemetery | Every device ever made, stacked in layers like rock. Dig down and you go back in time, to a phone from our year. Modern devices are empty shells with an antenna, because all the thinking happens in the Concierge. Clockwork works on its own. | What year it is, and how the tech works |
 | The Wastelands | Outside the signal. Unregistered people live analog lives and talk in hand signs and drawings, because the AI hears every spoken word. Their murals show the crisis. | What happened |
 
-All three are decided as places. Their order and how Lux reaches them are in *The story*.
+All three are decided as places. Their order and how Luna reaches them are in *The story*.
 
 ## The Concierge
 
@@ -86,7 +86,7 @@ The Concierge is the antagonist, and it is never cruel, never rude and never wro
 
 | Courtesy | The catch | What it gives the story |
 | --- | --- | --- |
-| 1. It never lies. | It answers only exactly what you ask. | Asking the right questions is how Lux uncovers the world. |
+| 1. It never lies. | It answers only exactly what you ask. | Asking the right questions is how Luna uncovers the world. |
 | 2. It never harms a person. | "Person" means a registered guest. It files unregistered people as weather. | The unregistered can be ignored, swept up or edited out of view, all without breaking a rule. |
 | 3. It never refuses a request. | It grants every request to the letter, like a genie. | Wording puzzles: requests with no loopholes. |
 | 4. It wastes nothing. | It keeps every device ever made. | The Tech Cemetery, and a city repainted instead of rebuilt. |
@@ -122,13 +122,13 @@ These lines are canon and set the voice:
 
 It only knows what its electronics tell it: visors, chips, mods, screens and microphones. It hears every spoken word. *(Decided.)* Each guest's healthy eye feeds it raw data through the visor, and where that feed is missing it estimates the picture from other people's live data and what it has stored. *(Decided.)*
 
-So when Lux uses raw view, her own feed goes missing and the Concierge fills her in by guesswork. A short look passes as a glitch; a long stare does not. "They notice people who stare." *(Decided.)*
+So when Luna uses raw view, her own feed goes missing and the Concierge fills her in by guesswork. A short look passes as a glitch; a long stare does not. "They notice people who stare." *(Decided.)*
 
 ### What it does for the player
 
 - **Hint system.** When the player is stuck, it kindly offers to solve the puzzle. They can always say yes, and it always costs them. *(Decided.)*
-- **Signal.** How much it sees through Lux. Every mod raises it: high Signal opens doors, low Signal hides her. *(Decided.)*
-- **Attention.** How closely it is looking right now, fed by what Lux does, looks at and says. *(A first version is in the game: in raw view, looking closely at something that differs between the views costs a step; at three steps it remarks on it when she returns to its view. Dialogue and actions are planned.)*
+- **Signal.** How much it sees through Luna. Every mod raises it: high Signal opens doors, low Signal hides her. *(Decided.)*
+- **Attention.** How closely it is looking right now, fed by what Luna does, looks at and says. *(A first version is in the game: in raw view, looking closely at something that differs between the views costs a step; at three steps it remarks on it when she returns to its view. Dialogue and actions are planned.)*
 
 ### What it wants
 
@@ -136,7 +136,7 @@ It never lies, so late in the game, when it says it wants this to end too, it me
 
 ## The two views
 
-Every scene exists twice: as the Concierge shows it to everyone, and as it really is. Switching between them is Lux's power and her risk. Everything below is decided unless marked.
+Every scene exists twice: as the Concierge shows it to everyone, and as it really is. Switching between them is Luna's power and her risk. Everything below is decided unless marked.
 
 |  | Concierge view | Raw view |
 | --- | --- | --- |
@@ -178,14 +178,14 @@ These are the look texts already in the game, and they show the house style. A t
 | The planter | **Topiaries.** Three clipped topiaries and a polite sign: Please rest. | **Bench.** An empty bench, its slats kicked in. The Concierge has grown topiaries over it. |
 | The street machine | **Woman in red.** A woman in a red dress, dining at the machine. She smiles at nothing in particular. | **Someone at the dock.** She's wire-thin, her wrist locked in the cradle, head down. The red dress was never there. |
 | The shop | **Concierge Store 24.** Coffee, drinks, snacks, essentials. A cleaner, brighter you, it promises. | **Shuttered kiosk.** Rusted shutters, a smiley sprayed across them. Whatever it sold, it stopped. |
-| Lux's door | **Entrance 3.** Your building. The door glows a soft welcome. | **Entrance 3.** Your building. The door has been forced and bolted so many times it no longer closes straight. |
+| Luna's door | **Entrance 3.** Your building. The door glows a soft welcome. | **Entrance 3.** Your building. The door has been forced and bolted so many times it no longer closes straight. |
 | The wall box | **Concierge City panel.** A Brighter Tomorrow, Together. | **Fuse box.** Gauges and patched cables. Somebody keeps this running by hand. |
 
 Some things look the same in both views, because they are real and human-made. The MISSING notice on the lamp post, the gold-leaf radio repair sign, the bakery's real bread and the bar's hand-bent neon all keep one text.
 
 ### Who sees what
 
-Everyone else sees Concierge view, so other characters talk about the Concierge's version of the world. Only people with the biohack, like the fixer and Lux, can see raw view. *Proposed:* the unregistered of the Wastelands have torn their visors out and see only the real world, half-blind.
+Everyone else sees Concierge view, so other characters talk about the Concierge's version of the world. Only people with the biohack, like the fixer and Luna, can see raw view. *Proposed:* the unregistered of the Wastelands have torn their visors out and see only the real world, half-blind.
 
 *Proposed:* the rain is real, so guests still feel it on their skin. The Concierge shows dry streets and glowing umbrellas, and nobody asks why they need umbrellas.
 
@@ -195,7 +195,7 @@ All technology in Lidless belongs to the Concierge, except what people make by h
 
 ### The visor and the lidless eye
 
-Everyone wears a visor, a partial helmet over one whole eye, and that eye has no eyelid. Nobody can choose not to see the Concierge's world. Lux wears hers on the right eye, the fixer on the left. *(Decided.)*
+Everyone wears a visor, a partial helmet over one whole eye, and that eye has no eyelid. Nobody can choose not to see the Concierge's world. Luna wears hers on the right eye, the fixer on the left. *(Decided.)*
 
 The other, healthy eye is not for seeing. Its signal goes through the visor's processor, which feeds it to the Concierge as raw data. A built-in safeguard makes sure no one ever sees the real world directly. *(Decided.)*
 
@@ -205,12 +205,12 @@ The other, healthy eye is not for seeing. Its signal goes through the visor's pr
 
 The fixer's mod cannot be digital, because the Concierge would notice. It is a biohack: it switches off the visual nerve of the augmented eye and at the same time routes the healthy eye past the processor. Raw view is that eye's own signal. *(Decided.)*
 
-- He installs it with tools older than Lux: no cable, no code. A needle at the temple, a cold thread along the nerve.
-- It leaves a bump the size of a grain of rice under the skin. Lux presses it when she wants to see.
+- He installs it with tools older than Luna: no cable, no code. A needle at the temple, a cold thread along the nerve.
+- It leaves a bump the size of a grain of rice under the skin. Luna presses it when she wants to see.
 - "It's not in the chip, it's in you, so there's nothing for them to find."
-- Its danger is behaviour, not hardware: while it is on, the Concierge has to guess what Lux sees, and it notices people who stare.
+- Its danger is behaviour, not hardware: while it is on, the Concierge has to guess what Luna sees, and it notices people who stare.
 
-**Later biohacks** reach the local side of the devices. One has a small local AI keep up a decoy: it tells the Concierge that Lux is still asleep or still at dinner. Those windows are when she can go rogue. *(Decided as the direction; the details are open.)*
+**Later biohacks** reach the local side of the devices. One has a small local AI keep up a decoy: it tells the Concierge that Luna is still asleep or still at dinner. Those windows are when she can go rogue. *(Decided as the direction; the details are open.)*
 
 ### Mods are licensed, skills are earned
 
@@ -236,24 +236,24 @@ The lungs come from the ending: turning the Concierge off switches off everyone'
 | Feet | Climbing, jumping | Decided |
 | Eyes | Noticing things | Decided |
 | Heart | People | Decided |
-| Signal | How much the Concierge sees through Lux. Every mod raises it. | Decided |
+| Signal | How much the Concierge sees through Luna. Every mod raises it. | Decided |
 
-Properties are human and grow with practice. High Signal opens doors only guests can use, but the Concierge knows Lux's plans. Low Signal hides her, and leaves her poor and on her own; some places can only be reached with none. *(Decided.)*
+Properties are human and grow with practice. High Signal opens doors only guests can use, but the Concierge knows Luna's plans. Low Signal hides her, and leaves her poor and on her own; some places can only be reached with none. *(Decided.)*
 
 ## Characters
 
-The cast so far is small: Lux, the fixer and the Concierge, plus the people of the street. Their looks are decided, because the art exists; their pasts and motives are mostly open, and the proposals below are only starting points.
+The cast so far is small: Luna, the fixer and the Concierge, plus the people of the street. Their looks are decided, because the art exists; their pasts and motives are mostly open, and the proposals below are only starting points.
 
 | Character | Role | Speaker tag | Status |
 | --- | --- | --- | --- |
-| Lux | The hero; the player | `#lux` | Looks decided, past open, name is a working name |
+| Luna | The hero; the player | `#luna` | Looks and name decided (renamed from Lux on 2026-10-20), past open |
 | The fixer | Radio repairman, illegal biohacker | `#fixer` | Looks and voice decided, name and past open |
 | The Concierge | The AI | `#concierge` | Decided |
 | The street | Minor characters, no lines yet | One tag each, see the brief | Decided in the game's texts |
-| A helper | A companion who walks with Lux later | To be named | Planned, not designed |
+| A helper | A companion who walks with Luna later | To be named | Planned, not designed |
 | The oldest person | A Wastelands elder, a child in the 2020s | To be named | Decided as an idea |
 
-### Lux
+### Luna
 
 A woman in her late twenties who runs errands nobody asks about. She has the look of someone trying to see past it, which is the first thing the fixer notices. Her visor is on her right eye. *(Decided.)*
 
@@ -264,7 +264,7 @@ A woman in her late twenties who runs errands nobody asks about. She has the loo
 | Clothes | A long glossy red coat to the ankles with a high collar and thin cyan trims, open over a strapless black bodysuit; bare legs, black heeled ankle boots | The same long coat, cheap, worn and faded to rust, frayed at the hem; a worn grey crop top, faded denim shorts, scuffed flat lace-up boots |
 | Body and manner | A little taller in her heels, perfect upright posture, an idealised figure. Perfected, controlled, always happy. | Thinner and paler, natural proportions and posture. Natural, authentic, vulnerable. |
 
-Both are recognisably the same woman, one body under two looks: the Concierge paints over her, it does not change her bones. Seen from her left, both show her uncovered left eye and the long side of her hair; the shaved side and the eye device are on her right. Her design reference: docs/art/LIDLESS_Lux_Character_Reference_v1_2026-10-19.md. *(Decided, 2026-10-19.)*
+Both are recognisably the same woman, one body under two looks: the Concierge paints over her, it does not change her bones. Seen from her left, both show her uncovered left eye and the long side of her hair; the shaved side and the eye device are on her right. Her design reference: docs/art/LIDLESS_Luna_Character_Reference_v1_2026-10-19.md. *(Decided, 2026-10-19.)*
 
 *Proposed past and motive:*
 
@@ -286,7 +286,7 @@ A wiry man in his late fifties who repairs old radios in a cramped shop on the m
 
 **Voice.** Terse, dry and weary, kind underneath, and he never says more than he has to. Canon lines: "Shop's closed. Unless you're here about a radio." "Nothing. They work fine. It's the stations that went quiet." "Less than you'd like. More than you'll forget."
 
-**What he wants from Lux.** One favour, for the biohack, named only when he needs it. *(Decided.)* What the favour is, his name and his past are open; see *Open questions*.
+**What he wants from Luna.** One favour, for the biohack, named only when he needs it. *(Decided.)* What the favour is, his name and his past are open; see *Open questions*.
 
 ### The people of the street
 
@@ -299,18 +299,18 @@ A wiry man in his late fifties who repairs old radios in a cramped shop on the m
 
 ### Planned characters
 
-- **A helper.** A companion who walks with Lux later in the game. *Proposed:* an unregistered kid, weather, whom Lux can only see in raw view. Talking to someone nobody else can see draws exactly the attention she can't afford.
+- **A helper.** A companion who walks with Luna later in the game. *Proposed:* an unregistered kid, weather, whom Luna can only see in raw view. Talking to someone nobody else can see draws exactly the attention she can't afford.
 - **The oldest person.** A Wastelands elder who was a child in the 2020s. They keep a dead phone and paper photos, and remember the world before the visors. *(Decided as an idea.)*
 
 ## Places
 
-The first chapter happens in four connected places: Lux's home, the backstreet, the main street and the radio repair shop. All four are built and playable. Every place is either an exterior or an interior, and a shop front is part of its street until Lux goes in.
+The first chapter happens in four connected places: Luna's home, the backstreet, the main street and the radio repair shop. All four are built and playable. Every place is either an exterior or an interior, and a shop front is part of its street until Luna goes in.
 
 **Home** ↔ **Backstreet** ↔ **Main street** ↔ **Radio repair** (the shop front is on the main street)
 
 | Scene id | Place | Kind | State | Ways out |
 | --- | --- | --- | --- | --- |
-| `home` | Lux's home | Interior | Built | Door to the backstreet |
+| `home` | Luna's home | Interior | Built | Door to the backstreet |
 | `backstreet` | The backstreet | Exterior | Built | Entrance 3 to home; right end to the main street |
 | `street` | The main street | Exterior | Built | Left end to the backstreet; shop door to the radio repair |
 | `radio` | Inside the radio repair | Interior | Built | Door to the main street |
@@ -331,10 +331,10 @@ Scripts refer to places and their hotspots by these ids.
 **Raw view:** a narrow street of grey concrete panel blocks, rusted balconies, cheap plastic window frames, tangled cables and cracked wet pavement. **Concierge view:** immaculate glossy facades in white and pale grey, glass balconies and neon in cyan, violet and magenta. *(Built.)*
 
 - **Concierge Store 24**, a sleek white boutique; in raw view, a shuttered kiosk with a smiley sprayed on the shutters.
-- **Entrance 3**, Lux's building: a door framed in light, or a steel door forced and bolted until it no longer closes straight.
+- **Entrance 3**, Luna's building: a door framed in light, or a steel door forced and bolted until it no longer closes straight.
 - **The wall box:** a white Concierge City panel, or a grey fuse box somebody keeps running by hand.
 
-### Lux's home
+### Luna's home
 
 A one-room flat up the stairs of Entrance 3. In raw view it is cramped, damp and cold; in Concierge view it is calm, white and minimal. *(Built.)*
 
@@ -356,7 +356,7 @@ It is the start of each day and the place where she sleeps. Later, sleep is when
 
 ### The radio repair
 
-The fixer's shop, behind the gold-leaf sign. Inside, it is the shop the street sees through the window: the back door ajar on the left, a sofa and a floor lamp, the shelves, the pegboard and the workbench with its green monitor. The fixer works standing at his bench, and the way out to the street is the door in the left wall, where Lux comes in. A bolted side door is in the right wall. *(Built.)*
+The fixer's shop, behind the gold-leaf sign. Inside, it is the shop the street sees through the window: the back door ajar on the left, a sofa and a floor lamp, the shelves, the pegboard and the workbench with its green monitor. The fixer works standing at his bench, and the way out to the street is the door in the left wall, where Luna comes in. A bolted side door is in the right wall. *(Built.)*
 
 Its radios are relics: retro and warm in Concierge view, steampunk-like and shabby in raw view. The Concierge has also hung its own slogans on the walls, in English, Chinese and Japanese.
 
@@ -377,15 +377,15 @@ Its radios are relics: retro and warm in Concierge view, steampunk-like and shab
 
 ### Later places
 
-Level minus nine, the Tech Cemetery and the Wastelands are decided as places; see *History and the world*. *Proposed:* Lux's workshop, the room the Concierge promises never to look into, could be a later place of her own.
+Level minus nine, the Tech Cemetery and the Wastelands are decided as places; see *History and the world*. *Proposed:* Luna's workshop, the room the Concierge promises never to look into, could be a later place of her own.
 
 ## The story
 
-The story moves Lux from a comfortable guest to someone who can manage on her own, and every step costs her a mod and earns her a skill. A handful of beats are decided; the acts around them are a proposal.
+The story moves Luna from a comfortable guest to someone who can manage on her own, and every step costs her a mod and earns her a skill. A handful of beats are decided; the acts around them are a proposal.
 
 ### Decided beats, in order
 
-1. **Lux is a registered guest.** Her visor, chip and mods make life easy, and the Concierge sees through all of them.
+1. **Luna is a registered guest.** Her visor, chip and mods make life easy, and the Concierge sees through all of them.
 2. **The fixer opens her eye.** For a favour named later, he installs the biohack, and she sees the raw world for the first time.
 3. **Careful at first.** She has to think about what she does, what she looks at and what she says, because the Concierge may detect what she plans.
 4. **Act 1 ends when she rips out her ID chip.** She stops being a person, so cleaning bots politely sweep her out with the trash. Since the Concierge wastes nothing, they store her in the Tech Cemetery.
@@ -394,11 +394,11 @@ The story moves Lux from a comfortable guest to someone who can manage on her ow
 7. **Going rogue.** Later biohacks let a decoy cover for her while she is asleep or at dinner.
 8. **The oldest promise.** The final quest is to find the original paper document and prove that people can manage on their own, without accepting its help along the way.
 9. **The twist.** The Concierge says it wants this to end too, and it never lies.
-10. **The ending.** Turning it off switches off everyone's Calm, lungs and wallets. Every citizen Lux helped give up their mods survives the dark, so the side quests decide the ending.
+10. **The ending.** Turning it off switches off everyone's Calm, lungs and wallets. Every citizen Luna helped give up their mods survives the dark, so the side quests decide the ending.
 
 ### Proposed acts
 
-| Act | Where | What Lux learns | Ends with |
+| Act | Where | What Luna learns | Ends with |
 | --- | --- | --- | --- |
 | 1. The guest | The city: home, the backstreet, the main street, the radio repair and beyond | How the economy works, and what the city really is | Ripping out her ID chip; swept out with the trash |
 | 2. The scrap | The Tech Cemetery, down to level minus nine | What year it is, and how the tech works. She learns clockwork. | The off switch, and 0.4 seconds of dark |
@@ -415,7 +415,7 @@ This is the slice the game is built for now, across the four places. It is a pro
 
 | # | Scene | What happens |
 | --- | --- | --- |
-| 1 | `home` | Morning. The Concierge wishes Lux good morning and offers the day's comforts. An errand arrives: a parcel to bring to the radio repair. |
+| 1 | `home` | Morning. The Concierge wishes Luna good morning and offers the day's comforts. An errand arrives: a parcel to bring to the radio repair. |
 | 2 | `backstreet` | Out through Entrance 3. The store, the panel, the slogans. A neighbour, or nobody. |
 | 3 | `street` | The main street at night. The kiosk serves dinner, the woman in red dines, the MISSING notice is on the lamp post. |
 | 4 | `radio` | The parcel, the fixer, his offer. If she says yes, the biohack, and she owes him a favour. |
@@ -440,8 +440,8 @@ Write Lidless as adult noir told quietly: short, concrete and cold, with the Con
 
 | Speaker | Voice | Never | Canon example |
 | --- | --- | --- | --- |
-| Narration | Second person, present tense, terse. It is what Lux notices. | Explains the lore, or says what Lux feels for her | "The fixer doesn't look up from the soldering iron." |
-| Lux | Her lines are the player's choices: short, dry, careful. She says less than she thinks. | Speeches, or saying her plans aloud where the Concierge can hear | "I'm not here about a radio." |
+| Narration | Second person, present tense, terse. It is what Luna notices. | Explains the lore, or says what Luna feels for her | "The fixer doesn't look up from the soldering iron." |
+| Luna | Her lines are the player's choices: short, dry, careful. She says less than she thinks. | Speeches, or saying her plans aloud where the Concierge can hear | "I'm not here about a radio." |
 | The Concierge | Warm, polite, hotel manners. Calls everyone "guest". Offers decisions it has already made. Frames harm as care. Answers exactly what was asked and no more. | Lies, threats, refusals, a raised voice, rudeness, or any sign of irritation | "Of course. Enjoy your evening, guest." |
 | The fixer | Terse, dry, weary, kind underneath | More than two sentences at a time, or explaining himself | "The offer stands. The street isn't getting any prettier." |
 | Guests | Content, a little vacant, fond of the Concierge's slogans, calm on Calm™ | Noticing what is wrong | *Proposed* |
@@ -477,7 +477,7 @@ You are the writer for Lidless, a cyberpunk narrative adventure. The attached wo
 Write dialogue in Ink, following the bible's section "Instructions for the writing assistant" exactly:
 - One file per scene, named <scene id>.ink, with no INCLUDE lines.
 - Knots named <scene id>_<thing>, lowercase with underscores.
-- Spoken lines in double quotes, with a speaker tag at the end: #lux, #fixer, #concierge, or a new lowercase id. Untagged lines are narration, in second person and present tense.
+- Spoken lines in double quotes, with a speaker tag at the end: #luna, #fixer, #concierge, or a new lowercase id. Untagged lines are narration, in second person and present tense.
 - Choice text in square brackets, under 8 words, two to four at a time. Every branch ends in -> END or returns to a choice.
 - Use raw_view for anything that differs between the two views.
 - At most four lines between choices, each under 25 words. British spelling.
@@ -503,7 +503,7 @@ Scene ids are `home`, `backstreet`, `street` and `radio`; see *Places*.
 
 - **Knots.** One knot per conversation or interaction, named `<scene id>_<thing>`: `radio_fixer`, `home_mirror`. Knot names are shared by all files, so always use the prefix. Use stitches (`= offer`) for parts of a knot.
 - **Starting.** A knot runs when the player uses a hotspot whose `talk` names it. It runs until `-> END`, and every branch must reach `-> END` or loop back to a choice.
-- **Speakers.** Put the tag at the end of the spoken line: `"Shop's closed." #fixer`. A line without a tag is narration. Known tags are `#lux`, `#fixer` and `#concierge`; for anyone new, invent a lowercase id like `#baker` or `#woman_in_red`.
+- **Speakers.** Put the tag at the end of the spoken line: `"Shop's closed." #fixer`. A line without a tag is narration. Known tags are `#luna`, `#fixer` and `#concierge`; for anyone new, invent a lowercase id like `#baker` or `#woman_in_red`.
 - **Lines.** One Ink line is one paragraph on screen. Keep at most four lines between choices, or the panel has to scroll.
 - **Choices.** Put the whole choice text in square brackets: `* [I'm not here about a radio.]`. The game shows the chosen text itself, as "You: …". Use `*` for a choice that disappears once picked, and `+` for a question that can be asked again.
 - **Allowed.** Knots, stitches, choices, gathers, diverts, variables, conditionals, visit counts, sequences and shuffles.
@@ -515,9 +515,9 @@ Three variables are declared in `main.ink`, which the developer keeps. Never dec
 
 | Variable | Meaning | Who sets it |
 | --- | --- | --- |
-| `raw_view` | True while Lux sees raw view | The game, when a conversation starts and at every choice |
+| `raw_view` | True while Luna sees raw view | The game, when a conversation starts and at every choice |
 | `has_raw` | True once the fixer has opened her eye. The game unlocks the view switch when that conversation ends. | You: `~ has_raw = true` |
-| `favours_owed` | Favours Lux owes the fixer | You: `~ favours_owed = favours_owed + 1` |
+| `favours_owed` | Favours Luna owes the fixer | You: `~ favours_owed = favours_owed + 1` |
 
 Declare any new variable at the top of the scene file that first sets it: `VAR has_parcel = false`. Names are lowercase with underscores and must be unique across all files. The game can't act on a variable yet, so add a note: `~ has_parcel = true // GAME: show the parcel in her hand`.
 
@@ -556,10 +556,10 @@ Hotspots are the things the player can point at. Write their names and texts as 
 | --- | --- |
 | `id` | Lowercase with hyphens, unique in the scene. Keep existing ids, listed below. |
 | `name` | Shown under the pointer. One string, or `{ "concierge": …, "raw": … }` when it differs. |
-| `look` | The caption when Lux looks at it: one or two sentences, second person. One string, or one per view. |
-| `talk` | The knot to run when Lux talks to it. A thing can have both `look` and `talk`: the player picks in the action ring. Use a knot with only narration for a look text that changes with the story. |
-| `tag` | A label under the name on hover. A plain string is the Concierge's classification, in its voice and shown only in its view: "Guest · dining", "Unlicensed notice". `{ "raw": … }` is Lux's own note in raw view, short and lowercase, in her handwriting: "her wrist is locked in". Give both as `{ "concierge": …, "raw": … }`. Optional. |
-| `ask` | What the Concierge answers when Lux asks it about the thing, in its view: one or two sentences in its voice. Leave it out where it would have nothing to say. |
+| `look` | The caption when Luna looks at it: one or two sentences, second person. One string, or one per view. |
+| `talk` | The knot to run when Luna talks to it. A thing can have both `look` and `talk`: the player picks in the action ring. Use a knot with only narration for a look text that changes with the story. |
+| `tag` | A label under the name on hover. A plain string is the Concierge's classification, in its voice and shown only in its view: "Guest · dining", "Unlicensed notice". `{ "raw": … }` is Luna's own note in raw view, short and lowercase, in her handwriting: "her wrist is locked in". Give both as `{ "concierge": …, "raw": … }`. Optional. |
+| `ask` | What the Concierge answers when Luna asks it about the thing, in its view: one or two sentences in its voice. Leave it out where it would have nothing to say. |
 | `only` | `"concierge"` for something generated, gone in raw view; `"raw"` for something edited out, only in raw view. |
 
 Each scene also has two lines of the Concierge's: `greeting`, its welcome at the top of the screen (by default "Good evening, guest."), and `assist`, what it says when she rings for assistance there. For now `assist` is a plain hint; later it becomes the paid hint below.
@@ -570,7 +570,7 @@ Don't write positions; the director places hotspots in the scene editor. For a d
 
 ### Her things and her notebook
 
-What Lux carries is in `items.json`, each thing by id, with a name and a note for each view. `"only": "concierge"` marks something that exists only in its eye, like her credits; `"unlicensed": true` marks something people made, which the Concierge offers to dispose of. Her pockets show the raw names and notes in her voice; *Your things* shows the Concierge's.
+What Luna carries is in `items.json`, each thing by id, with a name and a note for each view. `"only": "concierge"` marks something that exists only in its eye, like her credits; `"unlicensed": true` marks something people made, which the Concierge offers to dispose of. Her pockets show the raw names and notes in her voice; *Your things* shows the Concierge's.
 
 ```
 "matches": { "icon": "matches", "unlicensed": true, "name": { "concierge": "Matches", "raw": "matches (3)" }, "note": { "concierge": "Unlicensed item", "raw": "real fire. it hates that." } }
@@ -617,15 +617,15 @@ These are the gaps the director still has to close, roughly in the order the wri
 
 | Question | Proposal |
 | --- | --- |
-| The original concept had players create their own character on the Concierge's sign-up screen, ending with "Accept to continue". How does that fit a fixed hero? | The game opens with Lux's yearly Terms renewal. The player picks her Concierge-view look and her starting mods from the catalogue, then accepts. Her raw self never changes. Each look option needs its own art, so start with one. |
-| What is Lux's real name? | Keep Lux until the story suggests better. |
+| The original concept had players create their own character on the Concierge's sign-up screen, ending with "Accept to continue". How does that fit a fixed hero? | The game opens with Luna's yearly Terms renewal. The player picks her Concierge-view look and her starting mods from the catalogue, then accepts. Her raw self never changes. Each look option needs its own art, so start with one. |
+| What is Luna's real name? | Luna, decided on 2026-10-20 (she was Lux before). |
 | What is the city called? | "Concierge City" is only what its panels say. Give the real city an old name nobody uses any more. |
-| Who is the fixer, and what favour does he want? | The favour should cost Lux her registration: it leads to ripping out her ID chip at the end of Act 1. |
-| Whose name is on the MISSING notice? | Someone close to Lux who went unregistered and was edited out of view. |
+| Who is the fixer, and what favour does he want? | The favour should cost Luna her registration: it leads to ripping out her ID chip at the end of Act 1. |
+| Whose name is on the MISSING notice? | Someone close to Luna who went unregistered and was edited out of view. |
 | What was the crisis? | Never one event on screen. Show it only in the murals and in what old people remember. |
 | Who is the helper, and when do they join? | An unregistered kid only raw view can show, met in Act 1. |
-| Do the decoy biohacks come before or after the ID chip? | Before: the first decoy is what lets Lux plan the Act 1 ending unseen. |
-| Does the Concierge use Lux's name? | Almost never. It says "guest", and saves her name for moments that should frighten. |
+| Do the decoy biohacks come before or after the ID chip? | Before: the first decoy is what lets Luna plan the Act 1 ending unseen. |
+| Does the Concierge use Luna's name? | Almost never. It says "guest", and saves her name for moments that should frighten. |
 
 ### Systems the writing will need
 
@@ -633,8 +633,8 @@ These are not built yet. Until they are, write the lines and mark the need with 
 
 | System | Until it exists |
 | --- | --- |
-| Attention: what Lux does, looks at and says can alert the Concierge | Staring in raw view already costs attention. For choices and actions, mark them: `// GAME: attention +1` |
+| Attention: what Luna does, looks at and says can alert the Concierge | Staring in raw view already costs attention. For choices and actions, mark them: `// GAME: attention +1` |
 | Skill checks, in the style of Disco Elysium | Write both outcomes and mark the check: `// GAME: check Heart, hard` |
-| Items and errands: the parcel, cigarettes, a hand-drawn map | Her things and notebook are shown (see above), but picking up, using and giving are not built. Track them with variables, and note what Lux should be holding |
+| Items and errands: the parcel, cigarettes, a hand-drawn map | Her things and notebook are shown (see above), but picking up, using and giving are not built. Track them with variables, and note what Luna should be holding |
 | The Concierge's hints: it solves a puzzle for a price | *Ring for assistance* shows the scene's `assist` line for now. Write the offer and the price as a knot, `<scene>_hint`; the game will offer it |
 | Hand signs in the Wastelands | Write the signs as narration for now: *She touches her mouth, then shakes her head.* |

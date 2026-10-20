@@ -8,6 +8,7 @@ import { join, resolve } from 'node:path';
 import sharp from 'sharp';
 import { contentBox, fitColours, fitToHeight, hardenAlpha, paletteFit, pixelate, unionBox } from './clean.mjs';
 import { blank, crop, readRGBA, resize, writePNG } from './image.mjs';
+import { loadReferences } from './images.mjs';
 import { edit } from './openai.mjs';
 import { conciergePartsPrompt, cut as cutParts, EXTRA_PARTS, idleCycle, otherSidePrompt, PARTS as PARTS_NAMES, partsPromptFor, plant, pointOf, pose as posePartsRig, runCycle, SHEET, standPose, template as partsTemplate, walkAngles, walkCycle } from './parts.mjs';
 import { loadRecipe, ROOT } from './recipe.mjs';
@@ -47,7 +48,10 @@ export async function cmdParts([file], opt) {
     const rawSheet = join(dir, left ? 'raw-left-sheet.png' : 'raw-sheet.png');
     if (!existsSync(rawSheet)) throw new Error('make the raw parts first: they are edited into the Concierge ones');
     if (!r.concierge) throw new Error(`${r.name} has no "concierge" description`);
-    res = await edit({ prompt: `${conciergePartsPrompt(r.concierge)} ${left ? r.parts?.left?.concierge ?? '' : ''}`, images: [rawSheet], size: `${SHEET.w}x${SHEET.h}`, quality, n: 1, background: 'transparent' });
+    // pictures of her in the augmented look, if the recipe has them, show what the words cannot: her colours, her hair
+    const refs = (r.conciergeReferences ?? []).map((f) => resolve(ROOT, f));
+    const note = refs.length ? 'The first attached image is the parts sheet to edit. The other attached images show this same character in the augmented look: match her colours, hair, eye device and rendering there, but keep every part on the sheet exactly where it is, with the same outline. ' : '';
+    res = await edit({ prompt: `${note}${conciergePartsPrompt(r.concierge, r.parts?.reshape)} ${left ? r.parts?.left?.concierge ?? '' : ''}`, images: [rawSheet, ...(await loadReferences(refs))], size: `${SHEET.w}x${SHEET.h}`, quality, n: 1, background: 'transparent' });
   }
   await writeFile(sheetFile, res.images[0]);
   // a mirrored left sheet has every part on the other side of the sheet

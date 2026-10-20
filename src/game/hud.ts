@@ -1,6 +1,6 @@
 // The HUD over the frame. In the Concierge's view it is the Concierge's own interface: it names and classifies what
 // her finger lights up, greets her, offers its services and keeps her things in its catalogue. In raw view that
-// interface is gone, because the augmented eye is switched off: what is left is Lux's own, her handwriting on what she
+// interface is gone, because the augmented eye is switched off: what is left is Luna's own, her handwriting on what she
 // has noticed, her pockets, her notebook and her sense of being watched.
 //
 // Two balls at the bottom corners, made for thumbs, and nothing that needs a mouse to hover: her things on the left

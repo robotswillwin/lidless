@@ -47,7 +47,7 @@ The design: https://claude.ai/artifact/X65FknT3sqWZBgJaHgHboZ. In code: `src/gam
 
 - **Two skins.** In Concierge view the HUD is the Concierge's own interface: its greeting and line of the day, its
   labels on things, its messages, *Ring for assistance* and *Your things*. In raw view that interface is gone with the
-  augmented eye, and what is left is Lux's own: her handwriting, her pockets, her notebook, her sense of being watched
+  augmented eye, and what is left is Luna's own: her handwriting, her pockets, her notebook, her sense of being watched
   and the temple switch.
 - **Two balls, for thumbs.** Tap to walk (far off, she runs; a door or the street's end, she goes through). The right
   ball slides the verbs out along the bottom, her properties: Eyes look, Heart talks, Hands use and take, and the
@@ -75,6 +75,6 @@ The design: https://claude.ai/artifact/X65FknT3sqWZBgJaHgHboZ. In code: `src/gam
 | M0 Setup: repository, tooling, renderer drawing sprites, quality tiers | Done |
 | M1 Vertical slice: tap to walk, hotspots, view switch unlocked by the fixer, Ink conversations, saving | Done, on one screen; the scrolling camera comes with a wider street |
 | M2 Pipeline v1: clean, derive maps, pack, preview, one image AI connected | Done. The live API is untested until there is a key in `.env.local` |
-| M3 First real art through the pipeline | In progress. Lux (the hero) walks both ways from AI-drawn parts. Scenes connect through doors and street ends, a camera scrolls wide scenes, and a scene editor places lights, hotspots and exits. All four opening places are built at one scale, the street's people are generated characters, and the game starts at home. The art review's first pass has begun: the radio repair is rebuilt from a blockout at true scale, its tools within reach, and the woman at the street machine holds one pose in both views. The HUD is in, in both skins. The look is set: flat, simple shapes and dramatic light, like a modern Another World (see ASSETS.md, Painted scenes). The main street and Lux are done in it, the camera pulled back; next the backstreet, Lux's home (framed in part of the screen) and the radio repair, and lighting variants (rain, fog, a power cut, dawn) |
+| M3 First real art through the pipeline | In progress. Luna (the hero) walks both ways from AI-drawn parts. Scenes connect through doors and street ends, a camera scrolls wide scenes, and a scene editor places lights, hotspots and exits. All four opening places are built at one scale, the street's people are generated characters, and the game starts at home. The art review's first pass has begun: the radio repair is rebuilt from a blockout at true scale, its tools within reach, and the woman at the street machine holds one pose in both views. The HUD is in, in both skins. The look is set: flat, simple shapes and dramatic light, like a modern Another World (see ASSETS.md, Painted scenes). The main street and Luna are done in it, the camera pulled back; next the backstreet, Luna's home (framed in part of the screen) and the radio repair, and lighting variants (rain, fog, a power cut, dawn) |
 | M4 Turn-based encounters | |
 | M5 Mobile builds and touch controls | |

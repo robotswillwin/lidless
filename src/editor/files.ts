@@ -55,7 +55,7 @@ export async function openScene(id: string): Promise<void> {
   ed.sel = { kind: 'scene' };
   ed.camX = 0;
   const first = Object.values(ed.file.spawns)[0];
-  ed.lux = { x: first?.x ?? ed.file.size[0] / 2, facing: first?.facing ?? 1, show: true, follow: ed.lux.follow, track: ed.lux.track };
+  ed.luna = { x: first?.x ?? ed.file.size[0] / 2, facing: first?.facing ?? 1, show: true, follow: ed.luna.follow, track: ed.luna.track };
   await rebuild();
   dom.sceneSel.value = id;
   syncAddress();

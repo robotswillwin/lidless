@@ -1,5 +1,5 @@
 // The scene editor: a scene rendered as in the game, its lights, hotspots, places and areas drawn over it to select,
-// drag and edit, and Lux to judge the light on. Saves to public/assets/scenes/<id>/scene.json through the dev server.
+// drag and edit, and Luna to judge the light on. Saves to public/assets/scenes/<id>/scene.json through the dev server.
 // Its parts: state.ts (what is edited), files.ts (opening, building, saving, undo), overlay.ts (what is drawn over the
 // scene, and dragging it), panels.ts with form.ts (the side panel), edit.ts (adding and deleting).
 
@@ -25,7 +25,7 @@ function draw(): void {
   fitCanvas(dom.canvas);
   if (!ed.scene || !ed.runner) return;
   const file = ed.file, t = (performance.now() - t0) / 1000, actors: DrawSprite[] = [], cam: [number, number] = [viewX(), 0];
-  if (ed.hero && ed.lux.show) actors.push(heroDrawing(ed.hero, { x: ed.lux.x, walkY: file.walk.y, cam, scale: file.actorScale ?? 1, facing: ed.lux.facing, frame: frameFor(ed.hero.def, false, 0, t, ed.lux.facing) }));
+  if (ed.hero && ed.luna.show) actors.push(heroDrawing(ed.hero, { x: ed.luna.x, walkY: file.walk.y, cam, scale: file.actorScale ?? 1, facing: ed.luna.facing, frame: frameFor(ed.hero.def, false, 0, t, ed.luna.facing) }));
   renderer.lightView = ed.lightView;
   renderer.render(ed.runner.frame(t, { view: ed.view, sinceSwitch: t - ed.switchedAt }, cam, actors, [-1000, -1000]));
 }
