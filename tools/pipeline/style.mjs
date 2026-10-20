@@ -40,7 +40,8 @@ const RAW_WORLD = [
   'People look sick, pale and dull, out of shape and under-trained, in cheap, trashy, worn-out clothes.',
   RAW_ELECTRONICS,
   RAW_HELMET,
-  'Hardly any text: old signs have peeled away or faded almost to nothing, and what little lettering survives is faint, in Russian or an invented script.',
+  // the director, 20 October: written text only as the trashy remains of a past world, never a clean sign
+  'Almost no text. What lettering survives is only the trashy remains of a past world: a few broken, faded letters left on a rusted sign, a torn and weathered old poster, in Russian or an invented script. Never a clean, legible sign, a fresh poster or a whole word in good repair.',
   RAW_COLOURS,
 ].join(' ');
 /** In flat art, age and dirt are colours and a few shapes, never texture: the same world, said so it stays simple. */

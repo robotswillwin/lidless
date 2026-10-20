@@ -139,7 +139,7 @@
    ],
    "look": {
     "concierge": "The Concierge's face, as big as weather, watching the street with kind attention.",
-    "raw": "A faded poster of a stern man, three storeys tall. ПОРЯДОК: order. In its view, its own face hangs here."
+    "raw": "A poster of a stern man, three storeys tall, torn and faded almost away. Whatever it said is gone. In its view, its own face hangs here."
    },
    "tag": {
     "concierge": "At your service",
@@ -174,7 +174,10 @@
     34
    ],
    "stand": 175,
-   "look": "RADIO REPAIR, in gold leaf. Somebody still cares about lettering."
+   "look": {
+    "concierge": "RADIO REPAIR, in gold leaf. Somebody still cares about lettering.",
+    "raw": "An old sign, most of its letters fallen off. Nobody reads signs any more."
+   }
   },
   {
    "id": "window",

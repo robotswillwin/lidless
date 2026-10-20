@@ -28,6 +28,10 @@ Luna walks along the bollards in both, about a fifth of the picture tall.
   violet, blue, pink and cyan, warm and clean; raw view is the same shapes in amber-brown smog, dim and worn. Age and
   dirt in raw view are duller, darker colours and a few simple shapes (smokestacks, a poster, dead plants), never
   texture, stains or rust spots: the first raw street, with its grime and pipes, had far too much detail for the look.
+- **Text in raw view.** Very little, and only as the trashy remains of a past world: a few broken, faded letters left on
+  a dead sign, an old poster torn and weathered almost away. Never a clean, legible sign or a whole word in good repair,
+  in Russian or anything else (the director, 20 October). The Concierge's view has its own clean signs in English,
+  Chinese and Japanese. The pipeline's raw-view prompt says so (tools/pipeline/style.mjs).
 
 ## The street in the game
 
@@ -42,7 +46,7 @@ views are equally simple and line up for the switch. What the scene's story need
 | The shop's gold-leaf sign: RADIO REPAIR, and РЕМОНТ РАДИО in raw | Hotspot `sign`; the world bible's hand-made lettering on the radio repair shop |
 | The Concierge's face on the tall billboard, and in raw a faded poster of a stern man, ПОРЯДОК | Hotspot `sky` |
 | A pale moon in the raw smog | Hotspot `moon` |
-| Raw lettering: the corner sign reads ОТЕЛЬ, the dining machine's screen shows no text | The world bible: raw view's signs are faint Russian or gone (Decided) |
+| Raw lettering, worn down on 20 October: the shop's sign and the corner sign keep only a few faded letters, the poster of the stern man is torn almost away, the dining machine's screen shows no text | The world bible: raw view's signs are faint Russian or gone (Decided); the director: text only as trashy remains |
 
 Luna is drawn at the size the pictures show her, walking along the bollards (`actorScale` 0.46, walk line 452).
 

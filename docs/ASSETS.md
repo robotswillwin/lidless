@@ -355,7 +355,10 @@ gold-leaf sign, the Concierge's face on the billboard. Raw view was then redrawn
 concierge.png`: the same shapes, lined up within a pixel, dim and worn in amber-brown smog, with the sign reading
 РЕМОНТ РАДИО, a faded ОТЕЛЬ, a poster where the face hangs and the woman wire-thin at the machine; `touch` added the
 sleeper. The proposed raw picture itself, with its grime and pipes, had far too much detail for the look. The earlier
-streets are in git's history.
+streets are in git's history. On 20 October raw view's lettering was worn down to remains with `touch` (the shop's
+sign, the corner sign, the poster's slogan, the backstreet kiosk's sign, the poster outside the radio repair) and the
+outdoor scenes split again, which used the far layers' fills already made: raw view's text is only the trashy remains
+of a past world (see the look reference).
 
 How the backstreet was made (`art/backstreet/lane.json`): its Concierge view was drawn first, with `generate --view
 concierge`, from the recipe's Concierge description and two references, the director's flat street and the Another
