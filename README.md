@@ -77,7 +77,7 @@ The world is `public/assets/world.json`: its scenes, where the game starts and w
 A hotspot with `go` is an exit to another scene. Over an end of the walk line, walking into it leaves too.
 
 **What Luna wears.** `world.json`'s `hero.outfits` lists her outfits, each a sprite of its own (`src/game/outfits.ts`):
-her coat, home clothes, a bathrobe and a party dress. A scene with `"wardrobe": true` is her home: she takes her coat
+her coat, home clothes (an old T-shirt and shorts; to the Concierge, blush silk), a cardigan, a bathrobe and a party dress. A scene with `"wardrobe": true` is her home: she takes her coat
 off as she comes in, and a hotspot with `"wardrobe": true` (the coat hook by her door) lets her pick what she wears
 there, with Use, from a list like her answers in a conversation. As she leaves she puts her coat on over home clothes
 (an outfit's `out` names what she changes into), goes out as she is in the party dress (`out: true`), and does not go

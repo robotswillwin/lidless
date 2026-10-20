@@ -22,8 +22,13 @@
         "home": "home"
       },
       "home": {
-        "sprite": "cast/hero-home",
+        "sprite": "cast/hero-lounge",
         "name": "Home clothes",
+        "out": "coat"
+      },
+      "cardigan": {
+        "sprite": "cast/hero-home",
+        "name": "Cardigan",
         "out": "coat"
       },
       "robe": {

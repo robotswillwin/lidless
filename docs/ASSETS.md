@@ -131,7 +131,10 @@ flickers:
   place: a cardigan's hem, a robe's skirt, a dress's skirt (`parts.proportions.coat`, its length). The image model lays
   out each parts sheet its own way: `parts.at` gives where each piece is on that sheet, and `parts --recut` cuts it
   again. A piece the rig swings out from under a skirt shows: the robe's thighs are coloured as the robe, so it reads
-  as closed.
+  as closed. Check each sheet for what the template asks of a coat that a T-shirt does not have: the home clothes'
+  forearms came with a sleeve's end on them, and their torso with the near arm drawn on it, both painted out before
+  rigging (`art/cast/hero-lounge`); a Concierge sheet drawn as one piece from shoulders to hem is cut at the waist with
+  `erase`.
 - **Characters that stand** (`touch --frame idle/N`): each frame repaints one area, such as a hand or a face, and
   everything outside it is identical in every frame. The recipe's `anims.idle` sets `fps` and `seq`. The fixer's
   soldering loop is made this way.
