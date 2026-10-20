@@ -30,6 +30,48 @@ export function num(label: string, value: number, set: (v: number) => void, opts
   return field(label, input);
 }
 
+/** How a slider's value is shown and kept: as it is, or on a curve, so the low end gets the fine control. */
+export interface Scale { toUi: (v: number) => number; fromUi: (u: number) => number }
+/** An amount from 0 to 1 for a value from 0 to `max` on a square curve: 0.5 is a quarter of `max`. */
+export const amount = (max: number): Scale => ({ toUi: (v) => Math.sqrt(Math.max(0, v) / max), fromUi: (u) => +(max * u * u).toFixed(3) });
+
+/**
+ * A value on a slider, with a box beside it to type it exactly. What it shows is an amount from 0 to 1, a distance in
+ * pixels or a factor, as `scale` turns the stored value into it and back; `mark` is a point on the track (in what it
+ * shows), such as where a factor is as standard. One undo step for each drag or typed change.
+ */
+export function slider(label: string, value: number, set: (v: number) => void, opts: { min: number; max: number; step?: number; scale?: Scale; mark?: number; after?: () => void }): HTMLLabelElement {
+  const { min, max } = opts, step = opts.step ?? 0.01, toUi = opts.scale?.toUi ?? ((v: number) => v), fromUi = opts.scale?.fromUi ?? ((u: number) => u);
+  const places = Math.max(0, -Math.floor(Math.log10(step) + 1e-9)), fmt = (u: number) => String(+u.toFixed(places));
+  const row = document.createElement('label'), name = document.createElement('span'), wrap = document.createElement('span');
+  row.className = 'ed-field ed-slider';
+  wrap.className = 'ed-slide';
+  name.textContent = label;
+  const range = document.createElement('input'), box = document.createElement('input');
+  range.type = 'range';
+  range.min = String(min);
+  range.max = String(max);
+  range.step = String(step);
+  box.type = 'number';
+  box.step = String(step);
+  const u0 = toUi(value);
+  range.value = String(u0);
+  box.value = fmt(u0);
+  if (opts.mark !== undefined) { wrap.classList.add('marked'); wrap.style.setProperty('--at', String((opts.mark - min) / (max - min))); }
+  const apply = (u: number) => { if (Number.isFinite(u)) { set(fromUi(u)); (opts.after ?? redraw.overlay)(); } };
+  range.addEventListener('input', () => { const u = Number(range.value); box.value = fmt(u); apply(u); });
+  box.addEventListener('input', () => { const u = Number(box.value); if (box.value.trim() !== '' && Number.isFinite(u)) { range.value = String(u); apply(u); } });
+  let before = '';
+  for (const input of [range, box]) {
+    input.addEventListener('pointerdown', () => { before = snapshot(); });
+    input.addEventListener('focus', () => { before = snapshot(); });
+    input.addEventListener('change', () => { if (before) remember(before); before = snapshot(); });
+  }
+  wrap.append(range, box);
+  row.append(name, wrap);
+  return row;
+}
+
 export function str(label: string, value: string, set: (v: string) => void, opts: { area?: boolean; list?: string[]; after?: () => void } = {}): HTMLLabelElement {
   const input = document.createElement(opts.area ? 'textarea' : 'input') as HTMLInputElement | HTMLTextAreaElement;
   input.value = value;

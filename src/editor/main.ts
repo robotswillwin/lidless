@@ -5,7 +5,7 @@
 
 import '../style.css';
 import { Story } from 'inkjs';
-import { loadSprite, spriteDefaults } from '../engine/assets';
+import { loadSprite, spriteDefaults, type LightDef } from '../engine/assets';
 import { loadProjectLook } from '../engine/look';
 import { loadPresets, presets } from '../engine/presets';
 import { fitCanvas, type DrawSprite } from '../engine/renderer';
@@ -14,7 +14,7 @@ import { loadSceneFile, loadWorld } from '../game/scenefile';
 import storyJson from '../story/main.ink';
 import { createLookPanel } from '../look-panel';
 import { add, deleteSelected, newScene, nudge } from './edit';
-import { listAssets, openScene, save, syncAddress, undo } from './files';
+import { listAssets, openScene, revert, save, syncAddress, undo } from './files';
 import { lunaFrame } from './luna';
 import { bindOverlay, drawOverlay } from './overlay';
 import { drawSide } from './panels';
@@ -75,9 +75,19 @@ function setTask(t: Task): void {
   if (ed.file) { drawOverlay(); drawSide(); }
 }
 
+/** What each task is, under the task's add buttons. */
+const TASK_HINTS: Record<Task, string> = {
+  all: 'Everything in the scene. 2 to 5 work on one thing at a time.',
+  layout: 'The walk line, the reflection line and the ground, areas, layers, the camera, the people’s size.',
+  interaction: 'Hotspots and exits, their texts and conversations, places to arrive at.',
+  lighting: 'Lights and their kinds, and the scene’s light. G shows only what the lights do.',
+  effects: 'Steam and smoke, light shafts, beacons, drips, movers.',
+};
+
 function syncTask(): void {
   document.querySelectorAll<HTMLButtonElement>('[data-task]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.task === ed.task)));
-  document.querySelectorAll<HTMLElement>('.ed-bar [data-in]').forEach((e) => { e.hidden = ed.task !== 'all' && e.dataset.in !== ed.task; });
+  document.querySelectorAll<HTMLElement>('[data-in]').forEach((e) => { e.hidden = ed.task !== 'all' && e.dataset.in !== ed.task; });
+  dom.toolsHint.textContent = TASK_HINTS[ed.task];
 }
 
 /** Both, raw or AR: in raw or AR, that view is on screen. */
@@ -109,6 +119,7 @@ addEffect.addEventListener('change', () => { const kind = addEffect.value; addEf
 dom.button('new-scene').addEventListener('click', () => void newScene().catch(showError));
 dom.button('save').addEventListener('click', () => void save());
 dom.button('undo').addEventListener('click', () => void undo());
+dom.button('revert').addEventListener('click', () => void revert().catch(showError));
 dom.button('look').addEventListener('click', () => ed.look?.toggle());
 const lighting = dom.button('lighting');
 const toggleLighting = () => { ed.lightView = !ed.lightView; lighting.setAttribute('aria-pressed', String(ed.lightView)); };
@@ -164,7 +175,15 @@ async function start(): Promise<void> {
   ed.assets = list;
   for (const id of ed.world.scenes) dom.sceneSel.add(new Option(id, id));
   // the kinds of light, after a light of its own
-  for (const [key, p] of Object.entries(presets().lights)) addLight.add(new Option(p.label, `light:${key}`));
+  // the kinds of light by the views they shine in
+  for (const [title, test] of [['Both views', (l: LightDef) => !l.ar && !l.raw], ['AR only', (l: LightDef) => !!l.ar], ['Raw only', (l: LightDef) => !!l.raw && !l.ar]] as const) {
+    const kinds = Object.entries(presets().lights).filter(([, p]) => test(p.light as LightDef));
+    if (!kinds.length) continue;
+    const group = document.createElement('optgroup');
+    group.label = title;
+    for (const [key, p] of kinds) group.append(new Option(p.label, `light:${key}`));
+    addLight.append(group);
+  }
   const heroPath = ed.world.hero.sprite, cut = heroPath.lastIndexOf('/');
   ed.hero = await loadSprite(gl, `${base}/${heroPath.slice(0, cut)}`, heroPath.slice(cut + 1), spriteDefaults(gl)).catch(() => null);
   ed.look = createLookPanel(renderer, project, dom.stage, {

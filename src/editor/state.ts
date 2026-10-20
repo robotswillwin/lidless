@@ -34,6 +34,7 @@ export const dom = {
   sceneSel: el<HTMLSelectElement>('scene'),
   scroll: el<HTMLInputElement>('scroll'),
   showing: el<HTMLElement>('showing'),
+  toolsHint: el<HTMLElement>('tools-hint'),
   play: el<HTMLAnchorElement>('play'),
   error: el<HTMLElement>('error'),
   stage: el<HTMLElement>('stage'),
@@ -138,7 +139,13 @@ export const showError = (err: unknown): void => {
   dom.error.textContent = msg;
   document.documentElement.dataset.err = msg;
 };
-export const markDirty = (): void => { ed.dirty = true; setStatus('Not saved'); };
+/** Whether the scene has changes not saved: Revert is there only then. */
+export const setDirty = (dirty: boolean): void => {
+  ed.dirty = dirty;
+  const revert = document.getElementById('revert') as HTMLButtonElement | null;
+  if (revert) revert.disabled = !dirty;
+};
+export const markDirty = (): void => { setDirty(true); setStatus('Not saved'); };
 /** Keep the scene as it was before a change, for undo. */
 export const remember = (before: string): void => {
   if (before === snapshot()) return;

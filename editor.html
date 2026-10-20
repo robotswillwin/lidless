@@ -22,6 +22,22 @@
       <button type="button" data-task="effects" aria-pressed="false" title="Effects (5): steam and smoke, light shafts, beacons, drips, movers">Effects</button>
     </div>
     <span class="ed-sep"></span>
+    <div class="ed-modes" role="group" aria-label="Which views your edits go to">
+      <button type="button" data-mode="both" aria-pressed="true" title="Both: what you change becomes the same in both views. E shows the other view">Both</button>
+      <button type="button" data-mode="raw" aria-pressed="false" title="Raw: see raw view, and what you change is raw view's own (E: AR)">Raw</button>
+      <button type="button" data-mode="concierge" aria-pressed="false" title="AR: see the Concierge's view, and what you change is its own (E: raw)">AR</button>
+    </div>
+    <span id="showing" class="ed-showing" aria-live="polite"></span>
+    <button id="look" type="button" title="The look panel (L)">Look</button>
+    <button id="lighting" data-in="lighting" type="button" aria-pressed="false" title="Lights only (G): everything a flat grey, so only what the lights do shows">Lights only</button>
+    <span class="ed-grow"></span>
+    <span id="status" class="ed-status"></span>
+    <button id="undo" type="button" title="Undo (Cmd+Z)">Undo</button>
+    <button id="revert" type="button" title="Back to the scene as last saved (Cmd+Z brings back what you had)" disabled>Revert</button>
+    <a id="play" class="ed-play" target="_blank" rel="noopener" title="Play from this scene in a new tab">Play</a>
+    <button id="save" class="ed-save" type="button" title="Save the scene file (Cmd+S)">Save</button>
+  </header>
+  <nav class="ed-tools" aria-label="Add to the scene">
     <select id="add-light" class="ed-add" data-in="lighting" title="Add a light in the middle of the view: one of its own, or one of a kind (a preset)">
       <option value="">+ Light</option>
       <option value="light">A light of its own</option>
@@ -40,21 +56,9 @@
       <option value="drips">Drips</option>
       <option value="mover">Mover (a train, a car…)</option>
     </select>
-    <span class="ed-sep"></span>
-    <div class="ed-modes" role="group" aria-label="Which views your edits go to">
-      <button type="button" data-mode="both" aria-pressed="true" title="Both: what you change becomes the same in both views. E shows the other view">Both</button>
-      <button type="button" data-mode="raw" aria-pressed="false" title="Raw: see raw view, and what you change is raw view's own (E: AR)">Raw</button>
-      <button type="button" data-mode="concierge" aria-pressed="false" title="AR: see the Concierge's view, and what you change is its own (E: raw)">AR</button>
-    </div>
-    <span id="showing" class="ed-showing" aria-live="polite"></span>
-    <button id="look" type="button" title="The look panel (L)">Look</button>
-    <button id="lighting" data-in="lighting" type="button" aria-pressed="false" title="Lighting view (G): everything a flat grey, so only what the lights do shows">Lighting</button>
     <span class="ed-grow"></span>
-    <span id="status" class="ed-status"></span>
-    <button id="undo" type="button" title="Undo (Cmd+Z)">Undo</button>
-    <a id="play" class="ed-play" target="_blank" rel="noopener" title="Play from this scene in a new tab">Play</a>
-    <button id="save" class="ed-save" type="button" title="Save the scene file (Cmd+S)">Save</button>
-  </header>
+    <span class="ed-tools-hint" id="tools-hint"></span>
+  </nav>
   <main class="ed-main">
     <div class="ed-stage" id="stage">
       <div class="ed-frame" id="frame">

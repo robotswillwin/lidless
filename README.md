@@ -88,6 +88,12 @@ light on.
   the camera and the people's size; **Interaction** hotspots, exits and places to arrive at, and the Concierge's lines
   here; **Lighting** lights and the scene's light; **Effects** steam, smoke, light shafts, beacons, drips and movers.
   Problems always lists everything. The editor remembers which you had.
+- **Sliders:** an amount (a light's strength and haze, a shaft's strength, how much light is painted into the art,
+  puddles, when a beacon blinks) is 0 to 1, on a curve where the low end needs fine control; a distance (a light's
+  height and reach, steam, the ground's slabs) is in pixels; a factor that is 1 as standard (parallax, the people's
+  size, ambient light) has a tick there. The box beside each slider takes an exact value. Places and sizes of what is
+  dragged over the scene (x, y, widths, the walk line) stay as numbers.
+- **Undo** steps back one change; **Revert** goes back to the scene as last saved, itself a step Cmd+Z undoes.
 - **Both · Raw · AR** (in the toolbar): which views your edits go to. In **Both**, what you change becomes the same in
   both views, and E shows the other view. In **Raw** or **AR** that view is on screen and what you change is its own:
   a light stronger or another colour there, a hotspot elsewhere there, a layer or an effect placed elsewhere; E switches
@@ -103,7 +109,8 @@ light on.
     yet kept; more lights on one screen than a phone draws (18).
   - **Outline**: everything in the scene by kind (layers, lights, hotspots, exits, places to arrive at, areas,
     effects), a row to select each, lit on the scene while the pointer is over it; an eye on each kind hides it on
-    the scene to see the rest.
+    the scene to see the rest. What is in one view only has a part of its own in each kind: in both views, AR only,
+    raw only. The light menu is in the same parts.
   - **Scene settings**, **Ground** and **Luna**.
 - **Moving:** drag lights, hotspots, exits, spawns, areas, the walk line and the reflection line; arrows nudge the
   selection.
@@ -113,7 +120,7 @@ light on.
   (a preset, shared by every scene: see [docs/ASSETS.md](docs/ASSETS.md#kinds-of-light-presets)).
 - **Suggest lights from the art** (the scene's settings): lights where the art glows, in its colour and in the views it
   glows in, drawn with dashed rings to keep, move or discard.
-- **Lighting view** (G, or **Lighting**): every surface a flat grey, so all that shows is what the lights do.
+- **Lights only** (G): every surface a flat grey, so all that shows is what the lights do.
 - **Ground** (the scene's settings): the floor the engine draws below the reflection line, its slabs, kerb and
   puddles; how wet, shiny and worn it is in each view is in the look panel (see
   [docs/ASSETS.md](docs/ASSETS.md#painted-scenes)).

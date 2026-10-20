@@ -4,7 +4,7 @@
 import { NW } from '../engine/renderer';
 import { SceneRunner } from '../game/scene';
 import { buildScene, loadSceneFile, zoneTexture, type SceneFile } from '../game/scenefile';
-import { base, dom, ed, gl, markDirty, redraw, setStatus, undoStack } from './state';
+import { base, dom, ed, gl, markDirty, redraw, setDirty, setStatus, snapshot, undoStack } from './state';
 
 /** Build the scene for rendering from the file. Lights stay shared with the file, so editing them shows at once. */
 export async function rebuild(): Promise<void> {
@@ -60,7 +60,7 @@ export async function openScene(id: string): Promise<void> {
   ed.file = await loadSceneFile(base, id);
   ed.look?.setScene(ed.file);
   undoStack.length = 0;
-  ed.dirty = false;
+  setDirty(false);
   ed.sel = { kind: 'scene' };
   ed.camX = 0;
   const first = Object.values(ed.file.spawns)[0];
@@ -97,7 +97,7 @@ export async function save(): Promise<void> {
   try {
     const res = await fetch(`/__scene?id=${encodeURIComponent(ed.file.id)}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(ed.file) });
     if (!res.ok) throw new Error(await res.text());
-    ed.dirty = false;
+    setDirty(false);
     if (!ed.world.scenes.includes(ed.file.id)) ed.world.scenes.push(ed.file.id);
     // the other scenes' checks see it as saved
     ed.others[ed.file.id] = JSON.parse(JSON.stringify(ed.file)) as SceneFile;
@@ -107,22 +107,39 @@ export async function save(): Promise<void> {
   }
 }
 
-export async function undo(): Promise<void> {
-  const prev = undoStack.pop();
-  if (!prev) return;
+/** The scene as another version of its file: what changed is built again, the rest taken from it as it is. */
+async function become(next: SceneFile): Promise<void> {
   const layersBefore = JSON.stringify(ed.file.layers), moversBefore = JSON.stringify(ed.file.movers ?? []);
-  ed.file = JSON.parse(prev) as SceneFile;
+  ed.file = next;
   // lights, effects and the rest are taken from the file again; layers and movers load again only when they changed
   if (JSON.stringify(ed.file.layers) !== layersBefore || JSON.stringify(ed.file.movers ?? []) !== moversBefore || !ed.scene) await rebuild();
   else {
     ed.scene.loaded.def.lights = ed.file.lights;
-    // the movers' settings are the file's own objects: the ones just replaced by the undo
+    // the movers' settings are the file's own objects: the ones just replaced
     ed.scene.loaded.movers?.forEach((m, k) => { m.def = ed.file.movers![k]; });
     syncEffects();
     refresh();
   }
-  markDirty();
-  if (!undoStack.length) setStatus('Undone to where you started');
   redraw.overlay();
   redraw.side();
+}
+
+export async function undo(): Promise<void> {
+  const prev = undoStack.pop();
+  if (!prev) return;
+  await become(JSON.parse(prev) as SceneFile);
+  markDirty();
+  if (!undoStack.length) setStatus('Undone to where you started');
+}
+
+/** Back to the scene as last saved. What you had is kept as an undo step, so Cmd+Z brings it back. */
+export async function revert(): Promise<void> {
+  if (!ed.dirty) return setStatus('Nothing to revert: the scene is as saved');
+  const before = snapshot(), saved = await loadSceneFile(base, ed.file.id);
+  ed.sel = { kind: 'scene' };
+  await become(saved);
+  ed.look?.setScene(ed.file);
+  undoStack.push(before);
+  setDirty(false);
+  setStatus('Back to the scene as saved. Cmd+Z brings back what you had');
 }

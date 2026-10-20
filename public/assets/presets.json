@@ -65,7 +65,7 @@
       }
     },
     "neon": {
-      "label": "Neon sign (Concierge view)",
+      "label": "Neon sign",
       "light": {
         "z": 12,
         "r": 150,
@@ -82,7 +82,7 @@
       }
     },
     "billboard": {
-      "label": "Billboard hologram (Concierge view)",
+      "label": "Billboard hologram",
       "light": {
         "z": 30,
         "r": 260,
@@ -98,7 +98,7 @@
       }
     },
     "screen": {
-      "label": "Screen (Concierge view)",
+      "label": "Screen",
       "light": {
         "z": 10,
         "r": 130,
@@ -132,7 +132,7 @@
       }
     },
     "machine-eye": {
-      "label": "A machine's eye (raw view)",
+      "label": "A machine's eye",
       "light": {
         "z": 10,
         "r": 130,
@@ -167,7 +167,7 @@
       }
     },
     "city-glow": {
-      "label": "City glow (Concierge view)",
+      "label": "City glow",
       "light": {
         "z": 120,
         "r": 640,
@@ -182,7 +182,7 @@
       }
     },
     "smog-glow": {
-      "label": "Smog glow (raw view)",
+      "label": "Smog glow",
       "light": {
         "z": 140,
         "r": 700,
@@ -197,7 +197,7 @@
       }
     },
     "moonlight": {
-      "label": "Moonlight (raw view)",
+      "label": "Moonlight",
       "light": {
         "z": 300,
         "r": 900,

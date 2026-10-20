@@ -8,7 +8,7 @@ import { inView, placeIn, type Hotspot, type ViewText } from '../game/level';
 import { asIn, inViewOf, type Only } from '../engine/assets';
 import { deleteSelected, pickAsset, settleSuggested, suggestFromArt } from './edit';
 import { rebuild, refresh, syncEffects, syncScroll, updatePlay } from './files';
-import { buttons, check, choice, colour, eye, heading, labelFields, num, section, str, viewText } from './form';
+import { amount, buttons, check, choice, colour, eye, heading, labelFields, num, section, slider, str, viewText } from './form';
 import { lintScene, type Problem } from './lint';
 import { editView, hasOwn, markOwn, ownIn, sameInBoth, setFor, shownView, viewLabel } from './views';
 import { dom, ed, inTask, LIMITS, redraw, remember, snapshot, type Kind, type Selection } from './state';
@@ -78,22 +78,22 @@ function lightSide(i: number): void {
       for (const vv of ['raw', 'concierge'] as const) { delete l.views?.[vv]?.ar; delete l.views?.[vv]?.raw; }
     }, reselect),
     m(num('x', eff.x, (v) => set('x', v)), 'x'), m(num('y', eff.y, (v) => set('y', v)), 'y'),
-    m(num('Height', eff.z, (v) => set('z', v), { min: 0, max: 400 }), 'z'), m(num('Reach', eff.r, (v) => set('r', v), { min: 10, max: 2000, step: 10 }), 'r'),
-    m(colour('Colour', eff.c, (v) => set('c', v)), 'c'), m(num('Strength', eff.i, (v) => set('i', v), { step: 0.05, min: 0, max: 12 }), 'i'),
-    m(num('Wrap (soft)', eff.wrap ?? 0.3, (v) => set('wrap', v), { step: 0.05, min: 0, max: 1 }), 'wrap'), m(num('Haze in the air', eff.haze ?? 0, (v) => set('haze', v), { step: 0.05, min: 0, max: 3 }), 'haze'),
+    m(slider('Height in front of the wall, px', eff.z, (v) => set('z', v), { min: 0, max: 300, step: 1 }), 'z'), m(slider('Reach, px', eff.r, (v) => set('r', v), { min: 20, max: 1200, step: 10 }), 'r'),
+    m(colour('Colour', eff.c, (v) => set('c', v)), 'c'), m(slider('Strength', eff.i, (v) => set('i', v), { min: 0, max: 1, scale: amount(6) }), 'i'),
+    m(slider('Wrap (soft)', eff.wrap ?? 0.3, (v) => set('wrap', v), { min: 0, max: 1 }), 'wrap'), m(slider('Haze in the air', eff.haze ?? 0, (v) => set('haze', v), { min: 0, max: 1, scale: amount(3) }), 'haze'),
     m(check('Casts shadows', !!eff.shadow, (v) => set('shadow', v ? 1 : 0)), 'shadow'),
     m(choice('Against characters', String(eff.layer ?? 0), [['0', 'Behind them (part of the set)'], ['1', 'Among them (in the street)'], ['2', 'In front of them']], (v) => set('layer', Number(v))), 'layer'),
     m(choice('Lights', String(eff.zone), ZONES, (v) => set('zone', Number(v))), 'zone'),
     check('A machine’s light (keeps its colour in raw view)', !!both.machine, (v) => own('machine', v ? 1 : 0)),
     m(choice('Flicker', String(eff.g ?? 0), GROUPS, (v) => set('g', Number(v))), 'g'),
-    num('Parallax (on a far layer: its parallax)', l.parallax ?? 1, (v) => { if (v === 1) delete l.parallax; else l.parallax = v; }, { step: 0.05, min: 0, max: 2 }),
+    slider('Parallax (on a far layer: its parallax)', l.parallax ?? 1, (v) => { if (v === 1) delete l.parallax; else l.parallax = v; }, { min: 0, max: 2, step: 0.05, mark: 1 }),
     m(check('Cone', !!eff.cone, (v) => { set('cone', v ? (kind?.light.cone ?? [0, 1, 0.4]) : undefined); drawSide(); }), 'cone'),
   );
   if (eff.cone) {
     const cone: [number, number, number] = [...eff.cone];
     side(
-      m(num('Cone direction (90 = down)', deg(Math.atan2(cone[1], cone[0])), (v) => { const a = (v * Math.PI) / 180; cone[0] = +Math.cos(a).toFixed(3); cone[1] = +Math.sin(a).toFixed(3); set('cone', [...cone]); }, { min: -180, max: 360 }), 'cone'),
-      m(num('Cone half-angle', deg(Math.acos(Math.max(-1, Math.min(1, cone[2])))), (v) => { cone[2] = +Math.cos((Math.min(179, Math.max(1, v)) * Math.PI) / 180).toFixed(3); set('cone', [...cone]); }, { min: 1, max: 179 }), 'cone'),
+      m(slider('Cone direction, degrees (90 down)', deg(Math.atan2(cone[1], cone[0])), (v) => { const a = (v * Math.PI) / 180; cone[0] = +Math.cos(a).toFixed(3); cone[1] = +Math.sin(a).toFixed(3); set('cone', [...cone]); }, { min: -180, max: 180, step: 1, mark: 90 }), 'cone'),
+      m(slider('Cone half-angle, degrees', deg(Math.acos(Math.max(-1, Math.min(1, cone[2])))), (v) => { cone[2] = +Math.cos((Math.min(179, Math.max(1, v)) * Math.PI) / 180).toFixed(3); set('cone', [...cone]); }, { min: 1, max: 179, step: 1 }), 'cone'),
     );
   }
   const ownSettings = Object.keys(l).filter((k) => !['x', 'y', 'preset', 'parallax', 'suggested', 'views'].includes(k));
@@ -196,7 +196,7 @@ function layerSide(i: number): void {
   side(
     shownIn(l.only, (v) => { if (v) l.only = v; else delete l.only; }, place),
     m(num('x', at.x, (v) => setFor(l, 'x', v, { same: l.x ?? d?.x }), { after: place }), 'x'), m(num('y', at.y, (v) => setFor(l, 'y', v, { same: l.y ?? d?.y }), { after: place }), 'y'),
-    num('Parallax (1 moves with the street)', l.parallax ?? d?.parallax ?? 1, (v) => { l.parallax = v; }, { step: 0.05, min: 0, max: 2, after: place }),
+    slider('Parallax (1 moves with the street)', l.parallax ?? d?.parallax ?? 1, (v) => { l.parallax = v; }, { min: 0, max: 2, step: 0.05, mark: 1, after: place }),
     check('In front of the people', l.front ?? d?.front ?? false, (v) => { if (v) l.front = true; else delete l.front; if (d) d.front = v; }),
     choice('Depth', String(l.depth ?? d?.depth ?? 3), [['0', 'Sky'], ['1', 'Far'], ['2', 'Middle'], ['3', 'Near']], (v) => { l.depth = Number(v); }, place),
   );
@@ -226,8 +226,8 @@ function steamSide(i: number): void {
     shownIn(e.only, (o) => { if (o) e.only = o; else delete e.only; }, () => { syncEffects(); reselect(); }),
     choice('Kind', e.kind, [['steam', 'Steam: broad, slow, pale'], ['smoke', 'Smoke: thin, drifting']], (k) => { e.kind = k as 'steam' | 'smoke'; }, syncEffects),
     m(num('x', v.x, (n) => setFor(e, 'x', n), { after: syncEffects }), 'x'), m(num('y (where it starts)', v.y, (n) => setFor(e, 'y', n), { after: syncEffects }), 'y'),
-    m(num('Height it rises', v.height, (n) => setFor(e, 'height', n), { min: 4, max: 400, after: syncEffects }), 'height'),
-    m(num('Width', v.width, (n) => setFor(e, 'width', n), { min: 1, max: 60, after: syncEffects }), 'width'),
+    m(slider('Height it rises, px', v.height, (n) => setFor(e, 'height', n), { min: 4, max: 400, step: 1, after: syncEffects }), 'height'),
+    m(slider('Width, px', v.width, (n) => setFor(e, 'width', n), { min: 1, max: 60, step: 1, after: syncEffects }), 'width'),
   );
   side(effectButtons(e, shown));
 }
@@ -240,9 +240,9 @@ function godraySide(i: number): void {
   side(
     shownIn(only, (o) => { delete g.ar; if (o) g.only = o; else delete g.only; }, () => { syncEffects(); reselect(); }),
     m(num('x', v.x, (n) => setFor(g, 'x', n), { after: syncEffects }), 'x'), m(num('y', v.y, (n) => setFor(g, 'y', n), { after: syncEffects }), 'y'),
-    m(num('Strength', v.strength, (n) => setFor(g, 'strength', n), { step: 0.01, min: 0, max: 1, after: syncEffects }), 'strength'),
+    m(slider('Strength', v.strength, (n) => setFor(g, 'strength', n), { min: 0, max: 1, after: syncEffects }), 'strength'),
     m(choice('Shines in', String(v.zone), SHAFT_ZONES, (z) => setFor(g, 'zone', Number(z)), syncEffects), 'zone'),
-    num('Parallax (on a far layer: its parallax)', g.parallax ?? 1, (n) => { if (n === 1) delete g.parallax; else g.parallax = n; }, { step: 0.05, min: 0, max: 2, after: syncEffects }),
+    slider('Parallax (on a far layer: its parallax)', g.parallax ?? 1, (n) => { if (n === 1) delete g.parallax; else g.parallax = n; }, { min: 0, max: 2, step: 0.05, mark: 1, after: syncEffects }),
   );
   side(effectButtons(g, shown));
 }
@@ -254,8 +254,8 @@ function beaconSide(i: number): void {
   side(
     shownIn(b.only, (o) => { if (o) b.only = o; else delete b.only; }, () => { syncEffects(); reselect(); }),
     m(num('x', v.x, (n) => setFor(b, 'x', n), { after: syncEffects }), 'x'), m(num('y', v.y, (n) => setFor(b, 'y', n), { after: syncEffects }), 'y'),
-    m(num('Phase (when it blinks)', v.phase, (n) => setFor(b, 'phase', n), { step: 0.1, min: 0, max: 6.3, after: syncEffects }), 'phase'),
-    num('Parallax (on a far layer: its parallax)', b.parallax ?? 1, (n) => { if (n === 1) delete b.parallax; else b.parallax = n; }, { step: 0.05, min: 0, max: 2, after: syncEffects }),
+    m(slider('When in its rhythm it blinks (0 to 1)', v.phase, (n) => setFor(b, 'phase', n), { min: 0, max: 1, scale: { toUi: (p) => p / (2 * Math.PI), fromUi: (u) => +(u * 2 * Math.PI).toFixed(2) }, after: syncEffects }), 'phase'),
+    slider('Parallax (on a far layer: its parallax)', b.parallax ?? 1, (n) => { if (n === 1) delete b.parallax; else b.parallax = n; }, { min: 0, max: 2, step: 0.05, mark: 1, after: syncEffects }),
   );
   side(effectButtons(b, shown));
 }
@@ -281,9 +281,9 @@ function moverSide(i: number): void {
     choice('Drawn after the layer', mv.after, layers, (a) => { mv.after = a; }, reload),
     m(num('From x (in that layer)', v.x0, (n) => setFor(mv, 'x0', n)), 'x0'), m(num('To x', v.x1, (n) => setFor(mv, 'x1', n)), 'x1'),
     m(str('y (empty: as built)', v.y === undefined ? '' : String(v.y), (t) => { const n = Number(t); setFor(mv, 'y', t.trim() === '' || !Number.isFinite(n) ? undefined : n); }), 'y'),
-    m(num('Speed, px a second', v.speed, (n) => setFor(mv, 'speed', Math.max(1, n)), { min: 1, max: 2000 }), 'speed'),
-    num('Wait between passes: shortest, s', mv.wait[0], (n) => { mv.wait[0] = Math.max(0, n); }, { step: 0.5, min: 0 }),
-    num('Longest, s', mv.wait[1], (n) => { mv.wait[1] = Math.max(mv.wait[0], n); }, { step: 0.5, min: 0 }),
+    m(slider('Speed, px a second', v.speed, (n) => setFor(mv, 'speed', Math.max(1, n)), { min: 1, max: 800, step: 5 }), 'speed'),
+    slider('Wait between passes: shortest, s', mv.wait[0], (n) => { mv.wait[0] = Math.max(0, n); }, { min: 0, max: 60, step: 0.5 }),
+    slider('Longest, s', mv.wait[1], (n) => { mv.wait[1] = Math.max(mv.wait[0], n); }, { min: 0, max: 90, step: 0.5 }),
     m(choice('Direction', String(v.dir ?? 0), [['0', 'Each way in turn'], ['1', 'Always to the right'], ['-1', 'Always to the left']], (d) => { const n = Number(d); setFor(mv, 'dir', n ? n : undefined); }), 'dir'),
   );
   side(buttons(
@@ -303,14 +303,29 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, parent: 
   return e;
 }
 
-/** What can be done with a hotspot, and in which view it is there. */
-const uses = (h: Hotspot): string => [...(['look', 'talk', 'use', 'take'] as const).filter((k) => h[k]), ...(h.ask ? ['ask'] : []), ...(h.only ? [`${h.only === 'raw' ? 'raw' : 'Concierge'} view only`] : [])].join(' · ') || 'nothing to do';
+/** What can be done with a hotspot. */
+const uses = (h: Hotspot): string => [...(['look', 'talk', 'use', 'take'] as const).filter((k) => h[k]), ...(h.ask ? ['ask'] : [])].join(' · ') || 'nothing to do';
 
-interface Row { label: string; detail?: string; dot?: string; sel: Selection }
+interface Row { label: string; detail?: string; dot?: string; sel: Selection; only?: Only }
 
-/** A row for each thing: selects it, and lights it on the scene while the pointer is over it. */
+const PARTS: [Only | undefined, string][] = [[undefined, 'Both views'], ['concierge', 'AR only'], ['raw', 'Raw only']];
+
+/**
+ * A row for each thing: selects it, and lights it on the scene while the pointer is over it. Where some are in one view
+ * only, they are in parts of their own: in both views, AR only, raw only; the other view's, faint.
+ */
 function rows(parent: HTMLElement, items: Row[]): void {
-  const list = el('div', 'ed-rows', parent);
+  const split = items.some((it) => it.only);
+  for (const [only, title] of PARTS) {
+    const part = items.filter((it) => it.only === only);
+    if (!part.length) continue;
+    if (split) el('div', `ed-part${only ? ` ${only}` : ''}${only && only !== shownView() ? ' other' : ''}`, parent, title);
+    rowList(parent, part, !!only && only !== shownView());
+  }
+}
+
+function rowList(parent: HTMLElement, items: Row[], other: boolean): void {
+  const list = el('div', `ed-rows${other ? ' other' : ''}`, parent);
   for (const it of items) {
     const b = el('button', 'ed-row', list);
     b.type = 'button';
@@ -336,26 +351,26 @@ function outline(body: HTMLElement): void {
     if (opts.extra) g.append(opts.extra);
     if (items.length) rows(g, items);
   };
-  group('Layers, back to front', null, f.layers.map((l, i) => ({ label: `${i + 1}. ${l.asset}`, detail: [l.parallax !== undefined && l.parallax !== 1 ? `parallax ${l.parallax}` : '', l.front ? 'in front' : ''].filter(Boolean).join(' · '), sel: { kind: 'layer', i } })));
+  group('Layers, back to front', null, f.layers.map((l, i) => ({ label: `${i + 1}. ${l.asset}`, detail: [l.parallax !== undefined && l.parallax !== 1 ? `parallax ${l.parallax}` : '', l.front ? 'in front' : ''].filter(Boolean).join(' · '), sel: { kind: 'layer', i }, only: l.only })));
   const suggested = f.lights.filter((l) => l.suggested).length;
   const tools = buttons(['Suggest from the art', () => void suggestFromArt().then(reselect)], ...(suggested ? [[`Keep ${suggested}`, () => settleSuggested(true)], ['Discard them', () => settleSuggested(false), 'danger']] as [string, () => void, string?][] : []));
   group('Lights', 'lights', f.lights.map((placed, i) => {
-    const l = resolveLight(placed), kind = placed.preset ? presets().lights[placed.preset]?.label ?? placed.preset : `Light ${i + 1}`;
-    // what the kind's name does not already say
-    const notes = [l.ar ? 'Concierge view' : l.raw ? 'raw view' : '', l.machine ? 'machine' : '', placed.suggested ? 'suggested' : ''].filter((n) => n && !kind.toLowerCase().includes(n.toLowerCase()));
-    return { label: kind, dot: css(l.c), detail: notes.join(' · '), sel: { kind: 'light', i } as Selection };
+    const l = resolveLight(placed, shownView()), kind = placed.preset ? presets().lights[placed.preset]?.label ?? placed.preset : `Light ${i + 1}`;
+    const notes = [l.machine ? 'machine' : '', placed.suggested ? 'suggested' : '', placed.views ? 'set per view' : ''].filter(Boolean);
+    return { label: kind, dot: css(l.c), detail: notes.join(' · '), sel: { kind: 'light', i } as Selection, only: l.ar ? 'concierge' : l.raw ? 'raw' : undefined };
   }), { extra: tools });
   const hot = f.hotspots.map((h, i) => ({ h, i }));
-  group('Hotspots', 'hotspots', hot.filter(({ h }) => !h.go).map(({ h, i }) => ({ label: named(h.name) || h.id, detail: uses(h), sel: { kind: 'hotspot', i } })));
-  group('Exits', 'exits', hot.filter(({ h }) => h.go).map(({ h, i }) => ({ label: named(h.name) || h.id, detail: `→ ${h.go!.scene}, ${h.go!.spawn}`, sel: { kind: 'hotspot', i } })));
+  group('Hotspots', 'hotspots', hot.filter(({ h }) => !h.go).map(({ h, i }) => ({ label: named(h.name) || h.id, detail: uses(h), sel: { kind: 'hotspot', i }, only: h.only })));
+  group('Exits', 'exits', hot.filter(({ h }) => h.go).map(({ h, i }) => ({ label: named(h.name) || h.id, detail: `→ ${h.go!.scene}, ${h.go!.spawn}`, sel: { kind: 'hotspot', i }, only: h.only })));
   group('Places to arrive at', 'spawns', Object.entries(f.spawns).map(([id, sp]) => ({ label: id, detail: `x ${sp.x}, facing ${sp.facing > 0 ? 'right' : 'left'}`, sel: { kind: 'spawn', id } })));
   group('Areas', 'areas', (['inside', 'outside'] as const).flatMap((set) => (f.zones?.[set] ?? []).map((_, i) => ({ label: `${set === 'inside' ? 'Inside' : 'Outside'} ${i + 1}`, detail: f.kind === 'exterior' ? 'an inside in the street' : 'an outside in the room', sel: { kind: 'zone', set, i } as Selection }))));
   const fx: Row[] = [
-    ...(f.steam ?? []).map((e, i) => ({ label: `${e.kind === 'smoke' ? 'Smoke' : 'Steam'} ${i + 1}`, detail: i >= LIMITS.steam ? 'not drawn' : '', sel: { kind: 'steam', i } as Selection })),
-    ...(f.godrays ?? []).map((g, i) => ({ label: `Light shaft ${i + 1}`, detail: [g.ar ? 'Concierge view' : '', i >= LIMITS.godrays ? 'not drawn' : ''].filter(Boolean).join(' · '), sel: { kind: 'godray', i } as Selection })),
-    ...(f.beacons ?? []).map((_, i) => ({ label: `Beacon ${i + 1}`, sel: { kind: 'beacon', i } as Selection })),
-    ...(f.drips ? [{ label: 'Drips', sel: { kind: 'drips' } as Selection }] : []),
-    ...(f.movers ?? []).map((m, i) => ({ label: `Mover: ${m.asset}`, sel: { kind: 'mover', i } as Selection })),
+    ...(f.steam ?? []).map((e, i) => ({ label: `${e.kind === 'smoke' ? 'Smoke' : 'Steam'} ${i + 1}`, detail: i >= LIMITS.steam ? 'not drawn' : '', sel: { kind: 'steam', i } as Selection, only: e.only })),
+    ...(f.godrays ?? []).map((g, i) => ({ label: `Light shaft ${i + 1}`, detail: i >= LIMITS.godrays ? 'not drawn' : '', sel: { kind: 'godray', i } as Selection, only: g.only ?? (g.ar ? 'concierge' as const : undefined) })),
+    ...(f.beacons ?? []).map((b, i) => ({ label: `Beacon ${i + 1}`, sel: { kind: 'beacon', i } as Selection, only: b.only })),
+    // drips fall in raw view only: it rains only there
+    ...(f.drips ? [{ label: 'Drips', sel: { kind: 'drips' } as Selection, only: 'raw' as const }] : []),
+    ...(f.movers ?? []).map((m, i) => ({ label: `Mover: ${m.asset}`, sel: { kind: 'mover', i } as Selection, only: m.only })),
   ];
   group('Effects', 'effects', fx);
   group('Walk and reflection lines', 'lines', [], { note: `walk ${f.walk.x0} to ${f.walk.x1} at y ${f.walk.y} · reflection y ${f.mirror ?? f.walk.y - 8}` });
@@ -386,9 +401,9 @@ function problems(body: HTMLElement, found: Problem[]): void {
  * A scene setting that can differ between the views: its value in the view on screen. In Both mode a change sets it for
  * both views; in Raw or AR mode for that view only, and the file keeps one number while the views agree.
  */
-function perView(label: string, key: 'ambient' | 'exposure' | 'baked', plain: number, opts: { step: number; min: number; max: number }): HTMLLabelElement {
+function perView(label: string, key: 'ambient' | 'exposure' | 'baked', plain: number, opts: { step: number; min: number; max: number; mark?: number }): HTMLLabelElement {
   const file = ed.file, cur = () => file[key], valueIn = (v: Only) => { const c = cur(); return (typeof c === 'object' ? c?.[v] : c) ?? plain; };
-  const row = num(label, valueIn(shownView()), (x) => {
+  const row = slider(label, valueIn(shownView()), (x) => {
     const only = editView(), o = { raw: valueIn('raw'), concierge: valueIn('concierge') };
     if (only) o[only] = x; else o.raw = o.concierge = x;
     if (o.raw === o.concierge) { if (o.raw === plain) delete file[key]; else file[key] = o.raw; }
@@ -413,13 +428,13 @@ function sceneSide(): void {
     num('Walk line y', file.walk.y, (v) => { file.walk.y = v; }, { after: refresh }),
     num('Walk from x', file.walk.x0, (v) => { file.walk.x0 = v; }), num('Walk to x', file.walk.x1, (v) => { file.walk.x1 = v; }),
     num('Reflection line y', file.mirror ?? file.walk.y - 8, (v) => { file.mirror = v; }, { after: refresh }),
-    num('People’s size (1 standard, under 1 further back)', file.actorScale ?? 1, (v) => { if (v === 1) delete file.actorScale; else file.actorScale = v; }, { step: 0.05, min: 0.3, max: 3, after: refresh }),
-    num('Camera follows Luna, px each way (0 none; a scene no wider than the screen)', file.drift ?? 0, (v) => { if (v) file.drift = v; else delete file.drift; }, { step: 1, min: 0, max: 60 }),
+    slider('People’s size (1 standard, under 1 further back)', file.actorScale ?? 1, (v) => { if (v === 1) delete file.actorScale; else file.actorScale = v; }, { min: 0.3, max: 1.5, step: 0.01, mark: 1, after: refresh }),
+    slider('Camera follows Luna, px each way (a scene no wider than the screen)', file.drift ?? 0, (v) => { if (v) file.drift = v; else delete file.drift; }, { min: 0, max: 60, step: 1 }),
   ];
   const light = () => [
-    perView('Ambient light (1 as standard)', 'ambient', 1, { step: 0.05, min: 0, max: 4 }),
-    perView('Exposure, stops', 'exposure', 0, { step: 0.05, min: -3, max: 3 }),
-    perView('Light painted into the art (0 to 1)', 'baked', 0, { step: 0.05, min: 0, max: 1 }),
+    perView('Ambient light (1 as standard)', 'ambient', 1, { step: 0.05, min: 0, max: 3, mark: 1 }),
+    perView('Exposure, stops', 'exposure', 0, { step: 0.05, min: -2, max: 2, mark: 0 }),
+    perView('Light painted into the art', 'baked', 0, { step: 0.01, min: 0, max: 1 }),
   ];
   const concierge = () => [
     str('The Concierge’s greeting', file.greeting ?? '', (v) => { if (v) file.greeting = v; else delete file.greeting; }),
@@ -438,11 +453,11 @@ function sceneSide(): void {
     el('p', 'ed-note', body, 'Drawn by the engine below the reflection line, over a floor smoothed for it: paving slabs, a kerb, puddles. How wet, shiny and worn it is in each view is in the look panel, under Reflections.');
     body.append(check('The engine draws the ground', !!g, (v) => { if (v) file.ground = { horizon: line - 100, slab: [90, 70], puddles: 0.25 }; else delete file.ground; }, () => { refresh(); redraw.side(); }));
     if (g) body.append(
-      num('Horizon y: the eye’s height (nearer the line, flatter)', g.horizon, (v) => { g.horizon = Math.min(v, line - 8); }, { step: 2, max: line - 8, after: refresh }),
-      num('Slab width, px (0: no slabs)', g.slab?.[0] ?? 0, (v) => { g.slab = [Math.max(0, v), g.slab?.[1] ?? v]; }, { min: 0, step: 2, after: refresh }),
-      num('Slab depth, px', g.slab?.[1] ?? 0, (v) => { g.slab = [g.slab?.[0] ?? v, Math.max(0, v)]; }, { min: 0, step: 2, after: refresh }),
-      num('Kerb, px in front of the walk line (0: none, no road)', g.kerb ?? 0, (v) => { if (v > 0) g.kerb = v; else delete g.kerb; }, { min: 0, max: 800, step: 5, after: refresh }),
-      num('Puddles when wet (0 to 1)', g.puddles ?? 0, (v) => { g.puddles = Math.min(1, Math.max(0, v)); }, { min: 0, max: 1, step: 0.05, after: refresh }),
+      slider('Horizon y: the eye’s height (nearer the line, flatter)', g.horizon, (v) => { g.horizon = Math.min(v, line - 8); }, { min: 0, max: line - 8, step: 2, after: refresh }),
+      slider('Slab width, px (0: no slabs)', g.slab?.[0] ?? 0, (v) => { g.slab = [Math.max(0, v), g.slab?.[1] ?? v]; }, { min: 0, max: 200, step: 2, after: refresh }),
+      slider('Slab depth, px', g.slab?.[1] ?? 0, (v) => { g.slab = [g.slab?.[0] ?? v, Math.max(0, v)]; }, { min: 0, max: 200, step: 2, after: refresh }),
+      slider('Kerb, px in front of the walk line (0: none, no road)', g.kerb ?? 0, (v) => { if (v > 0) g.kerb = v; else delete g.kerb; }, { min: 0, max: 400, step: 5, after: refresh }),
+      slider('Puddles when wet', g.puddles ?? 0, (v) => { g.puddles = Math.min(1, Math.max(0, v)); }, { min: 0, max: 1, after: refresh }),
     );
   }, { badge: g ? 'on' : 'off' }));
   side(section('luna', 'Luna', (body) => {
