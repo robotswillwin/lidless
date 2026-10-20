@@ -22,13 +22,13 @@ describe('exits both ways', () => {
   it('makes the way back at the other end from an end walked out by, and a place to arrive at by each', () => {
     const here = read('street'), there = corridor();
     // out by the street's right end, into the corridor
-    here.hotspots.push({ id: 'east', name: 'East', rect: [800, 320, 40, 150], stand: 820, go: { scene: 'corridor', spawn: '' } });
+    here.hotspots.push({ id: 'east', name: 'East', rect: [2350, 320, 40, 150], stand: 2370, go: { scene: 'corridor', spawn: '' } });
     const h = here.hotspots.at(-1)!, j = joinOf(h, here, there);
     expect(j).toMatchObject({ arrive: 'from-street', exitNames: false, hasArrive: false, back: -1, backTo: 'from-corridor', hasBackTo: false });
     expect(missingThere(j)).toBe(true);
     expect(makeHere(h, here, j)).toBe(true);
     // in from the right end, facing left
-    expect(here.spawns['from-corridor']).toEqual({ x: 820 - IN, facing: -1 });
+    expect(here.spawns['from-corridor']).toEqual({ x: 2370 - IN, facing: -1 });
     expect(h.go!.spawn).toBe('from-street');
     const made = makeThere(h, here, there, j);
     expect(made).toEqual({ back: 0, madeBack: true, madeArrive: true });

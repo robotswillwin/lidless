@@ -291,9 +291,11 @@ export async function loadSprite(gl: GL, base: string, name: string, fallback: R
   const q = bust ? `?v=${bust}` : '';
   const def = await loadJSON<SpriteDef>(`${base}/${name}/sprite.json${q}`);
   const imgs = await Promise.all(def.maps.map(async (m) => [m, await loadImage(`${base}/${name}/${m}.png${q}`)] as const));
-  // as much detail as the screen shows; packed flags, which cannot be averaged, as they are
-  const f = Math.min(1, (texelBudget * (def.actor ?? def.kind === 'character' ? PEOPLE_SHOWN : 1)) / (def.res ?? 1));
-  const srcs = await Promise.all(imgs.map(async ([m, img]) => [m, f < 0.99 && m !== 'meta' ? await shrunk(img, f) : img] as const));
+  // as much detail as the screen shows; packed flags, which cannot be averaged, as they are. And no bigger than the GPU
+  // takes: a wide street's layer can be wider than an older GPU's 4096 texels
+  const max = gl.getParameter(gl.MAX_TEXTURE_SIZE) as number, big = Math.max(...imgs.map(([, img]) => Math.max(img.width, img.height)));
+  const f = Math.min(1, (texelBudget * (def.actor ?? def.kind === 'character' ? PEOPLE_SHOWN : 1)) / (def.res ?? 1), max / big);
+  const srcs = await Promise.all(imgs.map(async ([m, img]) => [m, f < 0.99 && (m !== 'meta' || big > max) ? await shrunk(img, f) : img] as const));
   const got = new Map<MapName, WebGLTexture>(srcs.map(([m, src]) => [m, textureFromImage(gl, src)]));
   for (const [, src] of srcs) if (src instanceof ImageBitmap) src.close();
   // a character is drawn smaller or larger than it was made, and art with more than one texel per level pixel is

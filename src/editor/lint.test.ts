@@ -41,7 +41,8 @@ describe('lintScene', () => {
   });
 
   it('warns of a hotspot under a corner button on a phone, and one hidden under another', () => {
-    const f = read('street');
+    // a scene no wider than the screen, where the buttons stay over the same part of it
+    const f = read('backstreet');
     f.hotspots.push({ id: 'drain', name: 'Drain', rect: [10, 540 - CORNER + 10, 40, 40], look: 'A drain.' });
     f.hotspots.push({ id: 'cat', name: 'Cat', rect: [400, 200, 20, 20], look: 'A cat.' }, { id: 'box', name: 'Box', rect: [395, 195, 40, 40], look: 'A box.' });
     const texts = lintScene(f, ctx()).map((p) => p.text);
@@ -58,7 +59,7 @@ describe('lintScene', () => {
   });
 
   it('checks a hotspot where it is in each view, and a light set to neither view', () => {
-    const f = read('street');
+    const f = read('backstreet');
     // in the Concierge's view a sign up the wall; in raw view the same thing, fallen to the bottom left corner
     f.hotspots.push({ id: 'sign', name: 'Sign', rect: [400, 100, 40, 40], look: 'A sign.', views: { raw: { rect: [10, 540 - CORNER + 10, 40, 40] } } });
     f.lights.push({ x: 300, y: 200, z: 30, r: 100, c: [1, 1, 1], i: 1, zone: 0, ar: 1, raw: 1 });

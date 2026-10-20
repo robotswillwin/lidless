@@ -69,7 +69,12 @@ Times are my own working time.
 - **Her proportions:** her head sits lower where a garment shows more neck than her coat's collar (`parts.neckSink`),
   and too-big slippers and socks are scaled to her boots' length (`parts.proportions.foot`); the rig prints each
   outfit's foot length.
-- **The director's answers:** wider outdoor scenes (done next); she may take off her coat by herself, staying in the
+- **Wider outdoor scenes:** the main street is now 2400 px, two and a half screens: a bakery, a tree, a bench, a notice
+  board, a bar and a corner shop past the dining machine, the camera scrolling and the far city and the viaduct sliding
+  behind (ASSETS.md, Wide scenes). Fine-tuning it later costs what a one-screen scene does: a touch-up sends only a
+  window around it, and splitting again reuses the fills already made.
+- **Raw view's text** worn down to trashy remains, as the director asked during the work.
+- **The director's answers:** wider outdoor scenes; she may take off her coat by herself, staying in the
   clothes under it; private wear does not run.
 
 ## Open questions for the director

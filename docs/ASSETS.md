@@ -538,6 +538,29 @@ screen's edges the layers reach; `thin`, the widest thing in front bridged acros
 soft edge is; `rim`, how wide a ring of a middle layer around a near thing may be and still join it. All in level
 pixels. The street's is an example (`art/street/vista.json`).
 
+**Wide scenes.** An outdoor scene can be wider than the screen, the camera scrolling with her and every layer sliding
+at its own speed: the main street is 2400 px, two and a half screens, a bakery, a tree, a bench, a notice board (in raw
+view a torn missing-person poster), a bar and a corner shop past the dining machine. How it was made:
+- `widen` adds a tile at a time to the right, in both views: the Concierge's view painted on from the picture's last
+  960 px, then raw view redrawn from that tile so the two line up, joined to the raw picture over a blended seam. A tile
+  is at most three times as wide as high. Each tile cost about $0.05.
+- The painted cones of light under the street lamps were painted out (`touch`), their lights placed instead: a cone
+  painted on a further layer would slide away from its lamp.
+- The layer map was made from the picture's depth, the first screen's own map kept, and what depth gets wrong marked
+  by the image model: it drew a mask of the viaduct and the billboard's tower, and one of the tree in each view. A view
+  can have a map of its own (`layers-raw.png`): the tree is in leaf to the Concierge and bare in raw view.
+
+In a scene that scrolls, `split` cuts and fills its layers for long slides, not the few pixels of a lean:
+- A layer further away moves less, so the camera only ever shows its start: it is cut to a screen and its parallax's
+  share of the scroll (the far city, 1432 px of 2400), which also keeps the image model's fill within what it paints.
+- The furthest layer is painted behind nearer things over a soft fill of the colours around them, with no shape of
+  their own (`pushPull` in tools/pipeline/split.mjs): over a flat colour in their shape, the model paints the things
+  back as dark silhouettes.
+- Nearer layers carry nothing across behind nearer things, which would slide into view as smears. What runs on behind
+  them is said in the recipe: a layer's `bands`, rows (level px) of something level such as a viaduct's deck, filled
+  with each row's own median colour from the layer's left edge on; and its `pillars`, a column it repeats (`template`,
+  copied every `every` px from `from`) where nearer things hide all of where one would stand.
+
 1. `npm run asset -- split <recipe> --map` judges the depth of both views with a model that runs on this machine
    (Depth Anything V2 Small, downloaded once into `node_modules/.cache/lidless`, about 100 MB; nothing of it ships),
    groups everything above the ground into as many bands as there are layers, applies the fixes, and writes

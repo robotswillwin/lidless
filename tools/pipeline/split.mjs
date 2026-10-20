@@ -97,6 +97,45 @@ export function layerMapImage(L, w, h) {
   return img;
 }
 
+/**
+ * Unknown pixels filled smoothly from the known ones around them (push-pull, then softened): where a nearer thing hid
+ * a layer, the colours of what is around it, with no shape of its own. An image model painting over a flat colour in
+ * the hidden thing's shape paints the thing back, as a dark silhouette; over this it paints what is behind.
+ * `rgba` is the layer's pixels, `known` 1 where they are its own. Returns RGBA bytes.
+ */
+export function pushPull(rgba, known, w, h) {
+  const levels = [];
+  let lw = w, lh = h, c = new Float32Array(w * h * 3), a = new Float32Array(w * h);
+  for (let i = 0; i < w * h; i++) if (known[i]) { a[i] = 1; for (let k = 0; k < 3; k++) c[i * 3 + k] = rgba[i * 4 + k]; }
+  levels.push({ w: lw, h: lh, c, a });
+  // push: sums and counts, halving until one pixel
+  while (lw > 1 || lh > 1) {
+    const nw = Math.max(1, Math.ceil(lw / 2)), nh = Math.max(1, Math.ceil(lh / 2)), nc = new Float32Array(nw * nh * 3), na = new Float32Array(nw * nh);
+    for (let y = 0; y < lh; y++) for (let x = 0; x < lw; x++) { const i = y * lw + x, j = (y >> 1) * nw + (x >> 1); na[j] += a[i]; for (let k = 0; k < 3; k++) nc[j * 3 + k] += c[i * 3 + k]; }
+    levels.push({ w: nw, h: nh, c: nc, a: na });
+    lw = nw; lh = nh; c = nc; a = na;
+  }
+  // pull: a pixel with nothing known in it takes the average of the coarser one over it, sampled between its neighbours
+  for (let l = levels.length - 2; l >= 0; l--) {
+    const L = levels[l], U = levels[l + 1];
+    const avg = (x, y, k) => { const X = Math.min(U.w - 1, Math.max(0, x)), Y = Math.min(U.h - 1, Math.max(0, y)), j = Y * U.w + X; return U.a[j] > 0 ? U.c[j * 3 + k] / U.a[j] : null; };
+    for (let y = 0; y < L.h; y++) for (let x = 0; x < L.w; x++) {
+      const i = y * L.w + x;
+      if (L.a[i] > 0) continue;
+      const fx = (x + 0.5) / 2 - 0.5, fy = (y + 0.5) / 2 - 0.5, x0 = Math.floor(fx), y0 = Math.floor(fy), tx = fx - x0, ty = fy - y0;
+      for (let k = 0; k < 3; k++) {
+        let s = 0, wt = 0;
+        for (const [dx, dy, ww] of [[0, 0, (1 - tx) * (1 - ty)], [1, 0, tx * (1 - ty)], [0, 1, (1 - tx) * ty], [1, 1, tx * ty]]) { const v = avg(x0 + dx, y0 + dy, k); if (v !== null) { s += v * ww; wt += ww; } }
+        L.c[i * 3 + k] = wt > 0 ? s / wt : 0;
+      }
+      L.a[i] = 1;
+    }
+  }
+  const out = new Uint8ClampedArray(w * h * 4), L0 = levels[0];
+  for (let i = 0; i < w * h; i++) { for (let k = 0; k < 3; k++) out[i * 4 + k] = L0.c[i * 3 + k] / L0.a[i]; out[i * 4 + 3] = 255; }
+  return out;
+}
+
 /** The map laid over the picture, to check it by eye. */
 export function layerPreview(L, pic) {
   const img = blank(pic.w, pic.h, [0, 0, 0, 255]);

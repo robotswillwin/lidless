@@ -8,7 +8,7 @@ import { ROOT } from './recipe.mjs';
 import { buildOne } from './build.mjs';
 import { cmdParts, cmdRig } from './characters.mjs';
 import { cmdErase, cmdExtend, cmdGenerate, cmdImport, cmdNew, cmdPaint, cmdPick, cmdRedress, cmdReframe, cmdSheet, cmdTouch, cmdVariant } from './images.mjs';
-import { cmdBlockout, cmdGround, cmdSplit, cmdZoom } from './scenes.mjs';
+import { cmdBlockout, cmdGround, cmdSplit, cmdWiden, cmdZoom } from './scenes.mjs';
 
 try { process.loadEnvFile(resolve(ROOT, '.env.local')); } catch { /* no .env.local: fine until an API call needs the key */ }
 
@@ -39,6 +39,9 @@ const HELP = `Asset pipeline: generate art with an image AI, clean it and turn i
   npm run asset -- extend <recipe> --from <image> --box x,y,width [--view raw|concierge] [--n 2] [--dry]
       Place a picture, such as a concept panel wider than the screen, in the recipe's frame at the box, and have
       GPT Image 2.5 Sunburst paint the rest of the frame around it in its own style. The picture stays as it is.
+  npm run asset -- widen <recipe> --prompt "what comes next" --raw-prompt "the same in raw view" [--tile 2400] [--overlap 960] [--dry]
+      Widen a background to the right by one tile, in both views, for a street that scrolls: the Concierge's view
+      painted on from its end, then raw view redrawn from that tile, so the two line up. The old pictures are kept.
   npm run asset -- zoom <scene id> --scale 0.6 [--dry]
       Pull a scene's camera back: in its scene file every place, hotspot, light and spawn moves toward the middle and
       the walk line by the scale, its people are drawn that much smaller (actorScale), and its walk line stays where it
@@ -114,6 +117,6 @@ function parse(argv) {
 }
 
 const [cmd, ...rest] = process.argv.slice(2), { pos, opt } = parse(rest);
-const run = { new: cmdNew, rig: cmdRig, zoom: cmdZoom, extend: cmdExtend, generate: cmdGenerate, variant: cmdVariant, redress: cmdRedress, reframe: cmdReframe, blockout: cmdBlockout, pick: cmdPick, import: cmdImport, sheet: cmdSheet, touch: cmdTouch, split: cmdSplit, ground: cmdGround, erase: cmdErase, paint: cmdPaint, parts: cmdParts, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
+const run = { new: cmdNew, rig: cmdRig, zoom: cmdZoom, extend: cmdExtend, generate: cmdGenerate, variant: cmdVariant, redress: cmdRedress, reframe: cmdReframe, blockout: cmdBlockout, pick: cmdPick, import: cmdImport, sheet: cmdSheet, touch: cmdTouch, split: cmdSplit, ground: cmdGround, erase: cmdErase, paint: cmdPaint, parts: cmdParts, widen: cmdWiden, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
 if (!run) console.log(HELP);
 else run(pos, opt).catch((e) => { console.error(`error: ${e.message}`); process.exit(1); });

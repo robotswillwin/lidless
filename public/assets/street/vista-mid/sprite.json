@@ -2,7 +2,7 @@
   "name": "vista-mid",
   "x": -20,
   "y": 0,
-  "w": 1000,
+  "w": 1864,
   "h": 540,
   "maps": [
     "albedo.concierge",
@@ -17,7 +17,7 @@
   "object": 0,
   "machine": 1,
   "anchor": [
-    500,
+    932,
     540
   ],
   "exists": "both",

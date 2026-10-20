@@ -98,7 +98,8 @@ off-grid shop, the Concierge's billboard, store and screens). In the editor, the
 variant or makes a new one, and while one is shown the look panel's **This scene** edits its settings and saves them
 into the variant; the light panel has **Power of its own**.
 
-The scenes so far: Luna's home (`home`), the backstreet, the main street and the radio repair (`radio`). Entrance 3 on the
+The scenes so far: Luna's home (`home`), the backstreet, the main street (two and a half screens wide: the camera
+scrolls and its layers slide at their own speeds) and the radio repair (`radio`). Entrance 3 on the
 backstreet leads home, and the radio repair's door on the main street leads into the shop, where the fixer works.
 
 **The scene editor**, `/editor.html` on the dev server, shows a scene rendered as in the game, and Luna to judge the

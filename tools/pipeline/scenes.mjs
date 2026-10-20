@@ -13,7 +13,10 @@ import { blank, readRGBA, writePNG } from './image.mjs';
 import { edit, generate } from './openai.mjs';
 import { loadRecipe, ROOT } from './recipe.mjs';
 import { nextName, rel } from './shared.mjs';
-import { distanceFrom, draftLayerMap, LAYER_COLOUR_NAMES, layerMapImage, layerPreview, readLayerMap } from './split.mjs';
+import { distanceFrom, draftLayerMap, LAYER_COLOUR_NAMES, layerMapImage, layerPreview, pushPull, readLayerMap } from './split.mjs';
+
+/** The screen, in level pixels: as wide as one-screen scenes are. */
+const NW = 960;
 
 /** Every place in a scene file, moved by the camera pulling back: toward x = cx and y = fy by s. */
 export function zoomScene(file, s, anchors) {
@@ -141,8 +144,12 @@ export async function cmdSplit([file], opt) {
   let cost = 0;
   for (let k = 0; k < N; k++) {
     const layer = cfg.layers[k], name = `${r.name}-${layer.name}`, out = join(ROOT, 'art', r.scene, name);
-    // every layer reaches past the screen's edges, as the camera moves; the picture is padded to the model's sizes
-    const m = margin, CW = W + 2 * m, EH = Math.ceil(H / 16) * 16;
+    // every layer reaches past the screen's edges, as the camera moves; the picture is padded to the model's sizes. In a
+    // scene wider than the screen a layer further away moves less, so the camera only ever shows the start of it: from
+    // the left edge, a screen and its parallax's share of the scroll. Past that it is left out (span): the far city of a
+    // wide street, not the picture's width, which also keeps the image model's fill within the sizes it paints
+    const m = margin, sceneW = W / res, need = Math.ceil((NW + (layer.parallax ?? 1) * Math.max(0, sceneW - NW)) * res);
+    const span = Math.min(W, need + m), CW = m + span + (span >= W ? m : 0), EH = Math.ceil(H / 16) * 16, scrolls = sceneW > NW;
     await mkdir(out, { recursive: true });
     for (const v of views) {
       const pic = pics[v], img = blank(CW, H), L = maps[v];
@@ -166,12 +173,17 @@ export async function cmdSplit([file], opt) {
       for (let i = 0; i < own.length; i++) if (own[i]) { const j = i * 4; avg[0] += img.d[j]; avg[1] += img.d[j + 1]; avg[2] += img.d[j + 2]; n++; }
       const fill = avg.map((c) => Math.round(c / Math.max(1, n)));
       const input = blank(CW, EH, [...fill, 255]), mask = Buffer.alloc(CW * EH * 4, 255);
+      // what a nearer thing hides: the colours around it, with no shape (see pushPull). Below the ground, which the street
+      // always covers, nothing is painted
+      const known = new Uint8Array(CW * EH);
+      for (let y = 0; y < Math.min(H, EH); y++) for (let x = m; x < m + span; x++) { const i = y * CW + x; if (!hidden[i] && !past[i]) { known[i] = 1; input.d.set(pic.d.subarray((y * W + x - m) * 4, (y * W + x - m) * 4 + 3), i * 4); } }
+      if (scrolls) input.d.set(pushPull(input.d, known, CW, EH));
+      const groundT = Math.round((cfg.ground ?? H / res) * res);
       for (let y = 0; y < EH; y++) for (let x = 0; x < CW; x++) {
-        const sx = x - m, i = y * CW + x;
-        if (hidden[i] || past[i]) { mask[i * 4 + 3] = 0; continue; }
-        input.d.set(pic.d.subarray((y * W + sx) * 4, (y * W + sx) * 4 + 3), i * 4);
+        const i = y * CW + x;
+        if (!known[i] && (!scrolls || y < groundT)) mask[i * 4 + 3] = 0;
       }
-      const prompt = `Fill the transparent area of the mask with ${layer.fill ?? `more of what is at this distance in the picture`}, continued naturally, as if the nearer buildings, objects and people in front of it were not there, and on past the picture's left and right edges. No people, no text. Everything else stays exactly as it is; match the style, colours and lighting of the picture around it.${r.look === 'vector' ? ' Keep the style exactly: clean, simple shapes with crisp edges, flat colour and soft planes of light and shadow, no texture and no fine detail.' : ''}`;
+      const prompt = `Fill the transparent area of the mask with ${layer.fill ?? `more of what is at this distance in the picture`}, continued naturally, as if the nearer buildings, objects and people in front of it were not there, and on past the picture's left and right edges. Nothing stands in front of it: no buildings, no bridge or viaduct, no pillars, no trees, no lamps, no people and no dark silhouettes of them; only more of the distance. No text. Everything else stays exactly as it is; match the style, colours and lighting of the picture around it.${r.look === 'vector' ? ' Keep the style exactly: clean, simple shapes with crisp edges, flat colour and soft planes of light and shadow, no texture and no fine detail.' : ''}`;
       if (opt.dry) { console.log(`${name} ${v}: ${CW}×${EH}\n${prompt}`); continue; }
       const piece = await sharp(Buffer.from(input.d.buffer, input.d.byteOffset, input.d.length), { raw: { width: CW, height: EH, channels: 4 } }).png().toBuffer();
       const maskPNG = await sharp(mask, { raw: { width: CW, height: EH, channels: 4 } }).png().toBuffer();
@@ -218,6 +230,8 @@ export async function cmdSplit([file], opt) {
       // border); for the furthest layer, the model's painting where it carries on the picture there. Rows whose edge is in
       // another layer stay empty here: that layer's margin covers them
       for (const side of [-1, 1]) {
+        // a layer cut short of the picture's right end has the picture itself there, not a margin to carry out
+        if (side > 0 && span < W) continue;
         const edgeOf = (y) => L[y * W + (side < 0 ? 0 : W - 1)];
         for (let y = 0; y < H; y++) {
           if (edgeOf(y) !== k) continue;
@@ -245,9 +259,18 @@ export async function cmdSplit([file], opt) {
       // rest left to the layer behind. The furthest layer does the same: the camera only ever shows that much behind an
       // edge, and the model's painting there could be anything, even black, or tear a shape the map cut in two; it keeps
       // the model's painting only deeper in, which is never seen. Colours are taken a pixel or two out from the edge.
-      const thin = Math.round((cfg.thin ?? 24) * res), reach = m, rim = 2;
+      // A scene that scrolls slides its layers far against each other, not the few pixels of a lean: there the furthest
+      // layer keeps the model's painting behind nearer things, and a nearer layer carries only long, level runs of its
+      // own (a viaduct's deck) behind them, as far as the camera reveals; a narrow upright thing (a pillar, a tower's
+      // edge) is not smeared across, and what is behind it shows instead
+      const thin = Math.round((cfg.thin ?? 24) * res), rim = 2;
+      // in a scene that scrolls, a nearer layer carries nothing behind nearer things: a smear of a tower's base slides
+      // into view as a bar. What runs on level behind them is its bands' (below); the furthest layer is painted
+      const reach = !scrolls ? m : 0;
+      const carryMin = 0;
       for (let y = 0; y < H; y++) {
-        const row = y * CW, x0 = m, x1 = m + W - 1;
+        const row = y * CW, x0 = m, x1 = m + span - 1;
+        const runOf = (x, dir) => { let n = 0; for (let s = x; s >= x0 && s <= x1 && own[row + s] && n < carryMin; s += dir) n++; return n; };
         const from = (x, dir) => { let s = x; for (let r = 0; r < rim && s + dir >= x0 && s + dir <= x1 && own[row + s + dir]; r++) s += dir; return (row + s) * 4; };
         const paint = (x, a, b, t) => { const o = (row + x) * 4; for (let c = 0; c < 3; c++) img.d[o + c] = Math.round(img.d[a + c] * (1 - t) + img.d[b + c] * t); img.d[o + 3] = 255; };
         for (let x = x0; x <= x1; x++) {
@@ -262,10 +285,40 @@ export async function cmdSplit([file], opt) {
             for (let j = 0; j < len; j++) paint(x + j, a, b, (j + 1) / (len + 1));
           } else {
             const share = (otherOwn, otherEdge) => Math.min(reach, otherOwn ? Math.ceil(len / 2) : otherEdge ? len : Math.ceil(len / 2));
-            if (left) { const a = from(x - 1, -1), n = share(right, rightEdge); for (let j = 0; j < n; j++) paint(x + j, a, a, 0); }
-            if (right) { const b = from(e + 1, 1), n = share(left, leftEdge); for (let j = 0; j < n; j++) paint(e - j, b, b, 0); }
+            if (left && runOf(x - 1, -1) >= carryMin) { const a = from(x - 1, -1), n = share(right, rightEdge); for (let j = 0; j < n; j++) paint(x + j, a, a, 0); }
+            if (right && runOf(e + 1, 1) >= carryMin) { const b = from(e + 1, 1), n = share(left, leftEdge); for (let j = 0; j < n; j++) paint(e - j, b, b, 0); }
           }
           x = e;
+        }
+      }
+      // a layer's bands (level px): rows of something level that runs on behind nearer things, a viaduct's deck. In them,
+      // from the layer's left edge to the row's last own pixel, everything not its own takes the row's median colour: the
+      // deck carries on behind a building as the camera slides them apart, with no shape of the building in it, and with
+      // no sliver of the city between two of its pieces
+      for (const [b0, b1] of layer.bands ?? []) for (let y = Math.round(b0 * res); y < Math.min(H, Math.round(b1 * res)); y++) {
+        const row = y * CW, cols = [[], [], []];
+        let last = -1;
+        for (let x = m; x < m + span; x++) if (own[row + x]) { last = x; for (let c = 0; c < 3; c++) cols[c].push(img.d[(row + x) * 4 + c]); }
+        if (last < 0) continue;
+        const med = cols.map((a) => a.sort((p, q) => p - q)[a.length >> 1]);
+        for (let x = 0; x <= last; x++) if (!own[row + x]) { img.d.set(med, (row + x) * 4); img.d[(row + x) * 4 + 3] = 255; }
+      }
+      // a layer's pillars: a column it repeats (a viaduct's pillars), copied from one it shows (`template`, level px) to
+      // every `every` px from `from`, where nearer things hide all of where it would stand: the deck does not float over a
+      // long span as the camera slides a building away from in front of it. Nowhere the picture shows something else
+      const P = layer.pillars;
+      if (P) {
+        const [y0, y1] = P.rows.map((v) => Math.round(v * res)), [t0, t1] = P.template.map((v) => Math.round(v * res)), pw = t1 - t0;
+        const tpl = [];
+        for (let y = y0; y < Math.min(H, y1); y++) for (let x = 0; x < pw; x++) tpl.push(img.d.slice((y * CW + m + t0 + x) * 4, (y * CW + m + t0 + x) * 4 + 4));
+        const first = P.from - Math.floor((P.from - 0) / P.every) * P.every;
+        for (let cx = first; cx * res + pw < span; cx += P.every) {
+          const x0 = m + Math.round(cx * res);
+          let hiddenAll = true;
+          for (let y = y0; y < Math.min(H, y1) && hiddenAll; y += 2) for (let x = x0; x < x0 + pw; x++) if (!(hidden[y * CW + x] || past[y * CW + x])) { hiddenAll = false; break; }
+          if (!hiddenAll) continue;
+          let k2 = 0;
+          for (let y = y0; y < Math.min(H, y1); y++) for (let x = 0; x < pw; x++, k2++) if (tpl[k2][3] > 0) img.d.set(tpl[k2], (y * CW + x0 + x) * 4);
         }
       }
       if (!opt.dry) await writePNG(join(out, `${v}.png`), img);
@@ -273,9 +326,10 @@ export async function cmdSplit([file], opt) {
     if (opt.dry) continue;
     // the layer's recipe: the background's own settings, placed with its margin
     const keep = Object.fromEntries(Object.entries(recipe).filter(([key]) => !['name', 'prompt', 'concierge', 'references', 'conciergeReferences', 'framing', 'size', 'split'].includes(key)));
+    // placed by its left margin, which the build centres: a layer cut short is not as wide as the picture
     const layerRecipe = {
       name, prompt: `The ${layer.name} layer of ${r.scene}/${r.name}, cut from its picture by split: change that picture and split it again.`,
-      ...keep, ...(layer.depth !== undefined ? { depth: layer.depth } : {}), layerOf: `${r.scene}/${r.name}`,
+      ...keep, position: [(CW / 2 - m) / res, H / res], ...(layer.depth !== undefined ? { depth: layer.depth } : {}), layerOf: `${r.scene}/${r.name}`,
     };
     const layerFile = join(ROOT, 'art', r.scene, `${name}.json`);
     await writeFile(layerFile, JSON.stringify(layerRecipe, null, 2) + '\n');
@@ -348,3 +402,75 @@ export async function cmdGround([file], opt) {
   }
 }
 
+
+/**
+ * Widen a background to the right by one tile, in both views: a street that scrolls. The image model paints at most
+ * three times as wide as high, so a wide picture grows a tile at a time. The Concierge's view first: a frame of
+ * `--tile` pixels with the picture's last `--overlap` pixels at its left, the rest painted to continue it as `--prompt`
+ * describes. Then raw view: that whole tile redrawn as raw view (`--raw-prompt`), every outline in place, so the two
+ * views line up, and joined to the raw picture with a blend over the seam. The old pictures are kept in candidates/.
+ */
+export async function cmdWiden([file], opt) {
+  const r = await loadRecipe(file), quality = opt.quality ?? 'medium';
+  const tile = Number(opt.tile ?? 2400), overlap = Number(opt.overlap ?? 960), band = Number(opt.band ?? 96);
+  if (typeof opt.prompt !== 'string' || typeof opt['raw-prompt'] !== 'string') throw new Error('usage: widen <recipe> --prompt "what comes next, in the Concierge\'s view" --raw-prompt "the same in raw view" [--tile 2400] [--overlap 960] [--quality medium] [--dry]');
+  const cFile = join(r.dir, 'concierge.png'), rFile = join(r.dir, 'raw.png');
+  const conc = await readRGBA(cFile), raw = await readRGBA(rFile), { w: W, h: H } = conc;
+  if (raw.w !== W || raw.h !== H) throw new Error('the two views must be the same size');
+  const H16 = Math.ceil(H / 16) * 16, add = tile - overlap;
+  if (tile > 3 * H16) throw new Error(`a tile can be at most three times as wide as high: ${3 * H16}`);
+  const keep = r.look === 'vector' ? ' Keep the style exactly: clean, simple shapes with crisp edges, flat colour and soft planes of light and shadow, no texture and no fine detail.' : '';
+  const prompt = `Extend this picture to the right into the transparent area of the mask: the same street continues to the right, at the same scale, with the same ground line, the same pavement and wet street along the bottom, the same horizon and the same distant city behind, in exactly the same style, colours, lighting and level of detail. What comes next along the street: ${opt.prompt} Keep everything that is already there exactly as it is. No people, no border.${keep}`;
+  console.log(`${r.name}: ${W}×${H} → ${W + add}×${H}: a ${tile}×${H16} tile, ${overlap} px of it the picture's end, ${add} px new, in both views`);
+  if (opt.dry) return console.log(`\n${prompt}`);
+  const dir = join(r.dir, 'candidates');
+  await mkdir(dir, { recursive: true });
+  const toPNG = (img) => sharp(Buffer.from(img.d.buffer, img.d.byteOffset, img.d.length), { raw: { width: img.w, height: img.h, channels: 4 } }).png().toBuffer();
+  // the frame: the picture's end at the left, a blur of it stretched over the rest for colours to continue from
+  const end = blank(overlap, H);
+  for (let y = 0; y < H; y++) end.d.set(conc.d.subarray((y * W + W - overlap) * 4, (y * W + W) * 4), y * overlap * 4);
+  const blur = await sharp(await toPNG(end)).resize(tile, H16, { fit: 'fill' }).blur(40).ensureAlpha().raw().toBuffer();
+  const frame = { w: tile, h: H16, d: new Uint8ClampedArray(blur) };
+  for (let y = 0; y < H; y++) frame.d.set(end.d.subarray(y * overlap * 4, (y + 1) * overlap * 4), y * tile * 4);
+  const mask = Buffer.alloc(tile * H16 * 4, 255);
+  for (let y = 0; y < H16; y++) for (let x = 0; x < tile; x++) if (x >= overlap || y >= H) mask[(y * tile + x) * 4 + 3] = 0;
+  const c = await edit({ prompt, images: [{ name: 'frame.png', data: await toPNG(frame) }], mask: await sharp(mask, { raw: { width: tile, height: H16, channels: 4 } }).png().toBuffer(), size: `${tile}x${H16}`, quality, n: 1, background: 'opaque' });
+  if (!c.images.length) throw new Error('the API returned no image');
+  const painted = await sharp(c.images[0]).resize(tile, H16, { fit: 'fill' }).ensureAlpha().raw().toBuffer();
+  // the Concierge's tile: the picture's end exactly as it was, and what was painted after it
+  const cTile = blank(tile, H);
+  for (let y = 0; y < H; y++) {
+    cTile.d.set(end.d.subarray(y * overlap * 4, (y + 1) * overlap * 4), y * tile * 4);
+    cTile.d.set(painted.subarray((y * tile + overlap) * 4, (y * tile + tile) * 4), (y * tile + overlap) * 4);
+  }
+  const n = (await nextName(dir, 'widen-concierge'))();
+  await writePNG(join(dir, n), cTile);
+  // raw view: the whole tile redrawn, outlines in place, with the raw picture as the style to match
+  const refs = [{ name: 'raw-street.png', data: await sharp(rFile).resize(1024, 1024, { fit: 'inside' }).png().toBuffer() }];
+  const { REDRESS_REFERENCES_NOTE, redressPrompt } = await import('./style.mjs');
+  const rp = `${REDRESS_REFERENCES_NOTE} ${redressPrompt(r, 'raw', `Repaint it as raw view, as simple and flat as it is now, in the colours of the attached street: ${opt['raw-prompt']}`)}`;
+  const tilePNG = await sharp(await toPNG(cTile)).extend({ bottom: H16 - H, extendWith: 'copy' }).png().toBuffer();
+  const rr = await edit({ prompt: rp, images: [{ name: 'tile.png', data: tilePNG }, ...refs], size: `${tile}x${H16}`, quality, n: 1, background: 'opaque' });
+  if (!rr.images.length) throw new Error('the API returned no image');
+  const rTile = { w: tile, h: H16, d: new Uint8ClampedArray(await sharp(rr.images[0]).resize(tile, H16, { fit: 'fill' }).ensureAlpha().raw().toBuffer()) };
+  await writePNG(join(dir, (await nextName(dir, 'widen-raw'))()), rTile);
+  // both pictures one tile wider; raw view blended from its own end into the redrawn tile over the last `band` pixels
+  const grow = (pic, t, blend) => {
+    const out = blank(W + add, H);
+    for (let y = 0; y < H; y++) {
+      out.d.set(pic.d.subarray(y * W * 4, (y + 1) * W * 4), y * (W + add) * 4);
+      out.d.set(t.d.subarray((y * t.w + overlap) * 4, (y * t.w + tile) * 4), (y * (W + add) + W) * 4);
+      if (blend) for (let x = W - band; x < W; x++) {
+        const k = (x - (W - band)) / band, s = k * k * (3 - 2 * k), i = (y * (W + add) + x) * 4, j = (y * t.w + overlap - (W - x)) * 4;
+        for (let ch = 0; ch < 3; ch++) out.d[i + ch] = Math.round(out.d[i + ch] * (1 - s) + t.d[j + ch] * s);
+      }
+    }
+    return out;
+  };
+  for (const [f, pic, t, blend, v] of [[cFile, conc, cTile, false, 'concierge'], [rFile, raw, rTile, true, 'raw']]) {
+    await copyFile(f, join(dir, (await nextName(dir, `${v}-before-widen`))()));
+    await writePNG(f, grow(pic, t, blend));
+  }
+  const spent = (c.cost ?? 0) + (rr.cost ?? 0);
+  console.log(`${r.name}: ${W + add}×${H} in both views (the tiles: candidates/${n} and its raw). Cost: $${spent.toFixed(4)}`);
+}

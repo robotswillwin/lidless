@@ -38,13 +38,31 @@
         "name": "far",
         "parallax": 0.3,
         "depth": 1,
-        "fill": "the distant city and the sky behind everything: towers with their windows, signs, lights and smoke, as they are around it"
+        "fill": "only the distant city and the sky behind everything: towers with their windows, signs, lights and smoke, as they are around it"
       },
       {
         "name": "mid",
         "parallax": 0.6,
         "depth": 2,
-        "fill": "the elevated viaduct and the buildings at its distance, the viaduct running on behind where nearer things stood"
+        "fill": "the elevated viaduct and the buildings at its distance, the viaduct running on behind where nearer things stood",
+        "bands": [
+          [
+            234,
+            284
+          ]
+        ],
+        "pillars": {
+          "rows": [
+            283,
+            451
+          ],
+          "template": [
+            1563,
+            1596
+          ],
+          "every": 145,
+          "from": 1221
+        }
       },
       {
         "name": "street",

@@ -4,7 +4,7 @@
  "assist": "Radio Repair is right here, guest. Your parcel is expected.",
  "kind": "exterior",
  "size": [
-  960,
+  2400,
   540
  ],
  "layers": [
@@ -36,7 +36,7 @@
    "x": 570,
    "y": 380,
    "preset": "street-lamp",
-   "parallax": 0.6,
+   "parallax": 0.3,
    "z": 14,
    "r": 110,
    "c": [
@@ -49,7 +49,8 @@
   {
    "x": 640,
    "y": 230,
-   "preset": "city-glow"
+   "preset": "city-glow",
+   "parallax": 0.3
   },
   {
    "x": 872,
@@ -72,19 +73,111 @@
   {
    "x": 640,
    "y": 150,
-   "preset": "smog-glow"
+   "preset": "smog-glow",
+   "parallax": 0.3
   },
   {
    "x": 930,
    "y": 376,
    "preset": "machine-eye",
    "own": 1
+  },
+  {
+   "x": 1243,
+   "y": 305,
+   "preset": "street-lamp"
+  },
+  {
+   "x": 1776,
+   "y": 302,
+   "preset": "street-lamp"
+  },
+  {
+   "x": 1100,
+   "y": 380,
+   "preset": "shop-window",
+   "ar": 1
+  },
+  {
+   "x": 1935,
+   "y": 380,
+   "preset": "shop-window",
+   "c": [
+    1,
+    0.45,
+    0.4
+   ],
+   "ar": 1
+  },
+  {
+   "x": 1885,
+   "y": 200,
+   "preset": "neon",
+   "c": [
+    1,
+    0.2,
+    0.75
+   ]
+  },
+  {
+   "x": 2160,
+   "y": 370,
+   "preset": "shop-window",
+   "ar": 1
+  },
+  {
+   "x": 1473,
+   "y": 360,
+   "preset": "screen",
+   "c": [
+    0.4,
+    0.8,
+    1
+   ]
+  },
+  {
+   "x": 1352,
+   "y": 250,
+   "z": 30,
+   "r": 180,
+   "c": [
+    1,
+    0.7,
+    0.35
+   ],
+   "i": 0.6,
+   "zone": 0,
+   "layer": 1,
+   "ar": 1,
+   "g": 8
+  },
+  {
+   "x": 2100,
+   "y": 150,
+   "preset": "bare-bulb",
+   "raw": 1,
+   "i": 0.6
+  },
+  {
+   "x": 2290,
+   "y": 302,
+   "z": 30,
+   "r": 220,
+   "c": [
+    1,
+    0.8,
+    0.5
+   ],
+   "i": 1,
+   "zone": 0,
+   "layer": 1,
+   "haze": 0.1
   }
  ],
  "walk": {
   "y": 470,
   "x0": 30,
-  "x1": 820
+  "x1": 2370
  },
  "mirror": 452,
  "ground": {
@@ -268,6 +361,124 @@
    "tag": {
     "raw": "they all walk past him"
    }
+  },
+  {
+   "id": "bakery",
+   "name": {
+    "concierge": "Bakery",
+    "raw": "Shuttered bakery"
+   },
+   "rect": [
+    985,
+    300,
+    230,
+    150
+   ],
+   "stand": 1100,
+   "look": {
+    "concierge": "Fresh bread, warm from the oven, every hour on the hour.",
+    "raw": "Shutters down, the awning in rags. It smells of nothing at all."
+   },
+   "tag": {
+    "concierge": "Bakery · open late",
+    "raw": "closed for good"
+   }
+  },
+  {
+   "id": "tree",
+   "name": {
+    "concierge": "Tree",
+    "raw": "Dead tree"
+   },
+   "rect": [
+    1272,
+    170,
+    166,
+    190
+   ],
+   "stand": 1350,
+   "look": {
+    "concierge": "A real tree, strung with lights. It is always spring here.",
+    "raw": "Dead for years. Somebody still hung a wire of bulbs in it once."
+   }
+  },
+  {
+   "id": "bench",
+   "name": "Bench",
+   "rect": [
+    1310,
+    398,
+    76,
+    44
+   ],
+   "stand": 1348,
+   "look": {
+    "concierge": "A bench under the lights. Someone always seems to have just left it.",
+    "raw": "A bench, two slats broken. Still the best seat on the street."
+   }
+  },
+  {
+   "id": "notices",
+   "name": {
+    "concierge": "City notices",
+    "raw": "Missing"
+   },
+   "rect": [
+    1442,
+    305,
+    62,
+    145
+   ],
+   "stand": 1473,
+   "look": {
+    "concierge": "Tonight: a festival of light in the old harbour. All guests welcome.",
+    "raw": "A young woman's face, the words under it torn away. In the Concierge's view this is a screen of good news."
+   },
+   "tag": {
+    "concierge": "Notices",
+    "raw": "who is she?"
+   },
+   "ask": "Tonight there is a festival of light in the old harbour, guest. Shall I reserve you a place?"
+  },
+  {
+   "id": "bar",
+   "name": {
+    "concierge": "Bar",
+    "raw": "Boarded bar"
+   },
+   "rect": [
+    1820,
+    240,
+    230,
+    210
+   ],
+   "stand": 1935,
+   "look": {
+    "concierge": "Velvet, low light, and a drink that remembers what you like.",
+    "raw": "Boarded up. Through a gap, chairs stacked on the tables."
+   },
+   "tag": {
+    "concierge": "Bar · open",
+    "raw": "nobody drinks here"
+   }
+  },
+  {
+   "id": "corner-shop",
+   "name": {
+    "concierge": "Corner shop",
+    "raw": "Shuttered shop"
+   },
+   "rect": [
+    2075,
+    255,
+    160,
+    195
+   ],
+   "stand": 2155,
+   "look": {
+    "concierge": "Everything a guest could need, gift-wrapped.",
+    "raw": "Shutters, and behind them shelves of nothing."
+   }
   }
  ],
  "beacons": [
@@ -317,7 +528,7 @@
    "y": 380,
    "strength": 0.15,
    "zone": 2,
-   "parallax": 0.6
+   "parallax": 0.3
   },
   {
    "x": 165,
@@ -341,7 +552,7 @@
   ],
   "perLane": 2,
   "x0": 420,
-  "span": 360,
+  "span": 900,
   "ar": 1,
   "parallax": 0.3
  },
@@ -358,6 +569,24 @@
     60,
     320,
     125
+   ],
+   [
+    985,
+    290,
+    180,
+    150
+   ],
+   [
+    1830,
+    290,
+    190,
+    150
+   ],
+   [
+    2075,
+    290,
+    160,
+    150
    ]
   ]
  },
@@ -426,7 +655,6 @@
   },
   "mirrorSet": 1
  },
- "drift": 18,
  "movers": [
   {
    "asset": "street/train",
