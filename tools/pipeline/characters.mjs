@@ -185,14 +185,29 @@ export function footLength(img) {
  * Bare skin at a joint: the piece fades out over its overlap with the one under it, so no straight cut shows where a
  * sleeve or a trouser leg would have hidden it. An upper arm, a forearm, a lower leg fade at the top, past the joint
  * they turn on; the torso at the bottom, past the hip.
+ *
+ * `onto`: the pieces it fades into at its `top` and its `bottom`, at rest, each { img, at }, `at` where that piece's
+ * first pixel is in this one's. Over the other piece it fades as before; past the other's outline, where only the
+ * background would show through, it stays solid and its outline turns into the other's across the fade, so no
+ * see-through rim is left there for the light to catch.
  */
-export function softenJoint(part, name, bottom = 0.1) {
-  const { img, joints } = part, h = img.h, out = { w: img.w, h, d: new Uint8ClampedArray(img.d) };
+export function softenJoint(part, name, bottom = 0.1, onto = {}) {
+  const { img, joints } = part, h = img.h, w = img.w, out = { w, h, d: new Uint8ClampedArray(img.d) };
   const fade = (from, len) => {
+    const other = onto[from];
     for (let y = 0; y < h; y++) {
       const t = Math.min(1, (from === 'top' ? y : h - 1 - y) / len), k = t * t * (3 - 2 * t);
       if (k >= 1) continue;
-      for (let x = 0; x < img.w; x++) out.d[(y * img.w + x) * 4 + 3] *= k;
+      const py = other ? y - other.at[1] : -1, own = other ? span(img, y) : null;
+      const theirs = own && py >= 0 && py < other.img.h ? span(other.img, py) : null;
+      if (!theirs) { for (let x = 0; x < w; x++) out.d[(y * w + x) * 4 + 3] *= k; continue; }
+      // the outline here, from its own (k 1) to the other's (k 0)
+      const l = own[0] + (theirs[0] + other.at[0] - own[0]) * (1 - k), r = own[1] + (theirs[1] + other.at[0] - own[1]) * (1 - k);
+      for (let x = 0; x < w; x++) {
+        const px = x - other.at[0], under = px >= 0 && px < other.img.w ? other.img.d[(py * other.img.w + px) * 4 + 3] / 255 : 0;
+        const inside = Math.min(1, Math.max(0, Math.min(x - l, r - x) + 0.5));
+        out.d[(y * w + x) * 4 + 3] *= under * k + (1 - under) * inside;
+      }
     }
   };
   // hips in briefs, drawn over her belly and the tops of her thighs: both of their straight edges; the bottom over
@@ -207,6 +222,29 @@ export function softenJoint(part, name, bottom = 0.1) {
 }
 
 const smoothstep = (a, b, x) => { const t = Math.min(1, Math.max(0, b === a ? Number(x >= b) : (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+
+/**
+ * A piece's back (its left side: every set faces right) kept inside the back of another drawn over it, so where the two
+ * meet her back runs on into the other's outline instead of stepping out past it: on every row the other covers no
+ * further out than its back, and over `ramp` rows above them, from its own back over to the other's. `at` is where the
+ * other's first pixel is in this piece's. Bare hips drawn narrower at the waist than the torso's bottom would otherwise
+ * leave a notch in the small of her back.
+ */
+export function tuckBack(part, other, at, ramp) {
+  const { img } = part, out = { w: img.w, h: img.h, d: new Uint8ClampedArray(img.d) };
+  // where the other begins in earnest: its first row at least half as wide as it gets (not a sliver of its top edge)
+  const widths = Array.from({ length: other.img.h }, (_, y) => { const s = span(other.img, y); return s ? s[1] - s[0] + 1 : 0; });
+  const most = Math.max(...widths), first = widths.findIndex((w) => w >= most * 0.5);
+  if (first < 0) return part;
+  const y0 = first + at[1], b0 = span(other.img, first)[0] + at[0], from = Math.max(0, y0 - ramp), start = span(img, from)?.[0];
+  for (let y = from; y < img.h; y++) {
+    let limit;
+    if (y < y0) { if (start === undefined) continue; limit = start + (b0 - start) * ((y - from) / Math.max(1, y0 - from)); }
+    else { const s = span(other.img, y - at[1]); if (!s) continue; limit = s[0] + at[0]; }
+    for (let x = 0; x < img.w && x < limit + 1; x++) out.d[(y * img.w + x) * 4 + 3] *= Math.min(1, Math.max(0, x - limit + 0.5));
+  }
+  return { ...part, img: out };
+}
 
 /**
  * A limb's pieces at rest, each hung from the one before by a joint, as one image: the thigh, the lower leg and the foot
@@ -266,6 +304,11 @@ export async function shapeParts(r, look, v, parts, sameAll) {
   // her hip joint, where her legs hang from: a torso drawn to the waist, over hips of their own (briefs, a skirt),
   // ends above it, so the legs hang parts.proportions.hipDrop of her height below the torso's lowest joint
   if (prop?.hipDrop && parts.torso?.joints?.hip) { const u = BONE.torso(parts.torso) / prop.torso, [hx, hy] = parts.torso.joints.hip; parts.torso = { ...parts.torso, joints: { ...parts.torso.joints, legs: [hx, hy + prop.hipDrop * u] } }; }
+  // the same joint in the hips' own pixels: briefs follow her near thigh below it (parts.coatThigh, see rig.py)
+  if (parts.coat?.joints?.waist && parts.torso?.joints?.legs) {
+    const [wx, wy] = parts.coat.joints.waist, [hx, hy] = parts.torso.joints.hip, [lx, ly] = parts.torso.joints.legs;
+    parts.coat = { ...parts.coat, joints: { ...parts.coat.joints, legs: [wx + lx - hx, wy + ly - hy] } };
+  }
   // a bare neck (parts.bareNeck): the torso's own stump of a neck goes, so the head's neck shows whole
   if (r.parts?.bareNeck && parts.torso) parts.torso = fadeNeck(parts.torso);
   // parts.coatCut: what hangs from the waist kept only down to this share of its height (hips in briefs, cut off
@@ -274,13 +317,24 @@ export async function shapeParts(r, look, v, parts, sameAll) {
   // her limbs as one image each, which the rig skins on their bones (see composeLimb), unless the recipe keeps them
   // in pieces (parts.limbs: "pieces")
   const limbs = r.parts?.limbs === 'pieces' ? {} : composeLimbs(parts);
+  // what bare hips fade into, at rest: the torso above them and the near leg below; and the torso into the hips
+  const at = (a, aj, b, bj) => [Math.round(a.joints[aj][0] - b.joints[bj][0]), Math.round(a.joints[aj][1] - b.joints[bj][1])];
+  const hung = parts.coat?.joints?.waist && parts.torso?.joints?.hip;
+  // briefs over her belly (coat "over"): the small of her back runs on into their outline (see tuckBack)
+  const over = (v.endsWith('-left') ? r.parts?.left?.coat ?? r.parts?.coat : r.parts?.coat) === 'over';
+  if (hung && over) parts.torso = tuckBack(parts.torso, parts.coat, at(parts.torso, 'hip', parts.coat, 'waist'), Math.round(parts.torso.img.h * 0.1));
+  const { torso, coat } = parts, leg = limbs.leg ?? parts.thigh;
+  const onto = {
+    coat: hung ? { top: { img: torso.img, at: at(coat, 'waist', torso, 'hip') }, ...(leg && coat.joints.legs ? { bottom: { img: leg.img, at: at(coat, 'legs', leg, 'hip') } } : {}) } : {},
+    torso: hung ? { bottom: { img: coat.img, at: at(torso, 'hip', coat, 'waist') } } : {},
+  };
   // parts.skin: pieces of bare skin, faded at their joints (see softenJoint). A limb in one image has no joint to fade
   // at the knee or the elbow: only its top, at the hip or the shoulder
   for (const name of r.parts?.skin ?? []) {
     if (limbs.leg && (name === 'thigh' || name === 'shin')) { if (name === 'thigh') limbs.leg = softenJoint(limbs.leg, 'thigh'); continue; }
     if (limbs.arm && (name === 'upperArm' || name === 'forearm')) { if (name === 'upperArm') limbs.arm = softenJoint(limbs.arm, 'upperArm'); continue; }
     // parts.coatFade: how much of the hips' height fades into the thighs (0.1 by default)
-    if (parts[name]) parts[name] = softenJoint(parts[name], name, r.parts?.coatFade ?? 0.1);
+    if (parts[name]) parts[name] = softenJoint(parts[name], name, r.parts?.coatFade ?? 0.1, onto[name]);
   }
   return limbs;
 }
@@ -495,7 +549,8 @@ export async function cmdRig([file], opt) {
     }
     if (!walk) throw new Error(`${r.name}: no raw parts to rig`);
     // parts.coatSway: how much what hangs from the waist swings, 1 a coat's hem, 0 held still with her hips (trousers, briefs)
-    await writeFile(join(out, 'rig.json'), JSON.stringify({ blend: `${r.name}.blend`, percent: PERCENT, far: FAR, coatSway: r.parts?.coatSway ?? 1, sets, walk, idle, jog, run }, null, 1) + '\n');
+    // parts.coatThigh: how much of it follows her near thigh below her hip joint, 0 to 1 (bare hips in briefs, about 0.9)
+    await writeFile(join(out, 'rig.json'), JSON.stringify({ blend: `${r.name}.blend`, percent: PERCENT, far: FAR, coatSway: r.parts?.coatSway ?? 1, coatThigh: r.parts?.coatThigh ?? 0, sets, walk, idle, jog, run }, null, 1) + '\n');
   }
   await rm(tmp, { recursive: true, force: true });
   execFileSync('blender', ['-b', '--factory-startup', '--python', resolve(ROOT, 'tools/blender/rig.py'), '--', out, tmp, ...(opt['render-only'] ? ['--render-only'] : [])], { stdio: ['ignore', 'inherit', 'inherit'] });

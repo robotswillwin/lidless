@@ -45,12 +45,12 @@
     },
     "right": "Seen from her right side: the goggles' right lens over her right eye in raw view, the glowing visor over her right eye in the Concierge's.",
     "proportions": {
-      "head": 0.2,
+      "head": 0.23,
       "torso": 0.26,
       "upperArm": 0.17,
       "forearm": 0.24,
-      "thigh": 0.31,
-      "shin": 0.33,
+      "thigh": 0.29,
+      "shin": 0.31,
       "ponytail": 0.3,
       "hipDrop": 0.08
     },
@@ -94,6 +94,7 @@
     "pieces": "the head with the neck and hair; the torso in the black bra, from the collar to the hips, with the bare stomach, and no arm drawn on it; below the waist, as a separate piece of its own, her hips in the black briefs down to the top of the thighs; one bare upper arm; one bare forearm with the hand, relaxed and open; one bare thigh; one bare lower leg with its bare foot, toes pointing right.",
     "neckSink": 0.07,
     "coatSway": 0,
+    "coatThigh": 0.9,
     "skin": [
       "upperArm",
       "forearm",

@@ -259,6 +259,16 @@ def weights(name, part, x, y, bounce=0.0):
         for k, wk in ((1, w1), (2, w2), (3, w3)):
             out[f'coatF{k}'] = (1 - pin) * wk * f
             out[f'coatB{k}'] = (1 - pin) * wk * (1 - f)
+        # briefs (rig.json coatThigh): below where her legs hang from, more and more of them follows her near thigh, all
+        # of coatThigh from halfway to the hem, so the bare thigh and the buttock under them go with her leg instead of
+        # staying on as a still copy over it
+        follow = R.get('coatThigh', 0.0)
+        if follow > 0 and 'legs' in j:
+            ly = j['legs'][1]
+            s = follow * smooth(ly, ly + 0.6 * (h - ly), y)
+            if s > 1e-4:
+                out = {b: wt * (1 - s) for b, wt in out.items()}
+                out['legUpper'] = s
         return out
     return {name: 1.0}
 
@@ -323,7 +333,7 @@ def build_set(s, arm, far):
             x0, y0 = pos[piece][0] - pv[0], pos[piece][1] - pv[1]
         w, h = part['size']
         # a finer mesh where it bends: a limb at its joints, a chest that moves
-        step = 16 if piece in LIMBS or (piece == 'torso' and bounce > 0) else 40
+        step = 16 if piece in LIMBS or (piece == 'torso' and bounce > 0) or (piece == 'coat' and R.get('coatThigh', 0.0) > 0) else 40
         cols, rows = max(2, round(w / step)), max(2, round(h / step))
         verts, faces, uvs = [], [], []
         for r in range(rows + 1):

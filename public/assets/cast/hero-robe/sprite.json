@@ -1,8 +1,8 @@
 {
   "name": "hero-robe",
-  "x": 413,
+  "x": 416,
   "y": 224,
-  "w": 133.6,
+  "w": 128,
   "h": 240,
   "maps": [
     "albedo.concierge",
@@ -15,7 +15,7 @@
   "reflectivity": 0,
   "object": 0,
   "anchor": [
-    67.2,
+    64,
     240
   ],
   "exists": "both",
@@ -34,7 +34,7 @@
     "walk": {
       "from": 16,
       "count": 16,
-      "stride": 152.68
+      "stride": 144.29
     },
     "idleLeft": {
       "from": 32,
@@ -44,7 +44,7 @@
     "walkLeft": {
       "from": 48,
       "count": 16,
-      "stride": 152.68
+      "stride": 144.29
     }
   },
   "res": 1.25
