@@ -4,26 +4,34 @@
   "kind": "background",
   "interior": true,
   "exists": "both",
-  "prompt": "Inside a small radio repair shop, exactly as in the layout, every object at the size and place the layout gives it. In the left wall, the shop's street door. In the back wall: a wooden back door standing ajar on a dark back room; a tall wooden bookshelf with books and old radios; in front of it a battered leather sofa with a checked blanket, and a floor lamp beside it; a long wooden workbench at hip height with drawers, an old monitor with a green screen, an oscilloscope, a valve amplifier, an opened radio being mended and a desk lamp on an arm; above the bench, within reach, a pegboard of ordinary hand tools at their real size, and above that a narrow shelf of radios and a wall clock; pinned paper schematics; a corkboard with a map; a low cabinet with an old visor on a stand; in the right wall, a side door. Two fluorescent tubes on the ceiling. Brick showing through cracked plaster, worn floorboards. Every radio and device is an old relic patched together over decades: steampunk-like contraptions of riveted grey metal, exposed valves, gauges and tangled cables, dented, rusted and taped. Dust, grime and peeling paint everywhere.",
-  "concierge": "The Concierge's version of the same shop keeps it retro, like a lovingly kept antique radio shop: the radios restored relics in polished walnut, cream bakelite and brass with warm glowing dials; the shelves, the bench and the door polished dark wood; the sofa supple leather with a soft wool blanket; the monitor and the instruments handsome vintage pieces with soft green screens; warm brick, clean plaster, tidy tools; warm amber lamplight, clean and cosy, glamorous in a nostalgic way. Same layout.",
+  "look": "vector",
+  "res": 2,
+  "size": "1936x1088",
+  "rawAir": "amber-brown",
+  "relics": true,
+  "framing": "A wide cinematic cutaway seen straight on from the side, like a doll's house with its front wall removed, filling the whole frame. A standing adult would be about a fifth of the image height and a doorway a little taller. Lit at night by its own lamps. No text, no captions, no border.",
+  "prompt": "A cross-section of an old two-storey concrete shop building on a city street at night. The ground floor, from about the middle of the image down to a thick concrete floor slab a little above the bottom, and across the middle two thirds of the width, is the fixer's small radio repair shop, lit warm and dim by a desk lamp and two bare fluorescent tubes. Above it, the upper floor is a dim, bare room with one bare bulb. Below the shop's floor, the slab and a dark cellar. On the left, outside the building, the wet street at night in thick amber-brown smog with a street lamp and smokestacks; on the right, the next building's dark wall in the smog. The shop, from left to right: in its left wall, the shop's street door; a tall bookshelf of swollen books and gutted radios; a battered leather sofa with a checked blanket and a floor lamp beside it; a wooden back door standing ajar on a dark back room; a long wooden workbench at hip height with drawers, on it an old monitor with a green line on its screen, an oscilloscope, an opened radio and a desk lamp on an arm; above the bench, within reach, a pegboard of ordinary hand tools and above that a shelf of patched radios and a wall clock; a corkboard with a map and pinned notes; a low cabinet with a ripped-open old visor on a stand; in the right wall, a bolted side door. Every radio and device is an old relic patched together over decades: dull grey metal, valves, dials and cables. The shop's floor is worn floorboards, flat and clear to walk along from end to end. No people.",
+  "concierge": "A cross-section of an old two-storey shop building on a city street at night, as the city AI shows it, like a doll's house with its front wall removed. The ground floor, from about the middle of the image down to a thick floor slab a little above the bottom, and across the middle two thirds of the width, is a lovingly kept antique radio shop, warm, cosy and glamorous in a nostalgic way, lit by warm amber lamps. Upstairs, a warm red-orange bar with glowing globe lamps, lush plants and a pink neon ring. Below the shop's floor, the slab and a dark cellar. On the left, outside the building, a glossy wet street mirroring violet, blue, pink and cyan neon, a sleek street lamp and a glittering city of neon towers behind; on the right, the next building's wall touched by neon. The shop, from left to right: in its left wall, a polished wooden street door; a tall bookshelf of books and restored radios; a supple leather sofa with a soft wool blanket and a floor lamp beside it; a polished wooden back door standing ajar on a warm back room; a long polished wooden workbench at hip height with drawers, on it a handsome vintage monitor with a soft green screen, an oscilloscope, an opened radio and a brass desk lamp on an arm; above the bench, within reach, a tidy pegboard of polished tools and above that a shelf of restored radios in walnut, cream bakelite and brass with warm glowing dials, and a wall clock; a framed map of the city; a low cabinet with a white visor on a stand, glowing soft blue; in the right wall, a door marked STAFF in brass letters. The shop's floor is polished floorboards, flat and clear to walk along from end to end. No people.",
   "height": 540,
   "position": [
-    508,
+    480,
     540
   ],
   "depth": 3,
   "material": "wood",
   "glow": {
-    "raw": "none",
+    "raw": "auto",
     "concierge": "auto",
-    "machine": false
+    "machine": true
   },
   "references": [
-    "art/backstreet/lane/raw.png",
-    "art/reference/Rainy Neon Cyberpunk Concept Sheet.png"
+    "art/street/vista/raw.png"
   ],
-  "palette": 0.35,
-  "relics": true,
+  "conciergeReferences": [
+    "art/reference/look/flat-street-concierge.webp",
+    "art/home/cutaway/concierge.png"
+  ],
+  "palette": 0,
   "blockout": {
     "camera": {
       "width": 1016,
@@ -35,7 +43,7 @@
       "eye": 1.6
     },
     "room": {
-      "width": 7.0,
+      "width": 7,
       "height": 2.8,
       "colours": {
         "wall": "#8a7a68",
@@ -232,7 +240,7 @@
         "detail": "pegboard",
         "tools": [
           {
-            "x": 0.0,
+            "x": 0,
             "h": 1.42,
             "w": 0.022,
             "l": 0.27,
@@ -298,7 +306,7 @@
             "l": 0.29
           },
           {
-            "x": 1.0,
+            "x": 1,
             "h": 1.45,
             "w": 0.04,
             "l": 0.3,
@@ -643,7 +651,7 @@
         "name": "visor on a stand",
         "x": [
           2.74,
-          3.0
+          3
         ],
         "h": [
           0.85,
@@ -659,7 +667,7 @@
       {
         "name": "ceiling tube 1",
         "x": [
-          -2.0,
+          -2,
           -0.8
         ],
         "h": [

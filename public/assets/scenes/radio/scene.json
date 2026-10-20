@@ -1,390 +1,471 @@
 {
- "id": "radio",
- "name": "Radio repair",
- "assist": "The gentleman at the bench is expecting a parcel, guest.",
- "kind": "interior",
- "size": [
-  1016,
-  540
- ],
- "layers": [
-  {
-   "asset": "radio/shop",
-   "x": 0,
-   "y": 0
+  "id": "radio",
+  "name": "Radio repair",
+  "assist": "The gentleman at the bench is expecting a parcel, guest.",
+  "kind": "interior",
+  "size": [
+    960,
+    540
+  ],
+  "layers": [
+    {
+      "asset": "radio/shop"
+    },
+    {
+      "asset": "cast/fixer",
+      "x": 672,
+      "y": 279
+    }
+  ],
+  "walk": {
+    "y": 395,
+    "x0": 230,
+    "x1": 850
   },
-  {
-   "asset": "cast/fixer",
-   "x": 567,
-   "y": 260
+  "mirror": 395,
+  "spawns": {
+    "door": {
+      "x": 252,
+      "facing": 1
+    }
+  },
+  "hotspots": [
+    {
+      "id": "door",
+      "name": "To the main street",
+      "rect": [
+        209,
+        247,
+        55,
+        137
+      ],
+      "stand": 230,
+      "go": {
+        "scene": "street",
+        "spawn": "from-radio"
+      }
+    },
+    {
+      "id": "back-door",
+      "name": {
+        "concierge": "Back room",
+        "raw": "Back door"
+      },
+      "rect": [
+        477,
+        230,
+        73,
+        154
+      ],
+      "stand": 513,
+      "look": {
+        "concierge": "A polished door, ajar on a warm back room.",
+        "raw": "The back door stands ajar on a dark room. He hasn't offered to show you."
+      }
+    },
+    {
+      "id": "shelves",
+      "name": {
+        "concierge": "Bookshelf",
+        "raw": "Shelves"
+      },
+      "rect": [
+        270,
+        205,
+        110,
+        175
+      ],
+      "stand": 325,
+      "look": {
+        "concierge": "Books and restored radios, every one polished. A tape machine with both reels full.",
+        "raw": "Books swollen with damp, radios gutted for parts. Nothing here talks to the Concierge."
+      }
+    },
+    {
+      "id": "sofa",
+      "name": {
+        "concierge": "Leather sofa",
+        "raw": "Sofa"
+      },
+      "rect": [
+        310,
+        315,
+        132,
+        70
+      ],
+      "stand": 376,
+      "look": {
+        "concierge": "Supple leather and a soft wool blanket. Someone naps here between repairs.",
+        "raw": "A cracked leather sofa and a checked blanket. He sleeps here more than he admits."
+      }
+    },
+    {
+      "id": "corkboard",
+      "name": {
+        "concierge": "City map",
+        "raw": "Corkboard"
+      },
+      "rect": [
+        405,
+        226,
+        60,
+        80
+      ],
+      "stand": 435,
+      "look": {
+        "concierge": "A map of the city, every district named and lit.",
+        "raw": "A map with routes drawn in red, and notes pinned over the places the map leaves out."
+      }
+    },
+    {
+      "id": "radios",
+      "name": "Radios",
+      "rect": [
+        567,
+        210,
+        180,
+        33
+      ],
+      "stand": 655,
+      "look": {
+        "concierge": "A row of radios restored to their old glory, dials glowing warm.",
+        "raw": "Radios patched with rivets and tape, valves bare to the air. Every one of them works."
+      },
+      "tag": "Restored radios"
+    },
+    {
+      "id": "pegboard",
+      "name": {
+        "concierge": "Tools",
+        "raw": "Pegboard"
+      },
+      "rect": [
+        570,
+        255,
+        177,
+        46
+      ],
+      "stand": 640,
+      "look": {
+        "concierge": "Old tools, polished and hung in perfect order.",
+        "raw": "Screwdrivers, pliers and wrenches, every handle worn to the shape of his hand."
+      }
+    },
+    {
+      "id": "monitor",
+      "name": "Monitor",
+      "rect": [
+        572,
+        301,
+        38,
+        28
+      ],
+      "stand": 590,
+      "look": {
+        "concierge": "Green text scrolling on an old screen, soft as a lullaby.",
+        "raw": "A green line rising and falling, like something breathing on the other end."
+      }
+    },
+    {
+      "id": "visor",
+      "name": {
+        "concierge": "Visor",
+        "raw": "Old visor"
+      },
+      "rect": [
+        764,
+        300,
+        32,
+        32
+      ],
+      "stand": 780,
+      "look": {
+        "concierge": "A white visor on a stand, its blue light soft and steady. Somebody's spare.",
+        "raw": "A visor ripped open, wires hanging out, its lens cracked. Someone's old eye."
+      },
+      "tag": "Spare visor",
+      "ask": "A spare, guest. Yours is working perfectly."
+    },
+    {
+      "id": "side-door",
+      "name": {
+        "concierge": "Staff door",
+        "raw": "Side door"
+      },
+      "rect": [
+        810,
+        230,
+        67,
+        154
+      ],
+      "stand": 843,
+      "look": {
+        "concierge": "A door marked STAFF, in neat brass letters.",
+        "raw": "A side door, bolted from this side. It hasn't been opened in years."
+      }
+    },
+    {
+      "id": "fixer",
+      "name": "The fixer",
+      "rect": [
+        672,
+        279,
+        36,
+        113
+      ],
+      "stand": 640,
+      "face": 1,
+      "talk": "fixer",
+      "look": {
+        "concierge": "Silver hair, a tailored knit. He works as if he has all the time in the world.",
+        "raw": "Hollow cheeks, burn marks on his hands. The iron never stops."
+      },
+      "tag": {
+        "concierge": "Guest · repairs",
+        "raw": "the radio man"
+      },
+      "ask": "He repairs old radios, guest. A charming pastime."
+    }
+  ],
+  "lights": [
+    {
+      "x": 237,
+      "y": 214,
+      "z": 30,
+      "r": 200,
+      "c": [
+        1,
+        0.75,
+        0.42
+      ],
+      "i": 1.2,
+      "zone": 0,
+      "layer": 1,
+      "haze": 0.25,
+      "shadow": 1,
+      "views": {
+        "raw": {
+          "i": 0.8,
+          "c": [
+            1,
+            0.78,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "x": 390,
+      "y": 300,
+      "z": 20,
+      "r": 170,
+      "c": [
+        1,
+        0.72,
+        0.4
+      ],
+      "i": 1,
+      "zone": 0,
+      "layer": 1,
+      "views": {
+        "raw": {
+          "i": 0.6
+        }
+      }
+    },
+    {
+      "x": 570,
+      "y": 300,
+      "z": 16,
+      "r": 160,
+      "c": [
+        1,
+        0.78,
+        0.45
+      ],
+      "i": 1.1,
+      "zone": 0,
+      "layer": 1
+    },
+    {
+      "x": 718,
+      "y": 296,
+      "z": 16,
+      "r": 150,
+      "c": [
+        1,
+        0.78,
+        0.45
+      ],
+      "i": 1,
+      "zone": 0,
+      "layer": 1,
+      "views": {
+        "raw": {
+          "i": 0.4
+        }
+      }
+    },
+    {
+      "x": 590,
+      "y": 313,
+      "preset": "monitor",
+      "c": [
+        0.45,
+        1,
+        0.7
+      ]
+    },
+    {
+      "x": 690,
+      "y": 322,
+      "z": 10,
+      "r": 90,
+      "c": [
+        0.5,
+        1,
+        0.7
+      ],
+      "i": 0.6,
+      "zone": 0,
+      "layer": 1
+    },
+    {
+      "x": 655,
+      "y": 226,
+      "z": 20,
+      "r": 220,
+      "c": [
+        1,
+        0.62,
+        0.25
+      ],
+      "i": 0.6,
+      "zone": 0,
+      "layer": 1,
+      "ar": 1
+    },
+    {
+      "x": 325,
+      "y": 280,
+      "z": 20,
+      "r": 180,
+      "c": [
+        1,
+        0.62,
+        0.25
+      ],
+      "i": 0.5,
+      "zone": 0,
+      "layer": 1,
+      "ar": 1
+    },
+    {
+      "x": 780,
+      "y": 316,
+      "z": 12,
+      "r": 110,
+      "c": [
+        0.5,
+        0.75,
+        1
+      ],
+      "i": 0.7,
+      "zone": 0,
+      "layer": 1,
+      "ar": 1,
+      "g": 7
+    },
+    {
+      "x": 513,
+      "y": 315,
+      "z": 10,
+      "r": 150,
+      "c": [
+        1,
+        0.7,
+        0.4
+      ],
+      "i": 0.6,
+      "zone": 0,
+      "layer": 1,
+      "ar": 1
+    },
+    {
+      "x": 640,
+      "y": 206,
+      "z": 40,
+      "r": 320,
+      "c": [
+        0.85,
+        0.95,
+        0.9
+      ],
+      "i": 0.7,
+      "zone": 0,
+      "layer": 1,
+      "haze": 0.2,
+      "raw": 1
+    },
+    {
+      "x": 110,
+      "y": 190,
+      "preset": "street-lamp"
+    },
+    {
+      "x": 60,
+      "y": 160,
+      "preset": "city-glow"
+    },
+    {
+      "x": 60,
+      "y": 150,
+      "preset": "smog-glow"
+    }
+  ],
+  "zones": {
+    "outside": [
+      [
+        0,
+        0,
+        165,
+        540
+      ],
+      [
+        895,
+        0,
+        65,
+        540
+      ]
+    ]
+  },
+  "godrays": [
+    {
+      "x": 237,
+      "y": 216,
+      "strength": 0.15,
+      "zone": 1
+    }
+  ],
+  "actorScale": 0.47,
+  "ambient": {
+    "raw": 1.2,
+    "concierge": 1.3
+  },
+  "baked": 1,
+  "look": {
+    "rain": 0.5,
+    "depthOfField": 0,
+    "actorPaint": 1,
+    "raw": {
+      "actorRed": 0.9,
+      "actorGreen": 0.84,
+      "actorBlue": 0.7
+    },
+    "concierge": {
+      "actorRed": 1,
+      "actorGreen": 0.92,
+      "actorBlue": 0.88
+    }
   }
- ],
- "lights": [
-  {
-   "x": 441,
-   "y": 293,
-   "z": 40,
-   "r": 300,
-   "c": [
-    1,
-    0.78,
-    0.5
-   ],
-   "i": 1.8,
-   "zone": 0,
-   "haze": 0.35,
-   "shadow": 1
-  },
-  {
-   "x": 736,
-   "y": 298,
-   "z": 24,
-   "r": 220,
-   "c": [
-    1,
-    0.9,
-    0.72
-   ],
-   "i": 2.2,
-   "zone": 0,
-   "cone": [
-    0,
-    1,
-    0.5
-   ],
-   "haze": 0.4,
-   "shadow": 1
-  },
-  {
-   "x": 541,
-   "y": 332,
-   "z": 14,
-   "r": 110,
-   "c": [
-    0.3,
-    1,
-    0.55
-   ],
-   "i": 1,
-   "zone": 0,
-   "g": 1,
-   "machine": 1
-  },
-  {
-   "x": 601,
-   "y": 340,
-   "z": 10,
-   "r": 80,
-   "c": [
-    0.35,
-    1,
-    0.6
-   ],
-   "i": 0.8,
-   "zone": 0,
-   "g": 1,
-   "machine": 1
-  },
-  {
-   "x": 650,
-   "y": 327,
-   "z": 10,
-   "r": 80,
-   "c": [
-    1,
-    0.5,
-    0.18
-   ],
-   "i": 1,
-   "zone": 0,
-   "g": 2,
-   "machine": 1
-  },
-  {
-   "x": 316,
-   "y": 117,
-   "z": 60,
-   "r": 520,
-   "c": [
-    0.92,
-    0.96,
-    1
-   ],
-   "i": 1.3,
-   "zone": 0,
-   "haze": 0.15,
-   "shadow": 1,
-   "layer": 1
-  },
-  {
-   "x": 673,
-   "y": 117,
-   "z": 60,
-   "r": 520,
-   "c": [
-    0.92,
-    0.96,
-    1
-   ],
-   "i": 1.3,
-   "zone": 0,
-   "haze": 0.15,
-   "shadow": 1,
-   "layer": 1
-  },
-  {
-   "x": 231,
-   "y": 352,
-   "z": 8,
-   "r": 160,
-   "c": [
-    1,
-    0.7,
-    0.4
-   ],
-   "i": 0.8,
-   "zone": 0
-  },
-  {
-   "x": 60,
-   "y": 126,
-   "z": 20,
-   "r": 180,
-   "c": [
-    1,
-    0.8,
-    0.55
-   ],
-   "i": 0.9,
-   "zone": 0,
-   "ar": 1
-  },
-  {
-   "x": 935,
-   "y": 165,
-   "z": 16,
-   "r": 230,
-   "c": [
-    0.85,
-    0.35,
-    1
-   ],
-   "i": 1,
-   "zone": 0,
-   "ar": 1
-  }
- ],
- "walk": {
-  "y": 500,
-  "x0": 55,
-  "x1": 950
- },
- "spawns": {
-  "door": {
-   "x": 110,
-   "facing": 1
-  }
- },
- "hotspots": [
-  {
-   "id": "door",
-   "name": "To the main street",
-   "rect": [
-    13,
-    211,
-    78,
-    289
-   ],
-   "stand": 55,
-   "go": {
-    "scene": "street",
-    "spawn": "from-radio"
-   }
-  },
-  {
-   "id": "back-door",
-   "name": {
-    "concierge": "Back room",
-    "raw": "Back door"
-   },
-   "rect": [
-    143,
-    225,
-    101,
-    227
-   ],
-   "stand": 106,
-   "look": {
-    "concierge": "A polished door, ajar on a warm back room.",
-    "raw": "The back door stands ajar on a dark room. He hasn't offered to show you."
-   }
-  },
-  {
-   "id": "shelves",
-   "name": {
-    "concierge": "Bookshelf",
-    "raw": "Shelves"
-   },
-   "rect": [
-    246,
-    205,
-    146,
-    151
-   ],
-   "stand": 275,
-   "look": {
-    "concierge": "Books and restored radios, every one polished. A tape machine with both reels full.",
-    "raw": "Books swollen with damp, radios gutted for parts. Nothing here talks to the Concierge."
-   }
-  },
-  {
-   "id": "sofa",
-   "name": {
-    "concierge": "Leather sofa",
-    "raw": "Sofa"
-   },
-   "rect": [
-    186,
-    360,
-    233,
-    134
-   ],
-   "stand": 289,
-   "look": {
-    "concierge": "Supple leather and a soft wool blanket. Someone naps here between repairs.",
-    "raw": "A cracked leather sofa and a checked blanket. He sleeps here more than he admits."
-   }
-  },
-  {
-   "id": "pegboard",
-   "name": {
-    "concierge": "Tools",
-    "raw": "Pegboard"
-   },
-   "rect": [
-    491,
-    247,
-    154,
-    88
-   ],
-   "stand": 470,
-   "look": {
-    "concierge": "Old tools, polished and hung in perfect order.",
-    "raw": "Screwdrivers, pliers and wrenches, every handle worn to the shape of his hand."
-   }
-  },
-  {
-   "id": "radios",
-   "name": "Radios",
-   "rect": [
-    473,
-    199,
-    300,
-    39
-   ],
-   "stand": 720,
-   "look": {
-    "concierge": "A row of radios restored to their old glory, dials glowing warm.",
-    "raw": "Radios patched with rivets and tape, valves bare to the air. Every one of them works."
-   },
-   "tag": "Restored radios"
-  },
-  {
-   "id": "monitor",
-   "name": "Monitor",
-   "rect": [
-    514,
-    306,
-    55,
-    50
-   ],
-   "stand": 470,
-   "look": {
-    "concierge": "Green text scrolling on an old screen, soft as a lullaby.",
-    "raw": "A green line rising and falling, like something breathing on the other end."
-   }
-  },
-  {
-   "id": "corkboard",
-   "name": {
-    "concierge": "City map",
-    "raw": "Corkboard"
-   },
-   "rect": [
-    783,
-    258,
-    79,
-    66
-   ],
-   "stand": 910,
-   "look": {
-    "concierge": "A map of the city, every district named and lit.",
-    "raw": "A map with routes drawn in red, and notes pinned over the places the map leaves out."
-   }
-  },
-  {
-   "id": "visor",
-   "name": {
-    "concierge": "Visor",
-    "raw": "Old visor"
-   },
-   "rect": [
-    789,
-    324,
-    98,
-    45
-   ],
-   "stand": 913,
-   "look": {
-    "concierge": "A white visor on a stand, its blue light soft and steady. Somebody's spare.",
-    "raw": "A visor ripped open, wires hanging out, its lens cracked. Someone's old eye."
-   },
-   "tag": "Spare visor",
-   "ask": "A spare, guest. Yours is working perfectly."
-  },
-  {
-   "id": "side-door",
-   "name": {
-    "concierge": "Staff door",
-    "raw": "Side door"
-   },
-   "rect": [
-    939,
-    208,
-    84,
-    301
-   ],
-   "stand": 950,
-   "look": {
-    "concierge": "A door marked STAFF, in neat brass letters.",
-    "raw": "A side door, bolted from this side. It hasn't been opened in years."
-   }
-  },
-  {
-   "id": "fixer",
-   "name": "The fixer",
-   "rect": [
-    575,
-    260,
-    90,
-    240
-   ],
-   "stand": 520,
-   "face": 1,
-   "talk": "fixer",
-   "look": {
-    "concierge": "Silver hair, a tailored knit. He works as if he has all the time in the world.",
-    "raw": "Hollow cheeks, burn marks on his hands. The iron never stops."
-   },
-   "tag": {
-    "concierge": "Guest · repairs",
-    "raw": "the radio man"
-   },
-   "ask": "He repairs old radios, guest. A charming pastime."
-  }
- ],
- "ambient": {
-  "raw": 1.6,
-  "concierge": 1.1
- }
 }

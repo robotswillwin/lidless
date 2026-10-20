@@ -1,18 +1,13 @@
 {
   "name": "fixer",
-  "x": 427,
+  "x": 442,
   "y": 224,
-  "w": 106,
+  "w": 76,
   "h": 240,
   "maps": [
     "albedo.concierge",
     "albedo.raw",
-    "glow.concierge",
-    "material",
-    "material.concierge",
-    "meta",
-    "normal",
-    "normal.concierge"
+    "glow.concierge"
   ],
   "depth": 3,
   "parallax": 1,
@@ -20,14 +15,15 @@
   "reflectivity": 0,
   "object": 0,
   "anchor": [
-    53,
+    38,
     240
   ],
   "exists": "both",
   "kind": "character",
   "frames": {
     "count": 3,
-    "gutter": 2
+    "gutter": 2,
+    "cols": 3
   },
   "anims": {
     "idle": {
@@ -45,5 +41,6 @@
         0
       ]
     }
-  }
+  },
+  "res": 1.25
 }

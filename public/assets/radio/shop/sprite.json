@@ -2,27 +2,25 @@
   "name": "shop",
   "x": 0,
   "y": 0,
-  "w": 1016,
+  "w": 961,
   "h": 540,
   "maps": [
     "albedo.concierge",
     "albedo.raw",
     "glow.concierge",
-    "material",
-    "material.concierge",
-    "meta",
-    "normal",
-    "normal.concierge"
+    "glow.raw"
   ],
   "depth": 3,
   "parallax": 1,
   "occluder": 0,
   "reflectivity": 0,
   "object": 0,
+  "machine": 1,
   "anchor": [
-    508,
+    481,
     540
   ],
   "exists": "both",
-  "kind": "background"
+  "kind": "background",
+  "res": 2
 }

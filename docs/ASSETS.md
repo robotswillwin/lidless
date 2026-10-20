@@ -333,6 +333,16 @@ were suggested from the art and sorted by hand; raw view's lamps (the tube over 
 cable, the flats' windows) were placed by hand, as a raw picture's glow map is too faint to find them. The old,
 painted backstreet is in git's history.
 
+The radio repair (`art/radio/shop.json`) is a cutaway like Luna's flat, of the same two-storey building the main street
+shows: the shop on the ground floor, upstairs the bar the street sees (a bare room under one bulb in raw view), a cellar
+below, the street outside on the left. A room that fills the frame would make Luna too big to stay sharp, or the shop
+too big to be cramped. Its Concierge view was drawn first, from the flat street and Luna's flat, and raw view from it
+as for the backstreet. Its hotspots keep their texts and moved to the new picture, and Luna is drawn at 0.47, as tall
+against its doors as in her flat. The fixer (`art/cast/fixer.json`) is drawn in Luna's flat style, at her resolution,
+facing left to the shop's door, so the visor over his left eye, the only one he has covered, is the near one. His idle
+loop is three frames that differ only around the soldering iron (`touch --frame`). The earlier shop and fixer are in
+git's history.
+
 Later, for the moving camera: the painted reflections were taken out of the wet ground (`asset ground`, below) for
 the engine's live ones, and the woman at the dining machine and the machine itself were shrunk to Luna's scale. They
 had been painted about a third too big for someone kneeling on her walk line: `touch` painted the corner without them,
