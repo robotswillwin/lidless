@@ -251,7 +251,7 @@ export class Renderer {
       MAP_ORDER.forEach(([m, u], i) => this.bind(sp, u, s.tex[m], i));
       gl.uniform4f(sp.u.uRect, x, y, dw, dh);
       // texels per pixel of the buffer: past about one, several samples per pixel keep it from sparkling
-      const dens = (def.res ?? 1) / (sc * this.rs);
+      const dens = ((def.res ?? 1) * (s.texScale ?? 1)) / (sc * this.rs);
       gl.uniform1f(sp.u.uSS, dens > 1.11 ? Math.min(4, Math.ceil(1.5 * dens)) : 1);
       gl.uniform1f(sp.u.uFlip, d.flip ? 1 : 0);
       gl.uniform1f(sp.u.uBlend, d.blend ? 1 : 0);

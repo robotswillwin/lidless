@@ -177,8 +177,39 @@ export interface Sprite {
   def: SpriteDef;
   tex: Record<MapName, WebGLTexture>;
   hasMeta: boolean;
-  /** The size of its textures in texels: all the frames, with their gutters. */
+  /** The size of its textures in texels as made: all the frames, with their gutters. */
   size: [number, number];
+  /** The fraction of that size its textures were loaded at: less where the screen shows less of it (a phone). */
+  texScale?: number;
+}
+
+/**
+ * How many texels per level pixel the screen shows: 1 on a phone, which draws the level at its own size, 2 on a desktop.
+ * Art made with more is loaded smaller, to as much as the screen shows: what is left out was averaged away on screen
+ * anyway, and a phone keeps a quarter of the memory for a background made at 2. Unlimited until the game sets it.
+ */
+let texelBudget = Infinity;
+export function setTexelBudget(perLevelPixel: number): void {
+  texelBudget = perLevelPixel;
+}
+
+/**
+ * People are drawn smaller than they were made (her height on the street is about half of it): three quarters of the
+ * screen's texels is plenty for them, and a scene that drew them larger than that would show them a little softer.
+ */
+const PEOPLE_SHOWN = 0.75;
+
+/** An image at a fraction of its size, its colours kept where it is transparent; as it is where the browser cannot. */
+async function shrunk(img: HTMLImageElement, f: number): Promise<TexImageSource> {
+  const w = Math.max(1, Math.round(img.width * f)), h = Math.max(1, Math.round(img.height * f));
+  try {
+    const b = await createImageBitmap(img, { resizeWidth: w, resizeHeight: h, resizeQuality: 'high', premultiplyAlpha: 'none', colorSpaceConversion: 'none' });
+    if (b.width === w && b.height === h) return b;
+    b.close();
+  } catch {
+    // a browser that does not resize bitmaps: the image as it is
+  }
+  return img;
 }
 
 /**
@@ -258,17 +289,23 @@ export async function loadSprite(gl: GL, base: string, name: string, fallback: R
   const q = bust ? `?v=${bust}` : '';
   const def = await loadJSON<SpriteDef>(`${base}/${name}/sprite.json${q}`);
   const imgs = await Promise.all(def.maps.map(async (m) => [m, await loadImage(`${base}/${name}/${m}.png${q}`)] as const));
-  const got = new Map<MapName, WebGLTexture>(imgs.map(([m, img]) => [m, textureFromImage(gl, img)]));
+  // as much detail as the screen shows; packed flags, which cannot be averaged, as they are
+  const f = Math.min(1, (texelBudget * (def.actor ?? def.kind === 'character' ? PEOPLE_SHOWN : 1)) / (def.res ?? 1));
+  const srcs = await Promise.all(imgs.map(async ([m, img]) => [m, f < 0.99 && m !== 'meta' ? await shrunk(img, f) : img] as const));
+  const got = new Map<MapName, WebGLTexture>(srcs.map(([m, src]) => [m, textureFromImage(gl, src)]));
+  for (const [, src] of srcs) if (src instanceof ImageBitmap) src.close();
   // a character is drawn smaller or larger than it was made, and art with more than one texel per level pixel is
   // drawn at its own scale or shrunk, so both are sampled smoothly; packed flags never are
   if (smoothSampled(def)) for (const [m, t] of got) if (m !== 'meta') setFilter(gl, t, false);
   const albR = got.get('albedo.raw'), albImg = imgs.find(([m]) => m === 'albedo.raw')?.[1];
   if (!albR || !albImg) throw new Error(`${name} has no albedo.raw map`);
   const glowR = got.get('glow.raw') ?? fallback.glow, normal = got.get('normal') ?? fallback.normal, material = got.get('material') ?? fallback.material;
+  const albSrc = srcs.find(([m]) => m === 'albedo.raw')?.[1];
   return {
     def,
     hasMeta: got.has('meta'),
     size: [albImg.width, albImg.height],
+    texScale: albSrc && albSrc !== albImg ? (albSrc as ImageBitmap).width / albImg.width : 1,
     tex: {
       'albedo.raw': albR,
       'albedo.concierge': got.get('albedo.concierge') ?? albR,

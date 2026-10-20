@@ -3,7 +3,7 @@
 // frame rate), and for tests ?t=seconds (a still frame) and ?cam=x (the camera held there).
 
 import './style.css';
-import { loadSprite, spriteDefaults } from './engine/assets';
+import { loadSprite, setTexelBudget, spriteDefaults } from './engine/assets';
 import { loadProjectLook } from './engine/look';
 import { loadPresets } from './engine/presets';
 import { QUALITY, Renderer, type Tier } from './engine/renderer';
@@ -32,6 +32,8 @@ async function boot(): Promise<void> {
   if (params.has('new')) clearSave();
   const assets = `${import.meta.env.BASE_URL}assets`;
   const renderer = new Renderer(canvas, QUALITY[pickTier()]), gl = renderer.gl;
+  // textures as detailed as the screen shows: a phone, drawing the level at its own size, keeps a quarter of a background
+  setTexelBudget(renderer.quality.scale);
   const optional = <T>(file: string, fallback: T) => fetch(`${assets}/${file}`, { cache: 'no-store' }).then((r) => (r.ok ? (r.json() as Promise<T>) : fallback)).catch(() => fallback);
   const [world, projectLook, items, notebook] = await Promise.all([
     loadWorld(assets), loadProjectLook(assets), optional<Record<string, Item>>('items.json', {}), optional<NotebookPages>('notebook.json', {}), loadPresets(assets),
