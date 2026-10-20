@@ -264,8 +264,8 @@ const invert = (m) => { const det = m[0] * m[3] - m[2] * m[1]; return [m[3] / de
 const RIG = [
   ['armFarUpper', 'upperArm', 'torso', 'shoulder', 'shoulder', true], ['armFarLower', 'forearm', 'armFarUpper', 'elbow', 'elbow', true],
   ['coat', 'coat', 'torso', 'hip', 'waist', false],
-  ['legFarUpper', 'thigh', 'torso', 'hip', 'hip', true], ['legFarLower', 'shin', 'legFarUpper', 'knee', 'knee', true], ['footFar', 'foot', 'legFarLower', 'ankle', 'ankle', true],
-  ['legUpper', 'thigh', 'torso', 'hip', 'hip', false], ['legLower', 'shin', 'legUpper', 'knee', 'knee', false], ['foot', 'foot', 'legLower', 'ankle', 'ankle', false],
+  ['legFarUpper', 'thigh', 'torso', 'legs', 'hip', true], ['legFarLower', 'shin', 'legFarUpper', 'knee', 'knee', true], ['footFar', 'foot', 'legFarLower', 'ankle', 'ankle', true],
+  ['legUpper', 'thigh', 'torso', 'legs', 'hip', false], ['legLower', 'shin', 'legUpper', 'knee', 'knee', false], ['foot', 'foot', 'legLower', 'ankle', 'ankle', false],
   // the head tucks its neck under the collar: drawn behind the torso, the ponytail behind the head
   ['ponytail', 'ponytail', 'head', 'tie', 'root', false], ['head', 'head', 'torso', 'neck', 'neck', false],
   ['torso', 'torso', null, null, 'hip', false],
@@ -294,7 +294,8 @@ export function pose(parts, angles, { w, h, origin, far = [-14, -6], matrices = 
   const place = (name) => {
     if (M[name]) return M[name];
     const [, part, parent, attach, pivot, isFar] = byName[name], p = parts[part];
-    const at = parent ? apply(place(parent), parts[byName[parent][1]].joints[attach]) : origin;
+    // the legs hang from the torso's hip joint: its 'legs' joint where a torso ending at the waist has one, else 'hip'
+    const pj = parent ? parts[byName[parent][1]].joints : null, at = parent ? apply(place(parent), pj[attach] ?? pj.hip) : origin;
     const shift = isFar && parent === 'torso' ? far : [0, 0];
     M[name] = mul(mul(tr(at[0] + shift[0], at[1] + shift[1]), rot(turn(name))), tr(-p.joints[pivot][0], -p.joints[pivot][1]));
     return M[name];

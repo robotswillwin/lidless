@@ -32,8 +32,8 @@ PERCENT = R.get('percent', 50)
 RIG = [
     ('armFarUpper', 'upperArm', 'torso', 'shoulder', 'shoulder', True), ('armFarLower', 'forearm', 'armFarUpper', 'elbow', 'elbow', True),
     ('coat', 'coat', 'torso', 'hip', 'waist', False),
-    ('legFarUpper', 'thigh', 'torso', 'hip', 'hip', True), ('legFarLower', 'shin', 'legFarUpper', 'knee', 'knee', True), ('footFar', 'foot', 'legFarLower', 'ankle', 'ankle', True),
-    ('legUpper', 'thigh', 'torso', 'hip', 'hip', False), ('legLower', 'shin', 'legUpper', 'knee', 'knee', False), ('foot', 'foot', 'legLower', 'ankle', 'ankle', False),
+    ('legFarUpper', 'thigh', 'torso', 'legs', 'hip', True), ('legFarLower', 'shin', 'legFarUpper', 'knee', 'knee', True), ('footFar', 'foot', 'legFarLower', 'ankle', 'ankle', True),
+    ('legUpper', 'thigh', 'torso', 'legs', 'hip', False), ('legLower', 'shin', 'legUpper', 'knee', 'knee', False), ('foot', 'foot', 'legLower', 'ankle', 'ankle', False),
     # the head tucks its neck under the collar: drawn behind the torso, the ponytail behind the head
     ('ponytail', 'ponytail', 'head', 'tie', 'root', False), ('head', 'head', 'torso', 'neck', 'neck', False),
     ('torso', 'torso', None, None, 'hip', False),
@@ -88,7 +88,8 @@ def layout(parts, far):
         else:
             pp = parts[BY[parent][1]]
             px, py = place(parent)
-            j, pv = pp['joints'][attach], pp['joints'][BY[parent][4]]
+            # the legs hang from the torso's 'legs' joint where it has one (a torso ending at the waist), else its 'hip'
+            j, pv = pp['joints'].get(attach, pp['joints'].get('hip')), pp['joints'][BY[parent][4]]
             at = (px + j[0] - pv[0], py + j[1] - pv[1])
             if is_far and parent == 'torso':
                 at = (at[0] + far[0], at[1] + far[1])

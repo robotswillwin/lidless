@@ -135,12 +135,23 @@ flickers:
   robe's skirt, a dress's skirt (`parts.proportions.coat`, its length), or hips in trousers or briefs, which with no
   length of their own keep their size against the torso as drawn. How it moves and where it is drawn:
   `parts.coatSway` (1 swings like a coat's hem, 0 held still with her hips) and `parts.coat` (`front` in front of her
-  legs, `over` in front of her torso too, as briefs over her belly); `parts.coatCut` keeps only the top of it (briefs'
-  hips cut off below the buttocks, so they do not lie over her thighs).
-  - **Her proportions in every outfit.** A garment with no collar shows the neck her coat's collar hides, and her head
-    then looks small: `parts.neckSink` sets the head lower on the torso, by a share of its height (0.07 for a T-shirt).
-    A shoe drawn too big (a fluffy slipper) is scaled with `parts.proportions.foot`, its length heel to toe as a share
-    of her height: her boots are 0.13. The rig prints each outfit's foot length and flags one far from that.
+  legs, `over` in front of her torso too, as briefs over her belly); `parts.coatCut` keeps only the top of it, and
+  `parts.coatFade` fades its bottom over a share of its height (0.35 for the briefs' hips, so her buttocks round off
+  into her thighs).
+  - **Her body, the same in every outfit.** Every outfit has the same body proportions (`parts.proportions`, as shares
+    of her height): head 0.2 (from its top to the base of the neck), torso 0.26, thigh 0.31, lower leg 0.33, upper
+    arm 0.17, forearm 0.24, and `hipDrop` 0.08: the parts sheets draw her torso down to the waist, over hips of their
+    own (briefs, a skirt, a coat's skirt), so her legs hang that far below the torso's lowest joint, from her hip joint,
+    not from her waist. They were measured against the underwear's drawn profile, where her body shows: the old ones
+    shrank her head to four fifths of how the image model drew it and gave her a long torso and short legs, which only
+    the coat hid. A garment hanging from the waist keeps the size it was drawn at against the torso (its length as the
+    image model drew it on her), unless the recipe gives it a length: `coat` scales it whole, `coatLength` stretches it
+    down only (her long coat, drawn short on the sheet). Any change to these goes in every outfit's recipe.
+  - **Her neck and feet.** A garment with no collar shows the neck her coat's collar hides: `parts.neckSink` sets the
+    head lower on the torso, by a share of its height (0.07 for a T-shirt), and `parts.bareNeck` fades out the torso's
+    own stump of a neck, so the head's neck shows instead of a straight cut. A shoe drawn too big (a fluffy slipper) is
+    scaled with `parts.proportions.foot`, its length heel to toe as a share of her height: her boots are 0.13. The rig
+    prints each outfit's foot length and flags one far from that.
   - **Whole limbs.** Her legs and arms are rigged as one image each, not as pieces on top of one another: the
     pipeline joins a leg's thigh, lower leg and foot, and an arm's upper arm and forearm, cross-fading where they
     overlap (`composeLimb` in tools/pipeline/characters.mjs), and the rig skins that one image on the limb's bones,

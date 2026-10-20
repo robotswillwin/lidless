@@ -150,8 +150,11 @@ export async function proportion(parts, prop, unit) {
     if (!p.joints || !BONE[name] || (name === 'shin' && prop.boot)) continue;
     if (!prop[name] && name !== 'coat') continue;
     const s = prop[name] ? (prop[name] * unit) / BONE[name](p) : byTorso;
-    if (Math.abs(s - 1) < 0.01) continue;
-    const w = Math.max(1, Math.round(p.img.w * s)), h = Math.max(1, Math.round(p.img.h * s));
+    // a garment as wide as drawn but longer or shorter (parts.proportions.coatLength): stretched down only, as a long
+    // coat drawn short on the sheet would be far too wide made long by scaling it whole
+    const sy = name === 'coat' && prop.coatLength ? (prop.coatLength * unit) / BONE.coat(p) : s;
+    if (Math.abs(s - 1) < 0.01 && Math.abs(sy - 1) < 0.01) continue;
+    const w = Math.max(1, Math.round(p.img.w * s)), h = Math.max(1, Math.round(p.img.h * sy));
     parts[name] = { img: await resize(p.img, w, h), joints: Object.fromEntries(Object.entries(p.joints).map(([j, [x, y]]) => [j, [(x * w) / p.img.w, (y * h) / p.img.h]])) };
   }
   if (prop.boot && prop.shin && parts.shin && parts.thigh) Object.assign(parts, await lowerLeg(parts.shin.img, parts.thigh, prop.boot * unit, prop.shin * unit));
@@ -183,7 +186,7 @@ export function footLength(img) {
  * sleeve or a trouser leg would have hidden it. An upper arm, a forearm, a lower leg fade at the top, past the joint
  * they turn on; the torso at the bottom, past the hip.
  */
-export function softenJoint(part, name) {
+export function softenJoint(part, name, bottom = 0.1) {
   const { img, joints } = part, h = img.h, out = { w: img.w, h, d: new Uint8ClampedArray(img.d) };
   const fade = (from, len) => {
     for (let y = 0; y < h; y++) {
@@ -192,8 +195,9 @@ export function softenJoint(part, name) {
       for (let x = 0; x < img.w; x++) out.d[(y * img.w + x) * 4 + 3] *= k;
     }
   };
-  // hips in briefs, drawn over her belly and the tops of her thighs: both of their straight edges
-  if (name === 'coat') { fade('top', Math.max(h * 0.08, joints.waist?.[1] ?? 0)); fade('bottom', h * 0.1); return { ...part, img: out }; }
+  // hips in briefs, drawn over her belly and the tops of her thighs: both of their straight edges; the bottom over
+  // `bottom` of the piece's height, long enough for the buttocks to round off into the thighs under them
+  if (name === 'coat') { fade('top', Math.max(h * 0.08, joints.waist?.[1] ?? 0)); fade('bottom', h * bottom); return { ...part, img: out }; }
   const atTop = { upperArm: 'shoulder', forearm: 'elbow', shin: 'knee', thigh: 'hip' }[name];
   const jy = atTop ? joints[atTop]?.[1] : joints.hip?.[1];
   if (jy === undefined) return part;
@@ -245,6 +249,59 @@ export function composeLimb(chain) {
   const joints = {};
   chain.forEach(([p], i) => { for (const [n, [jx, jy]] of Object.entries(p.joints)) joints[n] = [jx + at[i][0], jy + at[i][1]]; });
   return { img, joints };
+}
+
+/**
+ * A set of parts as the rig takes them (`v` the view and side, such as raw-left): sized to the recipe's proportions,
+ * by the torso of the parts it takes from another character (`sameAll`), the head set on the neck, the legs hung from the
+ * hip joint, a bare neck's stump faded, the hips cut, and her limbs joined into one image each. Changes `parts`; returns
+ * the limbs.
+ */
+export async function shapeParts(r, look, v, parts, sameAll) {
+  const prop = proportionsFor(r, look), them = sameAll?.[v]?.torso;
+  await proportion(parts, prop, them && prop?.torso ? BONE.torso(them) / prop.torso : undefined);
+  // a garment with no collar shows the neck her coat's high collar hides: the head sits lower on the torso by
+  // parts.neckSink, a share of the head's height, so less of the neck shows and the head does not look small
+  if (r.parts?.neckSink && parts.head?.joints?.neck) parts.head = { ...parts.head, joints: { ...parts.head.joints, neck: [parts.head.joints.neck[0], parts.head.joints.neck[1] - r.parts.neckSink * parts.head.img.h] } };
+  // her hip joint, where her legs hang from: a torso drawn to the waist, over hips of their own (briefs, a skirt),
+  // ends above it, so the legs hang parts.proportions.hipDrop of her height below the torso's lowest joint
+  if (prop?.hipDrop && parts.torso?.joints?.hip) { const u = BONE.torso(parts.torso) / prop.torso, [hx, hy] = parts.torso.joints.hip; parts.torso = { ...parts.torso, joints: { ...parts.torso.joints, legs: [hx, hy + prop.hipDrop * u] } }; }
+  // a bare neck (parts.bareNeck): the torso's own stump of a neck goes, so the head's neck shows whole
+  if (r.parts?.bareNeck && parts.torso) parts.torso = fadeNeck(parts.torso);
+  // parts.coatCut: what hangs from the waist kept only down to this share of its height (hips in briefs, cut off
+  // below the buttocks, so they do not lie over her thighs)
+  if (r.parts?.coatCut && parts.coat) parts.coat = { ...parts.coat, img: crop(parts.coat.img, 0, 0, parts.coat.img.w, Math.round(parts.coat.img.h * r.parts.coatCut)) };
+  // her limbs as one image each, which the rig skins on their bones (see composeLimb), unless the recipe keeps them
+  // in pieces (parts.limbs: "pieces")
+  const limbs = r.parts?.limbs === 'pieces' ? {} : composeLimbs(parts);
+  // parts.skin: pieces of bare skin, faded at their joints (see softenJoint). A limb in one image has no joint to fade
+  // at the knee or the elbow: only its top, at the hip or the shoulder
+  for (const name of r.parts?.skin ?? []) {
+    if (limbs.leg && (name === 'thigh' || name === 'shin')) { if (name === 'thigh') limbs.leg = softenJoint(limbs.leg, 'thigh'); continue; }
+    if (limbs.arm && (name === 'upperArm' || name === 'forearm')) { if (name === 'upperArm') limbs.arm = softenJoint(limbs.arm, 'upperArm'); continue; }
+    // parts.coatFade: how much of the hips' height fades into the thighs (0.1 by default)
+    if (parts[name]) parts[name] = softenJoint(parts[name], name, r.parts?.coatFade ?? 0.1);
+  }
+  return limbs;
+}
+
+/**
+ * A torso's stump of a neck faded out: its top rows, while they are as narrow as a neck (before the shoulders widen
+ * it), go transparent over a few rows, so the head's own neck, drawn behind the torso, shows instead of a straight cut.
+ */
+export function fadeNeck(part) {
+  const { img } = part, out = { w: img.w, h: img.h, d: new Uint8ClampedArray(img.d) };
+  const widths = [];
+  for (let y = 0; y < Math.round(img.h * 0.25); y++) { const sp = span(img, y); widths.push(sp ? sp[1] - sp[0] + 1 : 0); }
+  const narrow = Math.min(...widths.filter((w) => w > 0).slice(0, Math.max(1, Math.round(widths.length * 0.3))));
+  let end = 0;
+  while (end < widths.length && widths[end] < narrow * 1.6) end++;
+  const soft = Math.max(2, Math.round(img.h * 0.02));
+  for (let y = 0; y < Math.min(img.h, end + soft); y++) {
+    const k = y < end - soft ? 0 : smoothstep(end - soft, end + soft, y);
+    for (let x = 0; x < img.w; x++) out.d[(y * img.w + x) * 4 + 3] *= k;
+  }
+  return { ...part, img: out };
 }
 
 /** Her limbs as one image each, where she has their pieces: `leg` (thigh, lower leg, foot) and `arm` (upper arm, forearm). */
@@ -418,24 +475,7 @@ export async function cmdRig([file], opt) {
         const img = await readRGBA(join(dir, v, `${name}.png`));
         parts[name] = left ? mirrorPart(img, info.joints) : { img, joints: info.joints };
       }
-      const prop = proportionsFor(r, look), them = sameAll?.[v]?.torso;
-      await proportion(parts, prop, them && prop?.torso ? BONE.torso(them) / prop.torso : undefined);
-      // a garment with no collar shows the neck her coat's high collar hides: the head sits lower on the torso by
-      // parts.neckSink, a share of the head's height, so less of the neck shows and the head does not look small
-      if (r.parts?.neckSink && parts.head?.joints?.neck) parts.head = { ...parts.head, joints: { ...parts.head.joints, neck: [parts.head.joints.neck[0], parts.head.joints.neck[1] - r.parts.neckSink * parts.head.img.h] } };
-      // parts.coatCut: what hangs from the waist kept only down to this share of its height (hips in briefs, cut off
-      // below the buttocks, so they do not lie over her thighs)
-      if (r.parts?.coatCut && parts.coat) parts.coat = { ...parts.coat, img: crop(parts.coat.img, 0, 0, parts.coat.img.w, Math.round(parts.coat.img.h * r.parts.coatCut)) };
-      // her limbs as one image each, which the rig skins on their bones (see composeLimb), unless the recipe keeps them
-      // in pieces (parts.limbs: "pieces")
-      const limbs = r.parts?.limbs === 'pieces' ? {} : composeLimbs(parts);
-      // parts.skin: pieces of bare skin, faded at their joints (see softenJoint). A limb in one image has no joint to fade
-      // at the knee or the elbow: only its top, at the hip or the shoulder
-      for (const name of r.parts?.skin ?? []) {
-        if (limbs.leg && (name === 'thigh' || name === 'shin')) { if (name === 'thigh') limbs.leg = softenJoint(limbs.leg, 'thigh'); continue; }
-        if (limbs.arm && (name === 'upperArm' || name === 'forearm')) { if (name === 'upperArm') limbs.arm = softenJoint(limbs.arm, 'upperArm'); continue; }
-        if (parts[name]) parts[name] = softenJoint(parts[name], name);
-      }
+      const prop = proportionsFor(r, look), limbs = await shapeParts(r, look, v, parts, sameAll);
       if (v === 'raw') { const m = measures(parts, prop); if (m?.foot) console.log(`${r.name}: foot ${m.foot.toFixed(3)} of her height (her boots 0.13)${m.foot > 0.155 || m.foot < 0.09 ? ' — check it: set parts.proportions.foot' : ''}`); }
       if (!parts.foot) throw new Error(`${r.name}: the rig needs a separate foot: give the recipe parts.proportions`);
       await mkdir(join(out, v), { recursive: true });
