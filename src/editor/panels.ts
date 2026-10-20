@@ -8,6 +8,8 @@ import { inView, placeIn, type Hotspot, type ViewText } from '../game/level';
 import { asIn, inViewOf, type Only } from '../engine/assets';
 import { duplicate } from './clipboard';
 import { deleteSelected, pickAsset, settleSuggested, suggestFromArt } from './edit';
+import { joinUp } from './exits';
+import { joinedUp, joinOf, missingThere, nameOf as joinName } from './join';
 import { rebuild, refresh, syncEffects, syncScroll, updatePlay } from './files';
 import { amount, buttons, check, choice, colour, eye, heading, labelFields, num, section, slider, str, viewText } from './form';
 import { lintScene, type Problem } from './lint';
@@ -130,11 +132,14 @@ function hotspotSide(i: number): void {
   side(...labelFields(h.tag, (v) => { if (v === undefined) delete h.tag; else h.tag = v; }));
   side(str('The Concierge’s answer to Ask', h.ask ?? '', (v) => { if (v) h.ask = v; else delete h.ask; }, { area: true }));
   if (h.go) {
-    const go = h.go;
+    const go = h.go, join = document.createElement('div');
+    join.className = 'ed-join';
     side(
       choice('Leads to', go.scene, sceneIds.map((s) => [s, s] as [string, string]), (v) => { go.scene = v; drawSide(); }),
-      str('Arriving at (a spawn there)', go.spawn, (v) => { go.spawn = v; }, { list: spawnsOf(go.scene) }),
+      str('Arriving at (a spawn there)', go.spawn, (v) => { go.spawn = v; }, { list: spawnsOf(go.scene), after: () => { redraw.overlay(); wayBack(join, i); } }),
+      join,
     );
+    wayBack(join, i);
   } else {
     side(...viewText('Look text', h.look, (v) => { if (v === undefined) delete h.look; else h.look = v; }, true));
     side(str('Conversation (Ink knot)', h.talk ?? '', (v) => { if (v) h.talk = v; else delete h.talk; }));
@@ -147,6 +152,27 @@ function hotspotSide(i: number): void {
     DUPLICATE,
     ['Delete', () => deleteSelected(), 'danger'],
   ));
+}
+
+/**
+ * An exit's way back: whether it arrives at a place in the scene it leads to, and whether that scene has a way back
+ * arriving by it here; and a button to make what is missing.
+ */
+function wayBack(box: HTMLElement, i: number): void {
+  const h = ed.file.hotspots[i], go = h.go!, there = ed.others[go.scene];
+  box.replaceChildren();
+  box.hidden = go.scene === ed.file.id;
+  if (box.hidden) return;
+  const line = (ok: boolean, text: string, cls = ok ? 'ok' : 'missing') => { const p = document.createElement('p'); p.className = cls; p.textContent = text; box.append(p); };
+  if (!there) return line(false, `${go.scene} is not saved yet: save it to make the way back`);
+  const j = joinOf(h, ed.file, there), them = there.name || there.id, back = j.back >= 0 ? there.hotspots[j.back] : undefined;
+  line(j.exitNames && j.hasArrive, !j.exitNames ? 'Arrives nowhere yet' : j.hasArrive ? `Arrives at “${j.arrive}” in ${them}` : `${them} has no “${j.arrive}” yet`);
+  line(!!back && j.backNames && j.hasBackTo, !back ? `No way back from ${them} yet` : `The way back, “${joinName(back.name)}”, ${!j.backNames ? 'arrives nowhere yet' : j.hasBackTo ? `arrives at “${j.backTo}” here` : `arrives at “${j.backTo}”, not made here yet`}`);
+  if (joinedUp(j)) return;
+  const far = missingThere(j);
+  const label = far ? (j.back < 0 ? 'Make the way back' : !j.hasArrive ? `Make “${j.arrive}” in ${them}` : 'Finish the way back') : !j.hasBackTo ? `Make “${j.backTo}” here` : `Arrive at “${j.arrive}”`;
+  box.append(buttons([label, () => void joinUp(i).catch(showError)]));
+  if (far) line(true, `Saves this scene, then opens ${them} with what is missing there made, to place and save.`, 'hint');
 }
 
 /** The places to arrive at in another scene, for an exit's list: from the scenes the editor loaded. */

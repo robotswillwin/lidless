@@ -343,7 +343,9 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .ed-scene { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
 .ed-sep { width: 1px; height: 22px; background: #2a2a36; margin: 0 4px; }
 .ed-grow { flex: 1; }
-.ed-status { color: var(--muted); font-size: 12px; margin-right: 4px; }
+/* the status gives way first: one line, cut short, all of it on hover; the rest of the bar keeps its size */
+.ed-status { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: 12px; margin-right: 4px; }
+.ed-bar > :not(.ed-status):not(.ed-grow) { flex-shrink: 0; white-space: nowrap; }
 /* what is worked on (all, layout, interaction, lighting, effects), and which views edits go to (both, raw, AR) */
 .ed-bar [hidden] { display: none !important; }
 .ed-modes, .ed-tasks { display: inline-flex; border: 1px solid #30303e; border-radius: 4px; overflow: hidden; }
@@ -407,6 +409,14 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .ed-fold .badge.warning { background: #4a3a16; color: #ffd98a; }
 .ed-fold .badge.ok { background: #16382c; color: #9fe6c4; }
 .ed-note { margin: 0 0 8px; color: var(--muted); font-size: 12px; line-height: 1.4; }
+/* an exit's way back */
+.ed-join { margin: 2px 0 10px; padding: 6px 8px; border-left: 2px solid #3a3a4c; background: #15151e; }
+.ed-join p { margin: 2px 0; color: var(--muted); font-size: 11px; line-height: 1.4; }
+.ed-join p.ok::before { content: '✓ '; color: #9fe6c4; }
+.ed-join p.missing { color: #ffcdcd; }
+.ed-join p.missing::before { content: '✗ '; color: #ff7a7a; }
+.ed-join p.hint { font-size: 10px; }
+.ed-join .ed-buttons { margin: 6px 0 2px; }
 .ed-group { margin: 2px 0 10px; }
 .ed-group-head { display: flex; align-items: center; gap: 8px; margin: 6px 0 4px; font-size: 12px; color: var(--ink); }
 .ed-group-head .n { color: var(--muted); font-size: 11px; }

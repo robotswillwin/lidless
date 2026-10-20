@@ -132,7 +132,7 @@ export const t0 = performance.now();
 export const redraw = { overlay: (): void => {}, side: (): void => {} };
 
 export const snapshot = (): string => JSON.stringify(ed.file);
-export const setStatus = (text: string): void => { dom.status.textContent = text; };
+export const setStatus = (text: string): void => { dom.status.textContent = text; dom.status.title = text; };
 export const showError = (err: unknown): void => {
   const msg = err instanceof Error ? err.message : String(err);
   dom.error.hidden = false;

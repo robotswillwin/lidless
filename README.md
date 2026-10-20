@@ -101,6 +101,13 @@ light on.
   scene has, pasted drips take the place of any there, and in Raw or AR mode what is only in the other view becomes
   this view's own. **Duplicate** (Cmd+D, or the button beside Delete) copies and pastes in one go, leaving the
   clipboard as it was.
+- **Exits both ways:** an exit's panel says whether it arrives at a place in the scene it leads to, and whether that
+  scene has a way back arriving by it here, with a button for what is missing. What is missing here is made at once.
+  What is missing there is made by saving this scene and opening that one with it made, unsaved, to place and save:
+  the way back at the end of the walk line she comes in by (the other end from an end walked out by; for a door, the
+  same side as the door), and each place to arrive at a little in from where she comes in, facing in. A place already
+  by the spot is used instead of making another. A problem about another scene's exit arriving at a place this scene
+  lacks selects this scene's exit to it, whose panel makes the place.
 - **Both · Raw · AR** (in the toolbar): which views your edits go to. In **Both**, what you change becomes the same in
   both views, and E shows the other view. In **Raw** or **AR** that view is on screen and what you change is its own:
   a light stronger or another colour there, a hotspot elsewhere there, a layer or an effect placed elsewhere; E switches

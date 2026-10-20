@@ -119,7 +119,9 @@ export function lintScene(file: SceneFile, ctx: LintContext): Problem[] {
   for (const [id, sp] of Object.entries(file.spawns)) if (sp.x < x0 || sp.x > x1) warn(`The place “${id}” is off the walk line (x ${sp.x})`, { kind: 'spawn', id });
   for (const [sid, other] of Object.entries(ctx.others)) {
     if (sid === file.id) continue;
-    for (const h of other.hotspots) if (h.go?.scene === file.id && !file.spawns[h.go.spawn]) err(`${other.name || sid}'s exit “${nameOf(h.name) || h.id}” arrives at “${h.go.spawn}” here, a place this scene does not have`);
+    // about this scene's exit to that one, if it has one: its panel makes the place
+    const ours = file.hotspots.findIndex((x) => x.go?.scene === sid);
+    for (const h of other.hotspots) if (h.go?.scene === file.id && !file.spawns[h.go.spawn]) err(`${other.name || sid}'s exit “${nameOf(h.name) || h.id}” arrives at “${h.go.spawn}” here, a place this scene does not have`, ours >= 0 ? { kind: 'hotspot', i: ours } : undefined);
   }
   if (ctx.start?.scene === file.id && !file.spawns[ctx.start.spawn]) err(`The game starts here at “${ctx.start.spawn}”, a place this scene does not have`);
 
