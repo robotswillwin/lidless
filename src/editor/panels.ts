@@ -1,13 +1,15 @@
 // The side panel: the fields of what is selected, one panel for each kind of thing, and the scene's own when nothing is.
 
 import { NW } from '../engine/renderer';
-import { loadSceneFile, type Rect } from '../game/scenefile';
+import type { Rect } from '../game/scenefile';
 import type { LightDef } from '../engine/assets';
 import { presets, resolveLight } from '../engine/presets';
+import type { Hotspot, ViewText } from '../game/level';
 import { deleteSelected, pickAsset, settleSuggested, suggestFromArt } from './edit';
 import { rebuild, refresh, syncEffects, syncScroll, updatePlay } from './files';
-import { buttons, check, choice, colour, heading, labelFields, num, str, viewText } from './form';
-import { base, dom, ed, LIMITS, redraw, remember, snapshot } from './state';
+import { buttons, check, choice, colour, eye, heading, labelFields, num, section, str, viewText } from './form';
+import { lintScene, type Problem } from './lint';
+import { dom, ed, LIMITS, redraw, remember, snapshot, type Kind, type Selection } from './state';
 
 const GROUPS: [string, string][] = [['0', 'Steady'], ['1', 'Monitor flicker'], ['2', 'Valves'], ['3', 'Fire'], ['4', 'The machine’s eye'], ['5', 'Neon flicker'], ['6', 'Hologram'], ['7', 'Screen'], ['8', 'String lights']];
 const ZONES: [string, string][] = [['0', 'Everywhere'], ['1', 'Inside areas'], ['2', 'Outside, near layer'], ['4', 'Outside, every depth'], ['3', 'Facade']];
@@ -97,15 +99,10 @@ function hotspotSide(i: number): void {
   side(buttons(['Delete', () => deleteSelected(), 'danger']));
 }
 
-/** The places to arrive at in another scene, for an exit's list; loaded the first time they are asked for. */
-const spawnCache = new Map<string, string[]>();
+/** The places to arrive at in another scene, for an exit's list: from the scenes the editor loaded. */
 function spawnsOf(id: string): string[] {
   if (id === ed.file.id) return Object.keys(ed.file.spawns);
-  if (!spawnCache.has(id)) {
-    spawnCache.set(id, []);
-    void loadSceneFile(base, id).then((f) => { spawnCache.set(id, Object.keys(f.spawns)); if (ed.sel.kind === 'hotspot') drawSide(); }).catch(() => {});
-  }
-  return spawnCache.get(id)!;
+  return Object.keys(ed.others[id]?.spawns ?? {});
 }
 
 function spawnSide(id: string): void {
@@ -235,23 +232,102 @@ function moverSide(i: number): void {
   ));
 }
 
-/** Every effect in the scene, to select one that is hard to click. */
-function effectsList(): HTMLDivElement {
-  const f = ed.file, list = document.createElement('div');
-  list.className = 'ed-list';
-  const item = (label: string, sel: typeof ed.sel) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = label; b.addEventListener('click', () => { ed.sel = sel; reselect(); }); list.append(b); };
-  (f.steam ?? []).forEach((e, i) => item(`${e.kind === 'smoke' ? 'Smoke' : 'Steam'} ${i + 1}`, { kind: 'steam', i }));
-  (f.godrays ?? []).forEach((_, i) => item(`Light shaft ${i + 1}`, { kind: 'godray', i }));
-  (f.beacons ?? []).forEach((_, i) => item(`Beacon ${i + 1}`, { kind: 'beacon', i }));
-  if (f.drips) item('Drips', { kind: 'drips' });
-  (f.movers ?? []).forEach((m, i) => item(`Mover: ${m.asset}`, { kind: 'mover', i }));
-  return list;
+const css = (c: [number, number, number]) => `rgb(${c.map((v) => Math.round(Math.min(1, Math.max(0, v)) * 255)).join(',')})`;
+const named = (t: ViewText): string => (typeof t === 'string' ? t : t.concierge || t.raw);
+function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, parent: HTMLElement, text?: string): HTMLElementTagNameMap[K] {
+  const e = document.createElement(tag);
+  e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  parent.append(e);
+  return e;
 }
 
+/** What can be done with a hotspot, and in which view it is there. */
+const uses = (h: Hotspot): string => [...(['look', 'talk', 'use', 'take'] as const).filter((k) => h[k]), ...(h.ask ? ['ask'] : []), ...(h.only ? [`${h.only === 'raw' ? 'raw' : 'Concierge'} view only`] : [])].join(' · ') || 'nothing to do';
+
+interface Row { label: string; detail?: string; dot?: string; sel: Selection }
+
+/** A row for each thing: selects it, and lights it on the scene while the pointer is over it. */
+function rows(parent: HTMLElement, items: Row[]): void {
+  const list = el('div', 'ed-rows', parent);
+  for (const it of items) {
+    const b = el('button', 'ed-row', list);
+    b.type = 'button';
+    if (it.dot) el('span', 'dot', b).style.background = it.dot;
+    el('span', 'label', b, it.label);
+    if (it.detail) el('span', 'detail', b, it.detail);
+    b.addEventListener('click', () => { ed.hover = null; ed.sel = it.sel; reselect(); });
+    b.addEventListener('mouseenter', () => { ed.hover = it.sel; redraw.overlay(); });
+    b.addEventListener('mouseleave', () => { ed.hover = null; redraw.overlay(); });
+  }
+}
+
+/** Everything in the scene by kind, each kind with an eye to hide it on the scene and see the rest. */
+function outline(body: HTMLElement): void {
+  const f = ed.file;
+  const group = (title: string, kind: Kind | null, items: Row[], opts: { note?: string; extra?: HTMLElement } = {}) => {
+    const g = el('div', 'ed-group', body), head = el('div', 'ed-group-head', g);
+    el('span', 't', head, title);
+    el('span', 'n', head, opts.note ?? (items.length ? String(items.length) : 'none'));
+    if (kind) head.append(eye(kind, title.toLowerCase(), redraw.overlay));
+    if (opts.extra) g.append(opts.extra);
+    if (items.length) rows(g, items);
+  };
+  group('Layers, back to front', null, f.layers.map((l, i) => ({ label: `${i + 1}. ${l.asset}`, detail: [l.parallax !== undefined && l.parallax !== 1 ? `parallax ${l.parallax}` : '', l.front ? 'in front' : ''].filter(Boolean).join(' · '), sel: { kind: 'layer', i } })));
+  const suggested = f.lights.filter((l) => l.suggested).length;
+  const tools = buttons(['Suggest from the art', () => void suggestFromArt().then(reselect)], ...(suggested ? [[`Keep ${suggested}`, () => settleSuggested(true)], ['Discard them', () => settleSuggested(false), 'danger']] as [string, () => void, string?][] : []));
+  group('Lights', 'lights', f.lights.map((placed, i) => {
+    const l = resolveLight(placed), kind = placed.preset ? presets().lights[placed.preset]?.label ?? placed.preset : `Light ${i + 1}`;
+    // what the kind's name does not already say
+    const notes = [l.ar ? 'Concierge view' : l.raw ? 'raw view' : '', l.machine ? 'machine' : '', placed.suggested ? 'suggested' : ''].filter((n) => n && !kind.toLowerCase().includes(n.toLowerCase()));
+    return { label: kind, dot: css(l.c), detail: notes.join(' · '), sel: { kind: 'light', i } as Selection };
+  }), { extra: tools });
+  const hot = f.hotspots.map((h, i) => ({ h, i }));
+  group('Hotspots', 'hotspots', hot.filter(({ h }) => !h.go).map(({ h, i }) => ({ label: named(h.name) || h.id, detail: uses(h), sel: { kind: 'hotspot', i } })));
+  group('Exits', 'exits', hot.filter(({ h }) => h.go).map(({ h, i }) => ({ label: named(h.name) || h.id, detail: `→ ${h.go!.scene}, ${h.go!.spawn}`, sel: { kind: 'hotspot', i } })));
+  group('Places to arrive at', 'spawns', Object.entries(f.spawns).map(([id, sp]) => ({ label: id, detail: `x ${sp.x}, facing ${sp.facing > 0 ? 'right' : 'left'}`, sel: { kind: 'spawn', id } })));
+  group('Areas', 'areas', (['inside', 'outside'] as const).flatMap((set) => (f.zones?.[set] ?? []).map((_, i) => ({ label: `${set === 'inside' ? 'Inside' : 'Outside'} ${i + 1}`, detail: f.kind === 'exterior' ? 'an inside in the street' : 'an outside in the room', sel: { kind: 'zone', set, i } as Selection }))));
+  const fx: Row[] = [
+    ...(f.steam ?? []).map((e, i) => ({ label: `${e.kind === 'smoke' ? 'Smoke' : 'Steam'} ${i + 1}`, detail: i >= LIMITS.steam ? 'not drawn' : '', sel: { kind: 'steam', i } as Selection })),
+    ...(f.godrays ?? []).map((g, i) => ({ label: `Light shaft ${i + 1}`, detail: [g.ar ? 'Concierge view' : '', i >= LIMITS.godrays ? 'not drawn' : ''].filter(Boolean).join(' · '), sel: { kind: 'godray', i } as Selection })),
+    ...(f.beacons ?? []).map((_, i) => ({ label: `Beacon ${i + 1}`, sel: { kind: 'beacon', i } as Selection })),
+    ...(f.drips ? [{ label: 'Drips', sel: { kind: 'drips' } as Selection }] : []),
+    ...(f.movers ?? []).map((m, i) => ({ label: `Mover: ${m.asset}`, sel: { kind: 'mover', i } as Selection })),
+  ];
+  group('Effects', 'effects', fx);
+  group('Walk and reflection lines', 'lines', [], { note: `walk ${f.walk.x0} to ${f.walk.x1} at y ${f.walk.y} · reflection y ${f.mirror ?? f.walk.y - 8}` });
+}
+
+/** What is wrong with the scene, or will go wrong in play: each problem selects what it is about. */
+function problems(body: HTMLElement, found: Problem[]): void {
+  if (!found.length) {
+    el('p', 'ed-note', body, 'None found. Checked: its layers, the walk line, hotspots and exits (both ways), places to arrive at, the story’s conversations, the phone’s corner buttons, and how many lights a phone draws.');
+    return;
+  }
+  const list = el('div', 'ed-problems', body);
+  for (const p of found) {
+    const b = el('button', `ed-problem ${p.level}`, list);
+    b.type = 'button';
+    el('span', 'mark', b, p.level === 'error' ? '●' : '▲');
+    el('span', 'text', b, p.text);
+    if (p.sel) {
+      const sel = p.sel;
+      b.addEventListener('click', () => { ed.hover = null; ed.sel = sel; reselect(); });
+      b.addEventListener('mouseenter', () => { ed.hover = sel; redraw.overlay(); });
+      b.addEventListener('mouseleave', () => { ed.hover = null; redraw.overlay(); });
+    } else b.disabled = true;
+  }
+}
+
+/** The scene's panel, with nothing selected: what is wrong, everything in it, its settings, its ground, and Luna. */
 function sceneSide(): void {
   const file = ed.file, luna = ed.luna;
-  side(heading(file.name || file.id, `Scene ${file.id}: ${file.size[0]}×${file.size[1]} px. Click a light, hotspot, spawn or area to edit it.`));
-  side(
+  side(heading(file.name || file.id, `Scene ${file.id}: ${file.size[0]}×${file.size[1]} px. Click anything on it, or in the outline, to edit it.`));
+  const found = lintScene(file, { scenes: ed.world.scenes, others: ed.others, knots: ed.knots, start: ed.world.start, assets: ed.assets.length ? new Set(ed.assets) : undefined });
+  const errors = found.filter((p) => p.level === 'error').length;
+  side(section('problems', 'Problems', (body) => problems(body, found), { badge: found.length ? String(found.length) : 'none', tone: errors ? 'error' : found.length ? 'warning' : 'ok' }));
+  side(section('outline', 'Outline', outline));
+  side(section('settings', 'Scene settings', (body) => body.append(
     str('Name', file.name, (v) => { file.name = v; }),
     choice('Kind', file.kind, [['exterior', 'Exterior: outside, rain'], ['interior', 'Interior: inside']], (v) => { file.kind = v as 'exterior' | 'interior'; }, refresh),
     num('Width', file.size[0], (v) => { file.size[0] = Math.max(NW, v); syncScroll(); }, { min: NW, step: 16, after: refresh }),
@@ -263,34 +339,28 @@ function sceneSide(): void {
     num('Light painted into the art (0 to 1)', typeof file.baked === 'number' ? file.baked : 0, (v) => { if (v) file.baked = v; else delete file.baked; }, { step: 0.05, min: 0, max: 1, after: refresh }),
     str('The Concierge’s greeting', file.greeting ?? '', (v) => { if (v) file.greeting = v; else delete file.greeting; }),
     str('Its answer to Ring for assistance', file.assist ?? '', (v) => { if (v) file.assist = v; else delete file.assist; }, { area: true }),
-  );
+  )));
   const g = file.ground, line = file.mirror ?? file.walk.y - 8;
-  side(heading('Ground', 'Drawn by the engine below the reflection line, over a floor smoothed for it: paving slabs, a kerb, puddles. How wet, shiny and worn it is in each view is in the look panel, under Reflections.'));
-  side(check('The engine draws the ground', !!g, (v) => { if (v) file.ground = { horizon: line - 100, slab: [90, 70], puddles: 0.25 }; else delete file.ground; }, () => { refresh(); redraw.side(); }));
-  if (g) side(
-    num('Horizon y: the eye’s height (nearer the line, flatter)', g.horizon, (v) => { g.horizon = Math.min(v, line - 8); }, { step: 2, max: line - 8, after: refresh }),
-    num('Slab width, px (0: no slabs)', g.slab?.[0] ?? 0, (v) => { g.slab = [Math.max(0, v), g.slab?.[1] ?? v]; }, { min: 0, step: 2, after: refresh }),
-    num('Slab depth, px', g.slab?.[1] ?? 0, (v) => { g.slab = [g.slab?.[0] ?? v, Math.max(0, v)]; }, { min: 0, step: 2, after: refresh }),
-    num('Kerb, px in front of the walk line (0: none, no road)', g.kerb ?? 0, (v) => { if (v > 0) g.kerb = v; else delete g.kerb; }, { min: 0, max: 800, step: 5, after: refresh }),
-    num('Puddles when wet (0 to 1)', g.puddles ?? 0, (v) => { g.puddles = Math.min(1, Math.max(0, v)); }, { min: 0, max: 1, step: 0.05, after: refresh }),
-  );
-  side(heading('Luna', 'Drag the triangle at her feet to move her.'));
-  side(
-    check('Show Luna', luna.show, (v) => { luna.show = v; }),
-    check('Move the camera with her, as in the game', luna.follow, (v) => { luna.follow = v; }),
-    check('She follows the pointer along the walk line', luna.track, (v) => { luna.track = v; }),
-    choice('Luna faces', String(luna.facing), [['1', 'Right'], ['-1', 'Left']], (v) => { luna.facing = Number(v) as 1 | -1; }),
-  );
-  side(heading('Layers', 'Back to front. Click one to move it or change its depth.'));
-  const list = document.createElement('div');
-  list.className = 'ed-list';
-  file.layers.forEach((l, i) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = `${i + 1}. ${l.asset}`; b.addEventListener('click', () => { ed.sel = { kind: 'layer', i }; reselect(); }); list.append(b); });
-  side(list);
-  const suggested = file.lights.filter((l) => l.suggested).length;
-  side(heading('Lights', `${file.lights.length} lights. Dots on the scene; cyan rings are Concierge view only, dashed ones suggested. Lighting view (G) shows what they light.`));
-  side(buttons(['Suggest lights from the art', () => void suggestFromArt().then(reselect)]));
-  if (suggested) side(buttons([`Keep the ${suggested} suggested`, () => settleSuggested(true)], ['Discard them', () => settleSuggested(false), 'danger']));
-  side(heading('Effects', 'Steam, smoke, light shafts, beacons, drips and movers. Add them with + Effect.'), effectsList());
+  side(section('ground', 'Ground', (body) => {
+    el('p', 'ed-note', body, 'Drawn by the engine below the reflection line, over a floor smoothed for it: paving slabs, a kerb, puddles. How wet, shiny and worn it is in each view is in the look panel, under Reflections.');
+    body.append(check('The engine draws the ground', !!g, (v) => { if (v) file.ground = { horizon: line - 100, slab: [90, 70], puddles: 0.25 }; else delete file.ground; }, () => { refresh(); redraw.side(); }));
+    if (g) body.append(
+      num('Horizon y: the eye’s height (nearer the line, flatter)', g.horizon, (v) => { g.horizon = Math.min(v, line - 8); }, { step: 2, max: line - 8, after: refresh }),
+      num('Slab width, px (0: no slabs)', g.slab?.[0] ?? 0, (v) => { g.slab = [Math.max(0, v), g.slab?.[1] ?? v]; }, { min: 0, step: 2, after: refresh }),
+      num('Slab depth, px', g.slab?.[1] ?? 0, (v) => { g.slab = [g.slab?.[0] ?? v, Math.max(0, v)]; }, { min: 0, step: 2, after: refresh }),
+      num('Kerb, px in front of the walk line (0: none, no road)', g.kerb ?? 0, (v) => { if (v > 0) g.kerb = v; else delete g.kerb; }, { min: 0, max: 800, step: 5, after: refresh }),
+      num('Puddles when wet (0 to 1)', g.puddles ?? 0, (v) => { g.puddles = Math.min(1, Math.max(0, v)); }, { min: 0, max: 1, step: 0.05, after: refresh }),
+    );
+  }, { badge: g ? 'on' : 'off' }));
+  side(section('luna', 'Luna', (body) => {
+    el('p', 'ed-note', body, 'To judge the light on. Drag the triangle at her feet to move her, or have her follow the pointer: she walks, jogs or runs to it along the walk line, as she would that far in the game.');
+    body.append(
+      check('Show Luna', luna.show, (v) => { luna.show = v; }),
+      check('Move the camera with her, as in the game', luna.follow, (v) => { luna.follow = v; }),
+      check('She follows the pointer, at the game’s pace', luna.track, (v) => { luna.track = v; }),
+      choice('Luna faces', String(luna.facing), [['1', 'Right'], ['-1', 'Left']], (v) => { luna.facing = Number(v) as 1 | -1; }),
+    );
+  }));
 }
 
 export function drawSide(): void {

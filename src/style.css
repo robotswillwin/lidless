@@ -364,6 +364,42 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .ed-buttons button, .ed-list button { font: 400 12px/1 var(--ui); padding: 7px 9px; background: #1a1a24; color: var(--ink); border: 1px solid #30303e; border-radius: 3px; cursor: pointer; text-align: left; }
 .ed-buttons .danger { color: #ff9a9a; border-color: #5a2a2a; }
 .ed-list { display: grid; gap: 4px; margin: 4px 0 8px; }
+/* the scene's panel: sections that fold away, the outline of everything in the scene, its problems */
+.ed-section { border-top: 1px solid #23232e; padding: 2px 0 6px; }
+.ed-section-head { display: flex; align-items: center; gap: 6px; }
+.ed-fold { flex: 1; display: flex; align-items: center; gap: 8px; padding: 8px 0 6px; border: 0; background: none; color: var(--amber); cursor: pointer; text-align: left;
+  font: 500 12px/1.2 var(--ui); letter-spacing: .08em; text-transform: uppercase; }
+.ed-fold:focus-visible { outline: 1px solid var(--amber); outline-offset: 2px; }
+.ed-fold .chev { width: 0; height: 0; border-left: 5px solid currentColor; border-top: 4px solid transparent; border-bottom: 4px solid transparent; transition: transform .12s; }
+.ed-fold[aria-expanded="true"] .chev { transform: rotate(90deg); }
+.ed-fold .badge { margin-left: auto; padding: 2px 7px; border-radius: 9px; background: #23232e; color: var(--muted); font-size: 11px; letter-spacing: 0; text-transform: none; }
+.ed-fold .badge.error { background: #5a1d22; color: #ffb3b3; }
+.ed-fold .badge.warning { background: #4a3a16; color: #ffd98a; }
+.ed-fold .badge.ok { background: #16382c; color: #9fe6c4; }
+.ed-note { margin: 0 0 8px; color: var(--muted); font-size: 12px; line-height: 1.4; }
+.ed-group { margin: 2px 0 10px; }
+.ed-group-head { display: flex; align-items: center; gap: 8px; margin: 6px 0 4px; font-size: 12px; color: var(--ink); }
+.ed-group-head .n { color: var(--muted); font-size: 11px; }
+.ed-group-head .ed-eye { margin-left: auto; }
+.ed-eye { display: grid; place-items: center; width: 26px; height: 22px; padding: 0; border: 1px solid #30303e; border-radius: 3px; background: #15151e; color: var(--ink); cursor: pointer; }
+.ed-eye[aria-pressed="false"] { color: #6c6c7c; background: transparent; }
+.ed-rows { display: grid; gap: 2px; }
+.ed-row { display: flex; align-items: center; gap: 8px; width: 100%; padding: 5px 8px; border: 1px solid transparent; border-radius: 3px; background: #15151e; color: var(--ink); cursor: pointer; text-align: left; font: 400 12px/1.25 var(--ui); }
+.ed-row:hover, .ed-row:focus-visible { border-color: #3a3a4c; background: #1c1c28; outline: none; }
+.ed-row .dot { flex: none; width: 9px; height: 9px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(0, 0, 0, .6); }
+.ed-row .label { flex: none; max-width: 55%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ed-row .detail { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); text-align: right; font-size: 11px; }
+.ed-group .ed-buttons { margin: 0 0 6px; }
+.ed-problems { display: grid; gap: 3px; }
+.ed-problem { display: flex; gap: 8px; align-items: baseline; width: 100%; padding: 6px 8px; border: 1px solid transparent; border-radius: 3px; background: #15151e; color: var(--ink); cursor: pointer; text-align: left; font: 400 12px/1.35 var(--ui); }
+.ed-problem:hover:not(:disabled), .ed-problem:focus-visible { border-color: #3a3a4c; background: #1c1c28; outline: none; }
+.ed-problem:disabled { cursor: default; }
+.ed-problem .mark { flex: none; font-size: 10px; }
+.ed-problem.error .mark { color: #ff7a7a; }
+.ed-problem.warning .mark { color: #ffc65a; }
+/* what the pointer is over in the outline, lit on the scene */
+.ed-overlay .hover { filter: drop-shadow(0 0 3px #fff) drop-shadow(0 0 6px rgba(255, 255, 255, .7)); }
+.ed-overlay .layer-box.hover { stroke: #fff; stroke-dasharray: 6 4; }
 /* the overlay: what can be selected on the scene */
 .ed-overlay * { vector-effect: non-scaling-stroke; }
 .ed-overlay .zone { fill: rgba(240, 178, 90, .06); stroke: #f0b25a; stroke-dasharray: 6 4; cursor: move; }

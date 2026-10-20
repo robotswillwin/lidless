@@ -4,16 +4,18 @@
 // scene, and dragging it), panels.ts with form.ts (the side panel), edit.ts (adding and deleting).
 
 import '../style.css';
+import { Story } from 'inkjs';
 import { loadSprite, spriteDefaults } from '../engine/assets';
 import { loadProjectLook } from '../engine/look';
 import { loadPresets, presets } from '../engine/presets';
 import { fitCanvas, type DrawSprite } from '../engine/renderer';
-import { frameFor } from '../game/anim';
 import { heroDrawing } from '../game/hero';
-import { loadWorld } from '../game/scenefile';
+import { loadSceneFile, loadWorld } from '../game/scenefile';
+import storyJson from '../story/main.ink';
 import { createLookPanel } from '../look-panel';
 import { add, deleteSelected, newScene, nudge } from './edit';
 import { listAssets, openScene, save, syncAddress, undo } from './files';
+import { lunaFrame } from './luna';
 import { bindOverlay, drawOverlay } from './overlay';
 import { drawSide } from './panels';
 import { base, dom, ed, gl, redraw, renderer, showError, t0, viewX } from './state';
@@ -21,11 +23,24 @@ import { base, dom, ed, gl, redraw, renderer, showError, t0, viewX } from './sta
 redraw.overlay = drawOverlay;
 redraw.side = drawSide;
 
+let lastT = 0;
+
 function draw(): void {
   fitCanvas(dom.canvas);
   if (!ed.scene || !ed.runner) return;
-  const file = ed.file, t = (performance.now() - t0) / 1000, actors: DrawSprite[] = [], cam: [number, number] = [viewX(), 0];
-  if (ed.hero && ed.luna.show) actors.push(heroDrawing(ed.hero, { x: ed.luna.x, walkY: file.walk.y, cam, scale: file.actorScale ?? 1, facing: ed.luna.facing, frame: frameFor(ed.hero.def, false, 0, t, ed.luna.facing) }));
+  const file = ed.file, t = (performance.now() - t0) / 1000, dt = t - lastT, actors: DrawSprite[] = [];
+  lastT = t;
+  if (ed.hero && ed.luna.show) {
+    // following the pointer she moves on, and her marker on the walk line with her
+    const was = ed.luna.x, frame = lunaFrame(t, dt);
+    // (with the camera following her, everything over the scene moves with it)
+    if (ed.luna.x !== was) {
+      if (ed.luna.follow) drawOverlay();
+      else dom.overlay.querySelector('.luna path')?.setAttribute('d', `M ${ed.luna.x - 7} ${file.walk.y + 14} L ${ed.luna.x} ${file.walk.y + 4} L ${ed.luna.x + 7} ${file.walk.y + 14} Z`);
+    }
+    actors.push(heroDrawing(ed.hero, { x: ed.luna.x, walkY: file.walk.y, cam: [viewX(), 0], scale: file.actorScale ?? 1, facing: ed.luna.facing, frame }));
+  }
+  const cam: [number, number] = [viewX(), 0];
   renderer.lightView = ed.lightView;
   renderer.render(ed.runner.frame(t, { view: ed.view, sinceSwitch: t - ed.switchedAt }, cam, actors, [-1000, -1000]));
 }
@@ -113,6 +128,14 @@ async function start(): Promise<void> {
     // the scene's own look was saved into its file: so the editor's own Save keeps it
     onSceneSaved: (id, json) => { if (ed.file?.id === id) { if (json) ed.file.look = json; else delete ed.file.look; } },
   });
+  // the other scenes as saved, to check the exits between them both ways; and the story's conversations
+  const files = await Promise.all(ed.world.scenes.map((id) => loadSceneFile(base, id).catch(() => null)));
+  ed.others = Object.fromEntries(files.flatMap((f) => (f ? [[f.id, f]] : [])));
+  try {
+    ed.knots = new Set(new Story(storyJson).mainContentContainer.namedContent.keys());
+  } catch {
+    // without the story, conversations are not checked
+  }
   const params = new URLSearchParams(location.search), asked = params.get('scene');
   if (params.get('view') === 'raw') ed.view = 0;
   await openScene(asked && ed.world.scenes.includes(asked) ? asked : ed.world.scenes[0]);

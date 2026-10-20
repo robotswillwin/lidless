@@ -90,6 +90,8 @@ export async function save(): Promise<void> {
     if (!res.ok) throw new Error(await res.text());
     ed.dirty = false;
     if (!ed.world.scenes.includes(ed.file.id)) ed.world.scenes.push(ed.file.id);
+    // the other scenes' checks see it as saved
+    ed.others[ed.file.id] = JSON.parse(JSON.stringify(ed.file)) as SceneFile;
     setStatus(`Saved ${new Date().toLocaleTimeString()}`);
   } catch (err) {
     setStatus(`Could not save: ${err instanceof Error ? err.message : String(err)}`);

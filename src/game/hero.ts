@@ -1,8 +1,10 @@
 // Where the hero is drawn: the game and the scene editor place her the same way.
 
-import type { Sprite } from '../engine/assets';
+import type { Sprite, SpriteDef } from '../engine/assets';
 import type { DrawSprite } from '../engine/renderer';
 import { hasLeft } from './anim';
+import type { Gait, LevelDef } from './level';
+import type { WorldFile } from './scenefile';
 
 export interface HeroPlace {
   /** Her feet's x in the scene, and the walk line's y. */
@@ -31,4 +33,24 @@ export function heroDrawing(sprite: Sprite, p: HeroPlace): DrawSprite {
     scale: p.scale,
     frame: p.frame,
   };
+}
+
+/**
+ * Each gait her sprite has frames for, at her size in a scene: its speed, its stride at a cadence (strides a second,
+ * world.json's; a jog and a run by default 1.3 and 1.45 times the walk's), and how far a cycle carries her, so a foot
+ * stays where it lands.
+ */
+export function heroGaits(def: SpriteDef, hero: WorldFile['hero'], scale: number): NonNullable<LevelDef['hero']['gaits']> {
+  const cadence = { walk: hero.cadence, jog: hero.jogCadence ?? (hero.cadence && hero.cadence * 1.3), run: hero.runCadence ?? (hero.cadence && hero.cadence * 1.45) };
+  const gaits: NonNullable<LevelDef['hero']['gaits']> = {};
+  for (const g of ['walk', 'jog', 'run'] as const) {
+    const stride = def.anims?.[g]?.stride, c = cadence[g];
+    if (stride && c) gaits[g] = { speed: c * stride * scale, stride: stride * scale };
+  }
+  return gaits;
+}
+
+/** How fast she may go to get somewhere `distance` away: walking, jogging past a few of her heights, running past twice that. */
+export function paceFor(distance: number, hero: WorldFile['hero'], tall: number): Gait {
+  return distance > (hero.runFrom ?? 5) * tall ? 'run' : distance > (hero.jogFrom ?? 2.5) * tall ? 'jog' : 'walk';
 }

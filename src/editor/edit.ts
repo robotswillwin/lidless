@@ -7,6 +7,7 @@ import type { Hotspot } from '../game/level';
 import { rebuild, refresh, syncEffects, updatePlay } from './files';
 import { buttons, heading } from './form';
 import { base, dom, ed, LIMITS, markDirty, redraw, remember, setStatus, snapshot, undoStack, viewX } from './state';
+import { PLACEHOLDER } from './lint';
 
 /** Where new things go: the middle of what is on screen. */
 const centre = (): [number, number] => [Math.round(viewX() + NW / 2), Math.round(NH / 2)];
@@ -29,9 +30,9 @@ export async function add(kind: string): Promise<void> {
   }
   else if (kind === 'hotspot' || kind === 'exit') {
     const id = uniqueId(kind, file.hotspots.map((h) => h.id));
-    const h: Hotspot = { id, name: kind === 'exit' ? 'Exit' : 'Something', rect: [cx - 40, file.walk.y - 160, 80, 150], stand: cx };
+    const h: Hotspot = { id, name: kind === 'exit' ? 'Exit' : PLACEHOLDER.name, rect: [cx - 40, file.walk.y - 160, 80, 150], stand: cx };
     if (kind === 'exit') h.go = { scene: ed.world.scenes.find((s) => s !== file.id) ?? file.id, spawn: '' };
-    else h.look = 'What she sees.';
+    else h.look = PLACEHOLDER.look;
     file.hotspots.push(h);
     ed.sel = { kind: 'hotspot', i: file.hotspots.length - 1 };
   } else if (kind === 'spawn') { const id = uniqueId('arrive', Object.keys(file.spawns)); file.spawns[id] = { x: cx, facing: 1 }; ed.sel = { kind: 'spawn', id }; updatePlay(); }

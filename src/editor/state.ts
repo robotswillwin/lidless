@@ -68,7 +68,40 @@ export const ed = {
   /** The lighting view: only what the lights do. */
   lightView: false,
   look: null as LookPanel | null,
+  /** The world's other scenes as saved, by id: to check the exits between them both ways, and for an exit's places. */
+  others: {} as Record<string, SceneFile>,
+  /** The story's conversations (its knots), to check what a hotspot talks with. */
+  knots: undefined as Set<string> | undefined,
+  /** What the pointer is over in the outline, lit on the scene. */
+  hover: null as Selection | null,
 };
+
+/**
+ * The viewer's own conveniences, kept in this browser: which sections of the side panel are folded away, and which kinds
+ * of thing are hidden on the scene. Nothing in the scene file depends on them.
+ */
+const PREFS = 'lidless.editor.v1';
+export const prefs = ((): { collapsed: Set<string>; hidden: Set<string> } => {
+  let saved: { collapsed?: string[]; hidden?: string[] } = {};
+  try {
+    saved = JSON.parse(localStorage.getItem(PREFS) ?? '{}') as typeof saved;
+  } catch {
+    // no storage here: everything open and shown
+  }
+  return { collapsed: new Set(saved.collapsed ?? ['ground']), hidden: new Set(saved.hidden ?? []) };
+})();
+export const savePrefs = (): void => {
+  try {
+    localStorage.setItem(PREFS, JSON.stringify({ collapsed: [...prefs.collapsed], hidden: [...prefs.hidden] }));
+  } catch {
+    // as above
+  }
+};
+
+/** Kinds of thing on the scene, each of which can be hidden there to see the others. */
+export type Kind = 'lights' | 'hotspots' | 'exits' | 'spawns' | 'areas' | 'effects' | 'lines';
+/** Whether a kind is drawn on the scene: unless it is hidden, and always what is selected. */
+export const shown = (kind: Kind, selected = false): boolean => selected || !prefs.hidden.has(kind);
 
 export const undoStack: string[] = [];
 export const t0 = performance.now();

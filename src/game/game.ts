@@ -9,9 +9,9 @@ import { actionFor, actionsFor, defaultOf, verbsIn, type Verb } from './actions'
 import { frameFor } from './anim';
 import { Camera, cameraTarget } from './camera';
 import { Dialogue } from './dialogue';
-import { heroDrawing } from './hero';
+import { heroDrawing, heroGaits, paceFor } from './hero';
 import { Hud, type Action, type Item, type Mark, type NotebookPages } from './hud';
-import { inView, pick, type Hotspot, type LevelDef } from './level';
+import { inView, pick, type Hotspot } from './level';
 import { writeSave, type SaveData } from './save';
 import { SceneRunner, type ViewState } from './scene';
 import { Talk } from './talk';
@@ -157,13 +157,7 @@ export class Game {
     this.runner = new SceneRunner(next.loaded);
     // her pace follows her stride at her size here, so each foot stays where it lands
     // each gait the same way: a jog and a run, longer strides at a quicker cadence
-    const anims = this.s.hero.def.anims, h = this.s.world.hero, sc = next.file.actorScale ?? 1;
-    const cadence = { walk: h.cadence, jog: h.jogCadence ?? (h.cadence && h.cadence * 1.3), run: h.runCadence ?? (h.cadence && h.cadence * 1.45) };
-    const gaits: NonNullable<LevelDef['hero']['gaits']> = {};
-    for (const g of ['walk', 'jog', 'run'] as const) {
-      const stride = anims?.[g]?.stride, c = cadence[g];
-      if (stride && c) gaits[g] = { speed: c * stride * sc, stride: stride * sc };
-    }
+    const gaits = heroGaits(this.s.hero.def, this.s.world.hero, next.file.actorScale ?? 1);
     next.level.hero.gaits = gaits;
     if (gaits.walk) next.level.hero.speed = gaits.walk.speed;
     this.world = new World(next.level, at.x ?? sp?.x, at.facing ?? sp?.facing);
@@ -301,8 +295,8 @@ export class Game {
    * off, and running if it is further than twice that. She speeds up into it and slows down out of it.
    */
   private goTo(x: number, then: Hotspot | null = null): void {
-    const h = this.s.world.hero, tall = this.s.hero.def.h * (this.scene.file.actorScale ?? 1), d = Math.abs(x - this.world.heroX);
-    this.world.walkTo(x, then, d > (h.runFrom ?? 5) * tall ? 'run' : d > (h.jogFrom ?? 2.5) * tall ? 'jog' : 'walk');
+    const tall = this.s.hero.def.h * (this.scene.file.actorScale ?? 1);
+    this.world.walkTo(x, then, paceFor(Math.abs(x - this.world.heroX), this.s.world.hero, tall));
   }
 
   /* ---------- input: verbs, the pointer in level pixels, the walk keys ---------- */

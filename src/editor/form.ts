@@ -1,7 +1,7 @@
 // The side panel's fields: a change shows at once, and leaving a field keeps an undo step. Shared by every panel.
 
 import type { ViewNote, ViewText } from '../game/level';
-import { esc, redraw, remember, snapshot } from './state';
+import { esc, prefs, redraw, remember, savePrefs, snapshot, type Kind } from './state';
 
 type Input = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 
@@ -111,4 +111,47 @@ export function labelFields(value: ViewNote | undefined, set: (v: ViewNote | und
     str('Label, the Concierge’s (its view only)', now.concierge, (v) => { now.concierge = v; store(); }),
     str('Her note (raw view only)', now.raw, (v) => { now.raw = v; store(); }),
   ];
+}
+
+/**
+ * A section of the side panel that folds away, folded or not as the viewer last left it: its title, a count or a word
+ * beside it (`tone` colours it: error, warning, ok), tools on its right, and what is in it.
+ */
+export function section(id: string, title: string, fill: (body: HTMLElement) => void, opts: { badge?: string; tone?: string; tools?: HTMLElement[] } = {}): HTMLElement {
+  const wrap = document.createElement('section'), head = document.createElement('div'), body = document.createElement('div');
+  wrap.className = 'ed-section';
+  wrap.dataset.section = id;
+  head.className = 'ed-section-head';
+  body.className = 'ed-section-body';
+  const fold = document.createElement('button');
+  fold.type = 'button';
+  fold.className = 'ed-fold';
+  fold.innerHTML = `<span class="chev" aria-hidden="true"></span><span class="t">${esc(title)}</span>${opts.badge ? `<span class="badge${opts.tone ? ` ${opts.tone}` : ''}">${esc(opts.badge)}</span>` : ''}`;
+  const sync = () => { body.hidden = prefs.collapsed.has(id); fold.setAttribute('aria-expanded', String(!body.hidden)); };
+  fold.addEventListener('click', () => { if (prefs.collapsed.has(id)) prefs.collapsed.delete(id); else prefs.collapsed.add(id); savePrefs(); sync(); });
+  head.append(fold, ...(opts.tools ?? []));
+  fill(body);
+  sync();
+  wrap.append(head, body);
+  return wrap;
+}
+
+const EYE = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M2 12s3.8-6.5 10-6.5S22 12 22 12s-3.8 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+const EYE_OFF = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M2 12s3.8-6.5 10-6.5S22 12 22 12s-3.8 6.5-10 6.5S2 12 2 12z"/><path d="M4 20L20 4"/></svg>';
+
+/** Shows or hides a kind of thing on the scene, as the viewer last left it. */
+export function eye(kind: Kind, label: string, after: () => void): HTMLButtonElement {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'ed-eye';
+  const sync = () => {
+    const hidden = prefs.hidden.has(kind);
+    b.setAttribute('aria-pressed', String(!hidden));
+    b.setAttribute('aria-label', `${hidden ? 'Show' : 'Hide'} ${label} on the scene`);
+    b.title = `${hidden ? 'Show' : 'Hide'} ${label} on the scene`;
+    b.innerHTML = hidden ? EYE_OFF : EYE;
+  };
+  b.addEventListener('click', (e) => { e.stopPropagation(); if (prefs.hidden.has(kind)) prefs.hidden.delete(kind); else prefs.hidden.add(kind); savePrefs(); sync(); after(); });
+  sync();
+  return b;
 }

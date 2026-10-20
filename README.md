@@ -82,6 +82,16 @@ backstreet leads home, and the radio repair's door on the main street leads into
 **The scene editor**, `/editor.html` on the dev server, shows a scene rendered as in the game, and Luna to judge the
 light on.
 
+- **The scene's panel** (nothing selected) folds into sections, each left open or folded as you last had it:
+  - **Problems**: what is wrong with the scene or will go wrong in play, each a click from what it is about. Its
+    layers; the walk line; hotspots nobody can do anything with, or still with the placeholder texts they were made
+    with; conversations the story does not have; exits to places that are not there, and other scenes' exits arriving
+    at places this one lacks; hotspots under the phone's corner buttons or hidden under another; suggested lights not
+    yet kept; more lights on one screen than a phone draws (18).
+  - **Outline**: everything in the scene by kind (layers, lights, hotspots, exits, places to arrive at, areas,
+    effects), a row to select each, lit on the scene while the pointer is over it; an eye on each kind hides it on
+    the scene to see the rest.
+  - **Scene settings**, **Ground** and **Luna**.
 - **Moving:** drag lights, hotspots, exits, spawns, areas, the walk line and the reflection line; arrows nudge the
   selection.
 - **Editing:** the selected item's settings in the side panel.
@@ -94,8 +104,8 @@ light on.
 - **Ground** (the scene's settings): the floor the engine draws below the reflection line, its slabs, kerb and
   puddles; how wet, shiny and worn it is in each view is in the look panel (see
   [docs/ASSETS.md](docs/ASSETS.md#painted-scenes)).
-- **Luna:** drag her, turn her, have the camera move with her, or have her follow the pointer along the walk line to
-  see the light fall on her as she walks.
+- **Luna:** drag her, turn her, have the camera move with her, or have her follow the pointer: she walks, jogs or
+  runs to it along the walk line as she would that far in the game, to see the light fall on her as she moves.
 - **Adding:** new scenes from a built background, and layers from any built asset.
 - **Effects** (**+ Effect**): steam and smoke, light shafts, beacons, drips and movers, each drawn over the scene to
   drag (a mover's band and its two ends), with its settings in the side panel; the scene's settings list them all.
