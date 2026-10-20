@@ -6,12 +6,13 @@ import type { LightDef } from '../engine/assets';
 import { presets, resolveLight } from '../engine/presets';
 import { inView, placeIn, type Hotspot, type ViewText } from '../game/level';
 import { asIn, inViewOf, type Only } from '../engine/assets';
+import { duplicate } from './clipboard';
 import { deleteSelected, pickAsset, settleSuggested, suggestFromArt } from './edit';
 import { rebuild, refresh, syncEffects, syncScroll, updatePlay } from './files';
 import { amount, buttons, check, choice, colour, eye, heading, labelFields, num, section, slider, str, viewText } from './form';
 import { lintScene, type Problem } from './lint';
 import { editView, hasOwn, markOwn, ownIn, sameInBoth, setFor, shownView, viewLabel } from './views';
-import { dom, ed, inTask, LIMITS, redraw, remember, snapshot, type Kind, type Selection } from './state';
+import { dom, ed, inTask, LIMITS, redraw, remember, showError, snapshot, type Kind, type Selection } from './state';
 
 const GROUPS: [string, string][] = [['0', 'Steady'], ['1', 'Monitor flicker'], ['2', 'Valves'], ['3', 'Fire'], ['4', 'The machine’s eye'], ['5', 'Neon flicker'], ['6', 'Hologram'], ['7', 'Screen'], ['8', 'String lights']];
 const ZONES: [string, string][] = [['0', 'Everywhere'], ['1', 'Inside areas'], ['2', 'Outside, near layer'], ['4', 'Outside, every depth'], ['3', 'Facade']];
@@ -37,10 +38,14 @@ function modeNote(here: boolean, also = ''): void {
   side(p);
 }
 
+/** A copy of what is selected, a little to the right (Cmd+D). */
+const DUPLICATE: [string, () => void] = ['Duplicate', () => void duplicate().catch(showError)];
+
 /** An effect's buttons: back to as it is in both views, if it has its own settings in this one; and delete. */
 function effectButtons(o: object, shown: Only): HTMLDivElement {
   return buttons(
     ...(hasOwn(o, shown) ? [[`Same in both views`, () => { const before = snapshot(); sameInBoth(o, shown); syncEffects(); remember(before); reselect(); }] as [string, () => void]] : []),
+    DUPLICATE,
     ['Delete', () => deleteSelected(), 'danger'],
   );
 }
@@ -100,7 +105,7 @@ function lightSide(i: number): void {
   side(buttons(
     ...(hasOwn(l, shown) ? [[`Same in both views`, () => { const before = snapshot(); sameInBoth(l, shown); remember(before); reselect(); }] as [string, () => void]] : []),
     ...(kind && ownSettings.length ? [['Back to the preset', () => { const before = snapshot(), o = l as Record<string, unknown>; for (const k of ownSettings) delete o[k]; remember(before); reselect(); }] as [string, () => void]] : []),
-    ['Duplicate', () => { const before = snapshot(); file.lights.push({ ...structuredClone(l), x: l.x + 20, y: l.y + 20 }); ed.sel = { kind: 'light', i: file.lights.length - 1 }; remember(before); reselect(); }],
+    DUPLICATE,
     ['Delete', () => deleteSelected(), 'danger'],
   ));
 }
@@ -139,6 +144,7 @@ function hotspotSide(i: number): void {
   }
   side(buttons(
     ...(hasOwn(h, shown) ? [[`Same in both views`, () => { const before = snapshot(); sameInBoth(h, shown); remember(before); reselect(); }] as [string, () => void]] : []),
+    DUPLICATE,
     ['Delete', () => deleteSelected(), 'danger'],
   ));
 }
@@ -164,7 +170,7 @@ function spawnSide(id: string): void {
     num('x', sp.x, (v) => { sp.x = v; }),
     choice('Facing', String(sp.facing), [['1', 'Right'], ['-1', 'Left']], (v) => { sp.facing = Number(v) as 1 | -1; }),
   );
-  side(buttons(['Delete', () => deleteSelected(), 'danger']));
+  side(buttons(DUPLICATE, ['Delete', () => deleteSelected(), 'danger']));
 }
 
 function zoneSide(set: 'inside' | 'outside', i: number): void {
@@ -183,7 +189,7 @@ function zoneSide(set: 'inside' | 'outside', i: number): void {
     num('x', r[0], (v) => { r[0] = v; }, { after: refresh }), num('y', r[1], (v) => { r[1] = v; }, { after: refresh }),
     num('Width', r[2], (v) => { r[2] = v; }, { min: 4, after: refresh }), num('Height', r[3], (v) => { r[3] = v; }, { min: 4, after: refresh }),
   );
-  side(buttons(['Delete', () => deleteSelected(), 'danger']));
+  side(buttons(DUPLICATE, ['Delete', () => deleteSelected(), 'danger']));
 }
 
 function layerSide(i: number): void {
@@ -210,7 +216,7 @@ function layerSide(i: number): void {
   };
   side(buttons(
     ...(hasOwn(l, shown) ? [[`Same in both views`, () => { const before = snapshot(); sameInBoth(l, shown); place(); remember(before); reselect(); }] as [string, () => void]] : []),
-    ['Further back', () => move(i - 1)], ['Further forward', () => move(i + 1)], ['Delete', () => deleteSelected(), 'danger'],
+    ['Further back', () => move(i - 1)], ['Further forward', () => move(i + 1)], DUPLICATE, ['Delete', () => deleteSelected(), 'danger'],
   ));
 }
 
@@ -289,6 +295,7 @@ function moverSide(i: number): void {
   side(buttons(
     ...(hasOwn(mv, shown) ? [[`Same in both views`, () => { const before = snapshot(); sameInBoth(mv, shown); remember(before); reselect(); }] as [string, () => void]] : []),
     ['Another asset', async () => { const a = await pickAsset('The mover’s asset'); if (!a) return drawSide(); const before = snapshot(); mv.asset = a; remember(before); reload(); }],
+    DUPLICATE,
     ['Delete', () => deleteSelected(), 'danger'],
   ));
 }

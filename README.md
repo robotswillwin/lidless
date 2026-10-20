@@ -94,6 +94,13 @@ light on.
   size, ambient light) has a tick there. The box beside each slider takes an exact value. Places and sizes of what is
   dragged over the scene (x, y, widths, the walk line) stay as numbers.
 - **Undo** steps back one change; **Revert** goes back to the scene as last saved, itself a step Cmd+Z undoes.
+- **Copy and paste** (Cmd+C, Cmd+V, or **Paste** in the toolbar): anything selected, within a scene or into another;
+  the clipboard outlasts a change of scene or a reload and goes between tabs. In the scene it came from, the copy lands
+  20 px to the right at the same height; in another scene, where it was; off the screen, in the middle of it. A hotspot
+  or a place to arrive at gets a name of its own if the scene has one by that name, a mover is drawn after a layer the
+  scene has, pasted drips take the place of any there, and in Raw or AR mode what is only in the other view becomes
+  this view's own. **Duplicate** (Cmd+D, or the button beside Delete) copies and pastes in one go, leaving the
+  clipboard as it was.
 - **Both · Raw · AR** (in the toolbar): which views your edits go to. In **Both**, what you change becomes the same in
   both views, and E shows the other view. In **Raw** or **AR** that view is on screen and what you change is its own:
   a light stronger or another colour there, a hotspot elsewhere there, a layer or an effect placed elsewhere; E switches
@@ -133,8 +140,8 @@ light on.
 - **Layers:** each with its parallax, and whether it is drawn in front of the people. A scene no wider than the screen
   can have the camera follow Luna a little (its drift, in the scene's settings); **Move the camera with her** previews
   it with Luna where she stands in the editor.
-- **Keys:** E shows the other view (in Raw or AR, switches between them), L opens the look panel, G the lighting view,
-  Cmd+Z undoes, Cmd+S saves.
+- **Keys:** E shows the other view (in Raw or AR, switches between them), L opens the look panel, G shows lights only,
+  Cmd+C and Cmd+V copy and paste, Cmd+D duplicates, Cmd+Z undoes, Cmd+S saves.
 
 Save writes the scene file, and an open game tab reloads the scene at once. In the game on the dev server, the key left
 of 1 (`` ` ``) opens the editor on the scene she is in, in the view on screen, always in the same tab.

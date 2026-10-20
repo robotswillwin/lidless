@@ -56,6 +56,8 @@
       <option value="drips">Drips</option>
       <option value="mover">Mover (a train, a car…)</option>
     </select>
+    <span class="ed-sep"></span>
+    <button id="paste" type="button" disabled>Paste</button>
     <span class="ed-grow"></span>
     <span class="ed-tools-hint" id="tools-hint"></span>
   </nav>
@@ -66,7 +68,7 @@
         <svg id="overlay" class="ed-overlay" viewBox="0 0 960 540" aria-label="Lights, hotspots and places in the scene"></svg>
       </div>
       <input id="scroll" class="ed-scroll" type="range" min="0" max="0" value="0" aria-label="Scroll the scene" hidden>
-      <p class="ed-help">Click to select, drag to move; drag a corner to resize. Delete removes. 1 to 5 what you work on, E the other view, L look, G lighting view, Cmd+Z undo, Cmd+S save.</p>
+      <p class="ed-help">Click to select, drag to move; drag a corner to resize. Delete removes; Cmd+C and Cmd+V copy and paste, here or into another scene, Cmd+D duplicates. 1 to 5 what you work on, E the other view, L look, G lights only, Cmd+Z undo, Cmd+S save.</p>
     </div>
     <aside class="ed-side" id="side" aria-label="Selected item"></aside>
   </main>

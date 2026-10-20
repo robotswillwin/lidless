@@ -13,6 +13,7 @@ import { heroDrawing } from '../game/hero';
 import { loadSceneFile, loadWorld } from '../game/scenefile';
 import storyJson from '../story/main.ink';
 import { createLookPanel } from '../look-panel';
+import { copySelected, duplicate, paste, syncPaste } from './clipboard';
 import { add, deleteSelected, newScene, nudge } from './edit';
 import { listAssets, openScene, revert, save, syncAddress, undo } from './files';
 import { lunaFrame } from './luna';
@@ -120,6 +121,8 @@ dom.button('new-scene').addEventListener('click', () => void newScene().catch(sh
 dom.button('save').addEventListener('click', () => void save());
 dom.button('undo').addEventListener('click', () => void undo());
 dom.button('revert').addEventListener('click', () => void revert().catch(showError));
+dom.button('paste').addEventListener('click', () => void paste().catch(showError));
+syncPaste();
 dom.button('look').addEventListener('click', () => ed.look?.toggle());
 const lighting = dom.button('lighting');
 const toggleLighting = () => { ed.lightView = !ed.lightView; lighting.setAttribute('aria-pressed', String(ed.lightView)); };
@@ -147,7 +150,12 @@ document.addEventListener('keydown', (e) => {
   const typing = e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement;
   if (e.metaKey || e.ctrlKey) {
     if (e.key === 's') { e.preventDefault(); void save(); }
-    else if (e.key === 'z' && !typing) { e.preventDefault(); void undo(); }
+    else if (typing) return;
+    else if (e.key === 'z') { e.preventDefault(); void undo(); }
+    // text picked out on the page is the browser's to copy
+    else if (e.key === 'c' && !window.getSelection()?.toString() && copySelected()) e.preventDefault();
+    else if (e.key === 'v') { e.preventDefault(); void paste().catch(showError); }
+    else if (e.key === 'd') { e.preventDefault(); void duplicate().catch(showError); }
     return;
   }
   // Escape leaves a field, so the editor's keys work again
