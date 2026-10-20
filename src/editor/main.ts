@@ -45,17 +45,38 @@ function draw(): void {
   renderer.render(ed.runner.frame(t, { view: ed.view, sinceSwitch: t - ed.switchedAt }, cam, actors, [-1000, -1000]));
 }
 
+/** The mode buttons, and in Both mode which view is on screen. */
 function syncView(): void {
-  dom.viewBtn.setAttribute('aria-pressed', String(ed.view > 0.5));
-  dom.viewBtn.textContent = ed.view > 0.5 ? 'Concierge view' : 'Raw view';
+  document.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === ed.mode)));
+  dom.showing.textContent = ed.mode === 'both' ? `showing ${ed.view < 0.5 ? 'raw' : 'AR'}` : '';
+  dom.showing.dataset.view = ed.view < 0.5 ? 'raw' : 'concierge';
 }
 
-function toggleView(): void {
-  ed.view = ed.view > 0.5 ? 0 : 1;
+/** The view on screen: everything over the scene and the side panel show it as it is there. */
+function showView(v: 0 | 1): void {
+  if (ed.view === v) return;
+  ed.view = v;
   ed.switchedAt = (performance.now() - t0) / 1000;
-  syncView();
-  syncAddress();
   ed.look?.refresh();
+  syncAddress();
+}
+
+/** Both, raw or AR: in raw or AR, that view is on screen. */
+function setMode(m: typeof ed.mode): void {
+  ed.mode = m;
+  if (m !== 'both') showView(m === 'raw' ? 0 : 1);
+  syncView();
+  drawOverlay();
+  drawSide();
+}
+
+/** E: in Both mode the other view on screen; in raw or AR mode the other mode. */
+function toggleView(): void {
+  if (ed.mode !== 'both') return setMode(ed.mode === 'raw' ? 'concierge' : 'raw');
+  showView(ed.view > 0.5 ? 0 : 1);
+  syncView();
+  drawOverlay();
+  drawSide();
 }
 
 /* ---------- wiring ---------- */
@@ -73,7 +94,7 @@ dom.button('look').addEventListener('click', () => ed.look?.toggle());
 const lighting = dom.button('lighting');
 const toggleLighting = () => { ed.lightView = !ed.lightView; lighting.setAttribute('aria-pressed', String(ed.lightView)); };
 lighting.addEventListener('click', toggleLighting);
-dom.viewBtn.addEventListener('click', toggleView);
+document.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.mode as typeof ed.mode)));
 dom.sceneSel.addEventListener('change', () => {
   if (ed.dirty && !confirm('Leave this scene without saving?')) { dom.sceneSel.value = ed.file.id; return; }
   void openScene(dom.sceneSel.value).catch(showError);

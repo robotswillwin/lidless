@@ -4,11 +4,14 @@
 
 import type { GodrayDef, LightDef, SteamDef } from './assets';
 
+/** Settings a light has its own way, over its preset's: null turns off something its preset has (a lamp's cone). */
+export type LightSettings = { [K in keyof LightDef]?: LightDef[K] | null };
+
 /**
- * A light as a scene file has it: its place, its preset if it has one, and whatever it sets its own way. null turns off
- * something its preset has (a lamp's cone).
+ * A light as a scene file has it: its place, its preset if it has one, and whatever it sets its own way; and `views`,
+ * what it does its own way in one view only (stronger in raw view, another colour in the Concierge's).
  */
-export type PlacedLight = { [K in keyof LightDef]?: LightDef[K] | null } & { x: number; y: number; preset?: string; suggested?: number };
+export type PlacedLight = LightSettings & { x: number; y: number; preset?: string; suggested?: number; views?: Partial<Record<'raw' | 'concierge', LightSettings>> };
 
 export interface LightPreset {
   label: string;
@@ -32,9 +35,13 @@ export function setPresets(p: Partial<Presets>): void {
 /** A light with nothing set and no preset: a plain white lamp. */
 const PLAIN: Omit<LightDef, 'x' | 'y'> = { z: 40, r: 300, c: [1, 1, 1], i: 1, zone: 0 };
 
-/** The light as it shines: its preset's settings, its own over them, and what it turns off left out. */
-export function resolveLight(l: PlacedLight): LightDef {
-  const out: Record<string, unknown> = { ...PLAIN, ...(l.preset ? registry.lights[l.preset]?.light : undefined), ...l };
+/**
+ * The light as it shines: its preset's settings, its own over them, in a view (`raw` or `concierge`) that view's own
+ * over those, and what it turns off left out. Without a view, as it is in both.
+ */
+export function resolveLight(l: PlacedLight, view?: 'raw' | 'concierge'): LightDef {
+  const { views, ...own } = l;
+  const out: Record<string, unknown> = { ...PLAIN, ...(l.preset ? registry.lights[l.preset]?.light : undefined), ...own, ...(view ? views?.[view] : undefined) };
   for (const k of Object.keys(out)) if (out[k] === null) delete out[k];
   return out as unknown as LightDef;
 }

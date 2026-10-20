@@ -89,3 +89,42 @@ describe('movers', () => {
     expect(trainIn(oneWay.frame(18.5, view, [0, 0]))!.flip).toBe(true);
   });
 });
+
+describe('each view', () => {
+  const raw = { view: 0, sinceSwitch: 10 };
+
+  it('leaves out a layer placed for the other view, and draws one placed elsewhere in this view there', () => {
+    const layers = [sprite('street'), sprite('holo', { only: 'concierge' }), sprite('crate', { x: 100, views: { raw: { x: 140 } } })];
+    const co = new SceneRunner(scene(layers)).frame(0, view, [0, 0]), rw = new SceneRunner(scene(layers)).frame(0, raw, [0, 0]);
+    expect(co.sprites.map((s) => s.sprite.def.name)).toEqual(['street', 'holo', 'crate']);
+    expect(rw.sprites.map((s) => s.sprite.def.name)).toEqual(['street', 'crate']);
+    expect(co.sprites[2].x).toBe(100);
+    expect(rw.sprites[1].x).toBe(140);
+  });
+
+  it('gives each light its view’s own settings, and steam and beacons only where they are', () => {
+    const sc = scene([sprite('street')]);
+    sc.def.lights = [{ x: 10, y: 20, z: 30, r: 100, c: [1, 1, 1], i: 1, zone: 0, views: { raw: { i: 3 } } }];
+    sc.def.steam = [{ x: 1, y: 2, height: 10, width: 4, kind: 'steam', only: 'raw' }, { x: 5, y: 6, height: 10, width: 4, kind: 'steam' }];
+    sc.def.beacons = [{ x: 7, y: 8, phase: 0, only: 'concierge' }];
+    const runner = new SceneRunner(sc);
+    const co = runner.frame(0, view, [0, 0]);
+    expect(co.lights[0].i).toBe(1);
+    expect([...co.steam.slice(0, 8)]).toEqual([5, 6, 10, 4, 0, 0, 0, 0]);
+    expect(co.nBeacons).toBe(1);
+    // (read before the next frame, which fills the same arrays)
+    const rw = runner.frame(0, raw, [0, 0]);
+    expect(rw.lights[0].i).toBe(3);
+    expect([...rw.steam.slice(0, 8)]).toEqual([1, 2, 10, 4, 5, 6, 10, 4]);
+    expect(rw.nBeacons).toBe(0);
+  });
+
+  it('dims a light shaft out of its view, the older ar flag as well', () => {
+    const sc = scene([sprite('street')]);
+    sc.def.godrays = [{ x: 1, y: 1, strength: 0.5, zone: 0, only: 'raw' }, { x: 2, y: 2, strength: 0.4, zone: 0, ar: 1 }];
+    // the runner fills the same arrays every frame: read each frame before the next
+    const runner = new SceneRunner(sc), at = (v: typeof view) => { const g = runner.frame(0, v, [0, 0]).godrays; return [g[2], Math.round(g[6] * 100) / 100]; };
+    expect(at(view)).toEqual([0, 0.4]);
+    expect(at(raw)).toEqual([0.5, 0]);
+  });
+});

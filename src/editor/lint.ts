@@ -4,7 +4,7 @@
 // a phone draws. Each problem names what it is about, so the editor can select it.
 
 import { resolveLight } from '../engine/presets';
-import { inView, type Hotspot, type ViewText } from '../game/level';
+import { inView, placeIn, type Hotspot, type ViewText } from '../game/level';
 import { checkSceneFile, type SceneFile } from '../game/scenefile';
 import type { Selection } from './state';
 
@@ -62,8 +62,11 @@ function selFor(msg: string, file: SceneFile): Selection | undefined {
 
 export function lintScene(file: SceneFile, ctx: LintContext): Problem[] {
   const out: Problem[] = [];
-  const err = (text: string, sel?: Selection) => out.push({ level: 'error', text, sel });
-  const warn = (text: string, sel?: Selection) => out.push({ level: 'warning', text, sel });
+  // a problem found in both views is said once
+  const said = new Set<string>();
+  const add = (level: Problem['level'], text: string, sel?: Selection) => { if (!said.has(text)) { said.add(text); out.push({ level, text, sel }); } };
+  const err = (text: string, sel?: Selection) => add('error', text, sel);
+  const warn = (text: string, sel?: Selection) => add('warning', text, sel);
   const [W, H] = file.size, { x0, x1, y: wy } = file.walk;
 
   // the scene file's own checks: what would stop it loading
@@ -76,8 +79,10 @@ export function lintScene(file: SceneFile, ctx: LintContext): Problem[] {
   if (x0 < 0 || x1 > W) warn(`The walk line runs past the scene's edge (${x0} to ${x1}, the scene is ${W} wide)`);
   if (wy < 0 || wy > H) err(`The walk line is off the scene (y ${wy})`);
 
-  // hotspots and exits
+  // hotspots and exits, each in the views it is in
   const single = W <= SW;
+  const views = (h: Hotspot) => [false, true].filter((raw) => inView(h, raw));
+  const sameRect = (h: Hotspot) => JSON.stringify(placeIn(h, true).rect) === JSON.stringify(placeIn(h, false).rect);
   file.hotspots.forEach((h, i) => {
     const sel: Selection = { kind: 'hotspot', i }, name = nameOf(h.name) || h.id, r = h.rect;
     const texts = (t?: ViewText) => (t === undefined ? [] : typeof t === 'string' ? [t] : [t.concierge, t.raw]);
@@ -86,9 +91,12 @@ export function lintScene(file: SceneFile, ctx: LintContext): Problem[] {
     if (h.talk && ctx.knots && !ctx.knots.has(h.talk.split('.')[0])) err(`${name} talks with “${h.talk}”, which the story does not have`, sel);
     if (h.stand !== undefined && (h.stand < x0 || h.stand > x1)) warn(`${name}: she stands at x ${h.stand} to use it, off the walk line (${x0} to ${x1})`, sel);
     if (r[0] + r[2] < 0 || r[0] > W || r[1] + r[3] < 0 || r[1] > H) warn(`${name} is off the scene`, sel);
-    // the corner buttons: on one screen, a hotspot mostly under them cannot be tapped
-    if (single && area(r) > 0) for (const [side, box] of [['left', [0, SH - CORNER, CORNER, CORNER]], ['right', [SW - CORNER, SH - CORNER, CORNER, CORNER]]] as const) {
-      if (overlap(r, box) >= 0.5 * area(r)) warn(`${name} is mostly under the bottom ${side} button on a phone: hard to tap`, sel);
+    // the corner buttons: on one screen, a hotspot mostly under them cannot be tapped, in a view it is in, where it is there
+    for (const raw of views(h)) {
+      const vr = placeIn(h, raw).rect;
+      if (single && area(vr) > 0) for (const [side, box] of [['left', [0, SH - CORNER, CORNER, CORNER]], ['right', [SW - CORNER, SH - CORNER, CORNER, CORNER]]] as const) {
+        if (overlap(vr, box) >= 0.5 * area(vr)) warn(`${name} is mostly under the bottom ${side} button on a phone${views(h).length > 1 && !sameRect(h) ? ` in ${raw ? 'raw view' : 'AR'}` : ''}: hard to tap`, sel);
+      }
     }
     if (h.go) {
       if (!ctx.scenes.includes(h.go.scene)) err(`${name} leads to “${h.go.scene}”, a scene the world does not list`, sel);
@@ -98,12 +106,13 @@ export function lintScene(file: SceneFile, ctx: LintContext): Problem[] {
       }
     }
   });
-  // a hotspot mostly under a later one, in a view they share: taps there go to the later one
-  const views = (h: Hotspot) => [false, true].filter((raw) => inView(h, raw));
+  // a hotspot mostly under a later one, in a view they share, where they are there: taps there go to the later one
   file.hotspots.forEach((a, i) => file.hotspots.forEach((b, j) => {
-    if (j <= i || !views(a).some((v) => views(b).includes(v))) return;
-    const o = overlap(a.rect, b.rect);
-    if (o > 0 && o >= 0.5 * area(a.rect)) warn(`${nameOf(a.name) || a.id} is mostly under ${nameOf(b.name) || b.id}: taps there go to ${nameOf(b.name) || b.id}`, { kind: 'hotspot', i });
+    if (j <= i) return;
+    for (const raw of views(a).filter((v) => views(b).includes(v))) {
+      const ra = placeIn(a, raw).rect, o = overlap(ra, placeIn(b, raw).rect);
+      if (o > 0 && o >= 0.5 * area(ra)) warn(`${nameOf(a.name) || a.id} is mostly under ${nameOf(b.name) || b.id}: taps there go to ${nameOf(b.name) || b.id}`, { kind: 'hotspot', i });
+    }
   }));
 
   // places to arrive at, and the exits elsewhere that arrive at them
@@ -115,10 +124,12 @@ export function lintScene(file: SceneFile, ctx: LintContext): Problem[] {
   if (ctx.start?.scene === file.id && !file.spawns[ctx.start.spawn]) err(`The game starts here at “${ctx.start.spawn}”, a place this scene does not have`);
 
   // lights: ones still to keep or discard, and more on one screen than a phone draws
+  file.lights.forEach((l, i) => { const r = resolveLight(l); if (r.ar && r.raw) err(`Light ${i + 1} shines in neither view: it is set to AR only and to raw only`, { kind: 'light', i }); });
   const pending = file.lights.findIndex((l) => l.suggested);
   if (pending >= 0) warn(`${file.lights.filter((l) => l.suggested).length} suggested lights are not kept or discarded yet`, { kind: 'light', i: pending });
-  const lights = file.lights.map(resolveLight);
   for (const [view, raw] of [['the Concierge’s view', false], ['raw view', true]] as const) {
+    // each light as it is in that view
+    const lights = file.lights.map((l) => resolveLight(l, raw ? 'raw' : 'concierge'));
     let most = 0;
     for (let cam = 0; cam <= Math.max(0, W - SW); cam += 120) {
       most = Math.max(most, lights.filter((l) => !(raw ? l.ar : l.raw) && l.x + l.r > cam && l.x - l.r < cam + SW && l.y + l.r > 0 && l.y - l.r < SH).length);

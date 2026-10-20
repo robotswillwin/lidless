@@ -195,6 +195,14 @@ Characters walk in front of the set, so lights and characters need to know which
   picture rather than on it.
 - A scene's `ambient` and `exposure` (stops) can each be one number or one per view: a dark raw room can be a white
   apartment to the Concierge.
+- Anything placed can be in one view only, `"only": "raw"` or `"only": "concierge"`: a hotspot, a layer (a hologram
+  over the street in the Concierge's view, a scrawl only raw view shows), steam, a light shaft, a beacon, a mover. A
+  light says it with its flags, `"ar": 1` or `"raw": 1`; an older light shaft's `"ar": 1` still means the Concierge's.
+- And anything placed can do some things its own way in one view, under `views`, over what it does in both:
+  `"views": { "raw": { "i": 2.5 } }` makes a light stronger in raw view, `"views": { "concierge": { "rect": [...] } }`
+  puts a hotspot elsewhere in the Concierge's view (its `rect`, `stand` and `face`), and a layer, steam, a light shaft,
+  a beacon or a mover can be placed elsewhere or set otherwise the same way. A light's `null` there turns off in that
+  view what it has in both. The scene editor's Raw and AR modes write these.
 
 ### Characters: parts, rig and animation
 

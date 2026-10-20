@@ -14,11 +14,20 @@ export async function rebuild(): Promise<void> {
   syncScroll();
 }
 
-/** After a change to the walk line, the reflection line, the ground or the areas: the parts of the built scene that copy them. */
+/**
+ * After a change to the walk line, the reflection line, the ground, the scene's light or the size of its people, or the
+ * areas: the parts of the built scene that copy them.
+ */
 export function refresh(): void {
   if (!ed.scene) return;
-  ed.scene.loaded.def.mirror = ed.file.mirror ?? ed.file.walk.y - 8;
-  ed.scene.loaded.def.ground = ed.file.ground;
+  const def = ed.scene.loaded.def, f = ed.file;
+  def.mirror = f.mirror ?? f.walk.y - 8;
+  def.ground = f.ground;
+  // the light the scene is shown in, in each view, and how big its people are
+  def.ambient = f.ambient;
+  def.exposure = f.exposure;
+  def.baked = f.baked;
+  def.actorScale = f.actorScale;
   if (!ed.file.zoneMap) ed.scene.loaded.zone = zoneTexture(gl, ed.file);
   redraw.overlay();
 }

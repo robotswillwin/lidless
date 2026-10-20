@@ -33,7 +33,12 @@
       <option value="mover">Mover (a train, a car…)</option>
     </select>
     <span class="ed-sep"></span>
-    <button id="view" class="ed-view" type="button" aria-pressed="true" title="Switch view (E)">Concierge view</button>
+    <div class="ed-modes" role="group" aria-label="Which views your edits go to">
+      <button type="button" data-mode="both" aria-pressed="true" title="Both: what you change becomes the same in both views. E shows the other view">Both</button>
+      <button type="button" data-mode="raw" aria-pressed="false" title="Raw: see raw view, and what you change is raw view's own (E: AR)">Raw</button>
+      <button type="button" data-mode="concierge" aria-pressed="false" title="AR: see the Concierge's view, and what you change is its own (E: raw)">AR</button>
+    </div>
+    <span id="showing" class="ed-showing" aria-live="polite"></span>
     <button id="look" type="button" title="The look panel (L)">Look</button>
     <button id="lighting" type="button" aria-pressed="false" title="Lighting view (G): everything a flat grey, so only what the lights do shows">Lighting</button>
     <span class="ed-grow"></span>
@@ -49,7 +54,7 @@
         <svg id="overlay" class="ed-overlay" viewBox="0 0 960 540" aria-label="Lights, hotspots and places in the scene"></svg>
       </div>
       <input id="scroll" class="ed-scroll" type="range" min="0" max="0" value="0" aria-label="Scroll the scene" hidden>
-      <p class="ed-help">Click to select, drag to move; drag a corner to resize. Delete removes. E view, L look, G lighting view, Cmd+Z undo, Cmd+S save.</p>
+      <p class="ed-help">Click to select, drag to move; drag a corner to resize. Delete removes. E the other view, L look, G lighting view, Cmd+Z undo, Cmd+S save.</p>
     </div>
     <aside class="ed-side" id="side" aria-label="Selected item"></aside>
   </main>

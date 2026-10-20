@@ -1,7 +1,7 @@
 // The scene editor's state: the scene file being edited and what is built from it, the selection, the view, Luna, undo,
 // and the page's elements. Every part of the editor works on this one object.
 
-import type { Sprite } from '../engine/assets';
+import type { Only, Sprite } from '../engine/assets';
 import { NW, QUALITY, Renderer } from '../engine/renderer';
 import { cameraTarget } from '../game/camera';
 import type { SceneRunner } from '../game/scene';
@@ -33,7 +33,7 @@ export const dom = {
   status: el<HTMLElement>('status'),
   sceneSel: el<HTMLSelectElement>('scene'),
   scroll: el<HTMLInputElement>('scroll'),
-  viewBtn: el<HTMLButtonElement>('view'),
+  showing: el<HTMLElement>('showing'),
   play: el<HTMLAnchorElement>('play'),
   error: el<HTMLElement>('error'),
   stage: el<HTMLElement>('stage'),
@@ -74,6 +74,11 @@ export const ed = {
   knots: undefined as Set<string> | undefined,
   /** What the pointer is over in the outline, lit on the scene. */
   hover: null as Selection | null,
+  /**
+   * Which views edits go to: both (a change makes that setting the same in both), raw view only, or the Concierge's (AR)
+   * only. In raw or AR, that view is on screen.
+   */
+  mode: 'both' as 'both' | Only,
 };
 
 /**

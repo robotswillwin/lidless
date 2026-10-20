@@ -8,6 +8,9 @@ import { rebuild, refresh, syncEffects, updatePlay } from './files';
 import { buttons, heading } from './form';
 import { base, dom, ed, LIMITS, markDirty, redraw, remember, setStatus, snapshot, undoStack, viewX } from './state';
 import { PLACEHOLDER } from './lint';
+import { editView, setFor, shownView } from './views';
+import { placeIn } from '../game/level';
+import { asIn } from '../engine/assets';
 
 /** Where new things go: the middle of what is on screen. */
 const centre = (): [number, number] => [Math.round(viewX() + NW / 2), Math.round(NH / 2)];
@@ -22,9 +25,9 @@ export async function add(kind: string): Promise<void> {
     const key = kind.slice(6), p = presets().lights[key], x = cx, y = cy - 100;
     if (!p) return;
     file.lights.push({ x, y, preset: key });
-    const shaft = p.with?.godray, steam = p.with?.steam;
-    if (shaft && (file.godrays ?? []).length < LIMITS.godrays) (file.godrays ??= []).push({ x, y, ...shaft });
-    if (steam && (file.steam ?? []).length < LIMITS.steam) (file.steam ??= []).push({ x, y: file.walk.y - 4, ...steam });
+    const shaft = p.with?.godray, steam = p.with?.steam, only = editView(), limit = only && !p.light.ar && !p.light.raw ? { only } : {};
+    if (shaft && (file.godrays ?? []).length < LIMITS.godrays) (file.godrays ??= []).push({ x, y, ...shaft, ...limit });
+    if (steam && (file.steam ?? []).length < LIMITS.steam) (file.steam ??= []).push({ x, y: file.walk.y - 4, ...steam, ...limit });
     if (shaft || steam) syncEffects();
     ed.sel = { kind: 'light', i: file.lights.length - 1 };
   }
@@ -80,9 +83,27 @@ export async function add(kind: string): Promise<void> {
     ed.sel = { kind: 'mover', i: file.movers.length - 1 };
     await rebuild();
   }
+  limitToMode();
   remember(before);
   redraw.overlay();
   redraw.side();
+}
+
+/**
+ * In Raw or AR mode what is added is only in that view: a light, unless its kind already shines in one view only; a
+ * hotspot, an effect, a mover, a layer.
+ */
+function limitToMode(): void {
+  const only = editView(), sel = ed.sel, f = ed.file;
+  if (!only) return;
+  if (sel.kind === 'light') { const l = f.lights[sel.i], r = resolveLight(l); if (!r.ar && !r.raw) { if (only === 'raw') l.raw = 1; else l.ar = 1; } }
+  else if (sel.kind === 'hotspot') f.hotspots[sel.i].only = only;
+  else if (sel.kind === 'steam') f.steam![sel.i].only = only;
+  else if (sel.kind === 'godray') f.godrays![sel.i].only = only;
+  else if (sel.kind === 'beacon') f.beacons![sel.i].only = only;
+  else if (sel.kind === 'mover') f.movers![sel.i].only = only;
+  else if (sel.kind === 'layer') { f.layers[sel.i].only = only; const d = ed.scene?.loaded.sprites[sel.i]?.def; if (d) d.only = only; }
+  if (['steam', 'godray', 'beacon'].includes(sel.kind)) syncEffects();
 }
 
 export function deleteSelected(): void {
@@ -148,18 +169,28 @@ export async function newScene(): Promise<void> {
 }
 
 /** Arrow keys nudge the selection: 1 pixel, or 10 with shift. */
+/** Arrows nudge what is selected: where it is in the view on screen, for the mode (in Raw or AR, that view's own place). */
 export function nudge(dx: number, dy: number): void {
-  const file = ed.file, sel = ed.sel, before = snapshot();
-  if (sel.kind === 'light') { file.lights[sel.i].x += dx; file.lights[sel.i].y += dy; }
-  else if (sel.kind === 'hotspot') { const r = file.hotspots[sel.i].rect; r[0] += dx; r[1] += dy; }
+  const file = ed.file, sel = ed.sel, before = snapshot(), shown = shownView();
+  const by = (o: { views?: unknown }, k: string, from: number, d: number, same?: number) => { if (d) setFor(o, k, from + d, { same }); };
+  if (sel.kind === 'light') { const l = file.lights[sel.i], r = resolveLight(l, shown); by(l, 'x', r.x, dx, l.x); by(l, 'y', r.y, dy, l.y); }
+  else if (sel.kind === 'hotspot') { const h = file.hotspots[sel.i], r = placeIn(h, shown === 'raw').rect; setFor(h, 'rect', [r[0] + dx, r[1] + dy, r[2], r[3]], { same: h.rect }); }
   else if (sel.kind === 'spawn') file.spawns[sel.id].x += dx;
   else if (sel.kind === 'zone') { const r = file.zones![sel.set]![sel.i]; r[0] += dx; r[1] += dy; refresh(); }
-  else if (sel.kind === 'layer' && ed.scene) { const l = file.layers[sel.i], s = ed.scene.loaded.sprites[sel.i].def; l.x = (l.x ?? s.x) + dx; l.y = (l.y ?? s.y) + dy; s.x = l.x; s.y = l.y; }
-  else if (sel.kind === 'steam') { const e = file.steam![sel.i]; e.x += dx; e.y += dy; syncEffects(); }
-  else if (sel.kind === 'godray') { const g = file.godrays![sel.i]; g.x += dx; g.y += dy; syncEffects(); }
-  else if (sel.kind === 'beacon') { const b = file.beacons![sel.i]; b.x += dx; b.y += dy; syncEffects(); }
+  else if (sel.kind === 'layer' && ed.scene) {
+    const l = file.layers[sel.i], s = ed.scene.loaded.sprites[sel.i].def, at = l.views?.[shown];
+    by(l, 'x', at?.x ?? l.x ?? s.x, dx, l.x ?? s.x); by(l, 'y', at?.y ?? l.y ?? s.y, dy, l.y ?? s.y);
+    s.x = l.x ?? s.x; s.y = l.y ?? s.y; s.views = l.views;
+  }
+  else if (sel.kind === 'steam') { const e = file.steam![sel.i], v = asIn(e, shown); by(e, 'x', v.x, dx, e.x); by(e, 'y', v.y, dy, e.y); syncEffects(); }
+  else if (sel.kind === 'godray') { const g = file.godrays![sel.i], v = asIn(g, shown); by(g, 'x', v.x, dx, g.x); by(g, 'y', v.y, dy, g.y); syncEffects(); }
+  else if (sel.kind === 'beacon') { const b = file.beacons![sel.i], v = asIn(b, shown); by(b, 'x', v.x, dx, b.x); by(b, 'y', v.y, dy, b.y); syncEffects(); }
   else if (sel.kind === 'drips') { const d = file.drips!; d.x0 += dx; d.x1 += dx; d.top += dy; d.bottom += dy; syncEffects(); }
-  else if (sel.kind === 'mover') { const m = file.movers![sel.i]; m.x0 += dx; m.x1 += dx; if (dy) m.y = (m.y ?? ed.scene?.loaded.movers?.[sel.i]?.sprite.def.y ?? 0) + dy; }
+  else if (sel.kind === 'mover') {
+    const m = file.movers![sel.i], v = asIn(m, shown);
+    by(m, 'x0', v.x0, dx, m.x0); by(m, 'x1', v.x1, dx, m.x1);
+    if (dy) setFor(m, 'y', (v.y ?? ed.scene?.loaded.movers?.[sel.i]?.sprite.def.y ?? 0) + dy, { same: m.y });
+  }
   remember(before);
   redraw.overlay();
   redraw.side();
@@ -195,7 +226,7 @@ export async function suggestFromArt(): Promise<void> {
   // inside, below the floor can be another room (the cutaway of Luna's block)
   const floor = ed.file.kind === 'exterior' ? ed.file.mirror ?? ed.file.walk.y - 8 : Infinity;
   if (!layers.some((l) => l.raw || l.concierge)) { setStatus('Nothing to read lights from: no layer has glow maps (art in the flat look has them)'); return; }
-  const found = suggestLights(layers, ed.file.lights.map(resolveLight), { floor });
+  const found = suggestLights(layers, ed.file.lights.map((l) => resolveLight(l)), { floor });
   if (!found.length) { setStatus('No more lights found in the art'); return; }
   const before = snapshot();
   ed.file.lights.push(...found);

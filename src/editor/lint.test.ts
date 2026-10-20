@@ -57,6 +57,16 @@ describe('lintScene', () => {
     expect(texts).toContain(`In raw view, ${PHONE_LIGHTS + 2} lights shine on one screen: a phone draws the ${PHONE_LIGHTS} strongest`);
   });
 
+  it('checks a hotspot where it is in each view, and a light set to neither view', () => {
+    const f = read('street');
+    // in the Concierge's view a sign up the wall; in raw view the same thing, fallen to the bottom left corner
+    f.hotspots.push({ id: 'sign', name: 'Sign', rect: [400, 100, 40, 40], look: 'A sign.', views: { raw: { rect: [10, 540 - CORNER + 10, 40, 40] } } });
+    f.lights.push({ x: 300, y: 200, z: 30, r: 100, c: [1, 1, 1], i: 1, zone: 0, ar: 1, raw: 1 });
+    const texts = lintScene(f, ctx()).map((p) => p.text);
+    expect(texts).toContain('Sign is mostly under the bottom left button on a phone in raw view: hard to tap');
+    expect(texts).toContain(`Light ${f.lights.length} shines in neither view: it is set to AR only and to raw only`);
+  });
+
   it('names what the scene file’s own checks are about, to select it', () => {
     const f = read('street');
     (f.lights[1] as { r?: number }).r = undefined;

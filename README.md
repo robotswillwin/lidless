@@ -82,6 +82,13 @@ backstreet leads home, and the radio repair's door on the main street leads into
 **The scene editor**, `/editor.html` on the dev server, shows a scene rendered as in the game, and Luna to judge the
 light on.
 
+- **Both · Raw · AR** (in the toolbar): which views your edits go to. In **Both**, what you change becomes the same in
+  both views, and E shows the other view. In **Raw** or **AR** that view is on screen and what you change is its own:
+  a light stronger or another colour there, a hotspot elsewhere there, a layer or an effect placed elsewhere; E switches
+  between the two. What you add in Raw or AR is only in that view. A field set its own way in a view carries a RAW or
+  AR mark; **Same in both views** puts the thing back as it is in both. Whether something is in both views or only in
+  one is its **Shown in**, for lights, hotspots, layers, steam, light shafts, beacons and movers. What is only in the
+  other view is drawn faintly over the scene. The scene's ambient light, exposure and painted light go by the same rule.
 - **The scene's panel** (nothing selected) folds into sections, each left open or folded as you last had it:
   - **Problems**: what is wrong with the scene or will go wrong in play, each a click from what it is about. Its
     layers; the walk line; hotspots nobody can do anything with, or still with the placeholder texts they were made
@@ -113,7 +120,8 @@ light on.
 - **Layers:** each with its parallax, and whether it is drawn in front of the people. A scene no wider than the screen
   can have the camera follow Luna a little (its drift, in the scene's settings); **Move the camera with her** previews
   it with Luna where she stands in the editor.
-- **Keys:** E switches view, L opens the look panel, G the lighting view, Cmd+Z undoes, Cmd+S saves.
+- **Keys:** E shows the other view (in Raw or AR, switches between them), L opens the look panel, G the lighting view,
+  Cmd+Z undoes, Cmd+S saves.
 
 Save writes the scene file, and an open game tab reloads the scene at once. In the game on the dev server, the key left
 of 1 (`` ` ``) opens the editor on the scene she is in, in the view on screen, always in the same tab.

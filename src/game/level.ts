@@ -35,6 +35,21 @@ export interface Hotspot {
    * out can only be found in raw view ("raw"). Raw view is the only way to tell who is real.
    */
   only?: 'raw' | 'concierge';
+  /** Where it is in one view its own way: drawn differently there, it takes up another place. */
+  views?: Partial<Record<'raw' | 'concierge', Partial<Place>>>;
+}
+
+/** Where a hotspot is: its area, where she stands to use it and which way she faces then. */
+export interface Place {
+  rect: [number, number, number, number];
+  stand?: number;
+  face?: 1 | -1;
+}
+
+/** Where a hotspot is in a view: its own place there, where it has one, over the place it has in both. */
+export function placeIn(h: Hotspot, raw: boolean): Place {
+  const o = h.views?.[raw ? 'raw' : 'concierge'];
+  return { rect: o?.rect ?? h.rect, stand: o && 'stand' in o ? o.stand : h.stand, face: o?.face ?? h.face };
 }
 
 /** How she moves: walking, jogging, running. */

@@ -11,7 +11,7 @@ import { Camera, cameraTarget } from './camera';
 import { Dialogue } from './dialogue';
 import { heroDrawing, heroGaits, paceFor } from './hero';
 import { Hud, type Action, type Item, type Mark, type NotebookPages } from './hud';
-import { inView, pick, type Hotspot } from './level';
+import { inView, pick, placeIn, type Hotspot } from './level';
 import { writeSave, type SaveData } from './save';
 import { SceneRunner, type ViewState } from './scene';
 import { Talk } from './talk';
@@ -161,6 +161,7 @@ export class Game {
     next.level.hero.gaits = gaits;
     if (gaits.walk) next.level.hero.speed = gaits.walk.speed;
     this.world = new World(next.level, at.x ?? sp?.x, at.facing ?? sp?.facing);
+    this.world.raw = this.raw;
     this.camera.jump(this.cameraTarget());
     this.cam[0] = this.s.fixedCam ?? this.camera.x;
     // each scene shows the game's look with its own settings over it
@@ -197,7 +198,7 @@ export class Game {
 
   /** An exit at an end of the walk line, which walking into with the keyboard takes. */
   private exitAt(x: number): Hotspot | undefined {
-    return this.scene.file.hotspots.find((h) => h.go && inView(h, this.raw) && x >= h.rect[0] - 1 && x <= h.rect[0] + h.rect[2] + 1);
+    return this.scene.file.hotspots.find((h) => { const [rx, , rw] = placeIn(h, this.raw).rect; return h.go && inView(h, this.raw) && x >= rx - 1 && x <= rx + rw + 1; });
   }
 
   /**
@@ -236,6 +237,7 @@ export class Game {
   toggleView(force = false): void {
     if (!this.canSwitch() && !force) return;
     this.state.view = this.state.view > 0.5 ? 0 : 1;
+    this.world.raw = this.raw;
     this.switchedAt = this.clock();
     this.look.refresh();
     // a verb the other view does not have (the Concierge's bell) is put down
@@ -282,12 +284,13 @@ export class Game {
 
   /** Looking and asking happen from where she stands, turned towards it; talking, using and taking walk her there first. */
   private perform(h: Hotspot, a: Action): void {
-    if (a.kind === 'eyes' || a.kind === 'ask' || h.stand === undefined) {
-      if (!this.world.moving) this.world.facing = h.rect[0] + h.rect[2] / 2 >= this.world.heroX ? 1 : -1;
+    const { rect, stand } = placeIn(h, this.raw);
+    if (a.kind === 'eyes' || a.kind === 'ask' || stand === undefined) {
+      if (!this.world.moving) this.world.facing = rect[0] + rect[2] / 2 >= this.world.heroX ? 1 : -1;
       return this.act(h, a);
     }
     this.pending = a;
-    this.goTo(h.stand, h);
+    this.goTo(stand, h);
   }
 
   /**
@@ -330,7 +333,7 @@ export class Game {
   /** A thing's place on screen, in the HUD's pixels, where its layer has moved to with the camera. */
   private boxOf(h: Hotspot): [number, number, number, number] {
     const c = this.s.canvas.getBoundingClientRect(), hud = this.hud.root.getBoundingClientRect(), k = c.width / NW;
-    const [x, y, w, hh] = h.rect;
+    const [x, y, w, hh] = placeIn(h, this.raw).rect;
     return [(x - this.cam[0] * (h.parallax ?? 1)) * k + c.left - hud.left, (y - this.cam[1]) * k + c.top - hud.top, w * k, hh * k];
   }
 
@@ -367,7 +370,8 @@ export class Game {
     if (this.verb) return this.scan(clientX, clientY);
     const [x, y] = this.toLevel(clientX, clientY), h = this.world.hotspotAt(x, y, this.raw, this.cam[0]);
     this.pending = h?.go ? { kind: 'feet', label: '' } : null;
-    this.goTo(h?.go || h?.stand === undefined ? x : h.stand, h?.go ? h : null);
+    const stand = h ? placeIn(h, this.raw).stand : undefined;
+    this.goTo(h?.go || stand === undefined ? x : stand, h?.go ? h : null);
   }
 
   /** It moved: with a verb, what it is over lights up (a mouse needs no button for that); a finger held down steers her. */

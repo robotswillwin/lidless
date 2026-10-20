@@ -3,7 +3,7 @@
 // (built assets, placed), lights, its inside and outside areas, the walk line, places to arrive and hotspots, some of
 // which lead to other scenes.
 
-import { loadSprite, spriteDefaults, type GodrayDef, type GroundDef, type LoadedScene, type MoverDef, type SceneDef, type Sprite, type SteamDef } from '../engine/assets';
+import { loadSprite, spriteDefaults, type GodrayDef, type GroundDef, type LoadedScene, type Only, type Views, type MoverDef, type SceneDef, type Sprite, type SteamDef } from '../engine/assets';
 import { presets, type PlacedLight } from '../engine/presets';
 import { textureFromImage, type GL } from '../engine/gl';
 import type { Hotspot, LevelDef } from './level';
@@ -25,6 +25,10 @@ export interface LayerDef {
   facing?: 1 | -1;
   /** For a character: half the width of its shadow on the ground, in pixels; 0 for none. */
   footprint?: number;
+  /** Only in one view in this scene: a hologram over the street in the Concierge's, a scrawl only raw view shows. */
+  only?: Only;
+  /** Placed elsewhere in one view. */
+  views?: Views<{ x: number; y: number }>;
 }
 
 /** Where a door or an edge leads: a scene, and the place there to arrive at. */
@@ -266,7 +270,7 @@ export async function buildScene(gl: GL, assets: string, file: SceneFile, world:
   const sprites = await Promise.all(file.layers.map(async (layer) => {
     const s = await sprite(layer.asset), d = s.def;
     // each layer has a definition of its own, so the same asset can be placed twice
-    return { ...s, def: { ...d, x: layer.x ?? d.x, y: layer.y ?? d.y, parallax: layer.parallax ?? d.parallax, front: layer.front ?? d.front, depth: layer.depth ?? d.depth, facing: layer.facing ?? d.facing, footprint: layer.footprint ?? d.footprint } };
+    return { ...s, def: { ...d, x: layer.x ?? d.x, y: layer.y ?? d.y, parallax: layer.parallax ?? d.parallax, front: layer.front ?? d.front, depth: layer.depth ?? d.depth, facing: layer.facing ?? d.facing, footprint: layer.footprint ?? d.footprint, only: layer.only, views: layer.views } };
   }));
   const zone = file.zoneMap ? textureFromImage(gl, await loadImage(`${assets}/${file.zoneMap}`), false) : zoneTexture(gl, file);
   const def: SceneDef = {

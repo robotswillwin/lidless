@@ -4,11 +4,13 @@ import { NW } from '../engine/renderer';
 import type { Rect } from '../game/scenefile';
 import type { LightDef } from '../engine/assets';
 import { presets, resolveLight } from '../engine/presets';
-import type { Hotspot, ViewText } from '../game/level';
+import { inView, placeIn, type Hotspot, type ViewText } from '../game/level';
+import { asIn, inViewOf, type Only } from '../engine/assets';
 import { deleteSelected, pickAsset, settleSuggested, suggestFromArt } from './edit';
 import { rebuild, refresh, syncEffects, syncScroll, updatePlay } from './files';
 import { buttons, check, choice, colour, eye, heading, labelFields, num, section, str, viewText } from './form';
 import { lintScene, type Problem } from './lint';
+import { editView, hasOwn, markOwn, ownIn, sameInBoth, setFor, shownView, viewLabel } from './views';
 import { dom, ed, LIMITS, redraw, remember, snapshot, type Kind, type Selection } from './state';
 
 const GROUPS: [string, string][] = [['0', 'Steady'], ['1', 'Monitor flicker'], ['2', 'Valves'], ['3', 'Fire'], ['4', 'The machine’s eye'], ['5', 'Neon flicker'], ['6', 'Hologram'], ['7', 'Screen'], ['8', 'String lights']];
@@ -17,9 +19,35 @@ const ZONES: [string, string][] = [['0', 'Everywhere'], ['1', 'Inside areas'], [
 const side = (...nodes: Node[]) => dom.side.append(...nodes);
 const reselect = () => { redraw.overlay(); drawSide(); };
 
+const SHOWN: [string, string][] = [['both', 'Both views'], ['concierge', 'AR only (the Concierge’s view)'], ['raw', 'Raw view only']];
+
+/** Which views a thing is in: both, or only one. The same in both views, whatever the mode. */
+function shownIn(value: Only | undefined, set: (v: Only | undefined) => void, after?: () => void): HTMLLabelElement {
+  return choice('Shown in', value ?? 'both', SHOWN, (v) => set(v === 'both' ? undefined : (v as Only)), after);
+}
+
+/** What the mode does to the changes in this panel, and, if the thing is not in the view on screen, where it is. */
+function modeNote(here: boolean, also = ''): void {
+  const only = editView(), shown = shownView();
+  const where = here ? '' : `Not in ${shown === 'raw' ? 'raw view' : 'AR'}: it is in ${shown === 'raw' ? 'AR' : 'raw view'} only. `;
+  const mode = only ? `${viewLabel(only) === 'AR' ? 'AR' : 'Raw'} mode: what you change is ${only === 'raw' ? 'raw view' : 'AR'}’s own; the other view keeps its own.` : 'Both: what you change becomes the same in both views.';
+  const p = document.createElement('p');
+  p.className = `ed-mode-note${here ? '' : ' away'}`;
+  p.textContent = `${where}${mode}${also ? ` ${also}` : ''}`;
+  side(p);
+}
+
+/** An effect's buttons: back to as it is in both views, if it has its own settings in this one; and delete. */
+function effectButtons(o: object, shown: Only): HTMLDivElement {
+  return buttons(
+    ...(hasOwn(o, shown) ? [[`Same in both views`, () => { const before = snapshot(); sameInBoth(o, shown); syncEffects(); remember(before); reselect(); }] as [string, () => void]] : []),
+    ['Delete', () => deleteSelected(), 'danger'],
+  );
+}
+
 function lightSide(i: number): void {
   const file = ed.file, l = file.lights[i], kinds = presets().lights, kind = l.preset ? kinds[l.preset] : undefined;
-  const eff = resolveLight(l), deg = (r: number) => Math.round((r * 180) / Math.PI);
+  const shown = shownView(), both = resolveLight(l), eff = resolveLight(l, shown), deg = (r: number) => Math.round((r * 180) / Math.PI);
   // a setting changed here is the light's own; the same as its preset's, it follows the preset again. Off is written out
   // where the preset has it on (0 for a flag, null for a cone); a flag that is off is otherwise left out
   const own = <K extends keyof LightDef>(k: K, v: LightDef[K] | undefined) => {
@@ -29,39 +57,48 @@ function lightSide(i: number): void {
     else if (v === 0 && flag && !(kind && from)) delete o[k];
     else o[k] = v;
   };
+  // a setting for the mode: in Raw or AR that view's own, in Both for both views (the light's own, over its preset)
+  const set = <K extends keyof LightDef>(k: K, v: LightDef[K] | undefined) => setFor(l, k, v, { same: both[k], shared: (kk, vv) => own(kk as K, vv as LightDef[K] | undefined) });
+  const m = (row: HTMLElement, ...keys: string[]) => markOwn(row, () => ownIn(l, ...keys));
+  const here = !(both.ar && shown === 'raw') && !(both.raw && shown === 'concierge');
   side(heading(kind ? kind.label : `Light ${i + 1}`, `${kind ? 'One of a kind: change the preset (public/assets/presets.json) to change every light of this kind; what you change here is this light’s own.' : 'A light of its own.'} Drag the dot to move it. Height is how far in front of the wall it hangs: low lights graze, high ones light flat.`));
+  modeNote(here);
   if (l.suggested) side(heading('', 'Suggested from the art: keep it, move it, or discard it.'), buttons(['Keep', () => { const before = snapshot(); delete l.suggested; remember(before); reselect(); }], ['Discard', () => deleteSelected(), 'danger']));
   side(
     choice('Preset', l.preset ?? '', [['', 'None: its own settings'], ...Object.entries(kinds).map(([k, p]) => [k, p.label] as [string, string])], (v) => {
       const o = l as Record<string, unknown>;
       // taking a preset takes all of it; leaving one keeps how the light looks, as its own settings
-      if (v) { for (const k of Object.keys(o)) if (!['x', 'y', 'parallax', 'suggested'].includes(k)) delete o[k]; l.preset = v; }
-      else { Object.assign(o, resolveLight(l)); delete l.preset; }
+      if (v) { for (const k of Object.keys(o)) if (!['x', 'y', 'parallax', 'suggested', 'views'].includes(k)) delete o[k]; l.preset = v; }
+      else { const { views, ...flat } = resolveLight(l) as LightDef & { views?: unknown }; void views; Object.assign(o, flat); delete l.preset; }
       reselect();
     }),
-    num('x', l.x, (v) => { l.x = v; }), num('y', l.y, (v) => { l.y = v; }),
-    num('Height', eff.z, (v) => own('z', v), { min: 0, max: 400 }), num('Reach', eff.r, (v) => own('r', v), { min: 10, max: 2000, step: 10 }),
-    colour('Colour', eff.c, (v) => own('c', v)), num('Strength', eff.i, (v) => own('i', v), { step: 0.05, min: 0, max: 12 }),
-    num('Wrap (soft)', eff.wrap ?? 0.3, (v) => own('wrap', v), { step: 0.05, min: 0, max: 1 }), num('Haze in the air', eff.haze ?? 0, (v) => own('haze', v), { step: 0.05, min: 0, max: 3 }),
-    check('Casts shadows', !!eff.shadow, (v) => own('shadow', v ? 1 : 0)),
-    choice('Against characters', String(eff.layer ?? 0), [['0', 'Behind them (part of the set)'], ['1', 'Among them (in the street)'], ['2', 'In front of them']], (v) => own('layer', Number(v))),
-    choice('Lights', String(eff.zone), ZONES, (v) => own('zone', Number(v))),
-    check('Concierge view only', !!eff.ar, (v) => own('ar', v ? 1 : 0)),
-    check('Raw view only', !!eff.raw, (v) => own('raw', v ? 1 : 0)),
-    check('A machine’s light (keeps its colour in raw view)', !!eff.machine, (v) => own('machine', v ? 1 : 0)),
-    choice('Flicker', String(eff.g ?? 0), GROUPS, (v) => own('g', Number(v))),
+    shownIn(both.ar ? 'concierge' : both.raw ? 'raw' : undefined, (v) => {
+      own('ar', v === 'concierge' ? 1 : 0);
+      own('raw', v === 'raw' ? 1 : 0);
+      for (const vv of ['raw', 'concierge'] as const) { delete l.views?.[vv]?.ar; delete l.views?.[vv]?.raw; }
+    }, reselect),
+    m(num('x', eff.x, (v) => set('x', v)), 'x'), m(num('y', eff.y, (v) => set('y', v)), 'y'),
+    m(num('Height', eff.z, (v) => set('z', v), { min: 0, max: 400 }), 'z'), m(num('Reach', eff.r, (v) => set('r', v), { min: 10, max: 2000, step: 10 }), 'r'),
+    m(colour('Colour', eff.c, (v) => set('c', v)), 'c'), m(num('Strength', eff.i, (v) => set('i', v), { step: 0.05, min: 0, max: 12 }), 'i'),
+    m(num('Wrap (soft)', eff.wrap ?? 0.3, (v) => set('wrap', v), { step: 0.05, min: 0, max: 1 }), 'wrap'), m(num('Haze in the air', eff.haze ?? 0, (v) => set('haze', v), { step: 0.05, min: 0, max: 3 }), 'haze'),
+    m(check('Casts shadows', !!eff.shadow, (v) => set('shadow', v ? 1 : 0)), 'shadow'),
+    m(choice('Against characters', String(eff.layer ?? 0), [['0', 'Behind them (part of the set)'], ['1', 'Among them (in the street)'], ['2', 'In front of them']], (v) => set('layer', Number(v))), 'layer'),
+    m(choice('Lights', String(eff.zone), ZONES, (v) => set('zone', Number(v))), 'zone'),
+    check('A machine’s light (keeps its colour in raw view)', !!both.machine, (v) => own('machine', v ? 1 : 0)),
+    m(choice('Flicker', String(eff.g ?? 0), GROUPS, (v) => set('g', Number(v))), 'g'),
     num('Parallax (on a far layer: its parallax)', l.parallax ?? 1, (v) => { if (v === 1) delete l.parallax; else l.parallax = v; }, { step: 0.05, min: 0, max: 2 }),
-    check('Cone', !!eff.cone, (v) => { own('cone', v ? (kind?.light.cone ?? [0, 1, 0.4]) : undefined); drawSide(); }),
+    m(check('Cone', !!eff.cone, (v) => { set('cone', v ? (kind?.light.cone ?? [0, 1, 0.4]) : undefined); drawSide(); }), 'cone'),
   );
   if (eff.cone) {
     const cone: [number, number, number] = [...eff.cone];
     side(
-      num('Cone direction (90 = down)', deg(Math.atan2(cone[1], cone[0])), (v) => { const a = (v * Math.PI) / 180; cone[0] = +Math.cos(a).toFixed(3); cone[1] = +Math.sin(a).toFixed(3); own('cone', [...cone]); }, { min: -180, max: 360 }),
-      num('Cone half-angle', deg(Math.acos(Math.max(-1, Math.min(1, cone[2])))), (v) => { cone[2] = +Math.cos((Math.min(179, Math.max(1, v)) * Math.PI) / 180).toFixed(3); own('cone', [...cone]); }, { min: 1, max: 179 }),
+      m(num('Cone direction (90 = down)', deg(Math.atan2(cone[1], cone[0])), (v) => { const a = (v * Math.PI) / 180; cone[0] = +Math.cos(a).toFixed(3); cone[1] = +Math.sin(a).toFixed(3); set('cone', [...cone]); }, { min: -180, max: 360 }), 'cone'),
+      m(num('Cone half-angle', deg(Math.acos(Math.max(-1, Math.min(1, cone[2])))), (v) => { cone[2] = +Math.cos((Math.min(179, Math.max(1, v)) * Math.PI) / 180).toFixed(3); set('cone', [...cone]); }, { min: 1, max: 179 }), 'cone'),
     );
   }
-  const ownSettings = Object.keys(l).filter((k) => !['x', 'y', 'preset', 'parallax', 'suggested'].includes(k));
+  const ownSettings = Object.keys(l).filter((k) => !['x', 'y', 'preset', 'parallax', 'suggested', 'views'].includes(k));
   side(buttons(
+    ...(hasOwn(l, shown) ? [[`Same in both views`, () => { const before = snapshot(); sameInBoth(l, shown); remember(before); reselect(); }] as [string, () => void]] : []),
     ...(kind && ownSettings.length ? [['Back to the preset', () => { const before = snapshot(), o = l as Record<string, unknown>; for (const k of ownSettings) delete o[k]; remember(before); reselect(); }] as [string, () => void]] : []),
     ['Duplicate', () => { const before = snapshot(); file.lights.push({ ...structuredClone(l), x: l.x + 20, y: l.y + 20 }); ed.sel = { kind: 'light', i: file.lights.length - 1 }; remember(before); reselect(); }],
     ['Delete', () => deleteSelected(), 'danger'],
@@ -69,16 +106,20 @@ function lightSide(i: number): void {
 }
 
 function hotspotSide(i: number): void {
-  const h = ed.file.hotspots[i], sceneIds = ed.world.scenes;
+  const h = ed.file.hotspots[i], sceneIds = ed.world.scenes, shown = shownView(), pl = placeIn(h, shown === 'raw'), r = [...pl.rect] as [number, number, number, number];
+  // where it is, for the mode: in Raw or AR that view's own place, in Both its place in both
+  const setPlace = (k: 'rect' | 'stand' | 'face', v: unknown) => setFor(h, k, v, { same: h[k] });
+  const m = (row: HTMLElement, ...keys: string[]) => markOwn(row, () => ownIn(h, ...keys));
   side(heading(h.go ? 'Exit' : 'Hotspot', h.go ? 'Using it goes to another scene. Put one over an end of the walk line to leave by walking into it.' : 'Drag to move, the corner to resize. Stand is where Luna walks to before using it.'));
+  modeNote(inView(h, shown === 'raw'), 'Its texts have a field for each view.');
   side(str('Id', h.id, (v) => { h.id = v; }));
   side(...viewText('Name', h.name, (v) => { h.name = v ?? ''; }));
-  const [x, y, w, hh] = h.rect;
   side(
-    num('x', x, (v) => { h.rect[0] = v; }), num('y', y, (v) => { h.rect[1] = v; }), num('Width', w, (v) => { h.rect[2] = v; }, { min: 4 }), num('Height', hh, (v) => { h.rect[3] = v; }, { min: 4 }),
-    str('Stand (x, empty: no walking)', h.stand === undefined ? '' : String(h.stand), (v) => { const n = Number(v); if (v.trim() === '' || !Number.isFinite(n)) delete h.stand; else h.stand = n; }),
-    choice('Faces', String(h.face ?? 0), [['0', 'Towards it'], ['1', 'Right'], ['-1', 'Left']], (v) => { const n = Number(v); if (n) h.face = n as 1 | -1; else delete h.face; }),
-    choice('There in', h.only ?? 'both', [['both', 'Both views'], ['concierge', 'Concierge view only'], ['raw', 'Raw view only']], (v) => { if (v === 'both') delete h.only; else h.only = v as 'raw' | 'concierge'; }),
+    shownIn(h.only, (v) => { if (v) h.only = v; else delete h.only; }, reselect),
+    m(num('x', r[0], (v) => { r[0] = v; setPlace('rect', [...r]); }), 'rect'), m(num('y', r[1], (v) => { r[1] = v; setPlace('rect', [...r]); }), 'rect'),
+    m(num('Width', r[2], (v) => { r[2] = Math.max(4, v); setPlace('rect', [...r]); }, { min: 4 }), 'rect'), m(num('Height', r[3], (v) => { r[3] = Math.max(4, v); setPlace('rect', [...r]); }, { min: 4 }), 'rect'),
+    m(str('Stand (x, empty: no walking)', pl.stand === undefined ? '' : String(pl.stand), (v) => { const n = Number(v); setPlace('stand', v.trim() === '' || !Number.isFinite(n) ? undefined : n); }), 'stand'),
+    m(choice('Faces', String(pl.face ?? 0), [['0', 'Towards it'], ['1', 'Right'], ['-1', 'Left']], (v) => { const n = Number(v); setPlace('face', n ? n : undefined); }), 'face'),
   );
   // under its name on hover: the Concierge's classification, or her own note in raw view; and its answer when she asks it
   side(...labelFields(h.tag, (v) => { if (v === undefined) delete h.tag; else h.tag = v; }));
@@ -96,7 +137,10 @@ function hotspotSide(i: number): void {
     side(...viewText('Use text', h.use, (v) => { if (v === undefined) delete h.use; else h.use = v; }, true));
     side(...viewText('Take text', h.take, (v) => { if (v === undefined) delete h.take; else h.take = v; }, true));
   }
-  side(buttons(['Delete', () => deleteSelected(), 'danger']));
+  side(buttons(
+    ...(hasOwn(h, shown) ? [[`Same in both views`, () => { const before = snapshot(); sameInBoth(h, shown); remember(before); reselect(); }] as [string, () => void]] : []),
+    ['Delete', () => deleteSelected(), 'danger'],
+  ));
 }
 
 /** The places to arrive at in another scene, for an exit's list: from the scenes the editor loaded. */
@@ -143,24 +187,31 @@ function zoneSide(set: 'inside' | 'outside', i: number): void {
 }
 
 function layerSide(i: number): void {
-  const file = ed.file, l = file.layers[i], d = ed.scene?.loaded.sprites[i]?.def;
+  const file = ed.file, l = file.layers[i], d = ed.scene?.loaded.sprites[i]?.def, shown = shownView();
+  const at = { x: l.views?.[shown]?.x ?? l.x ?? d?.x ?? 0, y: l.views?.[shown]?.y ?? l.y ?? d?.y ?? 0 };
+  const m = (row: HTMLElement, ...keys: string[]) => markOwn(row, () => ownIn(l, ...keys));
   side(heading(`Layer ${i + 1}: ${l.asset}`, 'Drag its outline to move it. Layers draw back to front.'));
-  const place = () => { if (d) { d.x = l.x ?? d.x; d.y = l.y ?? d.y; d.parallax = l.parallax ?? d.parallax; d.depth = l.depth ?? d.depth; } redraw.overlay(); };
+  modeNote(!l.only || l.only === shown, 'Its parallax, depth and order are the same in both views.');
+  const place = () => { if (d) { d.x = l.x ?? d.x; d.y = l.y ?? d.y; d.parallax = l.parallax ?? d.parallax; d.depth = l.depth ?? d.depth; d.views = l.views; d.only = l.only; } redraw.overlay(); };
   side(
-    num('x', l.x ?? d?.x ?? 0, (v) => { l.x = v; }, { after: place }), num('y', l.y ?? d?.y ?? 0, (v) => { l.y = v; }, { after: place }),
+    shownIn(l.only, (v) => { if (v) l.only = v; else delete l.only; }, place),
+    m(num('x', at.x, (v) => setFor(l, 'x', v, { same: l.x ?? d?.x }), { after: place }), 'x'), m(num('y', at.y, (v) => setFor(l, 'y', v, { same: l.y ?? d?.y }), { after: place }), 'y'),
     num('Parallax (1 moves with the street)', l.parallax ?? d?.parallax ?? 1, (v) => { l.parallax = v; }, { step: 0.05, min: 0, max: 2, after: place }),
     check('In front of the people', l.front ?? d?.front ?? false, (v) => { if (v) l.front = true; else delete l.front; if (d) d.front = v; }),
     choice('Depth', String(l.depth ?? d?.depth ?? 3), [['0', 'Sky'], ['1', 'Far'], ['2', 'Middle'], ['3', 'Near']], (v) => { l.depth = Number(v); }, place),
   );
   const move = (to: number) => {
     if (to < 0 || to >= file.layers.length) return;
-    const before = snapshot(), [m] = file.layers.splice(i, 1);
-    file.layers.splice(to, 0, m);
+    const before = snapshot(), [mv] = file.layers.splice(i, 1);
+    file.layers.splice(to, 0, mv);
     ed.sel = { kind: 'layer', i: to };
     remember(before);
     void rebuild().then(reselect);
   };
-  side(buttons(['Further back', () => move(i - 1)], ['Further forward', () => move(i + 1)], ['Delete', () => deleteSelected(), 'danger']));
+  side(buttons(
+    ...(hasOwn(l, shown) ? [[`Same in both views`, () => { const before = snapshot(); sameInBoth(l, shown); place(); remember(before); reselect(); }] as [string, () => void]] : []),
+    ['Further back', () => move(i - 1)], ['Further forward', () => move(i + 1)], ['Delete', () => deleteSelected(), 'danger'],
+  ));
 }
 
 /* ---------- effects ---------- */
@@ -168,39 +219,45 @@ function layerSide(i: number): void {
 const SHAFT_ZONES: [string, string][] = [['0', 'Everywhere'], ['1', 'Inside areas'], ['2', 'Outside']];
 
 function steamSide(i: number): void {
-  const e = ed.file.steam![i];
-  side(heading(e.kind === 'smoke' ? `Smoke ${i + 1}` : `Steam ${i + 1}`, `Rising from the dot. The first smoke follows Luna’s cigarette when she smokes. At most ${LIMITS.steam} are drawn.`));
+  const e = ed.file.steam![i], shown = shownView(), v = asIn(e, shown), m = (row: HTMLElement, ...keys: string[]) => markOwn(row, () => ownIn(e, ...keys));
+  side(heading(e.kind === 'smoke' ? `Smoke ${i + 1}` : `Steam ${i + 1}`, `Rising from the dot. The first smoke follows Luna’s cigarette when she smokes. At most ${LIMITS.steam} are drawn in a view.`));
+  modeNote(inViewOf(e.only, ed.view));
   side(
-    choice('Kind', e.kind, [['steam', 'Steam: broad, slow, pale'], ['smoke', 'Smoke: thin, drifting']], (v) => { e.kind = v as 'steam' | 'smoke'; }, syncEffects),
-    num('x', e.x, (v) => { e.x = v; }, { after: syncEffects }), num('y (where it starts)', e.y, (v) => { e.y = v; }, { after: syncEffects }),
-    num('Height it rises', e.height, (v) => { e.height = v; }, { min: 4, max: 400, after: syncEffects }),
-    num('Width', e.width, (v) => { e.width = v; }, { min: 1, max: 60, after: syncEffects }),
+    shownIn(e.only, (o) => { if (o) e.only = o; else delete e.only; }, () => { syncEffects(); reselect(); }),
+    choice('Kind', e.kind, [['steam', 'Steam: broad, slow, pale'], ['smoke', 'Smoke: thin, drifting']], (k) => { e.kind = k as 'steam' | 'smoke'; }, syncEffects),
+    m(num('x', v.x, (n) => setFor(e, 'x', n), { after: syncEffects }), 'x'), m(num('y (where it starts)', v.y, (n) => setFor(e, 'y', n), { after: syncEffects }), 'y'),
+    m(num('Height it rises', v.height, (n) => setFor(e, 'height', n), { min: 4, max: 400, after: syncEffects }), 'height'),
+    m(num('Width', v.width, (n) => setFor(e, 'width', n), { min: 1, max: 60, after: syncEffects }), 'width'),
   );
-  side(buttons(['Delete', () => deleteSelected(), 'danger']));
+  side(effectButtons(e, shown));
 }
 
 function godraySide(i: number): void {
-  const g = ed.file.godrays![i];
+  const g = ed.file.godrays![i], shown = shownView(), v = asIn(g, shown), m = (row: HTMLElement, ...keys: string[]) => markOwn(row, () => ownIn(g, ...keys));
+  const only = g.only ?? (g.ar ? 'concierge' : undefined);
   side(heading(`Light shaft ${i + 1}`, `Rays of light through the haze from a lamp, a window or a sign. At most ${LIMITS.godrays} are drawn.`));
+  modeNote(inViewOf(only, ed.view));
   side(
-    num('x', g.x, (v) => { g.x = v; }, { after: syncEffects }), num('y', g.y, (v) => { g.y = v; }, { after: syncEffects }),
-    num('Strength', g.strength, (v) => { g.strength = v; }, { step: 0.01, min: 0, max: 1, after: syncEffects }),
-    choice('Shines in', String(g.zone), SHAFT_ZONES, (v) => { g.zone = Number(v); }, syncEffects),
-    check('Concierge view only', !!g.ar, (v) => { if (v) g.ar = 1; else delete g.ar; }, syncEffects),
-    num('Parallax (on a far layer: its parallax)', g.parallax ?? 1, (v) => { if (v === 1) delete g.parallax; else g.parallax = v; }, { step: 0.05, min: 0, max: 2, after: syncEffects }),
+    shownIn(only, (o) => { delete g.ar; if (o) g.only = o; else delete g.only; }, () => { syncEffects(); reselect(); }),
+    m(num('x', v.x, (n) => setFor(g, 'x', n), { after: syncEffects }), 'x'), m(num('y', v.y, (n) => setFor(g, 'y', n), { after: syncEffects }), 'y'),
+    m(num('Strength', v.strength, (n) => setFor(g, 'strength', n), { step: 0.01, min: 0, max: 1, after: syncEffects }), 'strength'),
+    m(choice('Shines in', String(v.zone), SHAFT_ZONES, (z) => setFor(g, 'zone', Number(z)), syncEffects), 'zone'),
+    num('Parallax (on a far layer: its parallax)', g.parallax ?? 1, (n) => { if (n === 1) delete g.parallax; else g.parallax = n; }, { step: 0.05, min: 0, max: 2, after: syncEffects }),
   );
-  side(buttons(['Delete', () => deleteSelected(), 'danger']));
+  side(effectButtons(g, shown));
 }
 
 function beaconSide(i: number): void {
-  const b = ed.file.beacons![i];
+  const b = ed.file.beacons![i], shown = shownView(), v = asIn(b, shown), m = (row: HTMLElement, ...keys: string[]) => markOwn(row, () => ownIn(b, ...keys));
   side(heading(`Beacon ${i + 1}`, 'A red warning light on a tower or a mast, blinking in its own rhythm.'));
+  modeNote(inViewOf(b.only, ed.view));
   side(
-    num('x', b.x, (v) => { b.x = v; }, { after: syncEffects }), num('y', b.y, (v) => { b.y = v; }, { after: syncEffects }),
-    num('Phase (when it blinks)', b.phase, (v) => { b.phase = v; }, { step: 0.1, min: 0, max: 6.3, after: syncEffects }),
-    num('Parallax (on a far layer: its parallax)', b.parallax ?? 1, (v) => { if (v === 1) delete b.parallax; else b.parallax = v; }, { step: 0.05, min: 0, max: 2, after: syncEffects }),
+    shownIn(b.only, (o) => { if (o) b.only = o; else delete b.only; }, () => { syncEffects(); reselect(); }),
+    m(num('x', v.x, (n) => setFor(b, 'x', n), { after: syncEffects }), 'x'), m(num('y', v.y, (n) => setFor(b, 'y', n), { after: syncEffects }), 'y'),
+    m(num('Phase (when it blinks)', v.phase, (n) => setFor(b, 'phase', n), { step: 0.1, min: 0, max: 6.3, after: syncEffects }), 'phase'),
+    num('Parallax (on a far layer: its parallax)', b.parallax ?? 1, (n) => { if (n === 1) delete b.parallax; else b.parallax = n; }, { step: 0.05, min: 0, max: 2, after: syncEffects }),
   );
-  side(buttons(['Delete', () => deleteSelected(), 'danger']));
+  side(effectButtons(b, shown));
 }
 
 function dripsSide(): void {
@@ -214,20 +271,24 @@ function dripsSide(): void {
 }
 
 function moverSide(i: number): void {
-  const m = ed.file.movers![i], layers = ed.file.layers.map((l) => [l.asset, l.asset] as [string, string]);
-  side(heading(`Mover: ${m.asset}`, 'Something that passes through the scene on its own, such as a train, a car or a drone: drawn after its layer, so nearer layers cover it, and seen only between its ends. Drag its band, or its ends.'));
+  const mv = ed.file.movers![i], layers = ed.file.layers.map((l) => [l.asset, l.asset] as [string, string]), shown = shownView(), v = asIn(mv, shown);
+  const m = (row: HTMLElement, ...keys: string[]) => markOwn(row, () => ownIn(mv, ...keys));
+  side(heading(`Mover: ${mv.asset}`, 'Something that passes through the scene on its own, such as a train, a car or a drone: drawn after its layer, so nearer layers cover it, and seen only between its ends. Drag its band, or its ends.'));
+  modeNote(inViewOf(mv.only, ed.view), 'Its asset and its layer are the same in both views.');
   const reload = () => { void rebuild().then(() => { redraw.overlay(); drawSide(); }); };
   side(
-    choice('Drawn after the layer', m.after, layers, (v) => { m.after = v; }, reload),
-    num('From x (in that layer)', m.x0, (v) => { m.x0 = v; }), num('To x', m.x1, (v) => { m.x1 = v; }),
-    str('y (empty: as built)', m.y === undefined ? '' : String(m.y), (v) => { const n = Number(v); if (v.trim() === '' || !Number.isFinite(n)) delete m.y; else m.y = n; }),
-    num('Speed, px a second', m.speed, (v) => { m.speed = Math.max(1, v); }, { min: 1, max: 2000 }),
-    num('Wait between passes: shortest, s', m.wait[0], (v) => { m.wait[0] = Math.max(0, v); }, { step: 0.5, min: 0 }),
-    num('Longest, s', m.wait[1], (v) => { m.wait[1] = Math.max(m.wait[0], v); }, { step: 0.5, min: 0 }),
-    choice('Direction', String(m.dir ?? 0), [['0', 'Each way in turn'], ['1', 'Always to the right'], ['-1', 'Always to the left']], (v) => { const n = Number(v); if (n) m.dir = n as 1 | -1; else delete m.dir; }),
+    shownIn(mv.only, (o) => { if (o) mv.only = o; else delete mv.only; }, reselect),
+    choice('Drawn after the layer', mv.after, layers, (a) => { mv.after = a; }, reload),
+    m(num('From x (in that layer)', v.x0, (n) => setFor(mv, 'x0', n)), 'x0'), m(num('To x', v.x1, (n) => setFor(mv, 'x1', n)), 'x1'),
+    m(str('y (empty: as built)', v.y === undefined ? '' : String(v.y), (t) => { const n = Number(t); setFor(mv, 'y', t.trim() === '' || !Number.isFinite(n) ? undefined : n); }), 'y'),
+    m(num('Speed, px a second', v.speed, (n) => setFor(mv, 'speed', Math.max(1, n)), { min: 1, max: 2000 }), 'speed'),
+    num('Wait between passes: shortest, s', mv.wait[0], (n) => { mv.wait[0] = Math.max(0, n); }, { step: 0.5, min: 0 }),
+    num('Longest, s', mv.wait[1], (n) => { mv.wait[1] = Math.max(mv.wait[0], n); }, { step: 0.5, min: 0 }),
+    m(choice('Direction', String(v.dir ?? 0), [['0', 'Each way in turn'], ['1', 'Always to the right'], ['-1', 'Always to the left']], (d) => { const n = Number(d); setFor(mv, 'dir', n ? n : undefined); }), 'dir'),
   );
   side(buttons(
-    ['Another asset', async () => { const a = await pickAsset('The mover’s asset'); if (!a) return drawSide(); const before = snapshot(); m.asset = a; remember(before); reload(); }],
+    ...(hasOwn(mv, shown) ? [[`Same in both views`, () => { const before = snapshot(); sameInBoth(mv, shown); remember(before); reselect(); }] as [string, () => void]] : []),
+    ['Another asset', async () => { const a = await pickAsset('The mover’s asset'); if (!a) return drawSide(); const before = snapshot(); mv.asset = a; remember(before); reload(); }],
     ['Delete', () => deleteSelected(), 'danger'],
   ));
 }
@@ -319,6 +380,22 @@ function problems(body: HTMLElement, found: Problem[]): void {
   }
 }
 
+/**
+ * A scene setting that can differ between the views: its value in the view on screen. In Both mode a change sets it for
+ * both views; in Raw or AR mode for that view only, and the file keeps one number while the views agree.
+ */
+function perView(label: string, key: 'ambient' | 'exposure' | 'baked', plain: number, opts: { step: number; min: number; max: number }): HTMLLabelElement {
+  const file = ed.file, cur = () => file[key], valueIn = (v: Only) => { const c = cur(); return (typeof c === 'object' ? c?.[v] : c) ?? plain; };
+  const row = num(label, valueIn(shownView()), (x) => {
+    const only = editView(), o = { raw: valueIn('raw'), concierge: valueIn('concierge') };
+    if (only) o[only] = x; else o.raw = o.concierge = x;
+    if (o.raw === o.concierge) { if (o.raw === plain) delete file[key]; else file[key] = o.raw; }
+    else file[key] = o;
+  }, { ...opts, after: refresh });
+  const differ = valueIn('raw') !== valueIn('concierge');
+  return markOwn(row, differ ? ['raw', 'concierge'] : []) as HTMLLabelElement;
+}
+
 /** The scene's panel, with nothing selected: what is wrong, everything in it, its settings, its ground, and Luna. */
 function sceneSide(): void {
   const file = ed.file, luna = ed.luna;
@@ -336,7 +413,9 @@ function sceneSide(): void {
     num('Reflection line y', file.mirror ?? file.walk.y - 8, (v) => { file.mirror = v; }, { after: refresh }),
     num('People’s size (1 standard, under 1 further back)', file.actorScale ?? 1, (v) => { if (v === 1) delete file.actorScale; else file.actorScale = v; }, { step: 0.05, min: 0.3, max: 3, after: refresh }),
     num('Camera follows Luna, px each way (0 none; a scene no wider than the screen)', file.drift ?? 0, (v) => { if (v) file.drift = v; else delete file.drift; }, { step: 1, min: 0, max: 60 }),
-    num('Light painted into the art (0 to 1)', typeof file.baked === 'number' ? file.baked : 0, (v) => { if (v) file.baked = v; else delete file.baked; }, { step: 0.05, min: 0, max: 1, after: refresh }),
+    perView('Ambient light (1 as standard)', 'ambient', 1, { step: 0.05, min: 0, max: 4 }),
+    perView('Exposure, stops', 'exposure', 0, { step: 0.05, min: -3, max: 3 }),
+    perView('Light painted into the art (0 to 1)', 'baked', 0, { step: 0.05, min: 0, max: 1 }),
     str('The Concierge’s greeting', file.greeting ?? '', (v) => { if (v) file.greeting = v; else delete file.greeting; }),
     str('Its answer to Ring for assistance', file.assist ?? '', (v) => { if (v) file.assist = v; else delete file.assist; }, { area: true }),
   )));

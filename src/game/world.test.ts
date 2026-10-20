@@ -26,6 +26,13 @@ describe('hotspots', () => {
     expect(world.hotspotAt(850, 100, false, 20)?.id).toBe('face');
   });
 
+  it('are found where they are in the view on screen', () => {
+    const world = new World({ ...level, hotspots: [{ id: 'sign', name: 'Sign', rect: [100, 100, 20, 20], views: { raw: { rect: [300, 100, 20, 20] } } }] });
+    expect(world.hotspotAt(105, 105, false)?.id).toBe('sign');
+    expect(world.hotspotAt(105, 105, true)).toBeNull();
+    expect(world.hotspotAt(305, 105, true)?.id).toBe('sign');
+  });
+
   it('are only there in their view', () => {
     expect(world.hotspotAt(150, 420, false)).toBeNull();
     expect(world.hotspotAt(150, 420, true)?.id).toBe('sleeper');

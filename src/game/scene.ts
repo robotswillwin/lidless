@@ -1,6 +1,6 @@
 // Turns a loaded scene plus the current state into a frame for the renderer.
 
-import { smoothSampled, type LoadedScene, type MoverDef, type SpriteDef } from '../engine/assets';
+import { asIn, inViewOf, smoothSampled, type LoadedScene, type MoverDef, type SpriteDef } from '../engine/assets';
 import { resolveLight } from '../engine/presets';
 import type { DrawSprite, Frame } from '../engine/renderer';
 import { frameFor, hasLeft } from './anim';
@@ -44,15 +44,25 @@ export class SceneRunner {
     this.sync();
   }
 
-  /** Read the scene's steam and beacons again, after they changed (in the scene editor). */
-  sync(): void {
-    const d = this.scene.def;
-    this.smokeSlot = d.steam.findIndex((e) => e.kind === 'smoke');
+  /** The view the steam and beacons were last read for: they are read again when it changes. */
+  private syncedFor = -1;
+
+  /** Read the scene's steam and beacons again, after they changed (in the scene editor), for the view on screen. */
+  sync(view = this.syncedFor < 0 ? 1 : this.syncedFor): void {
+    const vn = view >= 0.5 ? 'concierge' : 'raw';
+    const d = this.scene.def, steam = d.steam.filter((e) => inViewOf(e.only, view)).map((e) => asIn(e, vn)), beacons = d.beacons.filter((b) => inViewOf(b.only, view)).map((b) => asIn(b, vn));
+    this.syncedFor = view;
+    this.smokeSlot = steam.findIndex((e) => e.kind === 'smoke');
     this.beacons.fill(0);
     this.steam.fill(0);
-    d.beacons.slice(0, 32).forEach((b, i) => this.beacons.set([b.x, b.y, b.phase, 1], i * 4));
-    d.steam.slice(0, 4).forEach((e, i) => this.steam.set([e.x, e.y, e.height, e.kind === 'smoke' ? -e.width : e.width], i * 4));
+    beacons.slice(0, 32).forEach((b, i) => this.beacons.set([b.x, b.y, b.phase, 1], i * 4));
+    steam.slice(0, 4).forEach((e, i) => this.steam.set([e.x, e.y, e.height, e.kind === 'smoke' ? -e.width : e.width], i * 4));
+    this.nBeacons = Math.min(32, beacons.length);
+    this.beaconDefs = beacons;
   }
+
+  private nBeacons = 0;
+  private beaconDefs: LoadedScene['def']['beacons'] = [];
 
   sprite(name: string) {
     const s = this.scene.sprites.find((x) => x.def.name === name);
@@ -64,8 +74,8 @@ export class SceneRunner {
    * A mover where it is at time t, or nothing while it waits between passes. A pass takes it from just outside one end of
    * where it can be seen to just outside the other; the next one starts a wait later, the other way unless it keeps one.
    */
-  private mover(k: number, t: number, cam: [number, number], parallax: number): DrawSprite | null {
-    const { def, sprite } = this.scene.movers![k], m: MoverDef = def, w = sprite.def.w;
+  private mover(k: number, t: number, cam: [number, number], parallax: number, view: 'raw' | 'concierge'): DrawSprite | null {
+    const { def, sprite } = this.scene.movers![k], m: MoverDef = asIn(def, view), w = sprite.def.w;
     const dur = (m.x1 - m.x0 + w) / Math.max(1, m.speed), dirOf = (n: number): 1 | -1 => (m.dir ? m.dir : n % 2 ? -1 : 1);
     let p = this.passes[k];
     // the first pass soon after arriving, and again if the clock jumped (a tab left in the background, a reload)
@@ -81,7 +91,9 @@ export class SceneRunner {
 
   /** `actors` are drawn after the scene's sprites; `smoke` moves the scene's smoke emitter (the hero's cigarette). */
   frame(t: number, v: ViewState, cam: [number, number], actors: DrawSprite[] = [], smoke?: [number, number]): Frame {
-    const d = this.scene.def;
+    const d = this.scene.def, view = v.view >= 0.5 ? 1 : 0, viewName = view ? 'concierge' : 'raw';
+    // what is only in one view comes and goes with it
+    if (view !== this.syncedFor) this.sync(view);
     if (smoke && this.smokeSlot >= 0) this.steam.set(smoke, this.smokeSlot * 4);
     // where something on a layer of its own parallax seems to be, in the street's pixels: the renderer takes the camera off
     const along = (p = 1) => -cam[0] * (p - 1);
@@ -92,18 +104,22 @@ export class SceneRunner {
     this.scene.sprites.forEach((sprite, i) => {
       if (this.dynamic.has(sprite.def.name)) return;
       const def = sprite.def, facing = def.facing ?? 1;
-      // a character placed in the scene plays its idle loop, facing the way the scene says
+      // a layer placed for one view only: its movers go with it
+      if (!inViewOf(def.only, view)) return;
+      // a character placed in the scene plays its idle loop, facing the way the scene says; placed elsewhere in this view,
+      // it is drawn there
+      const at = def.views?.[viewName];
       const draw = {
         sprite,
-        x: def.x - cam[0] * def.parallax,
-        y: def.y - cam[1] * def.parallax,
+        x: (at?.x ?? def.x) - cam[0] * def.parallax,
+        y: (at?.y ?? def.y) - cam[1] * def.parallax,
         flip: facing < 0 && !hasLeft(def),
         frame: def.frames ? frameFor(def, false, 0, t, facing) : 0,
         scale: isPerson(def) ? d.actorScale ?? 1 : 1,
       };
       (isPerson(def) ? people : def.front ? front : set).push(draw);
       // what moves through the scene behind the nearer layers goes right after its own
-      this.scene.movers?.forEach((m, k) => { if (m.after === i) { const md = this.mover(k, t, cam, def.parallax); if (md) set.push(md); } });
+      this.scene.movers?.forEach((m, k) => { if (m.after === i && inViewOf(m.def.only, view)) { const md = this.mover(k, t, cam, def.parallax, viewName); if (md) set.push(md); } });
     });
     // flat layers over the first one blend their edges, so a moving camera slides them smoothly; it has set the flags
     // every flat layer shares. With anything else in the set, all of it stays cut out
@@ -133,8 +149,8 @@ export class SceneRunner {
       });
     }
     this.godrays.fill(0);
-    d.godrays.slice(0, 4).forEach((g, i) => this.godrays.set([g.x + along(g.parallax), g.y, g.ar ? g.strength * v.view : g.strength, g.zone], i * 4));
-    d.beacons.slice(0, 32).forEach((b, i) => { this.beacons[i * 4] = b.x + along(b.parallax); });
+    d.godrays.slice(0, 4).forEach((g0, i) => { const g = asIn(g0, viewName); this.godrays.set([g.x + along(g.parallax), g.y, inViewOf(g.only ?? (g.ar ? 'concierge' : undefined), view) ? g.strength : 0, g.zone], i * 4); });
+    this.beaconDefs.slice(0, 32).forEach((b, i) => { this.beacons[i * 4] = b.x + along(b.parallax); });
     const dr = d.drips;
     return {
       t,
@@ -144,13 +160,13 @@ export class SceneRunner {
       level: d.size,
       zone: this.scene.zone,
       sprites,
-      // each light with its preset, and on a far layer where that layer is
-      lights: d.lights.map((placed) => { const l = resolveLight(placed); return (l.parallax ?? 1) === 1 ? l : { ...l, x: l.x + along(l.parallax) }; }),
+      // each light with its preset and as it is in this view, and on a far layer where that layer is
+      lights: d.lights.map((placed) => { const l = resolveLight(placed, viewName); return (l.parallax ?? 1) === 1 ? l : { ...l, x: l.x + along(l.parallax) }; }),
       gi: lightGroups(t),
       cars: this.cars,
       nCars,
       beacons: this.beacons,
-      nBeacons: Math.min(32, d.beacons.length),
+      nBeacons: this.nBeacons,
       steam: this.steam,
       godrays: this.godrays,
       drips: dr ? [dr.x0, dr.x1, dr.top, dr.bottom] : [0, 0, 0, 0],

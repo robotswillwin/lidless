@@ -20,6 +20,16 @@ describe('resolveLight', () => {
     expect('cone' in resolveLight({ x: 0, y: 0, preset: 'lamp', cone: null })).toBe(false);
   });
 
+  it('gives a light its view’s own settings in that view, and turns off there what it turns off', () => {
+    setPresets({ lights: { lamp: { label: 'Lamp', light: { z: 30, r: 250, c: [1, 0.8, 0.5], i: 1.2, zone: 0, cone: [0, 1, 0.45] } } } });
+    const l = { x: 10, y: 20, preset: 'lamp', i: 1.5, views: { raw: { i: 0.6, cone: null }, concierge: { c: [1, 0.2, 0.6] as [number, number, number] } } };
+    expect(resolveLight(l)).toMatchObject({ i: 1.5, c: [1, 0.8, 0.5], cone: [0, 1, 0.45] });
+    expect(resolveLight(l, 'raw')).toMatchObject({ i: 0.6, c: [1, 0.8, 0.5] });
+    expect('cone' in resolveLight(l, 'raw')).toBe(false);
+    expect(resolveLight(l, 'concierge')).toMatchObject({ i: 1.5, c: [1, 0.2, 0.6], cone: [0, 1, 0.45] });
+    expect('views' in resolveLight(l, 'raw')).toBe(false);
+  });
+
   it('makes a plain white lamp of a light with nothing set, and one with an unknown preset', () => {
     expect(resolveLight({ x: 1, y: 2 })).toMatchObject({ x: 1, y: 2, z: 40, r: 300, c: [1, 1, 1], i: 1, zone: 0 });
     expect(resolveLight({ x: 1, y: 2, preset: 'nothing' }).r).toBe(300);

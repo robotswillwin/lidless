@@ -32,6 +32,10 @@ export interface SpriteDef {
    * Concierge edits it out). The albedo of a view it is not in is transparent, so this is information for tools.
    */
   exists?: 'both' | 'concierge' | 'raw';
+  /** Placed in a scene only for one view: the scene's say over where the asset itself exists. */
+  only?: Only;
+  /** Placed elsewhere in one view of a scene. */
+  views?: Views<{ x: number; y: number }>;
   /** What the pipeline built it as: character, prop, background or portrait. */
   kind?: string;
   /**
@@ -101,9 +105,26 @@ export interface LightDef {
 
 import type { PlacedLight } from './presets';
 
-export interface SteamDef { x: number; y: number; height: number; width: number; kind: 'steam' | 'smoke' }
-/** `parallax` for things on a layer that is not the street's: they move with that layer, as lights and beacons can. */
-export interface GodrayDef { x: number; y: number; strength: number; zone: number; ar?: number; parallax?: number }
+/** Only in one view: there in raw view, or in the Concierge's. Anything without it is in both. */
+export type Only = 'raw' | 'concierge';
+/** Whether something is in the view on screen (view 0 raw, 1 the Concierge's). */
+export const inViewOf = (only: Only | undefined, view: number): boolean => !only || (only === 'concierge') === view >= 0.5;
+
+/** What something placed in a scene does its own way in one view, over what it does in both. */
+export type Views<T> = Partial<Record<Only, Partial<T>>>;
+/** Something placed as it is in a view: its own settings there over the ones it has in both. */
+export function asIn<T extends { views?: Views<T> }>(o: T, view: Only): T {
+  const own = o.views?.[view];
+  return own ? { ...o, ...own } : o;
+}
+
+export interface SteamDef { x: number; y: number; height: number; width: number; kind: 'steam' | 'smoke'; only?: Only; views?: Views<SteamDef> }
+/**
+ * `parallax` for things on a layer that is not the street's: they move with that layer, as lights and beacons can.
+ * `ar` (1) is the older way to say only in the Concierge's view.
+ */
+export interface GodrayDef { x: number; y: number; strength: number; zone: number; ar?: number; only?: Only; parallax?: number; views?: Views<GodrayDef> }
+export interface BeaconDef { x: number; y: number; phase: number; parallax?: number; only?: Only; views?: Views<BeaconDef> }
 
 /**
  * The ground below the reflection line, drawn by the engine over a painted floor that was smoothed for it (asset ground
@@ -129,7 +150,7 @@ export interface SceneDef {
   zone: string;
   /** As placed: each resolved with its preset as it is drawn (see presets.ts). */
   lights: PlacedLight[];
-  beacons: { x: number; y: number; phase: number; parallax?: number }[];
+  beacons: BeaconDef[];
   steam: SteamDef[];
   godrays: GodrayDef[];
   drips?: { x0: number; x1: number; top: number; bottom: number };
@@ -183,6 +204,8 @@ export interface MoverDef {
   wait: [number, number];
   /** 1 always left to right, -1 always right to left, 0 (the default) each way in turn. */
   dir?: 1 | -1 | 0;
+  only?: Only;
+  views?: Views<MoverDef>;
 }
 
 export interface LoadedScene {

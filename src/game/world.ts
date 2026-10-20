@@ -2,7 +2,7 @@
 // Sent far, she speeds up from a walk into a jog and, further still, into a run, and slows down through them again to
 // arrive at a walk. Her legs change gait only as a foot lands, so they stay in step.
 
-import { inView, type Gait, type Hotspot, type LevelDef } from './level';
+import { inView, placeIn, type Gait, type Hotspot, type LevelDef } from './level';
 
 /** How quickly she speeds up and slows down, in walking speeds a second. */
 const ACCEL = 2.5, DECEL = 3;
@@ -32,6 +32,8 @@ export class World {
   private pending: Hotspot | null = null;
   /** The fastest gait she may take to get where she is going. */
   private pace: Gait = 'walk';
+  /** Raw view on screen: hotspots are where they are in it. */
+  raw = false;
 
   constructor(readonly level: LevelDef, x?: number, facing?: 1 | -1) {
     this.heroX = this.clamp(x ?? level.hero.x);
@@ -100,8 +102,8 @@ export class World {
         if (this.pending) {
           const h = this.pending;
           this.pending = null;
-          const cx = h.rect[0] + h.rect[2] / 2;
-          this.facing = h.face ?? (cx >= this.heroX ? 1 : -1);
+          const { rect, face } = placeIn(h, this.raw), cx = rect[0] + rect[2] / 2;
+          this.facing = face ?? (cx >= this.heroX ? 1 : -1);
           arrived = h;
         }
       } else {
@@ -141,7 +143,7 @@ export class World {
     const hs = this.level.hotspots;
     for (let i = hs.length - 1; i >= 0; i--) {
       if (!inView(hs[i], raw)) continue;
-      const [rx0, ry, rw, rh] = hs[i].rect, rx = rx0 - look * ((hs[i].parallax ?? 1) - 1);
+      const [rx0, ry, rw, rh] = placeIn(hs[i], raw).rect, rx = rx0 - look * ((hs[i].parallax ?? 1) - 1);
       if (x >= rx && x < rx + rw && y >= ry && y < ry + rh) return hs[i];
     }
     return null;
