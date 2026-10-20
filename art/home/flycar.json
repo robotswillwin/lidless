@@ -5,8 +5,8 @@
   "exists": "concierge",
   "look": "vector",
   "res": 2,
-  "prompt": "A flying car crossing the Concierge's city behind Luna's building, in side view with its nose to the right: cut from the flat's picture (art/home/cutaway, before it was painted out) by a traced outline, its light trail left behind.",
-  "height": 21.5,
+  "prompt": "A flying car crossing the Concierge's city behind Luna's building, in pure side view with its nose to the right: redrawn by the image model from the car cut out of the flat's picture (art/home/flycar/candidates/concierge-angled.png), which was drawn flying towards the viewer at an angle and looked wrong moving straight sideways.",
+  "height": 19,
   "position": [
     480,
     270

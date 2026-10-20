@@ -285,7 +285,7 @@ export class Renderer {
     // ambient occlusion from the occluders
     let ao = this.black;
     if (q.ao) {
-      this.pass(this.prog.occ, t.ao1, (pr) => { this.bind(pr, 'tG0', t.gbuf.tex[0], 0); gl.uniform2f(pr.u.uSrcRes, NW, NH); });
+      this.pass(this.prog.occ, t.ao1, (pr) => { this.bind(pr, 'tG0', t.gbuf.tex[0], 0); gl.uniform2f(pr.u.uSrcRes, NW * this.rs, NH * this.rs); gl.uniform1f(pr.u.uStep, this.rs); });
       this.pass(this.prog.blur, t.ao2, (pr) => { this.bind(pr, 'tSrc', t.ao1.tex[0], 0); gl.uniform2f(pr.u.uDir, 1, 0); });
       this.pass(this.prog.blur, t.ao1, (pr) => { this.bind(pr, 'tSrc', t.ao2.tex[0], 0); gl.uniform2f(pr.u.uDir, 0, 1); });
       ao = t.ao1.tex[0];
@@ -377,7 +377,7 @@ export class Renderer {
     });
 
     // bloom at a quarter and an eighth of the resolution
-    this.pass(this.prog.bright, t.q1, (pr) => { this.bind(pr, 'tSrc', t.fb.tex[0], 0); gl.uniform2f(pr.u.uSrcRes, NW, NH); });
+    this.pass(this.prog.bright, t.q1, (pr) => { this.bind(pr, 'tSrc', t.fb.tex[0], 0); gl.uniform2f(pr.u.uSrcRes, NW * this.rs, NH * this.rs); gl.uniform1f(pr.u.uStep, this.rs); });
     this.pass(this.prog.blur, t.q2, (pr) => { this.bind(pr, 'tSrc', t.q1.tex[0], 0); gl.uniform2f(pr.u.uDir, 1, 0); });
     this.pass(this.prog.blur, t.q1, (pr) => { this.bind(pr, 'tSrc', t.q2.tex[0], 0); gl.uniform2f(pr.u.uDir, 0, 1); });
     this.pass(this.prog.blur, t.e2, (pr) => { this.bind(pr, 'tSrc', t.q1.tex[0], 0); gl.uniform2f(pr.u.uDir, 1, 0); });

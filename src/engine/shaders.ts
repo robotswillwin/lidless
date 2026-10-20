@@ -138,13 +138,15 @@ void main() {
 
 /* ---------- ambient occlusion: occluders, downsampled, then blurred with the shared blur ---------- */
 
+// how much of each pixel at half the level's size is an occluder: every pixel of the G-buffer under it counts (two by two
+// at a render scale of 1, four by four at 2), so a thin occluder's darkening holds still as the camera slides it along
 export const OCC_FS = HEAD + `
-uniform sampler2D tG0; uniform vec2 uSrcRes;
+uniform sampler2D tG0; uniform vec2 uSrcRes; uniform float uStep;
 float occ(vec2 q) { return mod(floor(texture(tG0, q).a * 255.0 + 0.5), 2.0); }
 void main() {
-  vec2 base = floor(gl_FragCoord.xy) * 2.0; float s = 0.0;
-  for (int j = 0; j < 2; j++) for (int i = 0; i < 2; i++) s += occ((base + vec2(float(i), float(j)) + 0.5) / uSrcRes);
-  o = vec4(s * 0.25, 0.0, 0.0, 1.0);
+  int n = int(uStep * 2.0 + 0.5); vec2 base = floor(gl_FragCoord.xy) * float(n); float s = 0.0;
+  for (int j = 0; j < 4; j++) for (int i = 0; i < 4; i++) { if (i >= n || j >= n) continue; s += occ((base + vec2(float(i), float(j)) + 0.5) / uSrcRes); }
+  o = vec4(s / float(n * n), 0.0, 0.0, 1.0);
 }`;
 
 /* ---------- lighting ---------- */
@@ -575,10 +577,20 @@ void main() {
 
 /* ---------- bloom, blur, depth of field, streaks ---------- */
 
+/**
+ * What glows bright enough to bloom, at a quarter of the level's size: every pixel of the picture under each of its
+ * pixels counts (taps two picture pixels apart, each averaging two by two, over all four by four level pixels), so a
+ * thin glowing line, such as a door's lit frame, keeps its glow as the camera slides it across the screen. Sampling only
+ * some of them, it was caught in one frame and missed in the next, and its glow flickered.
+ */
 export const BRIGHT_FS = HEAD + `
-uniform sampler2D tSrc; uniform vec2 uSrcRes;
+uniform sampler2D tSrc; uniform vec2 uSrcRes; uniform float uStep;
 vec3 br(vec2 uv) { vec3 c = texture(tSrc, uv).rgb; return c * smoothstep(0.75, 1.6, lum(c)); }
-void main() { vec2 uv = gl_FragCoord.xy / uRes, px = 1.0 / uSrcRes; o = vec4((br(uv + px * vec2(-1.0, -1.0)) + br(uv + px * vec2(1.0, -1.0)) + br(uv + px * vec2(-1.0, 1.0)) + br(uv + px * vec2(1.0, 1.0))) * 0.25, 1.0); }`;
+void main() {
+  vec2 uv = gl_FragCoord.xy / uRes, px = 1.0 / uSrcRes; int n = int(uStep * 2.0 + 0.5); vec3 s = vec3(0.0);
+  for (int j = 0; j < 8; j++) for (int i = 0; i < 8; i++) { if (i >= n || j >= n) continue; s += br(uv + px * (vec2(float(i), float(j)) - 0.5 * float(n - 1)) * 2.0); }
+  o = vec4(s / float(n * n), 1.0);
+}`;
 
 export const BLUR_FS = HEAD + `
 uniform sampler2D tSrc; uniform vec2 uDir;

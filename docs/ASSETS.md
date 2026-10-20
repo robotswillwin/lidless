@@ -573,9 +573,10 @@ from one end to the other. What moves out there: smoke from two smokestacks and 
 raw view; in the Concierge's, flying traffic in two lanes (one seen through her window), a flying car crossing the
 city behind the building every 6 to 16 seconds, each way in turn, seen at both sides and through her window, its neon
 signs flickering and its hologram breathing; and in the flats around hers a failing bulb below and a screen's glow
-above. The flying car is a mover (`art/home/flycar`), cut from the Concierge's picture by a traced outline like the
-street's train, its light trail left behind; `touch` painted the picture's two still cars out, and one of its two KAZE
-signs. Her window is
+above. The flying car is a mover (`art/home/flycar`): cut from the Concierge's picture by a traced outline like the
+street's train, then redrawn by the image model in pure side view, since the picture drew it flying towards us at an
+angle and, moving straight sideways, it looked wrong; `touch` painted the picture's two still cars out, and one of its
+two KAZE signs. A mover goes straight across at one size, so whatever moves this way is drawn in side view. Her window is
 outside (`zones`), so rain falls past it. `split` places a layer 3.5 px right of and 4 px below where the picture was,
 so the flat's layers are placed back (`x` -23.5, `y` 0) and its lights, hotspots and walk line stay where they were.
 
