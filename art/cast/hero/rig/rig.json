@@ -9,7 +9,7 @@
   {
    "name": "raw",
    "left": false,
-   "coatFront": false,
+   "coatFront": true,
    "parts": {
     "head": {
      "size": [
@@ -160,7 +160,7 @@
   {
    "name": "concierge",
    "left": false,
-   "coatFront": false,
+   "coatFront": true,
    "parts": {
     "upperArm": {
      "size": [
@@ -313,6 +313,22 @@
    "left": true,
    "coatFront": true,
    "parts": {
+    "head": {
+     "size": [
+      143,
+      258
+     ],
+     "joints": {
+      "neck": [
+       69.91111111111111,
+       203.79649122807018
+      ],
+      "tie": [
+       8.738888888888889,
+       34.098245614035086
+      ]
+     }
+    },
     "coat": {
      "size": [
       353,
@@ -350,22 +366,6 @@
       "elbow": [
        36.891891891891895,
        24.648318042813457
-      ]
-     }
-    },
-    "head": {
-     "size": [
-      143,
-      258
-     ],
-     "joints": {
-      "neck": [
-       69.52486187845304,
-       203.79649122807018
-      ],
-      "tie": [
-       8.69060773480663,
-       34.098245614035086
       ]
      }
     },

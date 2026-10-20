@@ -259,8 +259,8 @@ painted in, and the engine adds what moves and what lights the characters.
   there for the characters: put them on the painted lamps,
   signs and windows, with a soft fill in the scene's colour (layer 1) so the hero reads against the city, and keep
   their `haze` low, or the painted glow doubles up. A lamp keeps the colour it is given in raw view.
-- `actorScale` is how big people are drawn: on the street 0.46, walking along the bollards (walk line 452) at the size
-  the look reference shows her; in her home 0.44, the right size for its door and furniture. Characters are
+- `actorScale` is how big people are drawn: on the street 0.52, walking in front of the bollards (walk line 470) about
+  as tall as the shop's door makes her, its other people painted into the art; in her home 0.44, the right size for its door and furniture. Characters are
   sampled smoothly and shrunk by averaging what each screen pixel covers, their colours bled a few pixels past their
   edges by the build, so a small figure keeps clean edges and does not sparkle or boil as she walks. Her pace on screen goes with its square root. Under 1 the engine averages the sprite's pixels, so she shrinks
   smoothly; over 1 is a closeup.
@@ -367,15 +367,17 @@ colour of its raw smog (yellow-green unless it says otherwise; the street's is a
 Luna's current design is the character study of 2026-10-20 (`art/reference/luna/sheets/10-study-v2-goggles.webp`,
 its side views and heads cropped into `art/reference/luna/v2/`), with these changes asked for after it: ash-blonde hair
 in raw view, in a thinner ponytail; a top that covers her stomach in both views; a fuller bust in the Concierge's. In
-raw view: the ponytail, old bronze goggles with amber lenses, a worn rust-brown coat with a high collar and flared
+raw view: the ponytail, an old bronze goggle with an amber lens over her right eye, a worn rust-brown coat with a high collar and flared
 sleeves, a black top, baggy charcoal cargo trousers and lace-up combat boots. In the Concierge's: a voluminous black
 ponytail streaked hot pink and teal, a glowing ice-blue visor over her right eye only (seen from her left her eye is
 bare and made up), a glossy red coat, slim black trousers and heeled ankle boots. Made with `generate` (the sheet's
 crops as references) and `pick` for raw view, `variant` for the Concierge's, `redress` for the hair and the changes
 above, and a `touch` of the goggles; then `parts` for raw view, `parts --view concierge` with the recipe's
 `parts.reshape` naming what changes shape in its view (the fuller ponytail, the bust, the slimmer legs and heels,
-which an edit otherwise keeps to the raw outlines), `--side left --mirror` for both, a `touch --file` of the left
-Concierge sheet taking the visor off her left eye, and `rig`. The recipe's `parts.at` gives where the model drew each
+which an edit otherwise keeps to the raw outlines), `--side left --mirror` for both, a `touch --file` of each left
+sheet taking the visor, and in raw view the goggle, off her left eye (the goggle is a single eyepiece on her right eye,
+its strap across her brow), and `rig`. Her long coat is drawn over her legs from both sides (`parts.coat` and
+`parts.left.coat`, "front"): drawn behind them, it hung like a cape. The recipe's `parts.at` gives where the model drew each
 part on the sheet, the ponytail among them: without it the ponytail has no place to be matched to.
 
 Before that she was Lux, in an earlier design: `art/cast/lux-concierge.json` generated her Concierge self in profile with the
