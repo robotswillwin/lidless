@@ -37,13 +37,22 @@ export interface Hotspot {
   only?: 'raw' | 'concierge';
 }
 
+/** How she moves: walking, jogging, running. */
+export type Gait = 'walk' | 'jog' | 'run';
+
 export interface LevelDef {
   walk: { y: number; x0: number; x1: number };
   /**
    * The hero's sprite is a name in the scene, or a path under assets such as "cast/hero". Anchor and smoke (where her
    * cigarette is, from her feet) are for sprites that do not say themselves.
    */
-  hero: { sprite: string; x: number; anchor?: [number, number]; smoke?: [number, number]; speed: number; runSpeed?: number };
+  hero: {
+    sprite: string; x: number; anchor?: [number, number]; smoke?: [number, number];
+    /** Her walking speed, in level pixels a second. */
+    speed: number;
+    /** Each gait her sprite has frames for: its speed, and how far a cycle of it carries her, at her size in the scene. */
+    gaits?: Partial<Record<Gait, { speed: number; stride: number }>>;
+  };
   hotspots: Hotspot[];
 }
 

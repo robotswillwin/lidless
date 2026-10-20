@@ -17,8 +17,9 @@ npm run dev
 Then open the address Vite prints.
 
 - Made for a phone held sideways; a mouse works the same way, and nothing needs it to hover. Tap anywhere to walk
-  there; far off, she runs. Tapping a door or the end of the street walks her there and through. Arrow keys or A/D
-  walk too, with Shift she runs.
+  there; further off she jogs, and further still she runs, speeding up and slowing down through the gaits, her last
+  steps walked. Tapping a door or the end of the street walks her there and through. Arrow keys or A/D walk too, with
+  Shift she runs.
 - **The ball at the bottom right** slides out what she can do along the bottom: Look, Talk, Use, Take, and in
   Concierge view Ask (its bell). They stay out until the ball is tapped again, or the other one. Choose one, then press
   and slide over the scene: what that verb does something to lights up under your finger (framed by the Concierge in

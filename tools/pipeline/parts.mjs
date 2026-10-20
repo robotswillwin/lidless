@@ -319,7 +319,8 @@ export function pose(parts, angles, { w, h, origin, far = [-14, -6], matrices = 
  */
 export const GAIT = { frames: 16, stride: 1.35, stance: 0.62, lift: 0.11, strike: 12, toeOff: 24, flex: 0.008, arms: 10, elbow: 10, elbowSwing: 10, lean: 3, back: 0.04, reach: 0.993, coat: 2, dip: 0.08 };
 /**
- * How she runs, a recipe's `parts.run` changing any of it. Lengths are fractions of her leg (hip to ankle). stride: ground
+ * How she jogs, a recipe's `parts.jog` changing any of it, and (`RUN`) how she runs, `parts.run` changing that. Lengths
+ * are fractions of her leg (hip to ankle). stride: ground
  * covered in one cycle of two steps; stance: the part of the cycle a foot is on the ground, under half, so she is in
  * the air between steps; land: how far in front of the hip a foot lands. The foot in the air follows a path through
  * points measured from her hip (forward, down): `kick` (the heel up behind her), `drive` (the knee driving forward, the
@@ -329,9 +330,14 @@ export const GAIT = { frames: 16, stride: 1.35, stance: 0.62, lift: 0.11, strike
  * (degrees). armsForward and armsBack: how far the upper arms swing each way (degrees), driving back further than
  * forward; elbow and elbowSwing: the elbows' bend, a little more as the arm comes forward; lean: how far she leans into it.
  */
-export const RUN = {
+export const JOG = {
   frames: 16, stride: 2.1, stance: 0.35, land: 0.2, kick: [-0.3, 0.5], drive: [0.18, 0.6], reach: [0.34, 0.85],
-  bend: [0.955, 0.9, 0.985], hop: 0.045, strike: 6, toeOff: 38, armsForward: 13, armsBack: 15, elbow: 12, elbowSwing: 14, lean: 11, coat: 5,
+  bend: [0.955, 0.9, 0.985], hop: 0.045, strike: 6, toeOff: 38, armsForward: 14, armsBack: 18, elbow: 32, elbowSwing: 10, lean: 11, coat: 5,
+};
+/** The run: a longer stride, less time on the ground, the heel kicking higher and the knee driving further, the arms bent and swinging hard, a deeper lean. */
+export const RUN = {
+  frames: 16, stride: 2.6, stance: 0.3, land: 0.22, kick: [-0.38, 0.42], drive: [0.28, 0.55], reach: [0.42, 0.84],
+  bend: [0.95, 0.88, 0.99], hop: 0.06, strike: 4, toeOff: 42, armsForward: 30, armsBack: 42, elbow: 70, elbowSwing: 25, lean: 18, coat: 7,
 };
 export const STAND = { step: 0.06, heel: 10, reach: 0.997, arm: -3, elbow: 9, farArm: 4, farElbow: 12, lean: 1 };
 /** Where along the foot, from the heel, a person's weight falls when they stand: the body is balanced over this point. */
@@ -465,8 +471,8 @@ const catmull = (a, b, c, d, t) => 0.5 * (2 * b + (c - a) * t + (2 * a - 5 * b +
  * hip rides on the leg on the ground, and between steps, with both feet off it, it rises and falls on an arc. `air`
  * says how far the lowest foot is off the ground in each frame, for build to set her down that far up.
  */
-export function runCycle(parts, runIn = {}, far = [-14, -6]) {
-  const g = { ...RUN, ...runIn }, leg = legOf(parts), L = leg.L1 + leg.L2, S = g.stride * L, st = g.stance;
+export function runCycle(parts, runIn = {}, far = [-14, -6], base = RUN) {
+  const g = { ...base, ...runIn }, leg = legOf(parts), L = leg.L1 + leg.L2, S = g.stride * L, st = g.stance;
   const footLen = leg.toe[0] - leg.heel[0];
   // the foot on the ground: its ankle from landing, a little in front of the hip, back by as far as she goes meanwhile;
   // x from the hip, oy its height above the ground
@@ -507,8 +513,8 @@ export function runCycle(parts, runIn = {}, far = [-14, -6]) {
     });
     const [n, f] = feet, nl = reach(leg, [0, 0], [n.x, n.y], n.phi), fl = reach(leg, far, [f.x, f.y], f.phi);
     const air = stand >= 0 ? 0 : Math.max(0, Math.min(...feet.map((ft) => G - ft.y - depth(ft.phi))));
-    // the arms hang and swing as when she walks, a little further, each with the opposite leg: the elbows softly bent, a
-    // little more as the arm comes forward. Held bent at the waist they had looked like a funny walk, pumped like a sprint
+    // the arms swing each with the opposite leg, further back than forward, the elbows bending a little more as the arm
+    // comes forward: jogging, held firm at a soft bend, swinging from the shoulder; running, bent and swinging hard
     const arm = (q) => {
       const c = Math.cos(2 * Math.PI * (q - 0.05)), half = (g.armsForward + g.armsBack) / 2, mid = (g.armsForward - g.armsBack) / 2;
       return { up: mid - half * c, low: g.elbow + (g.elbowSwing * (1 - c)) / 2 };
@@ -564,3 +570,6 @@ export function idleCycle(parts, standIn = {}, far = [-14, -6], { frames = 16, b
 
 /** The grey shapes' own boxes, measured from the template. */
 export const measure = (templateCutout) => blobs(templateCutout);
+
+/** One jog cycle: the run's model with the jog's settings (`JOG`, a recipe's `parts.jog` over them). */
+export const jogCycle = (parts, jogIn = {}, far = [-14, -6]) => runCycle(parts, jogIn, far, JOG);

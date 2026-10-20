@@ -8,7 +8,7 @@
 # The skeleton faces right; a set seen from the left is drawn mirrored to face right and its frames mirrored back.
 # The .blend saved in the rig dir is the file to open to change the walk by hand; --render-only renders it as it is,
 # without building it again. Frames 0 to M - 1 are the idle loop, a breath standing; then one cycle of the walk, and
-# one of the run if the rig has one (markers "idle", "walk" and "run").
+# one of the jog and of the run where the rig has them (markers "idle", "walk", "jog" and "run").
 
 import bpy
 import json
@@ -45,9 +45,14 @@ COAT_CHAIN = 3
 PONY_CHAIN = 3
 PONY_TRAIL = -6.0         # degrees: walking, the ponytail trails out behind her
 PONY_GAIN = 7.0           # degrees: how far each step's bounce swings it
-BUST_WALK = 0.5           # how much of the spring's lag behind her step the chest shows, walking
-BUST_RUN = 0.3            # and running, where her step bounces twice as high
-BUST_FREQ = (2.2, 1.9)    # the chest's bounces per cycle on its spring, walking and running
+# each gait: how much the torso pitches with each step, how far the coat flies out, how far the ponytail trails and
+# swings, how far the forearms trail the upper arms (a jog holds the arms firm, a run pumps them), and how much of the
+# spring's lag behind her step the chest shows, on a spring of how many bounces a cycle
+GAITS = {
+    'walk': {'pitch': 0.7, 'coat': 1.0, 'trail': 1.0, 'swing': 1.0, 'lag': 0.07, 'bust': 0.5, 'freq': 2.2},
+    'jog': {'pitch': 0.8, 'coat': 1.5, 'trail': 3.0, 'swing': 1.6, 'lag': 0.0, 'bust': 0.3, 'freq': 1.9},
+    'run': {'pitch': 1.0, 'coat': 1.8, 'trail': 4.0, 'swing': 1.8, 'lag': 0.0, 'bust': 0.25, 'freq': 1.8},
+}
 BUST_DAMP = 0.3
 
 
@@ -335,11 +340,12 @@ def spring_chain(target, n, omega, zeta, cycles=6, sub=64):
 
 
 def animate(arm):
-    """The idle loop at frames 0 to M - 1, one cycle of the walk after it and one of the run after that, with
-    follow-through the gait leaves out."""
-    walk, idle, run = R['walk']['frames'], R['idle'], (R.get('run') or {}).get('frames', [])
+    """The idle loop at frames 0 to M - 1, then one cycle of each gait the rig has (the walk, the jog, the run), with
+    follow-through the gaits leave out."""
+    idle = R['idle']
     idle = idle if isinstance(idle, list) else [idle]
-    N, M = len(walk), len(idle)
+    M = len(idle)
+    gaits = [(g, R[g]['frames']) for g in ('walk', 'jog', 'run') if R.get(g) and R[g].get('frames')]
     deg = math.radians
 
     def key(frame, angles):
@@ -398,10 +404,14 @@ def animate(arm):
                 a[f'pony{i + 1}'] = pony[i][k] - (pony[i - 1][k] if i else 0.0)
             key(start + k, {**rest, **a})
 
-    cycle(M, walk, 0.7, 1.0, PONY_TRAIL, PONY_GAIN, 0.07)
-    # running, the coat flies out further behind, the ponytail streams back and bounces harder
-    if run:
-        cycle(M + N, run, 0.8, 1.5, PONY_TRAIL * 3.0, PONY_GAIN * 1.6, 0.07)
+    # one after another, each gait's coat, ponytail and arms as GAITS has them: jogging and running the coat flies out
+    # further, the ponytail streams back and bounces harder
+    starts, at = {}, M
+    for g, frames in gaits:
+        k = GAITS[g]
+        starts[g] = at
+        cycle(at, frames, k['pitch'], k['coat'], PONY_TRAIL * k['trail'], PONY_GAIN * k['swing'], k['lag'])
+        at += len(frames)
     # the chest: still standing; walking and running, on a damped spring that follows her body up and down, a little
     # late, so it settles a moment after each step lands and rises
     pb = arm.pose.bones.get('bust')
@@ -415,18 +425,16 @@ def animate(arm):
         for k in range(M):
             pb.location = (0.0, 0.0, 0.0)
             pb.keyframe_insert('location', frame=k)
-        bust(M, walk, BUST_FREQ[0], BUST_WALK)
-        if run:
-            bust(M + N, run, BUST_FREQ[1], BUST_RUN)
+        for g, frames in gaits:
+            bust(starts[g], frames, GAITS[g]['freq'], GAITS[g]['bust'])
     for fc in arm.animation_data.action.fcurves if arm.animation_data and arm.animation_data.action and hasattr(arm.animation_data.action, 'fcurves') else []:
         for kp in fc.keyframe_points:
             kp.interpolation = 'CONSTANT'
     scn = bpy.context.scene
-    scn.frame_start, scn.frame_end = 0, M + N + len(run) - 1
+    scn.frame_start, scn.frame_end = 0, at - 1
     scn.timeline_markers.new('idle', frame=0)
-    scn.timeline_markers.new('walk', frame=M)
-    if run:
-        scn.timeline_markers.new('run', frame=M + N)
+    for g, _ in gaits:
+        scn.timeline_markers.new(g, frame=starts[g])
 
 
 def use_gpu():

@@ -143,8 +143,8 @@ export async function assembleOne(r) {
     const files = (await readdir(d)).filter((f) => f.startsWith(`${view}-`) && f.endsWith('.png')).sort();
     return Promise.all(files.map((f) => readRGBA(join(d, f))));
   };
-  // runs in this order, each where it exists: standing, walking and running facing right, then the same facing left
-  const RUNS = ['idle', 'walk', 'run', 'idleLeft', 'walkLeft', 'runLeft'], views = {};
+  // runs in this order, each where it exists: standing, walking, jogging and running facing right, then the same facing left
+  const RUNS = ['idle', 'walk', 'jog', 'run', 'idleLeft', 'walkLeft', 'jogLeft', 'runLeft'], views = {};
   for (const v of ['raw', 'concierge']) {
     const runs = {};
     for (const run of RUNS) runs[run] = await load(run, v);
@@ -156,16 +156,17 @@ export async function assembleOne(r) {
   const all = [views.raw, views.concierge].filter(Boolean).flatMap((v) => RUNS.flatMap((run) => v[run]));
   const box = all.map((img) => contentBox(img)).reduce(unionBox), scale = height / box.h;
   const gaitOf = async (name) => (existsSync(join(dir, name, 'stride.json')) ? JSON.parse(await readFile(join(dir, name, 'stride.json'), 'utf8')) : null);
-  const walkG = await gaitOf('walk'), runG = await gaitOf('run');
-  // each frame is set down on its lowest foot, a run's frames as high off the ground as she is in them
-  const airOf = (run, k) => (run.startsWith('run') ? (runG?.air?.[k] ?? 0) * scale : 0);
+  const G = { walk: await gaitOf('walk'), jog: await gaitOf('jog'), run: await gaitOf('run') };
+  const gaitOfRun = (run) => G[run.replace(/Left$/, '')] ?? null;
+  // each frame is set down on its lowest foot, a jog's and a run's frames as high off the ground as she is in them
+  const airOf = (run, k) => (gaitOfRun(run)?.air?.[k] ?? 0) * scale;
   const frames = async (v) => v && Promise.all(RUNS.flatMap((run) => v[run].map((img, k) => [img, airOf(run, k)])).map(async ([img, air]) => plant([hardenAlpha(await fitToHeight(img, box, height))], air)[0]));
   const anims = {};
   let from = 0;
   for (const run of RUNS) {
     const count = a[run].length;
     if (!count) continue;
-    const g = run.startsWith('walk') ? walkG : run.startsWith('run') ? runG : null;
+    const g = gaitOfRun(run);
     anims[run] = g ? { from, count, stride: toLevel(g.stride * scale, res) } : { from, count };
     from += count;
   }
@@ -220,9 +221,14 @@ export async function writeAnimated(r, raws, concs, { anchorX, anims }) {
       if (exists !== 'raw' && (glow.concierge ?? 'auto') === 'auto') add('glow.concierge', glowAuto(conc));
     }
   }
-  // frames in rows, at most 2048 pixels wide so every phone can load them, with a transparent gutter so neighbours
+  // frames in rows, at most 2048 pixels wide, or 4096 where 2048 would make the sheet taller than that, so every phone
+  // can load them (they all take 4096 each way); with a transparent gutter so neighbours
   // never bleed into each other
-  const cols = Math.max(1, Math.min(n, Math.floor((2048 + G) / (w + G)))), rows = Math.ceil(n / cols);
+  const colsFor = (W) => Math.max(1, Math.min(n, Math.floor((W + G) / (w + G))));
+  let cols = colsFor(2048);
+  if (Math.ceil(n / cols) * (h + G) - G > 4096) cols = colsFor(4096);
+  const rows = Math.ceil(n / cols);
+  if (rows * (h + G) - G > 4096) console.warn(`${r.name}: ${n} frames make a sheet ${rows * (h + G) - G} pixels tall, more than some phones load`);
   const strip = (imgs) => {
     const out = blank(cols * w + (cols - 1) * G, rows * h + (rows - 1) * G);
     imgs.forEach((img, k) => {

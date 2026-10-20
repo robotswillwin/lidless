@@ -1,8 +1,8 @@
 {
   "name": "hero",
-  "x": 381,
+  "x": 374,
   "y": 224,
-  "w": 198.4,
+  "w": 212,
   "h": 240,
   "maps": [
     "albedo.concierge",
@@ -15,15 +15,15 @@
   "reflectivity": 0,
   "object": 0,
   "anchor": [
-    99.2,
+    105.6,
     240
   ],
   "exists": "both",
   "kind": "character",
   "frames": {
-    "count": 96,
+    "count": 128,
     "gutter": 2,
-    "cols": 8
+    "cols": 15
   },
   "anims": {
     "idle": {
@@ -36,25 +36,35 @@
       "count": 16,
       "stride": 158.28
     },
-    "run": {
+    "jog": {
       "from": 32,
       "count": 16,
       "stride": 246.21
     },
-    "idleLeft": {
+    "run": {
       "from": 48,
+      "count": 16,
+      "stride": 304.83
+    },
+    "idleLeft": {
+      "from": 64,
       "count": 16,
       "fps": 5
     },
     "walkLeft": {
-      "from": 64,
+      "from": 80,
       "count": 16,
       "stride": 158.28
     },
-    "runLeft": {
-      "from": 80,
+    "jogLeft": {
+      "from": 96,
       "count": 16,
       "stride": 246.21
+    },
+    "runLeft": {
+      "from": 112,
+      "count": 16,
+      "stride": 304.83
     }
   },
   "res": 1.25

@@ -229,27 +229,37 @@ Standing, she breathes: a loop of 16 frames (`idleCycle` in tools/pipeline/parts
 torso tips back a touch, her head, arms and free knee follow, and in Blender her ponytail and coat sway on their
 springs; the recipe's `anims.idle.fps` (5) sets its pace.
 
-Running is keyed the way an animator keys a run (`runCycle` and `RUN` in tools/pipeline/parts.mjs, a recipe's
-`parts.run` changing any of it): a foot lands a little in front of her hip and rolls back under her while the leg gives
-and straightens again; it pushes off from the toe, kicks up behind, is carried forward high under the driving knee,
-reaches out and lands, along a path measured from her hip so it rises and falls with her. Between steps, both feet off
-the ground, her hip rides an arc. She leans into it a little and her arms hang and swing as when she walks, a little
-further (`armsForward` 13, `armsBack` 15): the elbows softly bent, a little more as the arm comes forward, the
-forearms trailing; in Blender the coat flies out further and the ponytail streams back. (The walk's model with longer strides had looked like a prance: stiff standing leg, upright, no knee drive;
-arms pumping to the chest, and then swinging from behind her hip to her chest, had looked like a sprint; held bent at
-her waist, like a funny walk.)
+She jogs and runs as an animator keys a run (`runCycle`, with `JOG` and `RUN`, in tools/pipeline/parts.mjs; a
+recipe's `parts.jog` and `parts.run` change any of it): a foot lands a little in front of her hip and rolls back under
+her while the leg gives and straightens again; it pushes off from the toe, kicks up behind, is carried forward high
+under the driving knee, reaches out and lands, along a path measured from her hip so it rises and falls with her.
+Between steps, both feet off the ground, her hip rides an arc. Jogging (a stride of 2.1 leg lengths) she leans in a
+little and holds her arms firm at a soft bend (32 to 42 degrees), swinging them from the shoulder, the forearms not
+trailing; running (2.6, the heel kicking higher, the knee driving further) she leans in more (18 degrees) and her arms
+are bent (70 to 95 degrees) and swing hard. In Blender the coat flies out further and the ponytail streams back, the
+more the faster (`GAITS` in tools/blender/rig.py). (The walk's model with longer strides had looked like a prance:
+stiff standing leg, upright, no knee drive; arms pumping to the chest at a jog had looked like a sprint; held bent at
+her waist, like a funny walk; hanging loose, too soft.) Each jog and run frame records how far she is off the ground,
+and `build` sets it down that far up, so the flight stays in. With idle, walk, jog and run facing both ways she has 128
+frames: the build lays them out up to 4096 pixels wide, where 2048 would make the sheet taller than phones load.
 
 Her chest moves a little as she steps, in the Concierge's view: `parts.joints.torso.bust` places a point on the torso
 where the bust is (fractions of the part), `parts.bounce` says how much of each view's chest moves (`{ "concierge": 1
 }`), and the rig weights that view's torso around the point to a bone of its own, on a finer mesh, which it moves up
-and down on a damped spring following her body's rise and fall a little late: half the spring's lag walking, a third
-of it running (`BUST_*` in tools/blender/rig.py), so it settles a moment after each step lands.
-Each run frame records how far she is off the ground, and `build` sets it down that far up, so the flight stays in.
-The game runs her when she is sent further than 2.5 times her height (`runFrom` in world.json), at her run stride and
-`runCadence`.
+and down on a damped spring following her body's rise and fall a little late: half the spring's lag walking, less
+jogging and running, where her step bounces higher (`GAITS` in tools/blender/rig.py), so it settles a moment after each
+step lands.
+
+In the game (src/game/world.ts) she is sent walking, jogging if it is further than 2.5 of her heights (`jogFrom` in
+world.json), and running if it is further than 5 (`runFrom`), each gait at its stride and cadence (`cadence` 1.1
+strides a second walking; `jogCadence` and `runCadence`, by default 1.3 and 1.45 times it). She sets off at a walk,
+speeds up into the faster gaits (2.5 walking speeds a second) and slows down through them (3) to be walking a stride
+before she arrives, so her last steps are walked. Her legs change gait only as a foot lands, at the start or the middle
+of a cycle, so they stay in step; up a gait a third of the way to its speed, down a quarter of the way back, so she does
+not flicker between two. Turning back, she slows to a walk first. With the keys, Shift runs her.
 
 To change the walk by hand: open `art/cast/hero/rig/hero.blend` in Blender, pose the `rig` armature (frames 0 to 15
-are her idle loop, the 16 after it one cycle of the walk, then 16 of the run; markers name them), save, and run
+are her idle loop, the 16 after it one cycle of the walk, then 16 of the jog and 16 of the run; markers name them), save, and run
 `npm run asset -- rig art/cast/hero.json --render-only`,
 then `build`. The walk is animated once and every outfit and side follows. Redrawing a part means replacing its image
 in the parts folder and running `parts --recut`, then `rig`. Set pieces (sleeping, eating, showering) are fixed-frame

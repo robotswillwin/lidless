@@ -273,7 +273,7 @@ function draw(): void {
   // walking, the frames follow the distance covered (90 px a second), as they do in the game; facing left uses the
   // sprite's left-facing frames when it has them, else its right-facing ones mirrored
   const flip = facingLeft && !hasLeft(d);
-  const actor: DrawSprite = { sprite: asset, x: Math.round(cx - (flip ? d.w - ax : ax)), y: d.y, flip, frame: frameFor(d, walkIn.checked, t * 90, t, facingLeft ? -1 : 1) };
+  const actor: DrawSprite = { sprite: asset, x: Math.round(cx - (flip ? d.w - ax : ax)), y: d.y, flip, frame: frameFor(d, walkIn.checked, (t * 90) / (d.anims?.walk?.stride || 90), t, facingLeft ? -1 : 1) };
   const sinceSwitch = reduceMotion ? 10 : t - switchedAt;
   let f: Frame;
   if (backdropSel.value === 'street' && street) {

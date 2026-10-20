@@ -49,7 +49,7 @@ The design: https://claude.ai/artifact/X65FknT3sqWZBgJaHgHboZ. In code: `src/gam
   labels on things, its messages, *Ring for assistance* and *Your things*. In raw view that interface is gone with the
   augmented eye, and what is left is Luna's own: her handwriting, her pockets, her notebook, her sense of being watched
   and the temple switch.
-- **Two balls, for thumbs.** Tap to walk (far off, she runs; a door or the street's end, she goes through). The right
+- **Two balls, for thumbs.** Tap to walk (further off she jogs, further still she runs, speeding up and slowing down through the gaits; a door or the street's end, she goes through). The right
   ball slides the verbs out along the bottom, her properties: Eyes look, Heart talks, Hands use and take, and the
   Concierge's bell asks it; they stay out until a ball is tapped. With a verb chosen, pressing and sliding over the
   scene lights up what it does something to, and letting go does it: nothing depends on a mouse hovering. The left

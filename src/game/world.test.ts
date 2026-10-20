@@ -44,29 +44,83 @@ describe('walking', () => {
   });
 });
 
-describe('running', () => {
-  const runner: LevelDef = { ...level, hero: { ...level.hero, runSpeed: 150 } };
+describe('gaits', () => {
+  // a walk at 60 px/s, a jog at 130, a run at 180; a cycle of each carries her 40, 80 and 100 px
+  const fast: LevelDef = { ...level, hero: { ...level.hero, gaits: { walk: { speed: 60, stride: 40 }, jog: { speed: 130, stride: 80 }, run: { speed: 180, stride: 100 } } } };
+  const go = (world: World, seconds: number) => { const seen = new Set<string>(); for (let i = 0; i < seconds * 60; i++) { world.update(1 / 60); seen.add(world.gait); } return seen; };
 
-  it('runs at her running pace, and walks again once she is there', () => {
-    const world = new World(runner, 100);
-    world.walkTo(700, null, true);
-    world.update(1);
-    expect(world.running).toBe(true);
-    expect(world.heroX).toBeCloseTo(250, 5);
-    for (let i = 0; i < 600 && world.moving; i++) world.update(1 / 60);
-    expect(world.heroX).toBe(700);
-    expect(world.running).toBe(false);
+  it('sets off at a walk, speeds up through a jog into a run, and slows down to arrive at a walk', () => {
+    const world = new World(fast, 30);
+    world.walkTo(790, null, 'run');
+    world.update(1 / 60);
+    expect(world.gait).toBe('walk');
+    expect(world.speed).toBeLessThan(70);
+    const order: string[] = [];
+    let top = 0, arrivedAt = 0;
+    for (let i = 0; i < 1200 && world.moving; i++) {
+      world.update(1 / 60);
+      top = Math.max(top, world.speed);
+      if (order[order.length - 1] !== world.gait) order.push(world.gait);
+      arrivedAt = i;
+    }
+    expect(order).toEqual(['walk', 'jog', 'run', 'jog', 'walk']);
+    expect(top).toBeCloseTo(180, 5);
+    expect(world.heroX).toBe(790);
+    expect(world.moving).toBe(false);
+    expect(arrivedAt).toBeLessThan(600);
   });
 
-  it('runs about twice as fast as she walks when the sprite has no run of its own, and with Shift on the keys', () => {
-    const world = new World(level, 100);
-    world.walkTo(700, null, true);
-    world.update(1);
-    expect(world.heroX).toBeCloseTo(100 + 60 * 2.2, 5);
+  it('changes gait only as a foot lands: at the start or the middle of a cycle', () => {
+    const world = new World(fast, 30);
+    world.walkTo(790, null, 'run');
+    let gait = world.gait;
+    for (let i = 0; i < 1200 && world.moving; i++) {
+      world.update(1 / 60);
+      if (world.gait !== gait) {
+        // just past a half cycle: less than a frame's ground into the new half
+        const into = (world.phase * 2) % 1;
+        expect(into).toBeLessThan(0.2);
+        gait = world.gait;
+      }
+    }
+  });
+
+  it('goes no faster than its pace: jogging a middle distance, walking a short one', () => {
+    const jog = new World(fast, 30);
+    jog.walkTo(500, null, 'jog');
+    expect(go(jog, 8)).toEqual(new Set(['walk', 'jog']));
+    const walk = new World(fast, 30);
+    walk.walkTo(200, null, 'walk');
+    expect(go(walk, 8)).toEqual(new Set(['walk']));
+  });
+
+  it('turning back, slows to a walk first', () => {
+    const world = new World(fast, 30);
+    world.walkTo(790, null, 'run');
+    go(world, 3);
+    expect(world.speed).toBeGreaterThan(150);
+    world.walkTo(100, null, 'run');
+    world.update(1 / 60);
+    expect(world.speed).toBeLessThanOrEqual(60 + 2.5 * 60 / 60 + 1e-9);
+    expect(world.facing).toBe(-1);
+  });
+
+  it('runs with Shift on the keys, and walks without', () => {
+    const world = new World(fast, 30);
+    world.keyDir = 1;
     world.keyRun = true;
-    world.keyDir = -1;
-    world.update(0.5);
-    expect(world.running).toBe(true);
-    expect(world.heroX).toBeCloseTo(232 - 66, 5);
+    expect(go(world, 2).has('run')).toBe(true);
+    world.keyDir = 0;
+    world.update(1 / 60);
+    expect(world.moving).toBe(false);
+    world.keyDir = 1;
+    world.keyRun = false;
+    expect(go(world, 2)).toEqual(new Set(['walk']));
+  });
+
+  it('without frames for a jog or a run, moves faster at a walk', () => {
+    const world = new World(level, 30);
+    expect(world.speedOf('jog')).toBeCloseTo(60 * 2.2, 5);
+    expect(world.speedOf('run')).toBeCloseTo(60 * 3, 5);
   });
 });

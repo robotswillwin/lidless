@@ -106,10 +106,11 @@ export interface WorldFile {
   start: Exit;
   /**
    * cadence: strides (two steps) a second; with a walk that has a stride, her pace follows it, so her feet stay where
-   * they land. runCadence: the same running (by default a third more). runFrom: sent further than this many times her
-   * height on screen, she runs (2.5 by default).
+   * they land. jogCadence and runCadence: the same jogging and running (by default 1.3 and 1.45 times the walk's).
+   * jogFrom and runFrom: sent further than this many times her height on screen, she jogs (2.5 by default), and runs
+   * (5 by default).
    */
-  hero: { sprite: string; speed: number; cadence?: number; runCadence?: number; runFrom?: number; smoke?: [number, number]; items?: string[] };
+  hero: { sprite: string; speed: number; cadence?: number; jogCadence?: number; runCadence?: number; jogFrom?: number; runFrom?: number; smoke?: [number, number]; items?: string[] };
   scenes: string[];
 }
 

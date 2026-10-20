@@ -11,7 +11,7 @@ import { Camera, cameraTarget } from './camera';
 import { Dialogue } from './dialogue';
 import { heroDrawing } from './hero';
 import { Hud, type Action, type Item, type Mark, type NotebookPages } from './hud';
-import { inView, pick, type Hotspot } from './level';
+import { inView, pick, type Hotspot, type LevelDef } from './level';
 import { writeSave, type SaveData } from './save';
 import { SceneRunner, type ViewState } from './scene';
 import { Talk } from './talk';
@@ -156,10 +156,16 @@ export class Game {
     this.scene = next;
     this.runner = new SceneRunner(next.loaded);
     // her pace follows her stride at her size here, so each foot stays where it lands
-    const anims = this.s.hero.def.anims, cadence = this.s.world.hero.cadence, sc = next.file.actorScale ?? 1;
-    if (cadence && anims?.walk?.stride) next.level.hero.speed = cadence * anims.walk.stride * sc;
-    // and running, her longer stride at a quicker cadence
-    if (cadence && anims?.run?.stride) next.level.hero.runSpeed = (this.s.world.hero.runCadence ?? cadence * 1.35) * anims.run.stride * sc;
+    // each gait the same way: a jog and a run, longer strides at a quicker cadence
+    const anims = this.s.hero.def.anims, h = this.s.world.hero, sc = next.file.actorScale ?? 1;
+    const cadence = { walk: h.cadence, jog: h.jogCadence ?? (h.cadence && h.cadence * 1.3), run: h.runCadence ?? (h.cadence && h.cadence * 1.45) };
+    const gaits: NonNullable<LevelDef['hero']['gaits']> = {};
+    for (const g of ['walk', 'jog', 'run'] as const) {
+      const stride = anims?.[g]?.stride, c = cadence[g];
+      if (stride && c) gaits[g] = { speed: c * stride * sc, stride: stride * sc };
+    }
+    next.level.hero.gaits = gaits;
+    if (gaits.walk) next.level.hero.speed = gaits.walk.speed;
     this.world = new World(next.level, at.x ?? sp?.x, at.facing ?? sp?.facing);
     this.camera.jump(this.cameraTarget());
     this.cam[0] = this.s.fixedCam ?? this.camera.x;
@@ -290,10 +296,13 @@ export class Game {
     this.goTo(h.stand, h);
   }
 
-  /** She goes to x, and then does what is pending to `then`. Further off than a few of her heights, she runs. */
+  /**
+   * She goes to x, and then does what is pending to `then`: walking, jogging if it is further than a few of her heights
+   * off, and running if it is further than twice that. She speeds up into it and slows down out of it.
+   */
   private goTo(x: number, then: Hotspot | null = null): void {
-    const far = (this.s.world.hero.runFrom ?? 2.5) * this.s.hero.def.h * (this.scene.file.actorScale ?? 1);
-    this.world.walkTo(x, then, Math.abs(x - this.world.heroX) > far);
+    const h = this.s.world.hero, tall = this.s.hero.def.h * (this.scene.file.actorScale ?? 1), d = Math.abs(x - this.world.heroX);
+    this.world.walkTo(x, then, d > (h.runFrom ?? 5) * tall ? 'run' : d > (h.jogFrom ?? 2.5) * tall ? 'jog' : 'walk');
   }
 
   /* ---------- input: verbs, the pointer in level pixels, the walk keys ---------- */
@@ -394,7 +403,7 @@ export class Game {
     this.unmark();
   }
 
-  /** The arrows walk her, with Shift she runs. */
+  /** The arrows walk her; with Shift she speeds up through a jog into a run. */
   walkKey(dir: 'left' | 'right', down: boolean, run = false): void {
     if (down) this.held.add(dir);
     else this.held.delete(dir);
@@ -448,7 +457,7 @@ export class Game {
     // emitter follows her cigarette, or goes off screen when she has none
     const hero = this.s.hero, sc = file.actorScale ?? 1, bob = (hero.def.anims?.walk ? 0 : world.bob) * sc, hs = this.s.world.hero.smoke;
     const smoke: [number, number] = hs ? [world.heroX + hs[0] * sc * world.facing, file.walk.y + hs[1] * sc + bob] : [-1000, -1000];
-    const her = heroDrawing(hero, { x: world.heroX, walkY: file.walk.y, cam: this.cam, scale: sc, facing: world.facing, bob, frame: frameFor(hero.def, world.moving, world.walked / sc, t, world.facing, world.running) });
+    const her = heroDrawing(hero, { x: world.heroX, walkY: file.walk.y, cam: this.cam, scale: sc, facing: world.facing, bob, frame: frameFor(hero.def, world.moving, world.phase, t, world.facing, world.gait) });
     // what a verb lights up, and what she found, stay on the thing as the camera follows her
     if (this.marked) { this.marked.box = this.boxOf(this.marked.h); this.hud.mark(this.marked); }
     const noted = this.hud.noteFor;
