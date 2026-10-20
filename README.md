@@ -77,11 +77,13 @@ The world is `public/assets/world.json`: its scenes, where the game starts and w
 A hotspot with `go` is an exit to another scene. Over an end of the walk line, walking into it leaves too.
 
 **What Luna wears.** `world.json`'s `hero.outfits` lists her outfits, each a sprite of its own (`src/game/outfits.ts`):
-her coat, home clothes (an old T-shirt and shorts; to the Concierge, blush silk), a cardigan, a bathrobe and a party dress. A scene with `"wardrobe": true` is her home: she takes her coat
-off as she comes in, and a hotspot with `"wardrobe": true` (the coat hook by her door) lets her pick what she wears
-there, with Use, from a list like her answers in a conversation. As she leaves she puts her coat on over home clothes
-(an outfit's `out` names what she changes into), goes out as she is in the party dress (`out: true`), and does not go
-out in her bathrobe at all: she says its `stay` line instead. Coming home, an outfit's `home` names what she changes
+her coat, and the clothes under it (her outdoor clothes: a black top and cargo trousers), home clothes (an old
+T-shirt and shorts; to the Concierge, blush silk), a cardigan, a bathrobe, underwear and a party dress. A scene with
+`"wardrobe": true` is her home: she takes her coat off as she comes in and stays in the clothes under it, and a hotspot
+with `"wardrobe": true` (the coat hook by her door) lets her pick what she wears there, with Use, from a list like her
+answers in a conversation. As she leaves she puts her coat on (an outfit's `out` names what she changes into), goes out
+as she is in the party dress (`out: true`), and does not go out in her bathrobe or her underwear at all: she says its
+`stay` line instead. She runs only in what she goes out in. Coming home, an outfit's `home` names what she changes
 into. A hotspot's `wear` changes her into an outfit as she uses it, a while passing behind a fade: her shower leaves
 her in her bathrobe. What she wears is saved, and only her coat and what she wears are kept loaded.
 

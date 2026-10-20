@@ -13,13 +13,18 @@
       "cigarettes",
       "map"
     ],
-    "cadence": 1.1,
+    "cadence": 1.25,
     "outfits": {
       "coat": {
         "sprite": "cast/hero",
         "name": "Coat",
         "out": true,
-        "home": "home"
+        "home": "clothes"
+      },
+      "clothes": {
+        "sprite": "cast/hero-clothes",
+        "name": "Outdoor clothes",
+        "out": "coat"
       },
       "home": {
         "sprite": "cast/hero-lounge",
@@ -36,13 +41,20 @@
         "name": "Bathrobe",
         "stay": "Not in my bathrobe."
       },
+      "underwear": {
+        "sprite": "cast/hero-underwear",
+        "name": "Underwear",
+        "stay": "Not like this."
+      },
       "party": {
         "sprite": "cast/hero-party",
         "name": "Party dress",
         "out": true
       }
     },
-    "outfit": "coat"
+    "outfit": "coat",
+    "jogFrom": 1.5,
+    "runFrom": 3
   },
   "scenes": [
     "street",

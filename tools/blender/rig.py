@@ -271,7 +271,8 @@ def build_set(s, arm, far):
     order = [r[0] for r in RIG if r[1] in parts]
     if s.get('coatFront'):
         order.remove('coat')
-        order.insert(order.index('foot') + 1, 'coat')
+        # in front of her legs; over: in front of her torso too, as briefs over her belly
+        order.insert(order.index('torso') + 1 if s.get('coatOver') else order.index('foot') + 1, 'coat')
     for i, piece in enumerate(order):
         part = parts[BY[piece][1]]
         w, h = part['size']
@@ -361,7 +362,8 @@ def animate(arm):
     ih = [f.get('head', 0.0) + f.get('torso', 0.0) for f in idle]
     ic = [f.get('torso', 0.0) for f in idle]
     ipony = spring_chain([2.0 * (h - sum(ih) / M) for h in ih], PONY_CHAIN, omega=2 * math.pi * 0.9, zeta=0.4) if M > 1 else None
-    icoat = spring_chain([1.5 * (c - sum(ic) / M) for c in ic], COAT_CHAIN, omega=2 * math.pi * 0.8, zeta=0.5) if M > 1 else None
+    sway = R.get('coatSway', 1.0)
+    icoat = spring_chain([sway * 1.5 * (c - sum(ic) / M) for c in ic], COAT_CHAIN, omega=2 * math.pi * 0.8, zeta=0.5) if M > 1 and sway > 0 else None
     for k, f in enumerate(idle):
         a = {n: v for n, v in f.items() if n in rest}
         for i in range(PONY_CHAIN):
@@ -410,7 +412,7 @@ def animate(arm):
     for g, frames in gaits:
         k = GAITS[g]
         starts[g] = at
-        cycle(at, frames, k['pitch'], k['coat'], PONY_TRAIL * k['trail'], PONY_GAIN * k['swing'], k['lag'])
+        cycle(at, frames, k['pitch'], k['coat'] * sway, PONY_TRAIL * k['trail'], PONY_GAIN * k['swing'], k['lag'])
         at += len(frames)
     # the chest: still standing; walking and running, on a damped spring that follows her body up and down, a little
     # late, so it settles a moment after each step lands and rises

@@ -143,9 +143,13 @@ export async function proportion(parts, prop, unit) {
   if (!prop?.torso || !parts.torso) return parts;
   // her height in the parts' pixels: given, or what makes the torso keep its size
   unit ??= BONE.torso(parts.torso) / prop.torso;
+  // what hangs from the waist with no length of its own (hips in briefs or trousers) keeps its size against the torso,
+  // as the sheet drew them together
+  const byTorso = (prop.torso * unit) / BONE.torso(parts.torso);
   for (const [name, p] of Object.entries(parts)) {
-    if (!prop[name] || !BONE[name] || (name === 'shin' && prop.boot) || !p.joints) continue;
-    const s = (prop[name] * unit) / BONE[name](p);
+    if (!p.joints || !BONE[name] || (name === 'shin' && prop.boot)) continue;
+    if (!prop[name] && name !== 'coat') continue;
+    const s = prop[name] ? (prop[name] * unit) / BONE[name](p) : byTorso;
     if (Math.abs(s - 1) < 0.01) continue;
     const w = Math.max(1, Math.round(p.img.w * s)), h = Math.max(1, Math.round(p.img.h * s));
     parts[name] = { img: await resize(p.img, w, h), joints: Object.fromEntries(Object.entries(p.joints).map(([j, [x, y]]) => [j, [(x * w) / p.img.w, (y * h) / p.img.h]])) };
@@ -153,8 +157,56 @@ export async function proportion(parts, prop, unit) {
   if (prop.boot && prop.shin && parts.shin && parts.thigh) Object.assign(parts, await lowerLeg(parts.shin.img, parts.thigh, prop.boot * unit, prop.shin * unit));
   // a lower leg drawn whole, the leg into its shoe, is split at the ankle so the foot can roll
   else if (parts.shin && !parts.foot) Object.assign(parts, splitAnkle(parts.shin.img, parts.shin.joints.knee));
+  // a shoe drawn too big for her, such as a fluffy slipper: the foot scaled to the recipe's length, heel to toe, as a
+  // share of her height (her boots are 0.13)
+  const f = parts.foot, len = f ? footLength(f.img) : 0;
+  if (prop.foot && len > 0 && Math.abs((prop.foot * unit) / len - 1) > 0.02) {
+    const s = (prop.foot * unit) / len, w = Math.max(1, Math.round(f.img.w * s)), h = Math.max(1, Math.round(f.img.h * s));
+    parts.foot = { img: await resize(f.img, w, h), joints: Object.fromEntries(Object.entries(f.joints).map(([j, [x, y]]) => [j, [(x * w) / f.img.w, (y * h) / f.img.h]])) };
+  }
   if (parts.head) parts.head = { ...parts.head, img: extendNeck(parts.head.img) };
   return parts;
+}
+
+/**
+ * A foot's length, heel to toe: its widest row below the ankle. Not where it touches the ground: a sock or a bare foot,
+ * rounded at the heel and the toe, touches it only in the middle.
+ */
+export function footLength(img) {
+  let most = 0;
+  for (let y = Math.floor(img.h * 0.4); y < img.h; y++) { const sp = span(img, y); if (sp) most = Math.max(most, sp[1] - sp[0] + 1); }
+  return most;
+}
+
+/**
+ * Bare skin at a joint: the piece fades out over its overlap with the one under it, so no straight cut shows where a
+ * sleeve or a trouser leg would have hidden it. An upper arm, a forearm, a lower leg fade at the top, past the joint
+ * they turn on; the torso at the bottom, past the hip.
+ */
+export function softenJoint(part, name) {
+  const { img, joints } = part, h = img.h, out = { w: img.w, h, d: new Uint8ClampedArray(img.d) };
+  const fade = (from, len) => {
+    for (let y = 0; y < h; y++) {
+      const t = Math.min(1, (from === 'top' ? y : h - 1 - y) / len), k = t * t * (3 - 2 * t);
+      if (k >= 1) continue;
+      for (let x = 0; x < img.w; x++) out.d[(y * img.w + x) * 4 + 3] *= k;
+    }
+  };
+  // hips in briefs, drawn over her belly and the tops of her thighs: both of their straight edges
+  if (name === 'coat') { fade('top', Math.max(h * 0.08, joints.waist?.[1] ?? 0)); fade('bottom', h * 0.1); return { ...part, img: out }; }
+  const atTop = { upperArm: 'shoulder', forearm: 'elbow', shin: 'knee', thigh: 'hip' }[name];
+  const jy = atTop ? joints[atTop]?.[1] : joints.hip?.[1];
+  if (jy === undefined) return part;
+  // from the end to the joint, at least a twentieth of the piece
+  fade(atTop ? 'top' : 'bottom', Math.max(h * 0.05, atTop ? jy : h - jy));
+  return { ...part, img: out };
+}
+
+/** Her measures in a set of parts: the head's height and the foot's length, heel to toe, as shares of her height. */
+export function measures(parts, prop) {
+  if (!prop?.torso || !parts.torso) return null;
+  const unit = BONE.torso(parts.torso) / prop.torso;
+  return { head: parts.head ? BONE.head(parts.head) / unit : null, foot: parts.foot ? footLength(parts.foot.img) / unit : null };
 }
 
 /**
@@ -315,6 +367,15 @@ export async function cmdRig([file], opt) {
       }
       const prop = proportionsFor(r, look), them = sameAll?.[v]?.torso;
       await proportion(parts, prop, them && prop?.torso ? BONE.torso(them) / prop.torso : undefined);
+      // a garment with no collar shows the neck her coat's high collar hides: the head sits lower on the torso by
+      // parts.neckSink, a share of the head's height, so less of the neck shows and the head does not look small
+      if (r.parts?.neckSink && parts.head?.joints?.neck) parts.head = { ...parts.head, joints: { ...parts.head.joints, neck: [parts.head.joints.neck[0], parts.head.joints.neck[1] - r.parts.neckSink * parts.head.img.h] } };
+      // parts.coatCut: what hangs from the waist kept only down to this share of its height (hips in briefs, cut off
+      // below the buttocks, so they do not lie over her thighs)
+      if (r.parts?.coatCut && parts.coat) parts.coat = { ...parts.coat, img: crop(parts.coat.img, 0, 0, parts.coat.img.w, Math.round(parts.coat.img.h * r.parts.coatCut)) };
+      // parts.skin: pieces of bare skin, faded at their joints (see softenJoint)
+      for (const name of r.parts?.skin ?? []) if (parts[name]) parts[name] = softenJoint(parts[name], name);
+      if (v === 'raw') { const m = measures(parts, prop); if (m?.foot) console.log(`${r.name}: foot ${m.foot.toFixed(3)} of her height (her boots 0.13)${m.foot > 0.155 || m.foot < 0.09 ? ' — check it: set parts.proportions.foot' : ''}`); }
       if (!parts.foot) throw new Error(`${r.name}: the rig needs a separate foot: give the recipe parts.proportions`);
       await mkdir(join(out, v), { recursive: true });
       const pieces = {};
@@ -323,13 +384,17 @@ export async function cmdRig([file], opt) {
         pieces[name] = { size: [p.img.w, p.img.h], joints: p.joints };
       }
       // a view whose chest moves as she steps (parts.bounce, 0 to 1): the rig weights the torso's chest to its own bone
-      sets.push({ name: v, left, coatFront: left ? r.parts?.left?.coat === 'front' : r.parts?.coat === 'front', bounce: r.parts?.bounce?.[look] ?? 0, parts: pieces });
+      // what hangs from the waist: behind her legs, in front of them (front), or in front of her torso too (over: briefs
+      // over her belly)
+      const coat = left ? r.parts?.left?.coat ?? r.parts?.coat : r.parts?.coat;
+      sets.push({ name: v, left, coatFront: coat === 'front' || coat === 'over', coatOver: coat === 'over', bounce: r.parts?.bounce?.[look] ?? 0, parts: pieces });
       // parts.gaits: the gaits besides standing she has in this outfit (all of walk, jog and run by default)
       const has = (g) => !r.parts?.gaits || r.parts.gaits.includes(g);
       if (v === 'raw') { walk = walkCycle(parts, gait, FAR); idle = idleCycle(parts, gait.idle, FAR, { frames: gait.idleFrames ?? 16 }); jog = has('jog') ? jogCycle(parts, r.parts?.jog ?? {}, FAR) : null; run = has('run') ? runCycle(parts, r.parts?.run ?? {}, FAR) : null; }
     }
     if (!walk) throw new Error(`${r.name}: no raw parts to rig`);
-    await writeFile(join(out, 'rig.json'), JSON.stringify({ blend: `${r.name}.blend`, percent: PERCENT, far: FAR, sets, walk, idle, jog, run }, null, 1) + '\n');
+    // parts.coatSway: how much what hangs from the waist swings, 1 a coat's hem, 0 held still with her hips (trousers, briefs)
+    await writeFile(join(out, 'rig.json'), JSON.stringify({ blend: `${r.name}.blend`, percent: PERCENT, far: FAR, coatSway: r.parts?.coatSway ?? 1, sets, walk, idle, jog, run }, null, 1) + '\n');
   }
   await rm(tmp, { recursive: true, force: true });
   execFileSync('blender', ['-b', '--factory-startup', '--python', resolve(ROOT, 'tools/blender/rig.py'), '--', out, tmp, ...(opt['render-only'] ? ['--render-only'] : [])], { stdio: ['ignore', 'inherit', 'inherit'] });

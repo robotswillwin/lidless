@@ -126,12 +126,24 @@ flickers:
   torso, coat, upper arm, forearm, thigh, shin) following a template; the parts are cut out with their joints, posed
   through the walk and baked into frames (`parts --bake`). The left-facing side is the right side mirrored, with
   touch-ups only where the two differ, so it stays the same person. Luna is made this way.
-- **Outfits** (`art/cast/hero-home.json`, `hero-robe.json`, `hero-party.json`): the same character in other clothes,
-  each made as she is in her coat, from a profile drawn with her model sheet as the reference. `parts.same` takes her
-  head and ponytail from her own parts (`art/cast/hero`), so her face, hair and eyepiece stay exactly hers, and sizes
-  the outfit by her torso, so every outfit is as tall as she is. `parts.gaits` lists the gaits besides standing the rig
-  renders: `["walk"]` for clothes she does not run in, half the frames. What hangs from the waist takes the coat's
-  place: a cardigan's hem, a robe's skirt, a dress's skirt (`parts.proportions.coat`, its length). The image model lays
+- **Outfits** (`art/cast/hero-*.json`: the clothes under her coat, home clothes, a cardigan, a bathrobe, underwear, a
+  party dress): the same character in other clothes, each made as she is in her coat, from a profile drawn with her
+  model sheet as the reference. `parts.same` takes her head and ponytail from her own parts (`art/cast/hero`), so her
+  face, hair and eyepiece stay exactly hers, and sizes the outfit by her torso, so every outfit is as tall as she is.
+  `parts.gaits` lists the gaits besides standing the rig renders: `["walk"]` for what she wears only at home, half the
+  frames; what she goes out in also jogs and runs. What hangs from the waist takes the coat's place: a cardigan's hem, a
+  robe's skirt, a dress's skirt (`parts.proportions.coat`, its length), or hips in trousers or briefs, which with no
+  length of their own keep their size against the torso as drawn. How it moves and where it is drawn:
+  `parts.coatSway` (1 swings like a coat's hem, 0 held still with her hips) and `parts.coat` (`front` in front of her
+  legs, `over` in front of her torso too, as briefs over her belly); `parts.coatCut` keeps only the top of it (briefs'
+  hips cut off below the buttocks, so they do not lie over her thighs).
+  - **Her proportions in every outfit.** A garment with no collar shows the neck her coat's collar hides, and her head
+    then looks small: `parts.neckSink` sets the head lower on the torso, by a share of its height (0.07 for a T-shirt).
+    A shoe drawn too big (a fluffy slipper) is scaled with `parts.proportions.foot`, its length heel to toe as a share
+    of her height: her boots are 0.13. The rig prints each outfit's foot length and flags one far from that.
+  - **Bare skin** (`parts.skin`): a piece of bare skin fades out over its overlap at the joint it turns on, so the
+    straight cut that a sleeve or a trouser leg would hide does not show: the upper arm at the shoulder, the forearm at
+    the elbow, the lower leg at the knee, the torso below the hip, briefs' hips at both edges. The image model lays
   out each parts sheet its own way: `parts.at` gives where each piece is on that sheet, and `parts --recut` cuts it
   again. A piece the rig swings out from under a skirt shows: the robe's thighs are coloured as the robe, so it reads
   as closed.

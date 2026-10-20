@@ -1,5 +1,5 @@
 # LIDLESS — Feedback v0.2
-**20 October 2026 · stored, not started: work begins when the director says go**
+**20 October 2026 · the director said go the same evening: see Done, below**
 
 ## What the director asked for
 
@@ -56,6 +56,21 @@ Times are my own working time.
      from it, split it again, and move hotspots and lights. About 1.5 hours and $2 of generation. On a phone the
      background takes about 2.5 times the memory, still under 200 MB with Luna.
    - **The pace first** (6). Without it, a wide street is a long wait.
+
+## Done
+
+- **Pace:** a brisker walk (cadence 1.25), and she jogs past 1.5 of her heights and runs past 3: on the main street
+  she walks 103 px a second, jogs 208 and runs 287, so a tap across the street takes about 2 seconds.
+- **Outfits:** coming home she takes off her coat and stays in the clothes under it, a new outfit (her outdoor
+  clothes: a black top and cargo trousers). The wardrobe lists Outdoor clothes, Home clothes, Cardigan, Bathrobe,
+  Underwear (new, at home only, from the new study) and Party dress; the coat stays on its hook while she is home.
+  Only what she goes out in runs (her coat, the party dress), as the director asked: home clothes need not.
+- **The bathrobe** redrawn as one garment, its skirt hanging straight and closed from the sash.
+- **Her proportions:** her head sits lower where a garment shows more neck than her coat's collar (`parts.neckSink`),
+  and too-big slippers and socks are scaled to her boots' length (`parts.proportions.foot`); the rig prints each
+  outfit's foot length.
+- **The director's answers:** wider outdoor scenes (done next); she may take off her coat by herself, staying in the
+  clothes under it; private wear does not run.
 
 ## Open questions for the director
 

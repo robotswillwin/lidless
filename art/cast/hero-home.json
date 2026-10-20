@@ -52,7 +52,8 @@
       "forearm": 0.21,
       "thigh": 0.245,
       "shin": 0.325,
-      "ponytail": 0.3
+      "ponytail": 0.3,
+      "foot": 0.13
     },
     "gait": {
       "idle": {
@@ -125,6 +126,7 @@
     "gaits": [
       "walk"
     ],
-    "pieces": "the head with the neck and hair; the torso in the T-shirt under the open cardigan, from the collar to the hips, and no arm drawn on it; below the waist, as a separate piece of its own, the cardigan's lower part, open, hanging to mid-thigh; one upper arm in its cardigan sleeve; one forearm with the end of the cardigan sleeve and the hand, relaxed and open; one thigh in the sweatpants; one lower leg in the sweatpants with its sock and slipper, toes pointing right."
+    "pieces": "the head with the neck and hair; the torso in the T-shirt under the open cardigan, from the collar to the hips, and no arm drawn on it; below the waist, as a separate piece of its own, the cardigan's lower part, open, hanging to mid-thigh; one upper arm in its cardigan sleeve; one forearm with the end of the cardigan sleeve and the hand, relaxed and open; one thigh in the sweatpants; one lower leg in the sweatpants with its sock and slipper, toes pointing right.",
+    "neckSink": 0.07
   }
 }

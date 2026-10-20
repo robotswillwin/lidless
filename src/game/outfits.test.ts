@@ -2,15 +2,17 @@ import { describe, expect, it } from 'vitest';
 import { outfitAfter, outfitIn, type Outfits } from './outfits';
 
 const outfits: Outfits = {
-  coat: { sprite: 'cast/hero', name: 'Coat', out: true, home: 'home' },
+  coat: { sprite: 'cast/hero', name: 'Coat', out: true, home: 'clothes' },
+  clothes: { sprite: 'cast/hero-clothes', name: 'Outdoor clothes', out: 'coat' },
   home: { sprite: 'cast/hero-home', name: 'Home clothes', out: 'coat' },
   robe: { sprite: 'cast/hero-robe', name: 'Bathrobe', stay: 'Not in this.' },
   party: { sprite: 'cast/hero-party', name: 'Party dress', out: true },
 };
 
 describe('outfits', () => {
-  it('takes her coat off as she comes home, and puts it on over home clothes as she leaves', () => {
-    expect(outfitAfter(outfits, 'coat', false, true)).toBe('home');
+  it('takes her coat off as she comes home, staying in the clothes under it, and puts it on as she leaves', () => {
+    expect(outfitAfter(outfits, 'coat', false, true)).toBe('clothes');
+    expect(outfitAfter(outfits, 'clothes', true, false)).toBe('coat');
     expect(outfitAfter(outfits, 'home', true, false)).toBe('coat');
   });
 
@@ -26,7 +28,7 @@ describe('outfits', () => {
   });
 
   it('starts her in her first outfit, out of her coat if she starts at home; an outfit not listed is her first', () => {
-    expect(outfitIn(outfits, 'coat', true)).toBe('home');
+    expect(outfitIn(outfits, 'coat', true)).toBe('clothes');
     expect(outfitIn(outfits, 'coat', false)).toBe('coat');
     expect(outfitAfter(outfits, 'gone', false, false)).toBe('coat');
   });

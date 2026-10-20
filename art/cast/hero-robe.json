@@ -52,7 +52,8 @@
       "forearm": 0.21,
       "thigh": 0.245,
       "shin": 0.325,
-      "ponytail": 0.3
+      "ponytail": 0.3,
+      "foot": 0.13
     },
     "gait": {
       "idle": {
@@ -91,40 +92,8 @@
     "gaits": [
       "walk"
     ],
-    "at": {
-      "head": [
-        187,
-        182
-      ],
-      "ponytail": [
-        394,
-        308
-      ],
-      "torso": [
-        662,
-        258
-      ],
-      "coat": [
-        940,
-        409
-      ],
-      "upperArm": [
-        1197,
-        288
-      ],
-      "forearm": [
-        1394,
-        318
-      ],
-      "thigh": [
-        505,
-        742
-      ],
-      "shin": [
-        768,
-        762
-      ]
-    },
-    "pieces": "the head with the neck and hair; the torso in the bathrobe, from the collar to the hips, with its sash, and no arm drawn on it; below the waist, as a separate piece of its own, the bathrobe's skirt hanging to just below the knees; one upper arm in its loose robe sleeve; one forearm with the end of the sleeve and the hand, relaxed and open; one thigh covered by the robe's fabric down to the knee; one bare lower leg with its slipper, toes pointing right."
+    "pieces": "the head with the neck and hair; the torso in the bathrobe, from its shawl collar to the sash at the waist, wrapped closed over the front, and no arm drawn on it; below the waist, as a separate piece of its own, the bathrobe's skirt, straight and closed, wrapping over at the front and hanging to just below the knees, the sash's ends hanging from the waist; one upper arm in its wide robe sleeve; one forearm with the end of the wide sleeve and the hand, relaxed and open; one thigh covered by the robe's fabric down to the knee; one bare lower leg with its slipper, toes pointing right.",
+    "neckSink": 0.04,
+    "coatSway": 0.7
   }
 }

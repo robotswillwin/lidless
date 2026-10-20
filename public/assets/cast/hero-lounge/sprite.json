@@ -1,8 +1,8 @@
 {
   "name": "hero-lounge",
-  "x": 406,
+  "x": 405,
   "y": 224,
-  "w": 148.8,
+  "w": 150.4,
   "h": 240,
   "maps": [
     "albedo.concierge",
@@ -15,7 +15,7 @@
   "reflectivity": 0,
   "object": 0,
   "anchor": [
-    74.4,
+    75.2,
     240
   ],
   "exists": "both",
@@ -34,7 +34,7 @@
     "walk": {
       "from": 16,
       "count": 16,
-      "stride": 171.59
+      "stride": 173.89
     },
     "idleLeft": {
       "from": 32,
@@ -44,7 +44,7 @@
     "walkLeft": {
       "from": 48,
       "count": 16,
-      "stride": 171.59
+      "stride": 173.89
     }
   },
   "res": 1.25

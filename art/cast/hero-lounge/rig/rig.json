@@ -5,11 +5,13 @@
   -14,
   -6
  ],
+ "coatSway": 1,
  "sets": [
   {
    "name": "raw",
    "left": false,
    "coatFront": true,
+   "coatOver": false,
    "bounce": 0,
    "parts": {
     "upperArm": {
@@ -116,7 +118,7 @@
      "joints": {
       "neck": [
        69.52486187845304,
-       203.79649122807018
+       185.73649122807018
       ],
       "tie": [
        8.69060773480663,
@@ -166,6 +168,7 @@
    "name": "concierge",
    "left": false,
    "coatFront": true,
+   "coatOver": false,
    "bounce": 1,
    "parts": {
     "upperArm": {
@@ -260,7 +263,7 @@
      "joints": {
       "neck": [
        69.165,
-       204.9616724738676
+       186.76167247386758
       ],
       "tie": [
        13.515,
@@ -322,6 +325,7 @@
    "name": "raw-left",
    "left": true,
    "coatFront": true,
+   "coatOver": false,
    "bounce": 0,
    "parts": {
     "upperArm": {
@@ -428,7 +432,7 @@
      "joints": {
       "neck": [
        69.91111111111111,
-       203.79649122807018
+       185.73649122807018
       ],
       "tie": [
        8.738888888888889,
@@ -478,6 +482,7 @@
    "name": "concierge-left",
    "left": true,
    "coatFront": true,
+   "coatOver": false,
    "bounce": 1,
    "parts": {
     "upperArm": {
@@ -572,7 +577,7 @@
      "joints": {
       "neck": [
        69.165,
-       204.9616724738676
+       186.76167247386758
       ],
       "tie": [
        13.515,

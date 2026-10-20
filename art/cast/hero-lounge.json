@@ -125,6 +125,11 @@
     "gaits": [
       "walk"
     ],
-    "pieces": "the head with the neck and hair; the torso in the T-shirt, from the collar to the hips, its short sleeves cut off at the shoulder and no arm drawn on it; below the waist, as a separate piece of its own, the T-shirt's loose hem with the shorts beneath it, cut off from the torso at the waist; one upper arm in its short T-shirt sleeve, bare below the sleeve down to the elbow; one bare forearm with the hand, relaxed and open, with no sleeve and no cuff on it; one bare thigh; one bare lower leg in its sock, toes pointing right."
+    "pieces": "the head with the neck and hair; the torso in the T-shirt, from the collar to the hips, its short sleeves cut off at the shoulder and no arm drawn on it; below the waist, as a separate piece of its own, the T-shirt's loose hem with the shorts beneath it, cut off from the torso at the waist; one upper arm in its short T-shirt sleeve, bare below the sleeve down to the elbow; one bare forearm with the hand, relaxed and open, with no sleeve and no cuff on it; one bare thigh; one bare lower leg in its sock, toes pointing right.",
+    "neckSink": 0.07,
+    "skin": [
+      "forearm",
+      "shin"
+    ]
   }
 }
