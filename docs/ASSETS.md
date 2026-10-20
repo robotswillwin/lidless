@@ -351,7 +351,9 @@ World backstreet frame (`art/reference/aw-backstreet-concierge.png`). The first 
 door a third of the picture's height; framed from further back, a door is a quarter of it, as on the street, and Luna
 is drawn at the street's `actorScale`. Raw view was redrawn from it with `redress --from concierge.png`, the street's raw
 picture as the reference: the first try added streaks, stains and rust drips to the walls, so the prompt now keeps
-every wall one flat colour. `ground --from 442` took the painted reflections out below the pavement's edge. Its lights
+every wall one flat colour. `ground --from 442` took the painted reflections out below the pavement's edge. It is
+split into two layers, the far city down the alley (0.3) and the lane (1), so the camera leans as she walks, as on the
+street (`drift` 18); the lantern, the cables and raw view's bulb were traced into the lane by their colours. Its lights
 were suggested from the art and sorted by hand; raw view's lamps (the tube over Entrance 3, the bare bulb on the
 cable, the flats' windows) were placed by hand, as a raw picture's glow map is too faint to find them. The old,
 painted backstreet is in git's history.
@@ -532,6 +534,11 @@ pixels. The street's is an example (`art/street/vista.json`).
    half in another: it tears open as the layers slide. Trace something with
    a shape of its own, such as the street lamp, with a polygon: a rectangle around it takes the lit air along, and
    that slides with it as a box. A map painted over by hand works too, but `--map` makes it again from the recipe.
+   Where the two views have different things in one place, a view can have a map of its own, `layers-raw.png` or
+   `layers-concierge.png`, used for that view instead: the backstreet's Concierge view has a red lantern hanging from
+   the cables, raw view only a bare bulb whose glow is in the smog, so raw view's map takes only the cord, the socket
+   and the bulb with the street, and the glow stays behind with the far layer. A thing traced with the street from a
+   picture's colours (`art/backstreet/lane/layers*.png`) is drawn by hand and kept: `--map` would draw over it.
 2. `npm run asset -- split <recipe> --scene <id>` cuts each layer out of both views by the map, with what each one
    needs behind the nearer ones as the camera moves:
    - The layers only ever slide sideways, and only a little against each other, so what shows from behind a nearer

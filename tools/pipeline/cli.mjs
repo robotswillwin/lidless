@@ -86,7 +86,8 @@ const HELP = `Asset pipeline: generate art with an image AI, clean it and turn i
       over it if need be. Then each layer is cut from both views, GPT Image 2.5 Sunburst paints what nearer layers hide
       behind it and a margin past the screen's edges, and it is built as an asset of its own, <name>-<layer>. --scene
       puts the layers in that scene's file in place of the picture. A fill made from the same picture, mask and prompt
-      is used again; --reuse keeps the fills already made, whatever they were made from.
+      is used again; --reuse keeps the fills already made, whatever they were made from. A view with things of its own
+      can have its own map, layers-raw.png or layers-concierge.png, used for that view instead of layers.png.
   npm run asset -- pick <recipe> <candidate>
       Use a candidate, e.g. raw-03 or concierge-01.
   npm run asset -- import <recipe> <image> [--as raw|concierge]

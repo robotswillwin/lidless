@@ -1,8 +1,12 @@
 {
   "assets": [
-    "lane"
+    "lane",
+    "lane-far",
+    "lane-street"
   ],
   "backgrounds": [
-    "lane"
+    "lane",
+    "lane-far",
+    "lane-street"
   ]
 }

@@ -31,5 +31,24 @@
     "art/reference/aw-backstreet-concierge.png"
   ],
   "palette": 0,
-  "reflectivity": 2
+  "reflectivity": 2,
+  "split": {
+    "ground": 440,
+    "margin": 20,
+    "layers": [
+      {
+        "name": "far",
+        "parallax": 0.3,
+        "depth": 1,
+        "fill": "only the distant city and the sky behind everything, seen down the alley past the corner: towers with their windows, signs and lights, and the low buildings at the end of the alley, as they are around it; no lantern, no bulb, no lamp and no cables or wires hanging in front"
+      },
+      {
+        "name": "street",
+        "parallax": 1,
+        "fill": "the near lane: the apartment block with the store, the entrance and the panel, the cables and the lantern, the next buildings on the right, the pavement and the wet lane"
+      }
+    ],
+    "thin": 48,
+    "soft": 4
+  }
 }

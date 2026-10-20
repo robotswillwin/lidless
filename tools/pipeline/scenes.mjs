@@ -131,7 +131,10 @@ export async function cmdSplit([file], opt) {
   }
 
   if (!existsSync(mapFile)) throw new Error(`${r.name}: no layer map yet; make one with: npm run asset -- split ${rel(r.file)} --map`);
-  const L = readLayerMap(await readRGBA(mapFile), N);
+  // a view can have a map of its own, layers-raw.png or layers-concierge.png, where its things are not the other's: a
+  // lantern in one view hangs where the other has only a bulb, and its glow stays with the far smog
+  const L0 = readLayerMap(await readRGBA(mapFile), N), maps = {};
+  for (const v of views) { const f = join(r.dir, `layers-${v}.png`); maps[v] = existsSync(f) ? readLayerMap(await readRGBA(f), N) : L0; }
   const margin = Math.round((cfg.margin ?? 20) * res), quality = opt.quality ?? 'medium';
   const recipe = JSON.parse(await readFile(r.file, 'utf8'));
   const layers = [];
@@ -142,7 +145,7 @@ export async function cmdSplit([file], opt) {
     const m = margin, CW = W + 2 * m, EH = Math.ceil(H / 16) * 16;
     await mkdir(out, { recursive: true });
     for (const v of views) {
-      const pic = pics[v], img = blank(CW, H);
+      const pic = pics[v], img = blank(CW, H), L = maps[v];
       // own: this layer's pixels. hidden: what nearer layers cover. past: the margins and the padding, painted, each row
       // of a margin belonging to the layer of the picture's edge in that row: 1 this one, 2 a nearer one, 3 a further one
       const own = new Uint8Array(CW * EH), hidden = new Uint8Array(CW * EH), past = new Uint8Array(CW * EH);
