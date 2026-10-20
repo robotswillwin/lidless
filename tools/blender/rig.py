@@ -45,6 +45,10 @@ COAT_CHAIN = 3
 PONY_CHAIN = 3
 PONY_TRAIL = -6.0         # degrees: walking, the ponytail trails out behind her
 PONY_GAIN = 7.0           # degrees: how far each step's bounce swings it
+BUST_WALK = 0.5           # how much of the spring's lag behind her step the chest shows, walking
+BUST_RUN = 0.3            # and running, where her step bounces twice as high
+BUST_FREQ = (2.2, 1.9)    # the chest's bounces per cycle on its spring, walking and running
+BUST_DAMP = 0.3
 
 
 def to3(p, depth=0.0):
@@ -144,6 +148,10 @@ def build_armature(parts, pos):
         prev = 'hips'
         for k in range(COAT_CHAIN):
             prev = bone(f'coat{side}{k + 1}', pts[k], pts[k + 1], prev).name
+    # the chest: a bone riding on the torso where the bust is, which a spring moves up and down a little behind her step
+    if 'bust' in parts.get('torso', {}).get('joints', {}):
+        b0 = world(parts, pos, 'torso', 'bust')
+        bone('bust', b0, (b0[0], b0[1] - 40), 'torso')
     # the ponytail: a chain from where it is tied at the back of the head to its tip, riding on the head
     if 'ponytail' in parts:
         root, tip = pos['ponytail'], world(parts, pos, 'ponytail', 'tip')
@@ -158,10 +166,16 @@ def build_armature(parts, pos):
     return arm
 
 
-def weights(name, part, x, y):
+def weights(name, part, x, y, bounce=0.0):
     """How a vertex of a piece (in the piece's own pixels) follows the bones: rigid in the middle of a limb, blending into
-    the next bone across a joint, so knees, elbows and ankles bend instead of breaking."""
+    the next bone across a joint, so knees, elbows and ankles bend instead of breaking. `bounce` is how much of the
+    torso's chest follows the chest's bone, softly around the bust, in a set whose chest moves."""
     j, (w, h) = part['joints'], part['size']
+    if name == 'torso' and bounce > 0 and 'bust' in j:
+        bx, by = j['bust']
+        r = 0.15 * abs(j['hip'][1] - j['neck'][1])
+        b = bounce * (1 - smooth(0.55 * r, 1.5 * r, math.hypot(x - bx, y - by)))
+        return {'torso': 1 - b, 'bust': b}
     far = 'Far' if 'Far' in name else ''
     up, low, foot = f'leg{far}Upper', f'leg{far}Lower', f'foot{far}'
     aup, alow = f'arm{far}Upper', f'arm{far}Lower'
@@ -245,6 +259,8 @@ def build_set(s, arm, far):
     """One set's parts as meshes on the skeleton, in their own collection, drawn back to front."""
     parts, name = s['parts'], s['name']
     pos = layout(parts, far)
+    # a chest that moves needs the bone to move it, and a finer mesh to bend smoothly around it
+    bounce = s.get('bounce', 0.0) if 'bust' in arm.data.bones else 0.0
     col = bpy.data.collections.new(name)
     bpy.context.scene.collection.children.link(col)
     order = [r[0] for r in RIG if r[1] in parts]
@@ -256,7 +272,8 @@ def build_set(s, arm, far):
         w, h = part['size']
         pv = part['joints'][BY[piece][4]]
         x0, y0 = pos[piece][0] - pv[0], pos[piece][1] - pv[1]
-        cols, rows = max(2, round(w / 40)), max(2, round(h / 40))
+        step = 16 if piece == 'torso' and bounce > 0 else 40
+        cols, rows = max(2, round(w / step)), max(2, round(h / step))
         verts, faces, uvs = [], [], []
         for r in range(rows + 1):
             for c in range(cols + 1):
@@ -278,7 +295,7 @@ def build_set(s, arm, far):
         groups = {}
         for vi in range(len(verts)):
             r, c = divmod(vi, cols + 1)
-            for bone_name, wt in weights(piece, part, w * c / cols, h * r / rows).items():
+            for bone_name, wt in weights(piece, part, w * c / cols, h * r / rows, bounce).items():
                 if wt <= 1e-4:
                     continue
                 if bone_name not in groups:
@@ -385,6 +402,22 @@ def animate(arm):
     # running, the coat flies out further behind, the ponytail streams back and bounces harder
     if run:
         cycle(M + N, run, 0.8, 1.5, PONY_TRAIL * 3.0, PONY_GAIN * 1.6, 0.0)
+    # the chest: still standing; walking and running, on a damped spring that follows her body up and down, a little
+    # late, so it settles a moment after each step lands and rises
+    pb = arm.pose.bones.get('bust')
+    if pb:
+        def bust(start, frames, freq, gain):
+            bob = [f.get('bob', 0.0) for f in frames]
+            follow = spring_chain(bob, 1, omega=2 * math.pi * freq, zeta=BUST_DAMP)[0]
+            for k in range(len(frames)):
+                pb.location = (0.0, gain * (follow[k] - bob[k]) * PX, 0.0)
+                pb.keyframe_insert('location', frame=start + k)
+        for k in range(M):
+            pb.location = (0.0, 0.0, 0.0)
+            pb.keyframe_insert('location', frame=k)
+        bust(M, walk, BUST_FREQ[0], BUST_WALK)
+        if run:
+            bust(M + N, run, BUST_FREQ[1], BUST_RUN)
     for fc in arm.animation_data.action.fcurves if arm.animation_data and arm.animation_data.action and hasattr(arm.animation_data.action, 'fcurves') else []:
         for kp in fc.keyframe_points:
             kp.interpolation = 'CONSTANT'

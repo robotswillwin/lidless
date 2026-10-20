@@ -331,7 +331,7 @@ export const GAIT = { frames: 16, stride: 1.35, stance: 0.62, lift: 0.11, strike
  */
 export const RUN = {
   frames: 16, stride: 2.1, stance: 0.35, land: 0.2, kick: [-0.3, 0.5], drive: [0.18, 0.6], reach: [0.34, 0.85],
-  bend: [0.955, 0.9, 0.985], hop: 0.045, strike: 6, toeOff: 38, armsForward: 32, armsBack: 50, elbow: 86, elbowSwing: 12, lean: 15, coat: 5,
+  bend: [0.955, 0.9, 0.985], hop: 0.045, strike: 6, toeOff: 38, armsForward: 15, armsBack: 30, elbow: 55, elbowSwing: 25, lean: 11, coat: 5,
 };
 export const STAND = { step: 0.06, heel: 10, reach: 0.997, arm: -3, elbow: 9, farArm: 4, farElbow: 12, lean: 1 };
 /** Where along the foot, from the heel, a person's weight falls when they stand: the body is balanced over this point. */
@@ -507,10 +507,11 @@ export function runCycle(parts, runIn = {}, far = [-14, -6]) {
     });
     const [n, f] = feet, nl = reach(leg, [0, 0], [n.x, n.y], n.phi), fl = reach(leg, far, [f.x, f.y], f.phi);
     const air = stand >= 0 ? 0 : Math.max(0, Math.min(...feet.map((ft) => G - ft.y - depth(ft.phi))));
-    // the arms pump, each with the opposite leg, further back than forward, the elbows bent near square
+    // the arms swing, each with the opposite leg, further back than forward: opening as an arm swings back, its hand past
+    // her hip, and bending as it comes forward, its hand in front of her waist, as at a medium pace (a sprint pumps harder)
     const arm = (q) => {
       const c = Math.cos(2 * Math.PI * (q - 0.05)), half = (g.armsForward + g.armsBack) / 2, mid = (g.armsForward - g.armsBack) / 2;
-      return { up: mid - half * c, low: g.elbow + (g.elbowSwing * (1 + c)) / 2 };
+      return { up: mid - half * c, low: g.elbow + (g.elbowSwing * (1 - c)) / 2 };
     };
     const an = arm(p), af = arm(p + 0.5);
     frames.push({

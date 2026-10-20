@@ -275,7 +275,8 @@ export async function cmdRig([file], opt) {
         await writePNG(join(out, v, `${name}.png`), p.img);
         pieces[name] = { size: [p.img.w, p.img.h], joints: p.joints };
       }
-      sets.push({ name: v, left, coatFront: left ? r.parts?.left?.coat === 'front' : r.parts?.coat === 'front', parts: pieces });
+      // a view whose chest moves as she steps (parts.bounce, 0 to 1): the rig weights the torso's chest to its own bone
+      sets.push({ name: v, left, coatFront: left ? r.parts?.left?.coat === 'front' : r.parts?.coat === 'front', bounce: r.parts?.bounce?.[look] ?? 0, parts: pieces });
       if (v === 'raw') { walk = walkCycle(parts, gait, FAR); idle = idleCycle(parts, gait.idle, FAR, { frames: gait.idleFrames ?? 16 }); run = runCycle(parts, r.parts?.run ?? {}, FAR); }
     }
     if (!walk) throw new Error(`${r.name}: no raw parts to rig`);

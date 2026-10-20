@@ -233,9 +233,17 @@ Running is keyed the way an animator keys a run (`runCycle` and `RUN` in tools/p
 `parts.run` changing any of it): a foot lands a little in front of her hip and rolls back under her while the leg gives
 and straightens again; it pushes off from the toe, kicks up behind, is carried forward high under the driving knee,
 reaches out and lands, along a path measured from her hip so it rises and falls with her. Between steps, both feet off
-the ground, her hip rides an arc. She leans into it and her arms pump, bent near square, driving back further than
-forward; in Blender the coat flies out further, the ponytail streams back, and the forearms are held instead of
-trailing. (The walk's model with longer strides had looked like a prance: stiff standing leg, upright, no knee drive.)
+the ground, her hip rides an arc. She leans into it a little and her arms swing at a medium pace, further back than
+forward: each opens as it swings back, the hand passing her hip, and bends as it comes forward, the hand in front of
+her waist; in Blender the coat flies out further, the ponytail streams back, and the forearms are held instead of
+trailing. (The walk's model with longer strides had looked like a prance: stiff standing leg, upright, no knee drive;
+arms pumping to the chest had looked like a sprint.)
+
+Her chest moves a little as she steps, in the Concierge's view: `parts.joints.torso.bust` places a point on the torso
+where the bust is (fractions of the part), `parts.bounce` says how much of each view's chest moves (`{ "concierge": 1
+}`), and the rig weights that view's torso around the point to a bone of its own, on a finer mesh, which it moves up
+and down on a damped spring following her body's rise and fall a little late: half the spring's lag walking, a third
+of it running (`BUST_*` in tools/blender/rig.py), so it settles a moment after each step lands.
 Each run frame records how far she is off the ground, and `build` sets it down that far up, so the flight stays in.
 The game runs her when she is sent further than 2.5 times her height (`runFrom` in world.json), at her run stride and
 `runCadence`.
