@@ -99,23 +99,31 @@ await shot('shop');
 // Talk, and a tap on him: she walks up to him and they talk
 await verb('heart');
 await page.mouse.click(620, 400);
-await page.waitForSelector('.dialogue:not([hidden])', { timeout: 10000 });
+await page.waitForSelector('.talk-line:not([hidden])', { timeout: 10000 });
 await wait(200);
+console.log('over a head:', await text('.talk-line'), '| balls still there:', await page.$eval('.hud-ball.verbs', (b) => getComputedStyle(b).visibility));
 await shot('fixer-opens');
+// the lines come one at a time over the speakers' heads; Space moves on, to her answers along the bottom
+const answers = async () => { for (let i = 0; i < 30 && !(await page.$('.talk-choices:not([hidden])')); i++) { await page.keyboard.press(' '); await wait(120); } };
 const choose = async (label) => {
-  const buttons = await page.$$('.dialogue .choice');
-  for (const b of buttons) if ((await b.evaluate((e) => e.textContent ?? '')).includes(label)) return b.click();
-  throw new Error(`no choice "${label}"`);
+  await answers();
+  for (const b of await page.$$('.talk-choice')) if ((await b.evaluate((e) => e.textContent ?? '')).includes(label)) return b.click();
+  throw new Error(`no answer "${label}"`);
 };
+await answers();
+await shot('fixer-answers');
 await choose("I'm not here about a radio.");
 await wait(200);
-await shot('fixer-offer');
+console.log('she says:', await text('.talk-line'));
+await shot('fixer-she-says');
 await choose('What will I see?');
-await wait(150);
 await choose('Do it.');
-await wait(200);
+await wait(250);
+await page.keyboard.press(' ');
+await wait(250);
 await shot('fixer-installs');
-await choose('Close');
+// the last lines, and the conversation is over
+for (let i = 0; i < 30 && (await page.$('.talk-line:not([hidden])')); i++) { await page.keyboard.press(' '); await wait(150); }
 await wait(300);
 console.log('caption:', await text('.caption'), '| view switch:', await page.$eval('.hud', (e) => 'switch' in e.dataset));
 await shot('unlocked');

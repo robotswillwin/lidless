@@ -14,6 +14,7 @@ import { Hud, type Action, type Item, type Mark, type NotebookPages } from './hu
 import { inView, pick, type Hotspot } from './level';
 import { writeSave, type SaveData } from './save';
 import { SceneRunner, type ViewState } from './scene';
+import { Talk } from './talk';
 import { buildScene, loadSceneFile, type Exit, type Scene, type WorldFile } from './scenefile';
 import { UI } from './ui';
 import { World } from './world';
@@ -56,6 +57,8 @@ export class Game {
   readonly state: ViewState;
   readonly dialogue: Dialogue;
   readonly ui: UI;
+  /** Conversations, Monkey Island style: lines over the speakers' heads, her answers along the bottom. */
+  readonly talk: Talk;
   readonly hud: Hud;
   readonly look: LookPanel;
   travelling = false;
@@ -82,6 +85,8 @@ export class Game {
   private marked: Mark | null = null;
   /** Where a finger (or the mouse button) went down on the scene, while it is down. */
   private down: [number, number] | null = null;
+  /** Who she is talking to: their lines go over their head. */
+  private partner: Hotspot | null = null;
 
   private constructor(private readonly s: GameSetup) {
     this.dialogue = new Dialogue(s.save?.ink ?? null);
@@ -99,12 +104,13 @@ export class Game {
       onSceneSaved: (id, json) => { void this.scenes.get(id)?.then((sc) => { if (json) sc.file.look = json; else delete sc.file.look; }); },
     });
     this.lastT = this.clock();
-    this.ui.onChoose = (i) => {
+    this.talk = new Talk(this.hud.root, (speaker) => this.speakerAt(speaker));
+    // her answer, said over her head, and what comes of it
+    this.talk.onChoose = (i) => {
       const said = this.dialogue.choices[i], lines = this.dialogue.choose(i, this.raw);
-      if (!lines.length && !this.dialogue.choices.length) return this.endTalk();
-      this.ui.showDialogue(lines, this.dialogue.choices, said);
+      this.talk.show(lines, this.dialogue.choices, said);
     };
-    this.ui.onClose = () => this.endTalk();
+    this.talk.onEnd = () => this.endTalk();
     this.hud.onVerb = (v) => this.setVerb(v);
     this.hud.onTemple = () => this.toggleView();
     this.hud.onBell = () => this.hud.toast(this.scene.file.assist ?? 'Is there anything I can do for you, guest?');
@@ -173,8 +179,9 @@ export class Game {
     this.releaseKeys();
     this.setVerb(null);
     this.hud.closeAll();
-    // what she was looking at stays behind
+    // what she was looking at, and who she was talking to, stay behind
     this.ui.hideCaption();
+    if (this.talk.open) { this.talk.hide(); this.endTalk(); }
     this.s.fade.classList.add('on');
     await new Promise((r) => setTimeout(r, this.s.reduceMotion ? 0 : 260));
     try {
@@ -243,7 +250,7 @@ export class Game {
   /* ---------- conversations and doing things ---------- */
 
   private endTalk(): void {
-    this.ui.closeDialogue();
+    this.partner = null;
     this.hud.setTalking(false);
     // the conversation that unlocks the view switch, whichever it is, says how to use it
     const unlocked = this.lockedBeforeTalk && this.canSwitch();
@@ -261,8 +268,9 @@ export class Game {
     if (a.kind === 'feet' && h.go) return void this.travel(h.go);
     if (a.kind === 'heart' && h.talk) {
       this.lockedBeforeTalk = !this.canSwitch();
+      this.partner = h;
       this.hud.setTalking(true);
-      this.ui.showDialogue(this.dialogue.start(h.talk, raw), this.dialogue.choices);
+      this.talk.show(this.dialogue.start(h.talk, raw), this.dialogue.choices);
     } else if (a.kind === 'eyes' && h.look) {
       // what she finds is written at the thing, where her eye already is
       this.hud.note(h, pick(h.look, raw), this.boxOf(h));
@@ -304,6 +312,18 @@ export class Game {
     return [((clientX - r.left) / r.width) * NW + this.cam[0], ((clientY - r.top) / r.height) * NH + this.cam[1]];
   }
 
+  /** Where a speaker's lines go: over her head, over whoever she is talking to, or (narration) at the top. */
+  private speakerAt(speaker: string): [number, number] | null {
+    if (speaker === 'lux') {
+      const c = this.s.canvas.getBoundingClientRect(), hud = this.hud.root.getBoundingClientRect(), k = c.width / NW;
+      const head = this.scene.file.walk.y - this.s.hero.def.h * (this.scene.file.actorScale ?? 1);
+      return [(this.world.heroX - this.cam[0]) * k + c.left - hud.left, (head - this.cam[1]) * k + c.top - hud.top - 6];
+    }
+    if (speaker === 'narration' || !this.partner) return null;
+    const [x, y, w] = this.boxOf(this.partner);
+    return [x + w / 2, y - 6];
+  }
+
   /** A thing's place on screen, in the HUD's pixels, where its layer has moved to with the camera. */
   private boxOf(h: Hotspot): [number, number, number, number] {
     const c = this.s.canvas.getBoundingClientRect(), hud = this.hud.root.getBoundingClientRect(), k = c.width / NW;
@@ -331,7 +351,7 @@ export class Game {
    * closes, and what she found goes as she is given something else to do.
    */
   pointerDown(clientX: number, clientY: number, button: number): void {
-    if (this.ui.dialogueOpen || this.travelling) return;
+    if (this.talk.open || this.travelling) return;
     if (this.hud.panelOpen) return this.hud.closePanel();
     this.hud.dismissNote();
     if (button === 2) {
@@ -349,7 +369,7 @@ export class Game {
 
   /** It moved: with a verb, what it is over lights up (a mouse needs no button for that); a finger held down steers her. */
   pointerMove(clientX: number, clientY: number): void {
-    if (this.ui.dialogueOpen || this.travelling) return;
+    if (this.talk.open || this.travelling) return;
     if (this.verb) return this.scan(clientX, clientY);
     if (this.down && Math.hypot(clientX - this.down[0], clientY - this.down[1]) > 12) {
       this.pending = null;
@@ -404,7 +424,7 @@ export class Game {
     const t = this.clock(), dt = Math.min(0.05, Math.max(0, t - this.lastT)), world = this.world, file = this.scene.file;
     this.lastT = t;
     const wasMoving = world.moving;
-    const arrived = this.ui.dialogueOpen || this.travelling ? null : world.update(dt);
+    const arrived = this.talk.open || this.travelling ? null : world.update(dt);
     // the view may have changed on the way: a generated person is not there to talk to in raw view
     if (arrived && inView(arrived, this.raw)) {
       const actions = actionsFor(arrived, this.raw), a = actions.find((x) => x.kind === this.pending?.kind) ?? defaultOf(actions);
@@ -433,6 +453,7 @@ export class Game {
     if (this.marked) { this.marked.box = this.boxOf(this.marked.h); this.hud.mark(this.marked); }
     const noted = this.hud.noteFor;
     if (noted) this.hud.placeNote(this.boxOf(noted));
+    this.talk.place();
     fitCanvas(this.s.canvas);
     this.s.renderer.render(this.runner.frame(t, this.state, this.cam, [her], smoke));
   }

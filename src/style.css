@@ -49,29 +49,6 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
   width: min(680px, calc(100% - 32px)); margin: 0; padding: 12px 16px; background: var(--panel); color: var(--ink);
   font: italic 500 clamp(15px, 1.6vw, 19px)/1.45 var(--serif); text-align: center; text-wrap: balance; border-radius: 4px; pointer-events: none;
 }
-/* the dialogue panel */
-.dialogue {
-  position: absolute; z-index: 2; left: 50%; bottom: max(16px, env(safe-area-inset-bottom)); transform: translateX(-50%);
-  width: min(720px, calc(100% - 32px)); max-height: 60%; overflow: auto; display: grid; gap: 12px; padding: 16px 18px;
-  background: var(--panel); color: var(--ink); border-radius: 4px; box-shadow: 0 0 0 1px rgba(240, 178, 90, .25), 0 20px 60px rgba(0, 0, 0, .5);
-}
-.dialogue .lines { display: grid; gap: 8px; }
-.line { margin: 0; font: 400 clamp(15px, 1.5vw, 18px)/1.5 var(--ui); }
-.line[data-speaker="narration"] { font: italic 500 clamp(15px, 1.5vw, 18px)/1.5 var(--serif); color: var(--muted); }
-.line.said { color: var(--muted); font-size: 14px; }
-.line.said::before { content: "You: "; }
-.line .who { display: block; margin-bottom: 2px; font: 500 11px/1.4 var(--ui); letter-spacing: .18em; text-transform: uppercase; }
-.line[data-speaker="fixer"] .who { color: var(--amber); }
-.line[data-speaker="concierge"] { color: #d8fbf8; font-weight: 300; letter-spacing: .02em; }
-.line[data-speaker="concierge"] .who { color: var(--cyan); }
-.choices { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.choice {
-  width: 100%; display: flex; gap: 10px; align-items: baseline; text-align: left; padding: 9px 12px; border: 0; border-radius: 3px; cursor: pointer;
-  background: rgba(255, 255, 255, .06); color: var(--ink); font: 400 clamp(14px, 1.4vw, 17px)/1.35 var(--ui);
-}
-.choice:hover, .choice:focus-visible { background: rgba(240, 178, 90, .16); outline: none; }
-.choice .key { color: var(--amber); font: 500 12px/1 var(--ui); min-width: 1ch; }
-
 /* ---------- the HUD over the frame: the Concierge's interface in its view, Lux's own in raw view ---------- */
 .stage > #game, .stage > .hud { grid-area: 1 / 1; }
 .hud {
@@ -178,7 +155,33 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .hud[data-skin="raw"] .hud-ball-label { font-family: var(--hand); color: var(--amber); }
 .hud[data-skin="raw"] .hud-ball-label .verb { font-size: clamp(19px, 1.8cqw, 26px); line-height: 1; }
 .hud[data-skin="raw"] .hud-ball-label .hint { font-size: clamp(14px, 1.2cqw, 18px); }
-.hud[data-talking] :is(.hud-ball, .hud-ball-label, .hud-menu, .hud-mark) { visibility: hidden; }
+/* while she talks the balls stay where they are, resting; what they had out goes in */
+.hud[data-talking] .hud-ball { opacity: .35; pointer-events: none; }
+.hud[data-talking] :is(.hud-ball-label, .hud-menu, .hud-mark) { visibility: hidden; }
+
+/* conversations, Monkey Island style: each line over the speaker's head in their colour, narration quietly at the top,
+   her answers as a list along the bottom between the balls */
+.talk-skip { position: absolute; inset: 0; pointer-events: auto; cursor: pointer; }
+.talk-line { position: absolute; z-index: 2; width: max-content; max-width: min(440px, 46cqw); margin: 0; text-align: center; text-wrap: balance; pointer-events: none;
+  font: 500 clamp(15px, 1.55cqw, 21px)/1.3 var(--ui); letter-spacing: .01em; color: #f4f1ea;
+  text-shadow: 0 0 1px #000, 0 1px 1px #000, 1px 0 1px #000, -1px 0 1px #000, 0 -1px 1px #000, 0 2px 6px rgba(0, 0, 0, .9); animation: hud-fade .15s ease-out both; }
+.talk-line[data-voice="warm"] { color: var(--amber); }
+.talk-line[data-voice="co"] { color: var(--cyan); font-weight: 400; letter-spacing: .03em; }
+.talk-line[data-voice="other"] { color: #e3c6ff; }
+.talk-line.top { top: calc(var(--m) + 70px); max-width: min(560px, 62cqw); padding: 8px 16px; border-radius: 3px; background: rgba(5, 6, 10, .62);
+  font: italic 500 clamp(14px, 1.35cqw, 18px)/1.4 var(--serif); color: rgba(244, 241, 234, .88); text-shadow: none; }
+.hud[data-skin="raw"] .talk-line.top { top: var(--m); }
+.talk-choices { position: absolute; z-index: 2; left: 50%; bottom: var(--m); transform: translateX(-50%); width: min(600px, calc(100% - 2 * var(--m) - 2 * var(--slot) * 1.15 - 32px));
+  margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; pointer-events: auto; animation: hud-fade .15s ease-out both; }
+.talk-choice { width: 100%; display: flex; gap: 10px; align-items: baseline; padding: 7px 12px; border: 0; border-radius: 2px; text-align: left; cursor: pointer;
+  font: 400 clamp(14px, 1.35cqw, 18px)/1.3 var(--ui); }
+.talk-choice .key { min-width: 1ch; font: 500 12px/1 var(--ui); }
+.hud[data-skin="concierge"] .talk-choice { background: rgba(6, 10, 20, .8); border: 1px solid rgba(143, 240, 234, .3); color: var(--co-text); }
+.hud[data-skin="concierge"] .talk-choice .key { color: var(--cyan); }
+.hud[data-skin="concierge"] .talk-choice:is(:hover, :focus-visible) { border-color: var(--cyan); background: rgba(143, 240, 234, .16); outline: none; }
+.hud[data-skin="raw"] .talk-choice { background: rgba(10, 8, 5, .74); color: #f1e2c6; font-family: var(--hand); font-size: clamp(16px, 1.55cqw, 21px); }
+.hud[data-skin="raw"] .talk-choice .key { color: var(--amber); font-family: var(--hand); font-size: 15px; }
+.hud[data-skin="raw"] .talk-choice:is(:hover, :focus-visible) { background: rgba(240, 178, 90, .2); outline: none; }
 .hud[data-skin="raw"] :is(.hud-ribbon, .hud-toast) { display: none; }
 
 /* what a chosen verb lights up under her finger: the Concierge frames it, she rings it in pencil */

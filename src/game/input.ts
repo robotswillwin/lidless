@@ -34,10 +34,10 @@ export function bindInput(canvas: HTMLCanvasElement, game: Game, extras: InputEx
     if (e.key === 'l' || e.key === 'L') return game.look.toggle();
     // the keys a slider or list uses itself stay with it: arrows move a look slider, not the hero; E, Q and L still work
     if (e.target instanceof Element && e.target.closest('.look') && /^(Arrow|Home|End|Page)/.test(e.key)) return;
-    if (game.ui.key(e.key)) return e.preventDefault();
-    if (!game.ui.dialogueOpen && game.hud.key(e.key)) return e.preventDefault();
+    if (game.talk.key(e.key)) return e.preventDefault();
+    if (!game.talk.open && game.hud.key(e.key)) return e.preventDefault();
     const dir = walkDir(e.key);
-    if (dir && !game.ui.dialogueOpen) { game.walkKey(dir, true, e.shiftKey); return e.preventDefault(); }
+    if (dir && !game.talk.open) { game.walkKey(dir, true, e.shiftKey); return e.preventDefault(); }
     if (e.key === 'e' || e.key === 'E') game.toggleView(extras.forceView);
     if (e.key === 'q' || e.key === 'Q') extras.cycleQuality();
     if ((e.key === '`' || e.code === 'Backquote') && extras.openEditor) { e.preventDefault(); extras.openEditor(); }

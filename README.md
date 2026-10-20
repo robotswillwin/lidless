@@ -30,7 +30,11 @@ Then open the address Vite prints.
   her things, **Esc** closes.
 - Talk to the fixer in the radio shop. Once he has opened your eye, **E** or her temple (with her things) switches
   between Concierge view and raw view, and many things read differently. On the dev server, E works from the start.
-- Number keys pick answers in a conversation. **Q** cycles the quality tiers.
+- Conversations go as in Monkey Island: each line over the head of whoever says it, in their colour (hers, the
+  fixer's amber, the Concierge's cyan), narration quietly at the top, one line at a time for as long as it takes to
+  read; a tap, a click or **Space** moves on. Her answers are a list along the bottom between the balls (number keys
+  pick them), and the one she picks she says over her head. The balls stay, resting, while she talks. **Q** cycles the
+  quality tiers.
 - **L** opens the look panel: pixel size and shape, colour levels and dither, lights, haze, bloom, light shafts,
   raw-view fog and rain, how lights behind characters fill and rim them, how much glow shows over them and the light
   they are shown in, exposure, contrast, saturation, temperature, tint, vignette, grain, colour fringes and depth of
