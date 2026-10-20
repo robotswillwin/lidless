@@ -381,7 +381,7 @@ def animate(arm):
         lo, hi = min(bob), max(bob)
         mid, half = (lo + hi) / 2, max(1e-6, (hi - lo) / 2)
         pony = spring_chain([pony_trail - pony_gain * (b - mid) / half for b in bob], PONY_CHAIN, omega=2 * math.pi * 1.8, zeta=0.35)
-        # the forearms trail the upper arms a little, walking; running, the arms are held and pumped, and do not
+        # the forearms trail the upper arms a little
         lag = round(n * arm_lag)
         for k, f in enumerate(frames):
             p = k / n
@@ -401,7 +401,7 @@ def animate(arm):
     cycle(M, walk, 0.7, 1.0, PONY_TRAIL, PONY_GAIN, 0.07)
     # running, the coat flies out further behind, the ponytail streams back and bounces harder
     if run:
-        cycle(M + N, run, 0.8, 1.5, PONY_TRAIL * 3.0, PONY_GAIN * 1.6, 0.0)
+        cycle(M + N, run, 0.8, 1.5, PONY_TRAIL * 3.0, PONY_GAIN * 1.6, 0.07)
     # the chest: still standing; walking and running, on a damped spring that follows her body up and down, a little
     # late, so it settles a moment after each step lands and rises
     pb = arm.pose.bones.get('bust')

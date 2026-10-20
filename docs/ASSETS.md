@@ -233,11 +233,11 @@ Running is keyed the way an animator keys a run (`runCycle` and `RUN` in tools/p
 `parts.run` changing any of it): a foot lands a little in front of her hip and rolls back under her while the leg gives
 and straightens again; it pushes off from the toe, kicks up behind, is carried forward high under the driving knee,
 reaches out and lands, along a path measured from her hip so it rises and falls with her. Between steps, both feet off
-the ground, her hip rides an arc. She leans into it a little and her arms swing only a little, as at a jog: elbows
-bent 70 to 85 degrees, the hands staying around her waist, a little further back than forward (`armsForward`
-6, `armsBack` 14); in Blender the coat flies out further, the ponytail streams back, and the forearms are held instead of
-trailing. (The walk's model with longer strides had looked like a prance: stiff standing leg, upright, no knee drive;
-arms pumping to the chest, and then swinging from behind her hip to her chest, had looked like a sprint.)
+the ground, her hip rides an arc. She leans into it a little and her arms hang and swing as when she walks, a little
+further (`armsForward` 13, `armsBack` 15): the elbows softly bent, a little more as the arm comes forward, the
+forearms trailing; in Blender the coat flies out further and the ponytail streams back. (The walk's model with longer strides had looked like a prance: stiff standing leg, upright, no knee drive;
+arms pumping to the chest, and then swinging from behind her hip to her chest, had looked like a sprint; held bent at
+her waist, like a funny walk.)
 
 Her chest moves a little as she steps, in the Concierge's view: `parts.joints.torso.bust` places a point on the torso
 where the bust is (fractions of the part), `parts.bounce` says how much of each view's chest moves (`{ "concierge": 1
