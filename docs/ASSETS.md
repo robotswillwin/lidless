@@ -54,7 +54,10 @@ Art can carry more detail than a level pixel: a recipe's `res` is texels per lev
 `sprite.json`. The street and Luna's home are built at 2 and Luna at 1.25 (her 64 frames then fit in 2048 by 2048,
 drawn at about one texel per screen pixel on the street at render scale 2). The size and place of the sprite stay in
 level pixels whatever its `res`; the build divides the texels by it. At render scale 1, art at 2 is shrunk by
-averaging, so phones show the same picture, only softer, from the same files.
+averaging, so phones show the same picture, only softer, from the same files. They also load it smaller: a texture is
+uploaded with as many texels per level pixel as the screen shows (1 on the low and medium tiers), people with three
+quarters of that, as they are drawn at about half their size. The same picture then takes about a third of the memory:
+the main street with Luna 70 MB of textures instead of 224 (`setTexelBudget` in src/engine/assets.ts).
 
 Flat vector art (`look: vector`, or `flatMaps` in the recipe) has only colour and glow maps: it has no relief or shine
 of its own to light, and one set of flags for all of it, so its `sprite.json` carries the flags instead of a
