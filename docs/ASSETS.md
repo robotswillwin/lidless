@@ -123,6 +123,15 @@ flickers:
   torso, coat, upper arm, forearm, thigh, shin) following a template; the parts are cut out with their joints, posed
   through the walk and baked into frames (`parts --bake`). The left-facing side is the right side mirrored, with
   touch-ups only where the two differ, so it stays the same person. Luna is made this way.
+- **Outfits** (`art/cast/hero-home.json`, `hero-robe.json`, `hero-party.json`): the same character in other clothes,
+  each made as she is in her coat, from a profile drawn with her model sheet as the reference. `parts.same` takes her
+  head and ponytail from her own parts (`art/cast/hero`), so her face, hair and eyepiece stay exactly hers, and sizes
+  the outfit by her torso, so every outfit is as tall as she is. `parts.gaits` lists the gaits besides standing the rig
+  renders: `["walk"]` for clothes she does not run in, half the frames. What hangs from the waist takes the coat's
+  place: a cardigan's hem, a robe's skirt, a dress's skirt (`parts.proportions.coat`, its length). The image model lays
+  out each parts sheet its own way: `parts.at` gives where each piece is on that sheet, and `parts --recut` cuts it
+  again. A piece the rig swings out from under a skirt shows: the robe's thighs are coloured as the robe, so it reads
+  as closed.
 - **Characters that stand** (`touch --frame idle/N`): each frame repaints one area, such as a hand or a face, and
   everything outside it is identical in every frame. The recipe's `anims.idle` sets `fps` and `seq`. The fixer's
   soldering loop is made this way.

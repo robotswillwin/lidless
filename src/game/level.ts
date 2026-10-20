@@ -37,6 +37,8 @@ export interface Hotspot {
   only?: 'raw' | 'concierge';
   /** Where it is in one view its own way: drawn differently there, it takes up another place. */
   views?: Partial<Record<'raw' | 'concierge', Partial<Place>>>;
+  /** Her wardrobe: using it, she picks what to wear. */
+  wardrobe?: boolean;
 }
 
 /** Where a hotspot is: its area, where she stands to use it and which way she faces then. */

@@ -3,7 +3,7 @@
 
 import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import sharp from 'sharp';
 import { contentBox, fitColours, fitToHeight, hardenAlpha, paletteFit, pixelate, unionBox } from './clean.mjs';
@@ -59,11 +59,22 @@ export async function cmdParts([file], opt) {
   const parts = cutParts(await readRGBA(sheetFile), at, r.parts?.joints ?? {}, left);
   for (const [name, p] of Object.entries(parts)) await writePNG(join(dir, view, `${name}.png`), p.img);
   const jfile = join(dir, 'parts.json'), all = existsSync(jfile) ? JSON.parse(await readFile(jfile, 'utf8')) : {};
+  // parts.same: parts taken as they are from another character's, for the same view, such as her head and hair in
+  // another outfit, so she stays the same person
+  const same = r.parts?.same, sameDir = same ? join(resolve(ROOT, same.from), 'parts') : null;
+  const sameJoints = sameDir ? JSON.parse(await readFile(join(sameDir, 'parts.json'), 'utf8'))[view] ?? {} : {};
+  for (const name of same?.parts ?? []) {
+    const src = join(sameDir, view, `${name}.png`);
+    if (!existsSync(src) || !sameJoints[name]) throw new Error(`${r.name}: no ${view} ${name} in ${rel(sameDir)} to take`);
+    await copyFile(src, join(dir, view, `${name}.png`));
+    parts[name] = { img: await readRGBA(src), box: sameJoints[name].box, joints: sameJoints[name].joints, same: true };
+  }
   // a mirrored left sheet takes its joints from the right one, mirrored across the sheet, so they stay where they
   // belong even where a touch-up has changed a part's outline
   const right = left && r.parts?.left?.mirror ? all[look] : null;
   if (right) for (const [name, p] of Object.entries(parts)) {
     const rp = right[name];
+    if (p.same) continue;
     if (rp?.box) p.joints = Object.fromEntries(Object.entries(rp.joints).map(([j, [x, y]]) => [j, [SHEET.w - 1 - (rp.box[0] + x) - p.box[0], rp.box[1] + y - p.box[1]]]));
   }
   all[view] = Object.fromEntries(Object.entries(parts).map(([n, p]) => [n, { size: [p.img.w, p.img.h], box: p.box, joints: p.joints }]));
@@ -96,11 +107,12 @@ export const proportionsFor = (r, look) => (r.parts?.proportions ? { ...r.parts.
  * parts sheet at its own sizes, a big head and short legs as often as not; without this the rig puts them together as
  * drawn. The torso keeps its size; the others follow it.
  */
-export async function proportion(parts, prop) {
+export async function proportion(parts, prop, unit) {
   if (!prop?.torso || !parts.torso) return parts;
-  const unit = BONE.torso(parts.torso) / prop.torso;
+  // her height in the parts' pixels: given, or what makes the torso keep its size
+  unit ??= BONE.torso(parts.torso) / prop.torso;
   for (const [name, p] of Object.entries(parts)) {
-    if (name === 'torso' || !prop[name] || !BONE[name] || (name === 'shin' && prop.boot) || !p.joints) continue;
+    if (!prop[name] || !BONE[name] || (name === 'shin' && prop.boot) || !p.joints) continue;
     const s = (prop[name] * unit) / BONE[name](p);
     if (Math.abs(s - 1) < 0.01) continue;
     const w = Math.max(1, Math.round(p.img.w * s)), h = Math.max(1, Math.round(p.img.h * s));
@@ -258,6 +270,8 @@ export async function cmdRig([file], opt) {
   const r = await loadRecipe(file), dir = join(r.dir, 'parts'), out = join(r.dir, 'rig'), tmp = join(out, 'frames'), FAR = [-14, -6], PERCENT = 50;
   if (!opt['render-only']) {
     const all = JSON.parse(await readFile(join(dir, 'parts.json'), 'utf8')), gait = r.parts?.gait ?? {}, sets = [];
+    // an outfit that takes its head from another character's parts is as tall as that character, so its head stays as it is
+    const sameAll = r.parts?.same ? JSON.parse(await readFile(join(resolve(ROOT, r.parts.same.from), 'parts', 'parts.json'), 'utf8')) : null;
     let walk = null, idle = null, jog = null, run = null;
     for (const side of ['', '-left']) for (const look of ['raw', 'concierge']) {
       const v = look + side;
@@ -267,7 +281,8 @@ export async function cmdRig([file], opt) {
         const img = await readRGBA(join(dir, v, `${name}.png`));
         parts[name] = left ? mirrorPart(img, info.joints) : { img, joints: info.joints };
       }
-      await proportion(parts, proportionsFor(r, look));
+      const prop = proportionsFor(r, look), them = sameAll?.[v]?.torso;
+      await proportion(parts, prop, them && prop?.torso ? BONE.torso(them) / prop.torso : undefined);
       if (!parts.foot) throw new Error(`${r.name}: the rig needs a separate foot: give the recipe parts.proportions`);
       await mkdir(join(out, v), { recursive: true });
       const pieces = {};
@@ -277,7 +292,9 @@ export async function cmdRig([file], opt) {
       }
       // a view whose chest moves as she steps (parts.bounce, 0 to 1): the rig weights the torso's chest to its own bone
       sets.push({ name: v, left, coatFront: left ? r.parts?.left?.coat === 'front' : r.parts?.coat === 'front', bounce: r.parts?.bounce?.[look] ?? 0, parts: pieces });
-      if (v === 'raw') { walk = walkCycle(parts, gait, FAR); idle = idleCycle(parts, gait.idle, FAR, { frames: gait.idleFrames ?? 16 }); jog = jogCycle(parts, r.parts?.jog ?? {}, FAR); run = runCycle(parts, r.parts?.run ?? {}, FAR); }
+      // parts.gaits: the gaits besides standing she has in this outfit (all of walk, jog and run by default)
+      const has = (g) => !r.parts?.gaits || r.parts.gaits.includes(g);
+      if (v === 'raw') { walk = walkCycle(parts, gait, FAR); idle = idleCycle(parts, gait.idle, FAR, { frames: gait.idleFrames ?? 16 }); jog = has('jog') ? jogCycle(parts, r.parts?.jog ?? {}, FAR) : null; run = has('run') ? runCycle(parts, r.parts?.run ?? {}, FAR) : null; }
     }
     if (!walk) throw new Error(`${r.name}: no raw parts to rig`);
     await writeFile(join(out, 'rig.json'), JSON.stringify({ blend: `${r.name}.blend`, percent: PERCENT, far: FAR, sets, walk, idle, jog, run }, null, 1) + '\n');

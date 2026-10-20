@@ -13,7 +13,31 @@
       "cigarettes",
       "map"
     ],
-    "cadence": 1.1
+    "cadence": 1.1,
+    "outfits": {
+      "coat": {
+        "sprite": "cast/hero",
+        "name": "Coat",
+        "out": true,
+        "home": "home"
+      },
+      "home": {
+        "sprite": "cast/hero-home",
+        "name": "Home clothes",
+        "out": "coat"
+      },
+      "robe": {
+        "sprite": "cast/hero-robe",
+        "name": "Bathrobe",
+        "stay": "Not in my bathrobe."
+      },
+      "party": {
+        "sprite": "cast/hero-party",
+        "name": "Party dress",
+        "out": true
+      }
+    },
+    "outfit": "coat"
   },
   "scenes": [
     "street",

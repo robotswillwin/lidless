@@ -7,6 +7,7 @@ import { loadSprite, spriteDefaults, type GodrayDef, type GroundDef, type Loaded
 import { presets, type PlacedLight } from '../engine/presets';
 import { textureFromImage, type GL } from '../engine/gl';
 import type { Hotspot, LevelDef } from './level';
+import type { Outfits } from './outfits';
 
 export type Rect = [number, number, number, number];
 
@@ -83,6 +84,8 @@ export interface SceneFile {
    * around a smaller Luna), over 1 a closeup. Her pace on screen goes with the square root of it: smaller, but not a crawl.
    */
   actorScale?: number;
+  /** Her home: she takes off her coat here as she comes in, and a hotspot that is her wardrobe lets her change clothes. */
+  wardrobe?: boolean;
   /**
    * The scene's own look: the settings it sets its own way over the game's look (public/assets/look.json), shaped like
    * that file but with only those settings: rain, fog, depth of field, the light on its people, anything the look panel
@@ -114,7 +117,13 @@ export interface WorldFile {
    * jogFrom and runFrom: sent further than this many times her height on screen, she jogs (2.5 by default), and runs
    * (5 by default).
    */
-  hero: { sprite: string; speed: number; cadence?: number; jogCadence?: number; runCadence?: number; jogFrom?: number; runFrom?: number; smoke?: [number, number]; items?: string[] };
+  hero: {
+    sprite: string; speed: number; cadence?: number; jogCadence?: number; runCadence?: number; jogFrom?: number; runFrom?: number; smoke?: [number, number]; items?: string[];
+    /** What she can wear, each a sprite of its own (see outfits.ts); without any, she always wears `sprite`. */
+    outfits?: Outfits;
+    /** The outfit she starts in; the first one if none is given. */
+    outfit?: string;
+  };
   scenes: string[];
 }
 

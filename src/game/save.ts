@@ -11,6 +11,8 @@ export interface SaveData {
   ink: string | null;
   /** How closely the Concierge is watching her, 0 to 3. */
   attention?: number;
+  /** What she is wearing: one of the world's outfits. */
+  outfit?: string;
 }
 
 const KEY = 'lidless.save.v1';

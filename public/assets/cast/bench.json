@@ -2,6 +2,9 @@
   "assets": [
     "fixer",
     "hero",
+    "hero-home",
+    "hero-party",
+    "hero-robe",
     "lux-concierge"
   ],
   "backgrounds": []

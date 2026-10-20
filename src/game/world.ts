@@ -60,8 +60,10 @@ export class World {
 
   /** A gait's speed: from the level, or for a gait the sprite has no frames for, a faster walk. */
   speedOf(g: Gait): number {
-    const h = this.level.hero;
-    return h.gaits?.[g]?.speed ?? h.speed * (g === 'walk' ? 1 : g === 'jog' ? 2.2 : 3);
+    const h = this.level.hero, gs = h.gaits;
+    // a gait her sprite has not, where it has some (an outfit she only walks in): the fastest she has below it
+    if (gs && Object.keys(gs).length) for (let i = GAITS.indexOf(g); i >= 0; i--) { const v = gs[GAITS[i]]?.speed; if (v) return v; }
+    return h.speed * (g === 'walk' ? 1 : g === 'jog' ? 2.2 : 3);
   }
 
   /** How far a cycle of a gait carries her: what its frames show, so a foot stays where it lands. */

@@ -1,0 +1,129 @@
+{
+  "name": "hero-robe",
+  "scene": "cast",
+  "kind": "character",
+  "exists": "both",
+  "prompt": "This is Luna at home in her flat, the real woman under the city AI's version of her: about 27, tall and slim, with adult proportions and long legs. Her face, her dull ash-blonde hair in its plain, fairly thin high ponytail, and her old goggle over her right eye, exactly as in the reference. Fresh from the shower she wears a worn, thin bathrobe of faded grey-blue terry cloth, closed high at the collar and belted at the waist with its own sash, hanging to just below her knees, its long sleeves loose; bare shins and worn felt slippers. The same flat-shaded style: two or three flat tones per surface, crisp edges, no texture.",
+  "concierge": "Luna at home as the city AI shows her: the same beautiful woman, her figure, her glossy black ponytail with hot-pink and teal streaks and the sleek ice-blue visor over her right eye only exactly as in the reference, fresh from the shower in a plush white spa bathrobe, closed high at the collar and belted at the waist with a satin sash, hanging to just below her knees, its long sleeves soft and full; fluffy white slippers. Light make-up. The same flat-shaded style: two or three flat tones per surface, crisp edges, no texture.",
+  "height": 240,
+  "position": [
+    480,
+    464
+  ],
+  "material": "cloth",
+  "glow": {
+    "raw": "none",
+    "concierge": "auto",
+    "machine": false
+  },
+  "references": [
+    "art/cast/hero/raw.png"
+  ],
+  "conciergeReferences": [
+    "art/cast/hero/concierge.png",
+    "art/reference/luna/v2/ar-head.png"
+  ],
+  "look": "vector",
+  "res": 1.25,
+  "framing": "One full-length figure in exact profile, seen straight from the side and facing right, standing in a neutral pose for animation: arms hanging relaxed and slightly away from the body, hands empty and open, legs straight and a little apart so both are fully visible, nothing held and nothing crossing the body. Feet at the bottom of the frame. Even, soft, frontal lighting with no cast shadows and no rim light. Transparent background, the whole figure in frame with a little space around it, no ground, no text, no border.",
+  "referenceNote": "character",
+  "anims": {
+    "idle": {
+      "fps": 5
+    },
+    "idleLeft": {
+      "fps": 5
+    }
+  },
+  "parts": {
+    "from": "raw.png",
+    "left": {
+      "mirror": true,
+      "coat": "front",
+      "raw": "Seen from her left side: the goggles' left lens over her left eye, the strap around her head, the ponytail behind.",
+      "concierge": "Seen from her left side: her left eye is uncovered, made up, with no visor or glow over it at all; the visor is on her right eye, out of sight. Only the pink band of her ponytail and the hair show above her ear."
+    },
+    "right": "Seen from her right side: the goggles' right lens over her right eye in raw view, the glowing visor over her right eye in the Concierge's.",
+    "proportions": {
+      "head": 0.15,
+      "torso": 0.26,
+      "coat": 0.3,
+      "upperArm": 0.16,
+      "forearm": 0.21,
+      "thigh": 0.245,
+      "shin": 0.325,
+      "ponytail": 0.3
+    },
+    "gait": {
+      "idle": {
+        "step": 0.06,
+        "heel": 10
+      }
+    },
+    "extra": [
+      "ponytail"
+    ],
+    "proportionsByView": {
+      "concierge": {
+        "ponytail": 0.34
+      }
+    },
+    "reshape": "The ponytail piece, on its own at the far left of the sheet, is fuller: about one and a half times as wide, with spiky strands, and it stays a separate piece with clear empty space between it and the head, never touching it. The torso's bust is fuller and rounder under the robe, the collar, shoulders, waist and hips staying where they are.",
+    "coat": "front",
+    "joints": {
+      "torso": {
+        "bust": [
+          0.74,
+          0.39
+        ]
+      }
+    },
+    "bounce": {
+      "concierge": 1
+    },
+    "same": {
+      "from": "art/cast/hero",
+      "parts": [
+        "head",
+        "ponytail"
+      ]
+    },
+    "gaits": [
+      "walk"
+    ],
+    "at": {
+      "head": [
+        187,
+        182
+      ],
+      "ponytail": [
+        394,
+        308
+      ],
+      "torso": [
+        662,
+        258
+      ],
+      "coat": [
+        940,
+        409
+      ],
+      "upperArm": [
+        1197,
+        288
+      ],
+      "forearm": [
+        1394,
+        318
+      ],
+      "thigh": [
+        505,
+        742
+      ],
+      "shin": [
+        768,
+        762
+      ]
+    }
+  }
+}

@@ -10,7 +10,7 @@ import { duplicate } from './clipboard';
 import { deleteSelected, pickAsset, settleSuggested, suggestFromArt } from './edit';
 import { joinUp } from './exits';
 import { joinedUp, joinOf, missingThere, nameOf as joinName } from './join';
-import { rebuild, refresh, syncEffects, syncScroll, updatePlay } from './files';
+import { rebuild, refresh, syncEffects, syncHero, syncScroll, updatePlay } from './files';
 import { amount, buttons, check, choice, colour, eye, heading, labelFields, num, section, slider, str, viewText } from './form';
 import { lintScene, type Problem } from './lint';
 import { editView, hasOwn, markOwn, ownIn, sameInBoth, setFor, shownView, viewLabel } from './views';
@@ -142,6 +142,7 @@ function hotspotSide(i: number): void {
     wayBack(join, i);
   } else {
     side(...viewText('Look text', h.look, (v) => { if (v === undefined) delete h.look; else h.look = v; }, true));
+    side(check('Her wardrobe: Use picks what she wears', !!h.wardrobe, (v) => { if (v) h.wardrobe = true; else delete h.wardrobe; }));
     side(str('Conversation (Ink knot)', h.talk ?? '', (v) => { if (v) h.talk = v; else delete h.talk; }));
     // what the Use and Take verbs do to it: without a text, they do nothing to it and it does not light up for them
     side(...viewText('Use text', h.use, (v) => { if (v === undefined) delete h.use; else h.use = v; }, true));
@@ -463,6 +464,7 @@ function sceneSide(): void {
     num('Reflection line y', file.mirror ?? file.walk.y - 8, (v) => { file.mirror = v; }, { after: refresh }),
     slider('People’s size (1 standard, under 1 further back)', file.actorScale ?? 1, (v) => { if (v === 1) delete file.actorScale; else file.actorScale = v; }, { min: 0.3, max: 1.5, step: 0.01, mark: 1, after: refresh }),
     slider('Camera follows Luna, px each way (a scene no wider than the screen)', file.drift ?? 0, (v) => { if (v) file.drift = v; else delete file.drift; }, { min: 0, max: 60, step: 1 }),
+    check('Her home: she takes her coat off here, and a hotspot can be her wardrobe', !!file.wardrobe, (v) => { if (v) file.wardrobe = true; else delete file.wardrobe; }, () => void syncHero().then(redraw.overlay)),
   ];
   const light = () => [
     perView('Ambient light (1 as standard)', 'ambient', 1, { step: 0.05, min: 0, max: 3, mark: 1 }),

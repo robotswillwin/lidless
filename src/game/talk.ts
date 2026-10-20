@@ -109,6 +109,8 @@ export class Talk {
     this.queue = [];
     this.line.hidden = true;
     this.list.hidden = true;
+    // answers put away are gone: none is left to pick from a list no longer there
+    this.list.replaceChildren();
     this.skip.hidden = true;
   }
 

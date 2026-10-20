@@ -62,6 +62,9 @@ The design: https://claude.ai/artifact/X65FknT3sqWZBgJaHgHboZ. In code: `src/gam
   her head; the balls stay, resting. Studied against LucasArts-style lines over the speaker, Sierra's text boxes, bubbles anchored to speakers
   (Oxenfree, Night in the Woods), a log (Disco Elysium) and film subtitles; to come: a log of what she has found, and
   a text size setting.
+- **What she wears.** At home she changes at the coat hook, picking from her outfits as from her answers: home
+  clothes, a bathrobe, a party dress. She takes her coat off coming home and puts it on over home clothes going out;
+  she goes out in the party dress, and not in the bathrobe. Each outfit walks and stands; she runs only in her coat.
 - **Data.** A hotspot's `tag` and `ask`, a scene's `greeting` and `assist`, `public/assets/items.json` for her things
   and `public/assets/notebook.json` for her notebook, whose entries appear as Ink variables come true.
 - **Not built yet.** Use and Take only say what happens (a hotspot's `use` and `take`): what she takes does not go into

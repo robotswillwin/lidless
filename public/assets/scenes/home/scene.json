@@ -198,7 +198,8 @@
    "look": {
     "concierge": "Your coat: glossy red, with a neon trim that catches every light.",
     "raw": "Your raincoat, grey-maroon and cheap. Still damp from yesterday."
-   }
+   },
+   "wardrobe": true
   },
   {
    "id": "fridge",
@@ -386,5 +387,6 @@
    "actorGreen": 0.92,
    "actorBlue": 0.9
   }
- }
+ },
+ "wardrobe": true
 }

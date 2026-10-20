@@ -233,6 +233,11 @@ async function loadJSON<T>(url: string): Promise<T> {
 }
 
 /** Fallbacks for maps an asset leaves out: flat normal, a dull material, no glow. */
+/** Let a sprite's textures go: one loaded with stand-ins of its own (spriteDefaults), which go with it. */
+export function freeSprite(gl: GL, s: Sprite): void {
+  for (const t of new Set(Object.values(s.tex))) gl.deleteTexture(t);
+}
+
 export function spriteDefaults(gl: GL) {
   return {
     normal: solidTexture(gl, [128, 128, 255, 255]),

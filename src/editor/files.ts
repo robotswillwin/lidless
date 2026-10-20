@@ -1,7 +1,9 @@
 // Scenes in and out of the editor: opening one, building it for rendering, keeping the built scene in step with the file,
 // saving through the dev server, and undo.
 
+import { loadSprite, spriteDefaults, type Sprite } from '../engine/assets';
 import { NW } from '../engine/renderer';
+import { outfitIn } from '../game/outfits';
 import { SceneRunner } from '../game/scene';
 import { buildScene, loadSceneFile, zoneTexture, type SceneFile } from '../game/scenefile';
 import { base, dom, ed, gl, redoStack, redraw, setDirty, setStatus, snapshot, syncDirty, syncHistory, undoStack } from './state';
@@ -56,8 +58,20 @@ export function syncScroll(): void {
   dom.scroll.value = String(ed.camX);
 }
 
+/** Luna's sprites, by asset: loaded the first time a scene shows her in them. */
+const heroes = new Map<string, Promise<Sprite | null>>();
+
+/** Luna as the scene shows her: in her first outfit, or at home out of her coat. */
+export async function syncHero(): Promise<void> {
+  const h = ed.world.hero, outfits = h.outfits;
+  const path = outfits ? outfits[outfitIn(outfits, h.outfit ?? Object.keys(outfits)[0], !!ed.file.wardrobe)]?.sprite ?? h.sprite : h.sprite;
+  if (!heroes.has(path)) { const cut = path.lastIndexOf('/'); heroes.set(path, loadSprite(gl, `${base}/${path.slice(0, cut)}`, path.slice(cut + 1), spriteDefaults(gl)).catch(() => null)); }
+  ed.hero = await heroes.get(path)!;
+}
+
 export async function openScene(id: string): Promise<void> {
   ed.file = await loadSceneFile(base, id);
+  await syncHero();
   ed.look?.setScene(ed.file);
   undoStack.length = 0;
   redoStack.length = 0;

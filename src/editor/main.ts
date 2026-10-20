@@ -5,7 +5,7 @@
 
 import '../style.css';
 import { Story } from 'inkjs';
-import { loadSprite, spriteDefaults, type LightDef } from '../engine/assets';
+import type { LightDef } from '../engine/assets';
 import { loadProjectLook } from '../engine/look';
 import { loadPresets, presets } from '../engine/presets';
 import { fitCanvas, type DrawSprite } from '../engine/renderer';
@@ -19,7 +19,7 @@ import { listAssets, openScene, redo, revert, save, syncAddress, undo } from './
 import { lunaFrame } from './luna';
 import { bindOverlay, drawOverlay } from './overlay';
 import { drawSide } from './panels';
-import { base, dom, ed, gl, inTask, prefs, redraw, renderer, savePrefs, showError, t0, viewX, type Kind, type Task } from './state';
+import { base, dom, ed, inTask, prefs, redraw, renderer, savePrefs, showError, t0, viewX, type Kind, type Task } from './state';
 
 redraw.overlay = drawOverlay;
 redraw.side = drawSide;
@@ -195,8 +195,6 @@ async function start(): Promise<void> {
     for (const [key, p] of kinds) group.append(new Option(p.label, `light:${key}`));
     addLight.append(group);
   }
-  const heroPath = ed.world.hero.sprite, cut = heroPath.lastIndexOf('/');
-  ed.hero = await loadSprite(gl, `${base}/${heroPath.slice(0, cut)}`, heroPath.slice(cut + 1), spriteDefaults(gl)).catch(() => null);
   ed.look = createLookPanel(renderer, project, dom.stage, {
     view: () => (ed.view < 0.5 ? 'raw' : 'concierge'),
     // the scene's own look was saved into its file: so the editor's own Save keeps it

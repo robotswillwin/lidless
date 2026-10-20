@@ -1,7 +1,7 @@
 // A game session: the scene she is in and the ways between them, what she does with things, the view switch and how
 // closely the Concierge watches her, conversations, saving, and each frame drawn.
 
-import type { Sprite } from '../engine/assets';
+import { freeSprite, loadSprite, spriteDefaults, type Sprite } from '../engine/assets';
 import type { LookSet } from '../engine/look';
 import { fitCanvas, NH, NW, type Renderer } from '../engine/renderer';
 import { createLookPanel, type LookPanel } from '../look-panel';
@@ -12,6 +12,7 @@ import { Dialogue } from './dialogue';
 import { heroDrawing, heroGaits, paceFor } from './hero';
 import { Hud, type Action, type Item, type Mark, type NotebookPages } from './hud';
 import { inView, pick, placeIn, type Hotspot } from './level';
+import { outfitAfter } from './outfits';
 import { writeSave, type SaveData } from './save';
 import { SceneRunner, type ViewState } from './scene';
 import { Talk } from './talk';
@@ -87,6 +88,11 @@ export class Game {
   private down: [number, number] | null = null;
   /** Who she is talking to: their lines go over their head. */
   private partner: Hotspot | null = null;
+  /** What she is wearing, one of the world's outfits, and her sprites in them, each loaded the first time she wears it. */
+  private outfit: string;
+  private readonly heroes = new Map<string, Promise<Sprite>>();
+  /** A choice that is not a conversation's, such as what to wear: picking an answer goes here. */
+  private picker: ((i: number) => void) | null = null;
 
   private constructor(private readonly s: GameSetup) {
     this.dialogue = new Dialogue(s.save?.ink ?? null);
@@ -97,6 +103,9 @@ export class Game {
     this.hud.known = (v) => Boolean(this.dialogue.story.variablesState[v]);
     this.state = { view: s.rawView ? 0 : s.save && this.canSwitch() ? s.save.view : 1, sinceSwitch: 10 };
     this.attention = s.save?.attention ?? 0;
+    const outfits = s.world.hero.outfits ?? {};
+    this.outfit = s.save?.outfit && outfits[s.save.outfit] ? s.save.outfit : s.world.hero.outfit ?? Object.keys(outfits)[0] ?? '';
+    this.heroes.set(s.world.hero.sprite, Promise.resolve(s.hero));
     // the look panel (L): from the game's saved look, with each scene's own settings over it; split settings follow the view
     this.look = createLookPanel(s.renderer, s.projectLook, s.stage, {
       view: () => (this.state.view < 0.5 ? 'raw' : 'concierge'),
@@ -107,6 +116,12 @@ export class Game {
     this.talk = new Talk(this.hud.root, (speaker) => this.speakerAt(speaker));
     // her answer, said over her head, and what comes of it
     this.talk.onChoose = (i) => {
+      if (this.picker) {
+        const picked = this.picker;
+        this.picker = null;
+        this.talk.hide();
+        return picked(i);
+      }
       const said = this.dialogue.choices[i], lines = this.dialogue.choose(i, this.raw);
       this.talk.show(lines, this.dialogue.choices, said);
     };
@@ -153,13 +168,12 @@ export class Game {
 
   private async enter(id: string, at: Arrival): Promise<void> {
     const next = await this.sceneById(id), sp = at.spawn ? next.file.spawns[at.spawn] : undefined;
+    // at home's door she changes: out of her coat coming in, into it going out
+    const outfits = this.s.world.hero.outfits;
+    if (outfits) await this.wear(outfitAfter(outfits, this.outfit, !!this.scene?.file.wardrobe, !!next.file.wardrobe) ?? this.outfit);
     this.scene = next;
     this.runner = new SceneRunner(next.loaded);
-    // her pace follows her stride at her size here, so each foot stays where it lands
-    // each gait the same way: a jog and a run, longer strides at a quicker cadence
-    const gaits = heroGaits(this.s.hero.def, this.s.world.hero, next.file.actorScale ?? 1);
-    next.level.hero.gaits = gaits;
-    if (gaits.walk) next.level.hero.speed = gaits.walk.speed;
+    this.fitGaits(next);
     this.world = new World(next.level, at.x ?? sp?.x, at.facing ?? sp?.facing);
     this.world.raw = this.raw;
     this.camera.jump(this.cameraTarget());
@@ -172,12 +186,88 @@ export class Game {
     return cameraTarget(this.scene.file, this.world.heroX, this.s.reduceMotion);
   }
 
+  /**
+   * Her pace follows her stride at her size here, so each foot stays where it lands; each gait the same way, a jog and a
+   * run longer strides at a quicker cadence. Only the gaits she has in what she wears.
+   */
+  private fitGaits(scene: Scene): void {
+    const gaits = heroGaits(this.s.hero.def, this.s.world.hero, scene.file.actorScale ?? 1);
+    scene.level.hero.gaits = gaits;
+    if (gaits.walk) scene.level.hero.speed = gaits.walk.speed;
+  }
+
+  /* ---------- what she wears ---------- */
+
+  /** Her sprite in an outfit, loaded the first time she wears it. */
+  private heroSprite(path: string): Promise<Sprite> {
+    if (!this.heroes.has(path)) {
+      const cut = path.lastIndexOf('/'), gl = this.s.renderer.gl;
+      this.heroes.set(path, loadSprite(gl, `${this.s.assets}/${path.slice(0, cut)}`, path.slice(cut + 1), spriteDefaults(gl), this.bust));
+    }
+    return this.heroes.get(path)!;
+  }
+
+  private async wear(key: string): Promise<void> {
+    const outfits = this.s.world.hero.outfits, o = outfits?.[key];
+    if (!o) return;
+    const was = outfits?.[this.outfit]?.sprite;
+    this.s.hero = await this.heroSprite(o.sprite);
+    this.outfit = key;
+    // what she took off is let go, loaded again if she wears it again; not her coat, which she wears whenever she goes
+    // out: a phone holds two of her at most
+    if (was && was !== o.sprite && was !== this.s.world.hero.sprite) {
+      const off = this.heroes.get(was);
+      this.heroes.delete(was);
+      void off?.then((s) => freeSprite(this.s.renderer.gl, s));
+    }
+  }
+
+  /**
+   * Her wardrobe: what she wears at home, as answers to pick from, and a way out of it. Not her coat: she takes that off
+   * as she comes in, it hangs by the door, and she puts it on as she leaves.
+   */
+  private openWardrobe(): void {
+    const outfits = this.s.world.hero.outfits;
+    if (!outfits) return;
+    const keys = Object.keys(outfits).filter((k) => !outfits[k].home);
+    this.picker = (i) => { if (keys[i] && keys[i] !== this.outfit) void this.change(keys[i]); };
+    this.talk.show([], [...keys.map((k) => `${outfits[k].name}${k === this.outfit ? ' (wearing)' : ''}`), 'Never mind']);
+  }
+
+  /** She changes clothes where she stands, behind a moment's fade. */
+  private async change(key: string): Promise<void> {
+    this.s.fade.classList.add('on');
+    await new Promise((r) => setTimeout(r, this.s.reduceMotion ? 0 : 260));
+    try {
+      await this.wear(key);
+      this.fitGaits(this.scene);
+      this.persist();
+    } catch (err) {
+      this.ui.showCaption(`Those clothes are not made yet (${err instanceof Error ? err.message : String(err)}).`);
+    }
+    this.s.fade.classList.remove('on');
+  }
+
+  /** A line of hers, over her head. */
+  private say(text: string): void {
+    this.talk.show([{ text, speaker: 'luna' }], []);
+  }
+
   /** A door or the end of the street: fade out, go to the other scene, fade in. */
   private async travel(exit: Exit): Promise<void> {
     if (this.travelling) return;
     this.travelling = true;
     this.world.stop();
     this.releaseKeys();
+    // dressed in what she does not go out in, she stays
+    const outfits = this.s.world.hero.outfits;
+    if (outfits && this.scene.file.wardrobe) {
+      const to = await this.sceneById(exit.scene).catch(() => null);
+      if (to && outfitAfter(outfits, this.outfit, true, !!to.file.wardrobe) === null) {
+        this.travelling = false;
+        return this.say(outfits[this.outfit]?.stay ?? 'Not dressed like this.');
+      }
+    }
     this.setVerb(null);
     this.hud.closeAll();
     // what she was looking at, and who she was talking to, stay behind
@@ -277,7 +367,8 @@ export class Game {
       // what she finds is written at the thing, where her eye already is
       this.hud.note(h, pick(h.look, raw), this.boxOf(h));
       if (a.cost) this.raiseAttention(a.cost);
-    } else if (a.kind === 'hands' && h.use) this.hud.note(h, pick(h.use, raw), this.boxOf(h));
+    } else if (a.kind === 'hands' && h.wardrobe) this.openWardrobe();
+    else if (a.kind === 'hands' && h.use) this.hud.note(h, pick(h.use, raw), this.boxOf(h));
     else if (a.kind === 'take' && h.take) this.hud.note(h, pick(h.take, raw), this.boxOf(h));
     else if (a.kind === 'ask' && h.ask) this.hud.toast(h.ask);
   }
@@ -422,7 +513,7 @@ export class Game {
   /* ---------- saving ---------- */
 
   persist(): void {
-    writeSave({ v: 1, scene: this.scene.file.id, heroX: Math.round(this.world.heroX), facing: this.world.facing, view: this.state.view, ink: this.dialogue.save(), attention: this.attention });
+    writeSave({ v: 1, scene: this.scene.file.id, heroX: Math.round(this.world.heroX), facing: this.world.facing, view: this.state.view, ink: this.dialogue.save(), attention: this.attention, outfit: this.outfit || undefined });
   }
 
   /* ---------- each frame ---------- */
