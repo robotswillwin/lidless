@@ -1,254 +1,444 @@
 {
- "id": "backstreet",
- "name": "Backstreet",
- "assist": "The main street is to your right, guest.",
- "kind": "exterior",
- "size": [
-  1016,
-  540
- ],
- "layers": [
-  {
-   "asset": "backstreet/lane",
-   "x": 0,
-   "y": 0
+  "id": "backstreet",
+  "name": "Backstreet",
+  "assist": "The main street is to your right, guest.",
+  "kind": "exterior",
+  "size": [
+    960,
+    540
+  ],
+  "layers": [
+    {
+      "asset": "backstreet/lane"
+    }
+  ],
+  "walk": {
+    "y": 458,
+    "x0": 30,
+    "x1": 930
+  },
+  "mirror": 440,
+  "ground": {
+    "horizon": 340,
+    "slab": [
+      90,
+      70
+    ],
+    "puddles": 0.25
+  },
+  "spawns": {
+    "from-street": {
+      "x": 905,
+      "facing": -1
+    },
+    "door": {
+      "x": 453,
+      "facing": 1
+    }
+  },
+  "hotspots": [
+    {
+      "id": "store",
+      "name": {
+        "concierge": "Concierge Store 24",
+        "raw": "Shuttered kiosk"
+      },
+      "rect": [
+        44,
+        248,
+        276,
+        170
+      ],
+      "stand": 180,
+      "look": {
+        "concierge": "Coffee, drinks, snacks, essentials. A cleaner, brighter you, it promises.",
+        "raw": "Rusted shutters, a smiley sprayed across them. Whatever it sold, it stopped."
+      },
+      "tag": "Concierge Store 24 · open",
+      "ask": "Coffee, drinks, snacks and essentials, guest. Shall I place an order?"
+    },
+    {
+      "id": "entrance",
+      "name": "Entrance 3",
+      "rect": [
+        404,
+        284,
+        98,
+        146
+      ],
+      "stand": 453,
+      "go": {
+        "scene": "home",
+        "spawn": "door"
+      }
+    },
+    {
+      "id": "box",
+      "name": {
+        "concierge": "Concierge City panel",
+        "raw": "Fuse box"
+      },
+      "rect": [
+        548,
+        296,
+        54,
+        90
+      ],
+      "stand": 575,
+      "look": {
+        "concierge": "A Brighter Tomorrow, Together.",
+        "raw": "Gauges and patched cables. Somebody keeps this running by hand."
+      },
+      "tag": "City panel",
+      "ask": "A Brighter Tomorrow, Together, guest."
+    },
+    {
+      "id": "to-street",
+      "name": "To the main street",
+      "rect": [
+        915,
+        280,
+        45,
+        160
+      ],
+      "stand": 930,
+      "go": {
+        "scene": "street",
+        "spawn": "from-backstreet"
+      }
+    }
+  ],
+  "lights": [
+    {
+      "x": 180,
+      "y": 352,
+      "z": 30,
+      "r": 380,
+      "c": [
+        0.3,
+        0.82,
+        1
+      ],
+      "i": 1.1,
+      "zone": 0,
+      "layer": 1,
+      "ar": 1
+    },
+    {
+      "x": 169,
+      "y": 252,
+      "preset": "neon",
+      "c": [
+        0.1,
+        0.8,
+        1
+      ],
+      "r": 220,
+      "i": 0.8,
+      "g": 0
+    },
+    {
+      "x": 843,
+      "y": 328,
+      "preset": "neon"
+    },
+    {
+      "x": 864,
+      "y": 233,
+      "preset": "neon",
+      "c": [
+        1,
+        0.16,
+        0.77
+      ]
+    },
+    {
+      "x": 349,
+      "y": 42,
+      "preset": "neon",
+      "c": [
+        1,
+        0.15,
+        1
+      ],
+      "r": 220,
+      "i": 0.5
+    },
+    {
+      "x": 453,
+      "y": 352,
+      "z": 24,
+      "r": 260,
+      "c": [
+        1,
+        0.82,
+        0.55
+      ],
+      "i": 1,
+      "zone": 0,
+      "layer": 1,
+      "ar": 1
+    },
+    {
+      "x": 575,
+      "y": 340,
+      "preset": "screen",
+      "c": [
+        0.6,
+        0.78,
+        1
+      ]
+    },
+    {
+      "x": 720,
+      "y": 272,
+      "z": 40,
+      "r": 200,
+      "c": [
+        1,
+        0.3,
+        0.22
+      ],
+      "i": 0.8,
+      "zone": 0,
+      "layer": 1,
+      "haze": 0.25,
+      "ar": 1
+    },
+    {
+      "x": 700,
+      "y": 200,
+      "preset": "city-glow"
+    },
+    {
+      "x": 213,
+      "y": 160,
+      "z": 30,
+      "r": 300,
+      "c": [
+        1,
+        0.67,
+        0.28
+      ],
+      "i": 0.7,
+      "zone": 0,
+      "views": {
+        "raw": {
+          "i": 0.35,
+          "c": [
+            1,
+            0.75,
+            0.4
+          ]
+        }
+      }
+    },
+    {
+      "x": 505,
+      "y": 160,
+      "z": 30,
+      "r": 300,
+      "c": [
+        1,
+        0.67,
+        0.28
+      ],
+      "i": 0.7,
+      "zone": 0,
+      "views": {
+        "raw": {
+          "i": 0.3,
+          "c": [
+            1,
+            0.75,
+            0.4
+          ]
+        }
+      }
+    },
+    {
+      "x": 940,
+      "y": 330,
+      "z": 30,
+      "r": 300,
+      "c": [
+        1,
+        0.53,
+        0.11
+      ],
+      "i": 0.8,
+      "zone": 0,
+      "layer": 1,
+      "haze": 0.25,
+      "views": {
+        "raw": {
+          "i": 0.6,
+          "c": [
+            1,
+            0.7,
+            0.35
+          ]
+        }
+      }
+    },
+    {
+      "x": 628,
+      "y": 416,
+      "z": 8,
+      "r": 110,
+      "c": [
+        1,
+        0.75,
+        0.45
+      ],
+      "i": 0.8,
+      "zone": 0,
+      "layer": 1
+    },
+    {
+      "x": 456,
+      "y": 274,
+      "z": 18,
+      "r": 220,
+      "c": [
+        1,
+        0.88,
+        0.62
+      ],
+      "i": 1.6,
+      "zone": 0,
+      "cone": [
+        0,
+        1,
+        0.3
+      ],
+      "haze": 0.35,
+      "shadow": 1,
+      "layer": 1,
+      "raw": 1
+    },
+    {
+      "x": 722,
+      "y": 259,
+      "preset": "bare-bulb",
+      "raw": 1
+    },
+    {
+      "x": 700,
+      "y": 150,
+      "preset": "smog-glow"
+    }
+  ],
+  "zones": {
+    "inside": [
+      [
+        46,
+        286,
+        270,
+        126
+      ],
+      [
+        112,
+        118,
+        198,
+        96
+      ],
+      [
+        428,
+        118,
+        160,
+        96
+      ]
+    ]
+  },
+  "actorScale": 0.52,
+  "ambient": {
+    "raw": 1.2,
+    "concierge": 1.4
+  },
+  "baked": 1,
+  "drips": {
+    "x0": 30,
+    "x1": 330,
+    "top": 246,
+    "bottom": 438
+  },
+  "look": {
+    "pixelSize": 1,
+    "shapeAmount": 0.45,
+    "colorLevels": 0,
+    "dither": 1,
+    "streaks": 1.95,
+    "rain": 0.45,
+    "charFill": 1.7,
+    "charRim": 1.9,
+    "charGlow": 0.9,
+    "charShadow": 0.65,
+    "charWrap": 1,
+    "actorPaint": 1,
+    "vignette": 1.8,
+    "grain": 1.6,
+    "aberration": 0.7,
+    "depthOfField": 0,
+    "tint": 0.36,
+    "temperature": -0.04,
+    "saturation": 0.9,
+    "contrast": 1.1,
+    "exposure": 0.3,
+    "raw": {
+      "rawFog": 1.05,
+      "actorRed": 0.92,
+      "actorGreen": 0.82,
+      "actorBlue": 0.66,
+      "reflect": 0.9,
+      "reflectStreak": 28,
+      "reflectDiffuse": 3,
+      "reflectReach": 3.5,
+      "wet": 1,
+      "polish": 0.15,
+      "wear": 1
+    },
+    "concierge": {
+      "actorRed": 0.97,
+      "actorGreen": 1,
+      "actorBlue": 1.08,
+      "rawColour": 0.45,
+      "reflect": 0.9,
+      "reflectStreak": 40,
+      "reflectDiffuse": 4,
+      "reflectReach": 2.6,
+      "wet": 0,
+      "polish": 1,
+      "wear": 0.15,
+      "reflectFade": 50,
+      "groundPaint": 0,
+      "groundTone": 0.25
+    },
+    "mirrorSet": 1
+  },
+  "godrays": [
+    {
+      "x": 456,
+      "y": 276,
+      "strength": 0.18,
+      "zone": 2
+    },
+    {
+      "x": 180,
+      "y": 300,
+      "strength": 0.15,
+      "zone": 1,
+      "only": "concierge"
+    }
+  ],
+  "traffic": {
+    "lanes": [
+      130,
+      160
+    ],
+    "perLane": 1,
+    "x0": 615,
+    "span": 185,
+    "ar": 1
   }
- ],
- "lights": [
-  {
-   "x": 528,
-   "y": 299,
-   "z": 18,
-   "r": 180,
-   "c": [
-    0.85,
-    0.95,
-    1
-   ],
-   "i": 2.2,
-   "zone": 0,
-   "cone": [
-    0,
-    1,
-    0.25
-   ],
-   "haze": 0.45,
-   "shadow": 1,
-   "layer": 1
-  },
-  {
-   "x": 355,
-   "y": 384,
-   "z": 13,
-   "r": 192,
-   "c": [
-    0.4,
-    0.85,
-    1
-   ],
-   "i": 1.6,
-   "zone": 0,
-   "haze": 0.25,
-   "ar": 1
-  },
-  {
-   "x": 683,
-   "y": 344,
-   "z": 13,
-   "r": 138,
-   "c": [
-    0.45,
-    0.7,
-    1
-   ],
-   "i": 1.2,
-   "zone": 0,
-   "haze": 0.2,
-   "ar": 1
-  },
-  {
-   "x": 401,
-   "y": 222,
-   "z": 18,
-   "r": 132,
-   "c": [
-    1,
-    0.75,
-    0.45
-   ],
-   "i": 0.9,
-   "zone": 0,
-   "ar": 1
-  },
-  {
-   "x": 761,
-   "y": 326,
-   "z": 18,
-   "r": 132,
-   "c": [
-    1,
-    0.75,
-    0.45
-   ],
-   "i": 0.9,
-   "zone": 0,
-   "ar": 1
-  },
-  {
-   "x": 704,
-   "y": 315,
-   "z": 4,
-   "r": 42,
-   "c": [
-    1,
-    0.5,
-    0.2
-   ],
-   "i": 0.8,
-   "zone": 0,
-   "machine": 1
-  },
-  {
-   "x": 251,
-   "y": 222,
-   "z": 72,
-   "r": 300,
-   "c": [
-    0.55,
-    0.62,
-    0.8
-   ],
-   "i": 0.7,
-   "zone": 0,
-   "layer": 1
-  },
-  {
-   "x": 623,
-   "y": 498,
-   "z": 48,
-   "r": 252,
-   "c": [
-    0.35,
-    0.45,
-    0.7
-   ],
-   "i": 0.35,
-   "zone": 0,
-   "layer": 1
-  },
-  {
-   "x": 92,
-   "y": 207,
-   "z": 30,
-   "r": 230,
-   "c": [
-    1,
-    0.85,
-    0.5
-   ],
-   "i": 1.2,
-   "zone": 0,
-   "haze": 0.35,
-   "layer": 1
-  }
- ],
- "walk": {
-  "y": 466,
-  "x0": 30,
-  "x1": 990
- },
- "mirror": 461,
- "spawns": {
-  "from-street": {
-   "x": 965,
-   "facing": -1
-  },
-  "door": {
-   "x": 528,
-   "facing": 1
-  }
- },
- "hotspots": [
-  {
-   "id": "store",
-   "name": {
-    "concierge": "Concierge Store 24",
-    "raw": "Shuttered kiosk"
-   },
-   "rect": [
-    248,
-    300,
-    215,
-    150
-   ],
-   "stand": 352,
-   "look": {
-    "concierge": "Coffee, drinks, snacks, essentials. A cleaner, brighter you, it promises.",
-    "raw": "Rusted shutters, a smiley sprayed across them. Whatever it sold, it stopped."
-   },
-   "tag": "Concierge Store 24 · open",
-   "ask": "Coffee, drinks, snacks and essentials, guest. Shall I place an order?"
-  },
-  {
-   "id": "entrance",
-   "name": "Entrance 3",
-   "rect": [
-    500,
-    300,
-    56,
-    150
-   ],
-   "stand": 528,
-   "go": {
-    "scene": "home",
-    "spawn": "door"
-   }
-  },
-  {
-   "id": "box",
-   "name": {
-    "concierge": "Concierge City panel",
-    "raw": "Fuse box"
-   },
-   "rect": [
-    650,
-    300,
-    75,
-    82
-   ],
-   "stand": 686,
-   "look": {
-    "concierge": "A Brighter Tomorrow, Together.",
-    "raw": "Gauges and patched cables. Somebody keeps this running by hand."
-   },
-   "tag": "City panel",
-   "ask": "A Brighter Tomorrow, Together, guest."
-  },
-  {
-   "id": "to-street",
-   "name": "To the main street",
-   "rect": [
-    972,
-    270,
-    44,
-    196
-   ],
-   "stand": 990,
-   "go": {
-    "scene": "street",
-    "spawn": "from-backstreet"
-   }
-  }
- ],
- "steam": [
-  {
-   "x": 383,
-   "y": 468,
-   "height": 54,
-   "width": 6,
-   "kind": "steam"
-  }
- ],
- "actorScale": 0.6,
- "baked": 1
 }

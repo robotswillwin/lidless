@@ -101,11 +101,16 @@ function frameNote(r, look) {
 /** A character that will be cut into parts and animated needs every limb clear of the body. */
 const RIG_POSE = 'A neutral standing pose for animation: arms hanging relaxed and slightly away from the body, hands empty and open, legs straight and slightly apart so both are fully visible, nothing held and nothing crossing the body.';
 
-export function generationPrompt(r, look = r.look ?? 'pixel') {
+/**
+ * What to draw, in the view it is drawn for: raw view from the recipe's prompt; the Concierge's view of something real
+ * (view "concierge") from its concierge description, which then has to say everything there is to see.
+ */
+export function generationPrompt(r, look = r.look ?? 'pixel', view = r.exists === 'concierge' ? 'concierge' : 'raw') {
+  const augmented = view === 'concierge' && r.exists !== 'concierge';
   const world = r.exists === 'concierge'
     ? `This does not exist: the city AI made it up and shows it in everyone's eye. Its world is ${conciergeWorld(r)}`
-    : rawWorld(r, look);
-  return `${look ? `${LOOKS[look]} ` : ''}${HOUSE_STYLE} ${r.framing ?? frameNote(r, look)}${r.rig ? ` ${RIG_POSE}` : ''} ${world} Subject: ${r.prompt}`;
+    : augmented ? worldOf(r, 'concierge') : rawWorld(r, look);
+  return `${look ? `${LOOKS[look]} ` : ''}${HOUSE_STYLE} ${r.framing ?? frameNote(r, look)}${r.rig ? ` ${RIG_POSE}` : ''} ${world} Subject: ${augmented ? r.concierge : r.prompt}`;
 }
 
 /** Put in front of the prompt when a layout image goes first: it sets the composition, the references the rendering. */

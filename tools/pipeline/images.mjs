@@ -43,7 +43,10 @@ export async function cmdNew([target], opt) {
 
 export async function cmdGenerate([file], opt) {
   const r = await loadRecipe(file), size = r.size ?? r.spec.size, n = Number(opt.n ?? 4), quality = opt.quality ?? 'medium';
-  const refs = (typeof opt.ref === 'string' ? opt.ref.split(',') : r.references ?? []).map((f) => resolve(ROOT, f.trim()));
+  // the Concierge's view of something real is drawn first when it is the picture to match, as the main street was
+  const as = r.exists === 'concierge' || opt.view === 'concierge' ? 'concierge' : 'raw';
+  if (as === 'concierge' && r.exists !== 'concierge' && !r.concierge) throw new Error(`${r.name} has no "concierge" description to draw its Concierge view from`);
+  const refs = (typeof opt.ref === 'string' ? opt.ref.split(',') : (as === 'concierge' && r.exists !== 'concierge' ? r.conciergeReferences : null) ?? r.references ?? []).map((f) => resolve(ROOT, f.trim()));
   const layout = typeof opt.layout === 'string' ? resolve(ROOT, opt.layout) : null;
   for (const f of [...refs, ...(layout ? [layout] : [])]) if (!existsSync(f)) throw new Error(`no image at ${rel(f)}`);
   // references set the rendering themselves, unless a look is asked for, on the command line or in the recipe
@@ -51,7 +54,7 @@ export async function cmdGenerate([file], opt) {
   if (look && !LOOKS[look]) throw new Error(`look must be one of ${Object.keys(LOOKS).join(', ')}`);
   const refNote = r.referenceNote === 'character' ? CHARACTER_SHEET_NOTE : look === 'vector' ? REFERENCE_NOTE_VECTOR : REFERENCE_NOTE;
   const notes = layout ? `${layoutNote(look)} ${refs.length ? `${LAYOUT_REFERENCES_NOTE} ` : ''}` : refs.length ? `${refNote} ` : '';
-  const prompt = notes + generationPrompt(r, look), as = r.exists === 'concierge' ? 'concierge' : 'raw';
+  const prompt = notes + generationPrompt(r, look, as);
   console.log(`${r.name}: ${n} × ${size}, ${quality} quality, ${look ?? 'reference'} look, ${as} view${layout ? `, laid out like ${rel(layout)}` : ''}${refs.length ? `, ${refs.length} reference${refs.length > 1 ? 's' : ''}` : ''}`);
   if (opt.dry) return console.log(`\n${prompt}`);
   // with images it goes through the edit endpoint, which takes them; Sunburst follows them most closely. The layout goes first

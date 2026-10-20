@@ -53,7 +53,8 @@ Luna is drawn at the size the pictures show her, walking along the bollards (`ac
   director's to update or keep.
 - **Luna.** In the pictures she wears the long red coat closed, the same in both views. Her sprite follows her character
   reference (`LIDLESS_Luna_Character_Reference_v1_2026-10-19.md`) until the director decides otherwise.
-- **Other places.** Luna's home, the backstreet and the radio repair are still in the earlier, more painted look.
+- **Other places.** The backstreet is in the look (`art/backstreet/lane.json`), and Luna's home was drawn in it as a
+  cutaway of her block. The radio repair is still in the earlier, more painted look, and so is the fixer.
 
 ## Layers
 
@@ -68,6 +69,8 @@ machine are at Luna's scale, on her walk line.
 
 ## Change log
 
+- **2026-10-20:** the backstreet drawn in the look: its Concierge view first, from the flat street and the Another
+  World backstreet frame, then raw view redrawn from it as simple as it, its painted reflections made live.
 - **v1 · 2026-10-19:** the director's two pictures stored as the reference for the look; the main street built from
   them, with what its story needs painted back in. The same day, raw view redrawn from the Concierge's picture, as
   simple as it: the director found the first raw street far too detailed for the look. Then the street split into

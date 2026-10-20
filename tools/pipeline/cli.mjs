@@ -16,11 +16,14 @@ const HELP = `Asset pipeline: generate art with an image AI, clean it and turn i
 
   npm run asset -- new <scene>/<name> [--kind character|prop|background|portrait]
       Write a recipe to art/<scene>/<name>.json to fill in.
-  npm run asset -- generate <recipe> [--n 4] [--quality low|medium|high] [--look pixel|paint|vector] [--ref a.png,b.png] [--layout guide.png] [--tag name] [--dry]
+  npm run asset -- generate <recipe> [--n 4] [--quality low|medium|high] [--look pixel|paint|vector] [--view raw|concierge] [--ref a.png,b.png] [--layout guide.png] [--tag name] [--dry]
       Generate candidates with GPT Image 2.5 into art/<scene>/<name>/candidates/: raw-view images, or Concierge
       images for something generated. Style references (the recipe's "references", or --ref) go along with the
       prompt; without any, Flare draws from the prompt alone. --layout gives a rough picture whose composition the
       candidates keep: a sketch, or a scene seen elsewhere in the game. --tag adds a word to the candidates' file names.
+      --view concierge draws the Concierge's view of something real first, from its "concierge" description (which
+      then says everything there is to see) and its "conciergeReferences"; redress --view raw --from its picture then
+      draws raw view with every outline in place, as simple as it. That is how the main street was made.
   npm run asset -- variant <recipe> [--n 2] [--quality medium] [--ref a.png] [--tag name] [--dry]
       Edit the picked raw image into Concierge-view candidates (GPT Image 2.5 Sunburst). The recipe's
       "conciergeReferences", or --ref, go along as style references for the augmented view.

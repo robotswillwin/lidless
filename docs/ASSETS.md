@@ -322,6 +322,17 @@ concierge.png`: the same shapes, lined up within a pixel, dim and worn in amber-
 sleeper. The proposed raw picture itself, with its grime and pipes, had far too much detail for the look. The earlier
 streets are in git's history.
 
+How the backstreet was made (`art/backstreet/lane.json`): its Concierge view was drawn first, with `generate --view
+concierge`, from the recipe's Concierge description and two references, the director's flat street and the Another
+World backstreet frame (`art/reference/aw-backstreet-concierge.png`). The first pictures had the camera too close, a
+door a third of the picture's height; framed from further back, a door is a quarter of it, as on the street, and Luna
+is drawn at the street's `actorScale`. Raw view was redrawn from it with `redress --from concierge.png`, the street's raw
+picture as the reference: the first try added streaks, stains and rust drips to the walls, so the prompt now keeps
+every wall one flat colour. `ground --from 442` took the painted reflections out below the pavement's edge. Its lights
+were suggested from the art and sorted by hand; raw view's lamps (the tube over Entrance 3, the bare bulb on the
+cable, the flats' windows) were placed by hand, as a raw picture's glow map is too faint to find them. The old,
+painted backstreet is in git's history.
+
 Later, for the moving camera: the painted reflections were taken out of the wet ground (`asset ground`, below) for
 the engine's live ones, and the woman at the dining machine and the machine itself were shrunk to Luna's scale. They
 had been painted about a third too big for someone kneeling on her walk line: `touch` painted the corner without them,
