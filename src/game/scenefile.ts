@@ -92,6 +92,11 @@ export interface SceneFile {
    * has. Tuned in the look panel with "This scene", which saves here.
    */
   look?: Record<string, unknown>;
+  /**
+   * The scene in other conditions, by name ("rain", "fog", "outage"): each its own look settings over the scene's, as
+   * the story's `conditions` or the address's `variant` asks for it.
+   */
+  variants?: Record<string, { name?: string; look?: Record<string, unknown> }>;
   /** Things that move through the scene on their own, such as a train along a viaduct. */
   movers?: MoverDef[];
   /**
@@ -186,6 +191,13 @@ export function checkSceneFile(data: unknown, id?: string): string[] {
     if (missing.length) out.push(`lights[${i}] needs ${missing.join(', ')}`);
     if (preset === undefined ? !nums(l?.c, 3) : l?.c !== undefined && l.c !== null && !nums(l.c, 3)) out.push(`lights[${i}].c must be [r, g, b]`);
   });
+  if (f.variants !== undefined) {
+    if (!f.variants || typeof f.variants !== 'object' || Array.isArray(f.variants)) out.push('variants must be an object of variants by name');
+    else for (const [k, v] of Object.entries(f.variants as Record<string, unknown>)) {
+      if (!/^[a-z0-9][a-z0-9-]{0,39}$/.test(k)) out.push(`variant “${k}” needs a name of lower case letters, digits and dashes`);
+      if (!v || typeof v !== 'object' || Array.isArray(v)) out.push(`variant ${k} must be an object: { name, look }`);
+    }
+  }
   const spawns = f.spawns as Record<string, Record<string, unknown>> | undefined;
   if (!spawns || typeof spawns !== 'object' || !Object.keys(spawns).length) out.push('spawns must name at least one place to arrive at');
   else for (const [name, sp] of Object.entries(spawns)) if (!isNum(sp?.x) || (sp.facing !== 1 && sp.facing !== -1)) out.push(`spawn ${name} needs x and facing 1 or -1`);

@@ -54,6 +54,16 @@ describe('checkSceneFile', () => {
     expect(checkSceneFile(f, 'street')).toEqual([]);
   });
 
+  it('checks its variants: each named, each an object', () => {
+    const f = read('street');
+    expect(Object.keys(f.variants as object)).toEqual(['rain', 'fog', 'outage']);
+    f.variants = { ...(f.variants as object), 'Heavy Snow': {}, dawn: 'early' };
+    expect(checkSceneFile(f, 'street')).toEqual([
+      'variant “Heavy Snow” needs a name of lower case letters, digits and dashes',
+      'variant dawn must be an object: { name, look }',
+    ]);
+  });
+
   it('says so plainly when it is not a scene at all', () => {
     expect(checkSceneFile(null)).toEqual(['it is not a JSON object']);
     expect(checkSceneFile({}).length).toBeGreaterThan(4);

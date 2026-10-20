@@ -59,6 +59,8 @@ export const ed = {
   /** Where the editor is scrolled to, in a scene wider than the screen. */
   camX: 0,
   dirty: false,
+  /** The variant the scene is shown in ("rain", "outage"), its look over the scene's; none for the scene as it is. */
+  variant: '',
   /** The scene as last saved or opened: whether it is changed is whether it differs (a new scene is, until saved). */
   saved: '',
   /** Every built asset, as scene/name: for new layers and scenes. */

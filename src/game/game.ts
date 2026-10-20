@@ -42,6 +42,8 @@ export interface GameSetup {
   fixedCam?: number | null;
   /** Raw view from the start and always switchable, to look at it while building the game. */
   rawView?: boolean;
+  /** The scenes in this variant, whatever the story says: to look at one while building the game. */
+  variant?: string | null;
 }
 
 /** Where to arrive in a scene: at one of its places, or at x facing a way. */
@@ -93,6 +95,8 @@ export class Game {
   private readonly heroes = new Map<string, Promise<Sprite>>();
   /** A choice that is not a conversation's, such as what to wear: picking an answer goes here. */
   private picker: ((i: number) => void) | null = null;
+  /** The variant the scene on screen is shown in. */
+  private variant: string | undefined;
 
   private constructor(private readonly s: GameSetup) {
     this.dialogue = new Dialogue(s.save?.ink ?? null);
@@ -110,7 +114,12 @@ export class Game {
     this.look = createLookPanel(s.renderer, s.projectLook, s.stage, {
       view: () => (this.state.view < 0.5 ? 'raw' : 'concierge'),
       // a scene's own look, just saved into its file: the copy loaded here follows
-      onSceneSaved: (id, json) => { void this.scenes.get(id)?.then((sc) => { if (json) sc.file.look = json; else delete sc.file.look; }); },
+      onSceneSaved: (id, json, variant) => {
+        void this.scenes.get(id)?.then((sc) => {
+          const t = variant ? ((sc.file.variants ??= {})[variant] ??= {}) : sc.file;
+          if (json) t.look = json; else delete t.look;
+        });
+      },
     });
     this.lastT = this.clock();
     this.talk = new Talk(this.hud.root, (speaker) => this.speakerAt(speaker));
@@ -178,8 +187,15 @@ export class Game {
     this.world.raw = this.raw;
     this.camera.jump(this.cameraTarget());
     this.cam[0] = this.s.fixedCam ?? this.camera.x;
-    // each scene shows the game's look with its own settings over it
-    this.look.setScene(next.file);
+    // each scene shows the game's look with its own settings over it, in the conditions the story has the city in
+    this.variant = this.variantOf(next);
+    this.look.setScene(next.file, this.variant);
+  }
+
+  /** The variant of a scene for the city's conditions now: the story's, or the address's; none if it has none for them. */
+  private variantOf(scene: Scene): string | undefined {
+    const want = this.s.variant ?? String(this.dialogue.story.variablesState['conditions'] ?? '');
+    return want && scene.file.variants?.[want] ? want : undefined;
   }
 
   private cameraTarget(): number {
@@ -343,6 +359,9 @@ export class Game {
 
   private endTalk(): void {
     this.partner = null;
+    // a conversation can change the city's conditions: the rain starts, the power goes
+    const v = this.variantOf(this.scene);
+    if (v !== this.variant) { this.variant = v; this.look.setScene(this.scene.file, v); }
     this.hud.setTalking(false);
     // the conversation that unlocks the view switch, whichever it is, says how to use it
     const unlocked = this.lockedBeforeTalk && this.canSwitch();

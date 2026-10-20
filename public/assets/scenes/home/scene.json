@@ -89,7 +89,8 @@
    "zone": 0,
    "ar": 1,
    "layer": 1,
-   "g": 7
+   "g": 7,
+   "own": 1
   },
   {
    "x": 625,
@@ -106,7 +107,8 @@
    "raw": 1,
    "machine": 1,
    "layer": 1,
-   "g": 2
+   "g": 2,
+   "own": 1
   },
   {
    "x": 502,
@@ -379,13 +381,13 @@
   }
  ],
  "look": {
-  "rain": 0.5,
   "depthOfField": 0,
   "actorPaint": 1,
   "raw": {
    "actorRed": 0.9,
    "actorGreen": 0.84,
-   "actorBlue": 0.7
+   "actorBlue": 0.7,
+   "rain": 0.5
   },
   "concierge": {
    "actorRed": 1.0,
@@ -393,5 +395,33 @@
    "actorBlue": 0.9
   }
  },
- "wardrobe": true
+ "wardrobe": true,
+ "variants": {
+  "rain": {
+   "name": "Heavy rain",
+   "look": {
+    "raw": {
+     "rain": 1.6
+    },
+    "concierge": {
+     "rain": 1.6
+    }
+   }
+  },
+  "fog": {
+   "name": "Dense fog",
+   "look": {
+    "fog": 0.9,
+    "raw": {
+     "rawFog": 1.4
+    }
+   }
+  },
+  "outage": {
+   "name": "Power cut",
+   "look": {
+    "power": 0
+   }
+  }
+ }
 }

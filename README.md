@@ -85,6 +85,17 @@ out in her bathrobe at all: she says its `stay` line instead. Coming home, an ou
 into. A hotspot's `wear` changes her into an outfit as she uses it, a while passing behind a fade: her shower leaves
 her in her bathrobe. What she wears is saved, and only her coat and what she wears are kept loaded.
 
+**Conditions: rain, fog, a power cut.** A scene's `variants` are the scene in other conditions, each with a `name` and
+its own `look` settings over the scene's: every scene has `rain` (Heavy rain), `fog` (Dense fog) and `outage` (Power
+cut). The story's `conditions` variable says which the city is in ("" as it is), read as she enters a scene and after
+each conversation; `?variant=rain` shows every scene in one whatever the story says. They are made from look settings:
+`rain` (per view; over 1 a downpour, and the Concierge's view has none unless a variant gives it some), `fog` (each
+view's own air: violet to the Concierge, raw view's smog) and `power` (0: the city's lights are out, the light painted
+into the art too, but for lights with `"own": 1`, power of their own, which keep what they light lit: the fixer's
+off-grid shop, the Concierge's billboard, store and screens). In the editor, the menu beside Both, Raw and AR shows a
+variant or makes a new one, and while one is shown the look panel's **This scene** edits its settings and saves them
+into the variant; the light panel has **Power of its own**.
+
 The scenes so far: Luna's home (`home`), the backstreet, the main street and the radio repair (`radio`). Entrance 3 on the
 backstreet leads home, and the radio repair's door on the main street leads into the shop, where the fixer works.
 

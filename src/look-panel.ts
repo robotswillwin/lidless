@@ -1,8 +1,10 @@
 // The look panel: sliders for pixels, light, characters, colour and film, live on the renderer. L opens and closes it.
 // A setting is the same in both views ("both") or split: then it has a value of its own in raw view and in Concierge
 // view, and its slider edits the view on screen (E switches). It edits the game's look ("All scenes"), or the settings
-// the scene on screen sets its own way over it ("This scene"). Tuning is kept in this browser until it is saved: the
-// game's look in public/assets/look.json, a scene's own settings in its scene file (on the dev server).
+// the scene on screen sets its own way over it ("This scene"). A scene shown in one of its variants (in the rain, in a
+// power cut) has the variant's own settings over its own, and "This scene" edits those. Tuning is kept in this browser
+// until it is saved: the game's look in public/assets/look.json, a scene's own settings, and its variants', in its scene
+// file (on the dev server).
 
 import {
   cleanSceneLook, cloneLookSet, cloneSceneLook, defaultLookSet, emptySceneLook, isSplit, LOOK_CONTROLS, LOOK_GROUPS,
@@ -15,8 +17,11 @@ export interface LookPanel {
   toggle(): void;
   /** Show the values of the view now on screen; call it when the view switches. */
   refresh(): void;
-  /** The scene on screen: its own settings go over the game's look, and "This scene" edits them. */
-  setScene(scene: { id: string; name: string; look?: unknown } | null): void;
+  /**
+   * The scene on screen: its own settings go over the game's look, and "This scene" edits them. In one of its variants,
+   * the variant's settings go over the scene's, and "This scene" edits the variant's.
+   */
+  setScene(scene: { id: string; name: string; look?: unknown; variants?: Record<string, { name?: string; look?: unknown }> } | null, variant?: string): void;
   readonly open: boolean;
 }
 
@@ -24,19 +29,25 @@ export interface LookPanelOptions {
   /** The view on screen, which split settings edit. */
   view: () => ViewName;
   onToggle?: (open: boolean) => void;
-  /** A scene's own settings were saved into its scene file: keep the host's copy of the file the same. */
-  onSceneSaved?: (id: string, look: Record<string, unknown> | undefined) => void;
+  /** A scene's own settings, or a variant's, were saved into its scene file: keep the host's copy of the file the same. */
+  onSceneSaved?: (id: string, look: Record<string, unknown> | undefined, variant?: string) => void;
 }
 
 const VIEW_LABEL: Record<ViewName, string> = { raw: 'raw view', concierge: 'Concierge view' };
 
-interface SceneState { id: string; name: string; saved: SceneLook; look: SceneLook }
+/**
+ * The scene on screen, and what "This scene" edits: its own settings, or in a variant the variant's, with the scene's own
+ * under them (`under`).
+ */
+interface SceneState { id: string; name: string; saved: SceneLook; look: SceneLook; variant?: string; variantName?: string; under?: SceneLook }
+/** Where a scene's settings, or a variant's, are kept in this browser until saved. */
+const localId = (s: SceneState) => (s.variant ? `${s.id}~${s.variant}` : s.id);
 
 export function createLookPanel(renderer: Renderer, project: LookSet, host: HTMLElement, opts: LookPanelOptions): LookPanel {
   let set = loadLocalLook(project) ?? cloneLookSet(project), saved = cloneLookSet(project);
   let scene: SceneState | null = null, scope: 'game' | 'scene' = 'game';
-  /** What is on screen: the game's look with the scene's own settings over it. */
-  const shown = () => withScene(set, scene?.look ?? null);
+  /** What is on screen: the game's look with the scene's own settings over it, and a variant's over those. */
+  const shown = () => (scene?.under ? withScene(withScene(set, scene.under), scene.look) : withScene(set, scene?.look ?? null));
   renderer.setLook(shown());
 
   const el = <K extends keyof HTMLElementTagNameMap>(tag: K, className = '', text = '') => {
@@ -70,7 +81,7 @@ export function createLookPanel(renderer: Renderer, project: LookSet, host: HTML
   const keep = () => {
     renderer.setLook(shown());
     saveLocalLook(set, saved);
-    if (scene) saveLocalSceneLook(scene.id, sceneChanged() ? scene.look : null, scene.saved);
+    if (scene) saveLocalSceneLook(localId(scene), sceneChanged() ? scene.look : null, scene.saved);
   };
 
   /** Show every setting as it is in the view on screen. */
@@ -97,7 +108,7 @@ export function createLookPanel(renderer: Renderer, project: LookSet, host: HTML
     scopes.hidden = !scene;
     for (const b of scopes.querySelectorAll('button')) b.setAttribute('aria-pressed', String(b.dataset.scope === scope));
     const sceneBtn = scopes.querySelector<HTMLButtonElement>('[data-scope="scene"]');
-    if (sceneBtn && scene) sceneBtn.textContent = `This scene: ${scene.name || scene.id}`;
+    if (sceneBtn && scene) sceneBtn.textContent = scene.variant ? `This scene, ${scene.variantName}: ${scene.name || scene.id}` : `This scene: ${scene.name || scene.id}`;
     panel.dataset.scope = scope;
     status();
   };
@@ -140,13 +151,13 @@ export function createLookPanel(renderer: Renderer, project: LookSet, host: HTML
     try {
       if (inScene()) {
         const s = scene!, json = sceneLookJSON(s.look);
-        const res = await fetch(`/__scene-look?id=${encodeURIComponent(s.id)}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(json ?? {}) });
+        const res = await fetch(`/__scene-look?id=${encodeURIComponent(s.id)}${s.variant ? `&variant=${encodeURIComponent(s.variant)}` : ''}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(json ?? {}) });
         if (!res.ok) throw new Error(await res.text());
         s.saved = cloneSceneLook(s.look);
-        saveLocalSceneLook(s.id, null);
-        opts.onSceneSaved?.(s.id, json);
+        saveLocalSceneLook(localId(s), null);
+        opts.onSceneSaved?.(s.id, json, s.variant);
         sync();
-        status(`Saved into the scene file of ${s.name || s.id}.`);
+        status(`Saved into the scene file of ${s.name || s.id}${s.variant ? `, as its ${s.variantName}` : ''}.`);
       } else {
         const res = await fetch('/__look', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(lookSetJSON(set)) });
         if (!res.ok) throw new Error(await res.text());
@@ -260,11 +271,13 @@ export function createLookPanel(renderer: Renderer, project: LookSet, host: HTML
   return {
     toggle() { panel.hidden = !panel.hidden; opts.onToggle?.(!panel.hidden); },
     refresh: sync,
-    setScene(next) {
+    setScene(next, variant) {
       if (!next) { scene = null; scope = 'game'; }
       else {
-        const savedLook = cleanSceneLook(next.look);
-        scene = { id: next.id, name: next.name, saved: savedLook, look: loadLocalSceneLook(next.id, savedLook) ?? cloneSceneLook(savedLook) };
+        const v = variant ? next.variants?.[variant] : undefined;
+        const own = cleanSceneLook(next.look), savedLook = v ? cleanSceneLook(v.look) : own;
+        scene = { id: next.id, name: next.name, saved: savedLook, look: cloneSceneLook(savedLook), ...(v ? { variant, variantName: v.name || variant, under: loadLocalSceneLook(next.id, own) ?? own } : {}) };
+        scene.look = loadLocalSceneLook(localId(scene), savedLook) ?? scene.look;
       }
       renderer.setLook(shown());
       sync();

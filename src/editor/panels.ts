@@ -58,7 +58,7 @@ function lightSide(i: number): void {
   // a setting changed here is the light's own; the same as its preset's, it follows the preset again. Off is written out
   // where the preset has it on (0 for a flag, null for a cone); a flag that is off is otherwise left out
   const own = <K extends keyof LightDef>(k: K, v: LightDef[K] | undefined) => {
-    const from = kind?.light[k], o = l as Record<string, unknown>, flag = ['ar', 'raw', 'machine', 'shadow', 'g'].includes(k);
+    const from = kind?.light[k], o = l as Record<string, unknown>, flag = ['ar', 'raw', 'machine', 'own', 'shadow', 'g'].includes(k);
     if (kind && JSON.stringify(v ?? null) === JSON.stringify(from ?? null)) delete o[k];
     else if (v === undefined) { if (kind && from !== undefined) o[k] = null; else delete o[k]; }
     else if (v === 0 && flag && !(kind && from)) delete o[k];
@@ -92,6 +92,7 @@ function lightSide(i: number): void {
     m(choice('Against characters', String(eff.layer ?? 0), [['0', 'Behind them (part of the set)'], ['1', 'Among them (in the street)'], ['2', 'In front of them']], (v) => set('layer', Number(v))), 'layer'),
     m(choice('Lights', String(eff.zone), ZONES, (v) => set('zone', Number(v))), 'zone'),
     check('A machine’s light (keeps its colour in raw view)', !!both.machine, (v) => own('machine', v ? 1 : 0)),
+    check('Power of its own (stays on in a power cut, and keeps what it lights in the art lit)', !!both.own, (v) => own('own', v ? 1 : 0)),
     m(choice('Flicker', String(eff.g ?? 0), GROUPS, (v) => set('g', Number(v))), 'g'),
     slider('Parallax (on a far layer: its parallax)', l.parallax ?? 1, (v) => { if (v === 1) delete l.parallax; else l.parallax = v; }, { min: 0, max: 2, step: 0.05, mark: 1 }),
     m(check('Cone', !!eff.cone, (v) => { set('cone', v ? (kind?.light.cone ?? [0, 1, 0.4]) : undefined); drawSide(); }), 'cone'),
@@ -392,7 +393,7 @@ function outline(body: HTMLElement): void {
   const tools = buttons(['Suggest from the art', () => void suggestFromArt().then(reselect)], ...(suggested ? [[`Keep ${suggested}`, () => settleSuggested(true)], ['Discard them', () => settleSuggested(false), 'danger']] as [string, () => void, string?][] : []));
   group('Lights', 'lights', f.lights.map((placed, i) => {
     const l = resolveLight(placed, shownView()), kind = placed.preset ? presets().lights[placed.preset]?.label ?? placed.preset : `Light ${i + 1}`;
-    const notes = [l.machine ? 'machine' : '', placed.suggested ? 'suggested' : '', placed.views ? 'set per view' : ''].filter(Boolean);
+    const notes = [l.machine ? 'machine' : '', l.own ? 'own power' : '', placed.suggested ? 'suggested' : '', placed.views ? 'set per view' : ''].filter(Boolean);
     return { label: kind, dot: css(l.c), detail: notes.join(' · '), sel: { kind: 'light', i } as Selection, only: l.ar ? 'concierge' : l.raw ? 'raw' : undefined };
   }), { extra: tools });
   const hot = f.hotspots.map((h, i) => ({ h, i }));

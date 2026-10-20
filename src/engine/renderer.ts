@@ -296,7 +296,7 @@ export class Renderer {
       LK.set([...(l.cone ?? [0, 0, -2]), (l.shadow ? 1 : 0) + 2 * (l.ex ?? 0)], i * 4);
       // layer against the characters: set lights are behind them unless the light says it hangs among them or in front
       const layer = l.layer ?? 0;
-      LG.set([l.g ?? 0, (l.ar ? 1 : 0) + (l.machine ? 2 : 0) + 4 * layer + (l.raw ? 16 : 0), l.wrap ?? 0.3, l.haze ?? 0], i * 4);
+      LG.set([l.g ?? 0, (l.ar ? 1 : 0) + (l.machine ? 2 : 0) + 4 * layer + (l.raw ? 16 : 0) + (l.own ? 32 : 0), l.wrap ?? 0.3, l.haze ?? 0], i * 4);
     });
     this.pass(this.prog.light, t.fa, (pr) => {
       t.gbuf.tex.forEach((tx, i) => this.bind(pr, `tG${i}`, tx, i));
@@ -310,6 +310,7 @@ export class Renderer {
       gl.uniform4fv(pr.u.uCars, f.cars); gl.uniform1i(pr.u.uNC, f.nCars);
       gl.uniform4fv(pr.u.uBeac, f.beacons); gl.uniform1i(pr.u.uNB, f.nBeacons);
       gl.uniform4f(pr.u.uLookL, k.lights, k.ambient * (f.ambient ?? 1), k.haze, k.glow);
+      gl.uniform1f(pr.u.uPower, k.power);
       gl.uniform1f(pr.u.uGround, f.mirror);
       gl.uniform4f(pr.u.uFloor, f.ground ? 1 : 0, k.groundPaint, k.groundTone, f.ground?.horizon ?? 0);
       gl.uniform1f(pr.u.uFill, k.charFill); gl.uniform1f(pr.u.uRim, k.charRim); gl.uniform1f(pr.u.uRawColour, k.rawColour); gl.uniform1f(pr.u.uBaked, baked); gl.uniform1f(pr.u.uLightView, this.lightView ? 1 : 0); gl.uniform1f(pr.u.uPaint, k.ambient);
@@ -362,7 +363,7 @@ export class Renderer {
       this.zoneUniforms(pr, f, 3);
       gl.uniform1f(pr.u.uTime, f.t); gl.uniform1f(pr.u.uDof, dof ? 1 : 0); gl.uniform1f(pr.u.uView, f.view);
       gl.uniform4fv(pr.u.uSteam, f.steam); gl.uniform4f(pr.u.uDrips, ...f.drips); gl.uniform1f(pr.u.uMirror, f.mirror);
-      gl.uniform1f(pr.u.uRawFog, k.rawFog); gl.uniform1f(pr.u.uWrap, k.charWrap); gl.uniform1f(pr.u.uRain, k.rain); gl.uniform1f(pr.u.uBakedC, baked);
+      gl.uniform1f(pr.u.uRawFog, k.rawFog); gl.uniform1f(pr.u.uWrap, k.charWrap); gl.uniform1f(pr.u.uRain, k.rain); gl.uniform1f(pr.u.uFog, k.fog); gl.uniform1f(pr.u.uBakedC, baked);
       gl.uniform4f(pr.u.uRefl, k.reflect, k.reflectReach, k.reflectStreak, k.mirrorSet);
       gl.uniform2f(pr.u.uReflSoft, k.reflectDiffuse, k.reflectStreak); gl.uniform1f(pr.u.uSmudge, smudge ? 1 : 0);
       const gd = f.ground;

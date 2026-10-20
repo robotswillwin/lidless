@@ -58,6 +58,12 @@ export function syncScroll(): void {
   dom.scroll.value = String(ed.camX);
 }
 
+/** The look panel on the scene as shown: in its variant if it is shown in one, the variant's settings over its own. */
+export function showLook(): void {
+  if (ed.variant && !ed.file.variants?.[ed.variant]) ed.variant = '';
+  ed.look?.setScene(ed.file, ed.variant || undefined);
+}
+
 /** Luna's sprites, by asset: loaded the first time a scene shows her in them. */
 const heroes = new Map<string, Promise<Sprite | null>>();
 
@@ -72,7 +78,7 @@ export async function syncHero(): Promise<void> {
 export async function openScene(id: string): Promise<void> {
   ed.file = await loadSceneFile(base, id);
   await syncHero();
-  ed.look?.setScene(ed.file);
+  showLook();
   undoStack.length = 0;
   redoStack.length = 0;
   syncHistory();
@@ -169,7 +175,7 @@ export async function revert(): Promise<void> {
   const before = snapshot(), saved = await loadSceneFile(base, ed.file.id);
   ed.sel = { kind: 'scene' };
   await become(saved);
-  ed.look?.setScene(ed.file);
+  showLook();
   undoStack.push(before);
   redoStack.length = 0;
   syncHistory();

@@ -1,6 +1,7 @@
 // Lidless: boot. Loads the world, the look and the hero, starts a game session (src/game/game.ts) and runs its frames.
-// The address can ask for ?new (start over), ?scene=id&spawn=place, ?view=raw, ?q=low|medium|high, ?debug (tier and
-// frame rate), and for tests ?t=seconds (a still frame) and ?cam=x (the camera held there).
+// The address can ask for ?new (start over), ?scene=id&spawn=place, ?view=raw, ?variant=rain (the scenes in a variant,
+// whatever the story says), ?q=low|medium|high, ?debug (tier and frame rate), and for tests ?t=seconds (a still frame)
+// and ?cam=x (the camera held there).
 
 import './style.css';
 import { loadSprite, setTexelBudget, spriteDefaults } from './engine/assets';
@@ -46,7 +47,7 @@ async function boot(): Promise<void> {
     renderer, canvas, stage: document.querySelector('.stage') as HTMLElement, fade: document.getElementById('fade') as HTMLElement,
     assets, world, hero, projectLook, items, notebook, save: loadSave(),
     reduceMotion: matchMedia('(prefers-reduced-motion: reduce)').matches,
-    fixedT, fixedCam: number('cam'), rawView: params.get('view') === 'raw',
+    fixedT, fixedCam: number('cam'), rawView: params.get('view') === 'raw', variant: params.get('variant'),
   }, asked ? { scene: asked, spawn: params.get('spawn') ?? undefined } : undefined);
 
   bindInput(canvas, game, {

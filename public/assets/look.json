@@ -27,5 +27,8 @@
   "raw": {
     "rawColour": 1,
     "rawFog": 0.55
+  },
+  "concierge": {
+    "rain": 0
   }
 }

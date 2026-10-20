@@ -15,14 +15,15 @@ import storyJson from '../story/main.ink';
 import { createLookPanel } from '../look-panel';
 import { copySelected, duplicate, paste, syncPaste } from './clipboard';
 import { add, deleteSelected, newScene, nudge } from './edit';
-import { listAssets, openScene, redo, revert, save, syncAddress, undo } from './files';
+import { listAssets, openScene, redo, revert, save, showLook, syncAddress, undo } from './files';
 import { lunaFrame } from './luna';
 import { bindOverlay, drawOverlay } from './overlay';
 import { drawSide } from './panels';
-import { base, dom, ed, inTask, prefs, redraw, renderer, savePrefs, showError, t0, viewX, type Kind, type Task } from './state';
+import { base, dom, ed, inTask, prefs, redraw, remember, renderer, savePrefs, setStatus, showError, snapshot, t0, viewX, type Kind, type Task } from './state';
 
 redraw.overlay = drawOverlay;
-redraw.side = drawSide;
+// the side panel, and the variant menu with it: a scene opened, undone or reverted may have other variants
+redraw.side = () => { drawSide(); syncVariants(); };
 
 let lastT = 0;
 
@@ -125,6 +126,27 @@ dom.button('revert').addEventListener('click', () => void revert().catch(showErr
 dom.button('paste').addEventListener('click', () => void paste().catch(showError));
 syncPaste();
 dom.button('look').addEventListener('click', () => ed.look?.toggle());
+// the scene in other conditions: a variant shown, or a new one made, its look tuned in the look panel
+const variantSel = document.getElementById('variant') as HTMLSelectElement;
+function syncVariants(): void {
+  variantSel.replaceChildren(new Option('As it is', ''), ...Object.entries(ed.file?.variants ?? {}).map(([k, v]) => new Option(v.name || k, k)), new Option('New variant…', '+'));
+  variantSel.value = ed.variant;
+}
+variantSel.addEventListener('change', () => {
+  let v = variantSel.value;
+  if (v === '+') {
+    const name = (prompt('A variant of this scene: its name, such as rain, fog or outage (lower case, digits, dashes)', '') ?? '').trim();
+    if (!/^[a-z0-9][a-z0-9-]{0,39}$/.test(name)) { syncVariants(); return; }
+    const before = snapshot();
+    (ed.file.variants ??= {})[name] ??= { name: name[0].toUpperCase() + name.slice(1) };
+    remember(before);
+    v = name;
+  }
+  ed.variant = v;
+  showLook();
+  syncVariants();
+  setStatus(v ? `Shown ${ed.file.variants?.[v]?.name ?? v}: the look panel's This scene edits it (L)` : 'Shown as it is');
+});
 const lighting = dom.button('lighting');
 const toggleLighting = () => { ed.lightView = !ed.lightView; lighting.setAttribute('aria-pressed', String(ed.lightView)); };
 lighting.addEventListener('click', toggleLighting);
@@ -198,11 +220,14 @@ async function start(): Promise<void> {
   ed.look = createLookPanel(renderer, project, dom.stage, {
     view: () => (ed.view < 0.5 ? 'raw' : 'concierge'),
     // the scene's own look was saved into its file: so the editor's own Save keeps it
-    onSceneSaved: (id, json) => {
+    onSceneSaved: (id, json, variant) => {
       if (ed.file?.id !== id) return;
       // in the file on disk now: the scene as saved has it too
       const saved = JSON.parse(ed.saved || '{}') as Partial<SceneFile>;
-      for (const f of [ed.file, saved]) { if (json) f.look = json; else delete f.look; }
+      for (const f of [ed.file, saved]) {
+        const t = variant ? ((f.variants ??= {})[variant] ??= {}) : f;
+        if (json) t.look = json; else delete t.look;
+      }
       if (ed.saved) ed.saved = JSON.stringify(saved);
     },
   });

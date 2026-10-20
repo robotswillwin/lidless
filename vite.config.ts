@@ -156,8 +156,8 @@ function sceneLookSave(): Plugin {
     configureServer(server) {
       server.middlewares.use('/__scene-look', (req, res) => {
         if (!onlyHere(req, res)) return;
-        const id = new URL(req.url ?? '', 'http://x').searchParams.get('id') ?? '';
-        if (req.method !== 'POST' || !/^[a-z0-9][a-z0-9-]{0,39}$/.test(id)) { res.statusCode = 400; res.end('POST a scene look to /__scene-look?id=<id>'); return; }
+        const q = new URL(req.url ?? '', 'http://x').searchParams, id = q.get('id') ?? '', variant = q.get('variant') ?? '';
+        if (req.method !== 'POST' || !/^[a-z0-9][a-z0-9-]{0,39}$/.test(id) || (variant && !/^[a-z0-9][a-z0-9-]{0,39}$/.test(variant))) { res.statusCode = 400; res.end('POST a scene look to /__scene-look?id=<id>[&variant=<variant>]'); return; }
         let body = '';
         req.on('data', (chunk: Buffer) => { body += chunk; if (body.length > 100_000) req.destroy(); });
         req.on('end', async () => {
@@ -168,8 +168,12 @@ function sceneLookSave(): Plugin {
             for (const view of ['raw', 'concierge']) { const split = numbers(data[view]); if (Object.keys(split).length) look[view] = split; }
             const file = `${server.config.publicDir}/assets/scenes/${id}/scene.json`;
             const scene = JSON.parse(await readFile(file, 'utf8')) as Record<string, unknown>;
-            if (Object.keys(look).length) scene.look = look;
-            else delete scene.look;
+            // a variant's settings, over the scene's own, into its variants; the scene's own into its look
+            const variants = (scene.variants && typeof scene.variants === 'object' ? scene.variants : {}) as Record<string, Record<string, unknown>>;
+            const target = variant ? (variants[variant] ??= {}) : scene;
+            if (variant) scene.variants = variants;
+            if (Object.keys(look).length) target.look = look;
+            else delete target.look;
             await writeFile(file, JSON.stringify(scene, null, 1) + '\n');
             res.statusCode = 200;
             res.end('saved');

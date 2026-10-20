@@ -33,7 +33,8 @@ describe('withScene', () => {
 describe('a scene’s own look', () => {
   it('keeps only known settings, within their range', () => {
     const s = cleanSceneLook({ rain: 5, nonsense: 1, raw: { actorRed: 'red', actorBlue: 0.5 } });
-    expect(s.base).toEqual({ rain: 1 });
+    // rain goes up to 2, a downpour
+    expect(s.base).toEqual({ rain: 2 });
     expect(s.raw).toEqual({ actorBlue: 0.5 });
   });
 

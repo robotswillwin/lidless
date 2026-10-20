@@ -28,6 +28,8 @@ float airOf(float a) { return a < 0.75 ? a * 2.0 : 1.0; }
 const vec3 RAW_LIGHT = vec3(0.92, 0.98, 1.06);
 const vec3 RAW_COLD = vec3(0.84, 0.95, 1.12);
 const vec3 RAW_AIR = vec3(0.93, 0.93, 0.42);
+// the Concierge's air in fog: violet, as its city glows
+const vec3 CO_AIR = vec3(0.78, 0.6, 1.0);
 // the colour tint at the brightness of c
 vec3 tone(vec3 c, vec3 tint) { return lum(c) * tint / lum(tint); }
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -168,6 +170,7 @@ uniform vec4 uBeac[32]; uniform int uNB;
 uniform float uLightView;  // 1: the lighting view (scene editor): everything a flat grey, so only what the lights do shows
 uniform vec4 uFloor;      // the ground the engine draws: 1 when there is one; how much of the painted floor shows (the
                           // look, 1 all of it); the lightness of the stone that shows instead; the horizon's world y
+uniform float uPower;     // the look: the city's power, 1 on; at 0 its lights are out but for those with their own
 float facadeW(vec2 w) { return w.y < 104.0 ? 1.0 : w.y > 424.0 ? 0.7 : w.x > 524.0 ? 0.5 : 0.18; }
 float occAt(vec2 p) { return mod(floor(T(tG0, p).a * 255.0 + 0.5), 2.0); }
 float shadowMarch(vec2 p, vec2 lp, float self) {
@@ -192,6 +195,25 @@ void main() {
   // painted in is already as raw view sees it
   float bk = uBaked * (1.0 - actor);
   vec3 alb = mix(lin(g0.rgb), vec3(0.3), uLightView);
+  // a power cut: the power here is the city's, but near a light with power of its own (a battery, a generator, the
+  // Concierge's own supply) it is that light's
+  float pw = uPower;
+  if (uPower < 0.999) for (int i = 0; i < ${MAX_LIGHTS}; i++) {
+    if (i >= uNL) break;
+    float fl = uLG[i].y;
+    if (fl < 31.5) continue;
+    // only a light in the view on screen: one only in the Concierge's, or only in raw view, keeps nothing lit in the other
+    if ((mod(fl, 2.0) > 0.5 && uView < 0.5) || (mod(floor(fl / 16.0 + 0.01), 2.0) > 0.5 && uView > 0.5)) continue;
+    // what it lights itself, near it: a shop window, a billboard's face; not the street around it, however far it reaches
+    float d = length(uLP[i].xy - uCam - p), R = uLP[i].w;
+    pw = max(pw, mix(uPower, 1.0, smoothstep(min(0.7 * R, 160.0), min(0.3 * R, 70.0), d)));
+  }
+  // what is painted lit in the set (a window, a neon sign, a lamp: its brightest colours, pixel by pixel, so its edges
+  // go with it) goes dark with the power, and the rest dims, its light having come from the city's
+  // down to the soft light a lamp throws, painted as a pool or a cone, and a neon sign's halo
+  float mx = max(g0.r, max(g0.g, g0.b)), litPaint = smoothstep(0.38, 0.85, mx) * (1.0 - actor);
+  // people dim less: they are lit by what is near them, and the eye finds them
+  alb *= mix(1.0, 0.1, (1.0 - pw) * litPaint) * mix(mix(0.45, 0.7, actor), 1.0, pw);
   bk *= 1.0 - uLightView;
   // the floor the engine draws: as the painted one fades out, stone shows instead, lit by the scene's own lights from
   // above (it faces up, not the eye) and by its ambient. The set's floor is what reflects below the ground line
@@ -211,8 +233,9 @@ void main() {
     vec4 LP = uLP[i], LC = uLC[i], LK = uLK[i], LG = uLG[i];
     // flags: 1 only in Concierge view, 2 a machine's own light, 4 and 8 its layer: 0 behind the characters, 1 among them,
     // 2 in front; 16 only in raw view
-    float arL = mod(LG.y, 2.0), machL = mod(floor(LG.y * 0.5 + 0.01), 2.0), layer = mod(floor(LG.y * 0.25 + 0.01), 4.0), rawL = floor(LG.y / 16.0 + 0.01);
-    float gi = uGI[int(LG.x + 0.5)] * (arL > 0.5 ? uView : 1.0) * (rawL > 0.5 ? 1.0 - uView : 1.0);
+    // 32: it has power of its own, and stays on in a power cut
+    float arL = mod(LG.y, 2.0), machL = mod(floor(LG.y * 0.5 + 0.01), 2.0), layer = mod(floor(LG.y * 0.25 + 0.01), 4.0), rawL = mod(floor(LG.y / 16.0 + 0.01), 2.0), ownL = floor(LG.y / 32.0 + 0.01);
+    float gi = uGI[int(LG.x + 0.5)] * (arL > 0.5 ? uView : 1.0) * (rawL > 0.5 ? 1.0 - uView : 1.0) * (ownL > 0.5 ? 1.0 : uPower);
     if (gi < 0.002) continue;
     float zh = LC.w < 0.5 ? 1.0 : LC.w < 1.5 ? z.r : LC.w < 2.5 ? z.g : LC.w < 3.5 ? facadeW(w) : z.g;
     float zw = zh * (LC.w > 1.5 && LC.w < 2.5 ? mix(0.08, 1.0, step(0.9, dep)) : 1.0);
@@ -251,8 +274,8 @@ void main() {
     for (int i = 0; i < ${MAX_LIGHTS}; i++) {
       if (i >= uNL) break;
       vec4 LP = uLP[i], LC = uLC[i], LK = uLK[i], LG = uLG[i];
-      float arL = mod(LG.y, 2.0), machL = mod(floor(LG.y * 0.5 + 0.01), 2.0), rawL = floor(LG.y / 16.0 + 0.01);
-      float gi = uGI[int(LG.x + 0.5)] * (arL > 0.5 ? uView : 1.0) * (rawL > 0.5 ? 1.0 - uView : 1.0);
+      float arL = mod(LG.y, 2.0), machL = mod(floor(LG.y * 0.5 + 0.01), 2.0), rawL = mod(floor(LG.y / 16.0 + 0.01), 2.0), ownL = floor(LG.y / 32.0 + 0.01);
+      float gi = uGI[int(LG.x + 0.5)] * (arL > 0.5 ? uView : 1.0) * (rawL > 0.5 ? 1.0 - uView : 1.0) * (ownL > 0.5 ? 1.0 : uPower);
       float zh = LC.w < 0.5 ? 1.0 : LC.w < 1.5 ? z.r : LC.w < 2.5 ? z.g : LC.w < 3.5 ? facadeW(w) : z.g;
       // a light below the ground line lights none of it
       if (gi * zh < 0.002 || LP.y >= uGround) continue;
@@ -284,7 +307,7 @@ void main() {
   vec3 outc = (col + spc) * ground + haze * mix(0.06, 0.16, z.g) * uLookL.z;
   float ge = floor(g2.a * 31.0 + 0.5), machE = step(15.5, ge);
   vec3 em = lin(g2.rgb * 2.0);
-  outc += mix(em, tone(em, RAW_LIGHT), raw * (1.0 - machE)) * uGI[int(mod(ge, 16.0))] * uLookL.w * (1.0 - 0.75 * uLightView);
+  outc += mix(em, tone(em, RAW_LIGHT), raw * (1.0 - machE)) * uGI[int(mod(ge, 16.0))] * uLookL.w * (1.0 - 0.75 * uLightView) * pw;
   if (dep < 0.4 && uView > 0.5) {
     for (int k = 0; k < 16; k++) { if (k >= uNC) break; vec4 c = uCars[k]; vec2 r = p - (c.xy - uCam); float al = r.x * c.z;
       if (abs(r.y) < 1.2) { if (al > -c.w && al < 0.0) outc += vec3(2.2, 0.25, 0.2) * pow(1.0 + al / c.w, 2.0) * 0.6; if (al >= 0.0 && al < 4.0) outc += al < 2.0 ? vec3(4.0, 4.2, 4.6) : vec3(0.08, 0.08, 0.1); } }
@@ -306,7 +329,8 @@ uniform vec2 uReflSoft;   // the look: how far reflections smear sideways and up
 uniform float uSmudge;    // 1: a glossy floor, every reflection smudged into colour and light, the people's too
 uniform float uTime, uDof, uView, uRawFog;
 uniform float uWrap;      // the look: how much a character's outline softens into the light around it, and takes it on
-uniform float uRain;      // how hard it rains in raw view, 0 to 1
+uniform float uRain;      // how hard it rains in the view on screen, 0 to 1
+uniform float uFog;       // the look: fog in the air, in the view's own: violet to the Concierge, raw view's smog
 uniform float uBakedC;    // how much of the set is painted, its reflections too: then only the characters are mirrored
 uniform vec4 uRefl;       // the look: reflections' strength; how far up the set's reaches (1 a mirror); how far its lights
                           // streak down, in pixels; how much the set is mirrored in a painted scene, below the line
@@ -414,6 +438,8 @@ void main() {
   float dk = uDof * (dep < 0.15 ? 0.4 : dep < 0.5 ? 0.85 : dep < 0.8 ? 0.45 : 0.0);
   if (dk > 0.0) { vec4 b = T(tDof, p); if (b.a > 0.02) c = mix(c, b.rgb / b.a, dk * smoothstep(0.02, 0.3, b.a)); }
   float raw = 1.0 - uView;
+  // what stirs the puddles: the real world's weather, and the Concierge's when it rains there too
+  float stir = max(raw, uRain);
   // a character sits in the picture, not on it: its outline softens into what is behind it, and the light around it wraps
   // a little over its edges. Samples at 3 and 6 pixels that land on the set say how near the edge this pixel is
   if (uWrap > 0.0 && isActor(g3.a) > 0.5) {
@@ -436,14 +462,14 @@ void main() {
   if (gnd) G = groundAt(p, GY);
   if (refl > 0.02) {
     float puddle = gnd ? G.pud : step(0.7, refl);
-    // rain stirs the puddles in the real world; the Concierge's streets are still. Softened reflections get long, slow
-    // swells, so their edges waver instead of breaking into bands. On a ground of the scene's own only standing water
-    // moves: stone and asphalt hold still
+    // rain stirs the puddles in the real world; the Concierge's streets are still, unless it rains there too. Softened
+    // reflections get long, slow swells, so their edges waver instead of breaking into bands. On a ground of the scene's
+    // own only standing water moves: stone and asphalt hold still
     float rip = gnd
-      ? (sin(p.y * 0.85 + uTime * 5.0 + w.x * 0.04) * 1.2 + (vn(w * 0.08 + uTime) - 0.5) * 2.0) * G.pud * mix(0.2, 1.0, raw)
+      ? (sin(p.y * 0.85 + uTime * 5.0 + w.x * 0.04) * 1.2 + (vn(w * 0.08 + uTime) - 0.5) * 2.0) * G.pud * mix(0.2, 1.0, stir)
       : uReflBlur > 0.5
-      ? (sin(p.y * 0.32 + uTime * 2.0 + w.x * 0.025) * 0.8 + (vn(w * vec2(0.03, 0.12) + uTime * 0.4) - 0.5) * 1.6 * puddle) * mix(0.15, 1.0, raw)
-      : (sin(p.y * 0.85 + uTime * 5.0 + w.x * 0.04) * mix(0.5, 1.6, puddle) + (vn(w * 0.08 + uTime) - 0.5) * 2.0 * puddle) * mix(0.25, 1.0, raw);
+      ? (sin(p.y * 0.32 + uTime * 2.0 + w.x * 0.025) * 0.8 + (vn(w * vec2(0.03, 0.12) + uTime * 0.4) - 0.5) * 1.6 * puddle) * mix(0.15, 1.0, stir)
+      : (sin(p.y * 0.85 + uTime * 5.0 + w.x * 0.04) * mix(0.5, 1.6, puddle) + (vn(w * 0.08 + uTime) - 0.5) * 2.0 * puddle) * mix(0.25, 1.0, stir);
     // the set is mirrored around its ground line, and a character around its own feet: look up this column for the nearest
     // character above this bit of ground. If the set's mirror lands on a character standing elsewhere, take the set beside it
     // the set's reflection reaches uRefl.y times as far up as the pixel is below the line: a low camera over wet ground
@@ -505,6 +531,12 @@ void main() {
     c = mix(c, tone(vec3(0.045), RAW_AIR), min(1.0, raw * fd * mix(0.35, 1.0, z.g * (1.0 - z.r)) * uRawFog));
   }
   vec3 near = (T(tA, p + vec2(6.0, 0.0)).rgb + T(tA, p - vec2(6.0, 0.0)).rgb + T(tA, p + vec2(0.0, 6.0)).rgb + T(tA, p - vec2(0.0, 6.0)).rgb) * 0.25;
+  // fog: the air between the eye and everything, thicker with distance and outdoors, lit by what glows in it
+  if (uFog > 0.0) {
+    float fdf = dep < 0.15 ? 0.75 : dep < 0.5 ? 0.55 : dep < 0.8 ? 0.32 : 0.14;
+    vec3 fogC = mix(tone(vec3(0.07), CO_AIR), tone(vec3(0.07), RAW_AIR), raw) + near * 0.45;
+    c = mix(c, fogC, min(1.0, fdf * mix(0.45, 1.0, z.g * (1.0 - z.r)) * uFog));
+  }
   for (int s = 0; s < 4; s++) {
     vec4 e = uSteam[s]; if (e.z <= 0.0) continue; vec2 r = p - (e.xy - uCam); float up = -r.y; if (up < -4.0 || up > e.z) continue;
     float smoke = step(e.w, 0.0), k = up / e.z, sway = sin(k * 5.0 + uTime * 0.8) * 8.0 * k, wdt = abs(e.w) * (0.35 + k * (1.0 + 2.0 * smoke));
@@ -513,12 +545,13 @@ void main() {
     vec3 vapour = mix(vec3(0.025, 0.025, 0.03), vec3(0.16, 0.16, 0.18), smoke);
     c += (mix(near, tone(near, RAW_AIR), raw * 0.6) * 1.4 + mix(vapour, tone(vapour, RAW_AIR) * 1.2, raw)) * d * mix(0.9, 1.3, smoke);
   }
-  // rain falls only in the real world: the Concierge keeps its streets dry
-  float outside = z.g * (1.0 - z.r) * raw * uRain;
+  // rain falls outside: in the real world, and in the Concierge's when it lets it (a storm it cannot hide)
+  // past 1, a downpour: more streaks, and nearer ones, longer and brighter
+  float outside = z.g * (1.0 - z.r) * min(uRain, 1.0), pour = clamp(uRain - 1.0, 0.0, 1.0);
   if (outside > 0.05) {
-    float rn = rainL(p, uTime, 2.0, 55.0, 6.0, 0.33) * 0.55 + rainL(p + 37.0, uTime, 4.0, 95.0, 5.0, 0.22);
+    float rn = rainL(p, uTime, 2.0, 55.0, 6.0, 0.33 + 0.3 * pour) * 0.55 + rainL(p + 37.0, uTime, 4.0, 95.0, 5.0, 0.22 + 0.25 * pour) + rainL(p + 71.0, uTime, 6.0, 140.0, 7.0, 0.12 * pour) * 1.4;
     vec3 tint = normalize(near + 1e-4) * 0.9;
-    c += rn * outside * (tone(vec3(0.012, 0.014, 0.02), RAW_AIR) + tint * lum(near) * 2.6);
+    c += rn * outside * (mix(vec3(0.012, 0.014, 0.02), tone(vec3(0.012, 0.014, 0.02), RAW_AIR), raw) + tint * lum(near) * 2.6);
     if (p.y > GY + 2.0 && refl > 0.02 && hash(floor(w / vec2(18.0, 6.0)) + 21.0) < uRain) { vec2 cell = floor(w / vec2(18.0, 6.0)); float ph = fract(uTime * (0.7 + hash(cell)) + hash(cell + 3.0)); float rr = length((w - (cell + 0.5) * vec2(18.0, 6.0)) * vec2(1.0, 3.0)); c += vec3(0.18, 0.2, 0.24) * smoothstep(1.4, 0.0, abs(rr - ph * 9.0)) * (1.0 - ph) * step(0.55, hash(cell + 9.0)) * (0.4 + lum(near)) * (gnd ? G.pud : 1.0); }
     // on a ground of the scene's own, rings spread only in standing water; on the rest, wet, drops splash
     if (gnd && G.pud < 0.99) {

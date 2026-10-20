@@ -23,8 +23,12 @@ export interface Look {
   streaks: number;
   /** The poisonous fog of raw view. */
   rawFog: number;
-  /** How hard it rains in raw view, 0 to 1: a drizzle around 0.3. Rain falls outside only. */
+  /** How hard it rains: a drizzle around 0.3, 1 rain, 2 a downpour. Rain falls outside only; the Concierge's view has none unless asked. */
   rain: number;
+  /** Fog in the air, thicker with distance and outdoors, in the view's own air: violet to the Concierge, raw view's smog. */
+  fog: number;
+  /** The city's power, 1 on: under 1 its lights go out, the lights painted into the art too, but for lights with their own. */
+  power: number;
   /** How strongly wet ground mirrors what is above it: the set and the people. */
   reflect: number;
   /**
@@ -96,7 +100,7 @@ export interface Look {
 
 export const LOOK_DEFAULTS: Look = {
   pixelSize: 1, pixelShape: 0, shapeAmount: 0.5, colorLevels: 0, dither: 0.5,
-  lights: 1, ambient: 1, haze: 1, glow: 1, bloom: 1, shafts: 1, streaks: 1, rawFog: 1, rawColour: 0.5, rain: 1,
+  lights: 1, ambient: 1, haze: 1, glow: 1, bloom: 1, shafts: 1, streaks: 1, rawFog: 1, rawColour: 0.5, rain: 1, fog: 0, power: 1,
   reflect: 1, mirrorSet: 0, reflectReach: 1, reflectStreak: 0, reflectDiffuse: 0, reflectFade: 0, wet: 0, polish: 0.5, wear: 0.5, groundPaint: 1, groundTone: 0.25,
   charFill: 1, charRim: 1, charGlow: 0.05, charShadow: 0.55, charWrap: 0.6, actorPaint: 0, actorRed: 1, actorGreen: 1, actorBlue: 1,
   exposure: 0, contrast: 1, saturation: 1, temperature: 0, tint: 0,
@@ -139,7 +143,9 @@ export const LOOK_CONTROLS: LookControl[] = [
   { key: 'shafts', label: 'Light shafts', group: 'Light', min: 0, max: 4, step: 0.05 },
   { key: 'streaks', label: 'Lens streaks', group: 'Light', min: 0, max: 4, step: 0.05 },
   { key: 'rawFog', label: 'Raw view fog', group: 'Light', min: 0, max: 3, step: 0.05 },
-  { key: 'rain', label: 'Rain in raw view', group: 'Light', min: 0, max: 1, step: 0.05 },
+  { key: 'rain', label: 'Rain (over 1 a downpour)', group: 'Light', min: 0, max: 2, step: 0.05 },
+  { key: 'fog', label: 'Fog', group: 'Light', min: 0, max: 2, step: 0.05 },
+  { key: 'power', label: 'Power (0: the lights are out)', group: 'Light', min: 0, max: 1, step: 0.05 },
   { key: 'reflect', label: 'Reflections', group: 'Reflections', min: 0, max: 2, step: 0.05 },
   { key: 'mirrorSet', label: 'Mirror the set (painted scenes)', group: 'Reflections', min: 0, max: 1, step: 0.05 },
   { key: 'reflectReach', label: 'Reach up (1 a mirror)', group: 'Reflections', min: 1, max: 6, step: 0.1 },

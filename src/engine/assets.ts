@@ -93,6 +93,8 @@ export interface LightDef {
   raw?: number;
   /** A machine's own light (a monitor, an indicator, the kiosk's eye): keeps its colour in raw view, where main lighting goes sterile white. */
   machine?: number;
+  /** 1: it has power of its own (a battery, a generator, the Concierge's own supply), so it stays on in a power cut. */
+  own?: number;
   /**
    * Where the light is against the characters: 0 behind them, part of the set (a character in front hides its glow,
    * is rimmed by it and gets a soft fill from it), 1 among them, hanging in the street space (a street lamp: it lights
