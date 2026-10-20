@@ -340,10 +340,12 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .ed-sep { width: 1px; height: 22px; background: #2a2a36; margin: 0 4px; }
 .ed-grow { flex: 1; }
 .ed-status { color: var(--muted); font-size: 12px; margin-right: 4px; }
-/* Both, raw, AR: which views edits go to */
-.ed-modes { display: inline-flex; border: 1px solid #30303e; border-radius: 4px; overflow: hidden; }
-.ed-bar .ed-modes button { border: 0; border-radius: 0; border-right: 1px solid #30303e; }
-.ed-bar .ed-modes button:last-child { border-right: 0; }
+/* what is worked on (all, layout, interaction, lighting, effects), and which views edits go to (both, raw, AR) */
+.ed-bar [hidden] { display: none !important; }
+.ed-modes, .ed-tasks { display: inline-flex; border: 1px solid #30303e; border-radius: 4px; overflow: hidden; }
+.ed-bar :is(.ed-modes, .ed-tasks) button { border: 0; border-radius: 0; border-right: 1px solid #30303e; }
+.ed-bar :is(.ed-modes, .ed-tasks) button:last-child { border-right: 0; }
+.ed-bar .ed-tasks button[aria-pressed="true"] { background: #e8e8f0; color: #0d0d14; }
 .ed-bar .ed-modes button[aria-pressed="true"] { color: #0d0d14; }
 .ed-bar .ed-modes button[data-mode="both"][aria-pressed="true"] { background: #ffe9a8; }
 .ed-bar .ed-modes button[data-mode="raw"][aria-pressed="true"] { background: var(--amber); }

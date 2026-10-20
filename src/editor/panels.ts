@@ -11,7 +11,7 @@ import { rebuild, refresh, syncEffects, syncScroll, updatePlay } from './files';
 import { buttons, check, choice, colour, eye, heading, labelFields, num, section, str, viewText } from './form';
 import { lintScene, type Problem } from './lint';
 import { editView, hasOwn, markOwn, ownIn, sameInBoth, setFor, shownView, viewLabel } from './views';
-import { dom, ed, LIMITS, redraw, remember, snapshot, type Kind, type Selection } from './state';
+import { dom, ed, inTask, LIMITS, redraw, remember, snapshot, type Kind, type Selection } from './state';
 
 const GROUPS: [string, string][] = [['0', 'Steady'], ['1', 'Monitor flicker'], ['2', 'Valves'], ['3', 'Fire'], ['4', 'The machine’s eye'], ['5', 'Neon flicker'], ['6', 'Hologram'], ['7', 'Screen'], ['8', 'String lights']];
 const ZONES: [string, string][] = [['0', 'Everywhere'], ['1', 'Inside areas'], ['2', 'Outside, near layer'], ['4', 'Outside, every depth'], ['3', 'Facade']];
@@ -323,10 +323,12 @@ function rows(parent: HTMLElement, items: Row[]): void {
   }
 }
 
-/** Everything in the scene by kind, each kind with an eye to hide it on the scene and see the rest. */
+/** Everything in the scene by kind, each kind with an eye to hide it on the scene and see the rest; in a task, its kinds. */
 function outline(body: HTMLElement): void {
-  const f = ed.file;
+  const f = ed.file, task = ed.task;
   const group = (title: string, kind: Kind | null, items: Row[], opts: { note?: string; extra?: HTMLElement } = {}) => {
+    // a task's own kinds only; layers belong to the layout
+    if (task !== 'all' && (kind ? !inTask(kind) : task !== 'layout')) return;
     const g = el('div', 'ed-group', body), head = el('div', 'ed-group-head', g);
     el('span', 't', head, title);
     el('span', 'n', head, opts.note ?? (items.length ? String(items.length) : 'none'));
@@ -404,7 +406,7 @@ function sceneSide(): void {
   const errors = found.filter((p) => p.level === 'error').length;
   side(section('problems', 'Problems', (body) => problems(body, found), { badge: found.length ? String(found.length) : 'none', tone: errors ? 'error' : found.length ? 'warning' : 'ok' }));
   side(section('outline', 'Outline', outline));
-  side(section('settings', 'Scene settings', (body) => body.append(
+  const space = () => [
     str('Name', file.name, (v) => { file.name = v; }),
     choice('Kind', file.kind, [['exterior', 'Exterior: outside, rain'], ['interior', 'Interior: inside']], (v) => { file.kind = v as 'exterior' | 'interior'; }, refresh),
     num('Width', file.size[0], (v) => { file.size[0] = Math.max(NW, v); syncScroll(); }, { min: NW, step: 16, after: refresh }),
@@ -413,14 +415,26 @@ function sceneSide(): void {
     num('Reflection line y', file.mirror ?? file.walk.y - 8, (v) => { file.mirror = v; }, { after: refresh }),
     num('People’s size (1 standard, under 1 further back)', file.actorScale ?? 1, (v) => { if (v === 1) delete file.actorScale; else file.actorScale = v; }, { step: 0.05, min: 0.3, max: 3, after: refresh }),
     num('Camera follows Luna, px each way (0 none; a scene no wider than the screen)', file.drift ?? 0, (v) => { if (v) file.drift = v; else delete file.drift; }, { step: 1, min: 0, max: 60 }),
+  ];
+  const light = () => [
     perView('Ambient light (1 as standard)', 'ambient', 1, { step: 0.05, min: 0, max: 4 }),
     perView('Exposure, stops', 'exposure', 0, { step: 0.05, min: -3, max: 3 }),
     perView('Light painted into the art (0 to 1)', 'baked', 0, { step: 0.05, min: 0, max: 1 }),
+  ];
+  const concierge = () => [
     str('The Concierge’s greeting', file.greeting ?? '', (v) => { if (v) file.greeting = v; else delete file.greeting; }),
     str('Its answer to Ring for assistance', file.assist ?? '', (v) => { if (v) file.assist = v; else delete file.assist; }, { area: true }),
-  )));
+  ];
+  const task = ed.task;
+  if (task === 'all') side(section('settings', 'Scene settings', (body) => body.append(...space(), ...light(), ...concierge())));
+  if (task === 'layout') side(section('space', 'The scene', (body) => body.append(...space())));
+  if (task === 'interaction') side(section('concierge', 'The Concierge here', (body) => body.append(...concierge())));
+  if (task === 'lighting') side(section('light', 'The scene’s light', (body) => {
+    el('p', 'ed-note', body, 'How bright the scene is in each view, and how much of its light is painted into the art. G shows only what the lights do.');
+    body.append(...light());
+  }));
   const g = file.ground, line = file.mirror ?? file.walk.y - 8;
-  side(section('ground', 'Ground', (body) => {
+  if (task === 'all' || task === 'layout') side(section('ground', 'Ground', (body) => {
     el('p', 'ed-note', body, 'Drawn by the engine below the reflection line, over a floor smoothed for it: paving slabs, a kerb, puddles. How wet, shiny and worn it is in each view is in the look panel, under Reflections.');
     body.append(check('The engine draws the ground', !!g, (v) => { if (v) file.ground = { horizon: line - 100, slab: [90, 70], puddles: 0.25 }; else delete file.ground; }, () => { refresh(); redraw.side(); }));
     if (g) body.append(

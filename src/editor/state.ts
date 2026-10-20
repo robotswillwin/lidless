@@ -79,25 +79,38 @@ export const ed = {
    * only. In raw or AR, that view is on screen.
    */
   mode: 'both' as 'both' | Only,
+  /** What is being worked on: everything, or one task, whose things alone are drawn over the scene and in its panel. */
+  task: 'all' as Task,
 };
+
+/** What can be worked on: each task's things over the scene. Luna is always there. */
+export type Task = 'all' | 'layout' | 'interaction' | 'lighting' | 'effects';
+export const TASK_KINDS: Record<Exclude<Task, 'all'>, Kind[]> = {
+  layout: ['lines', 'areas'],
+  interaction: ['hotspots', 'exits', 'spawns', 'lines'],
+  lighting: ['lights', 'areas'],
+  effects: ['effects'],
+};
+/** Whether a kind of thing belongs to what is being worked on. */
+export const inTask = (kind: Kind): boolean => ed.task === 'all' || TASK_KINDS[ed.task].includes(kind);
 
 /**
  * The viewer's own conveniences, kept in this browser: which sections of the side panel are folded away, and which kinds
  * of thing are hidden on the scene. Nothing in the scene file depends on them.
  */
 const PREFS = 'lidless.editor.v1';
-export const prefs = ((): { collapsed: Set<string>; hidden: Set<string> } => {
-  let saved: { collapsed?: string[]; hidden?: string[] } = {};
+export const prefs = ((): { collapsed: Set<string>; hidden: Set<string>; task?: string } => {
+  let saved: { collapsed?: string[]; hidden?: string[]; task?: string } = {};
   try {
     saved = JSON.parse(localStorage.getItem(PREFS) ?? '{}') as typeof saved;
   } catch {
     // no storage here: everything open and shown
   }
-  return { collapsed: new Set(saved.collapsed ?? ['ground']), hidden: new Set(saved.hidden ?? []) };
+  return { collapsed: new Set(saved.collapsed ?? ['ground']), hidden: new Set(saved.hidden ?? []), task: saved.task };
 })();
 export const savePrefs = (): void => {
   try {
-    localStorage.setItem(PREFS, JSON.stringify({ collapsed: [...prefs.collapsed], hidden: [...prefs.hidden] }));
+    localStorage.setItem(PREFS, JSON.stringify({ collapsed: [...prefs.collapsed], hidden: [...prefs.hidden], task: ed.task }));
   } catch {
     // as above
   }
@@ -105,8 +118,8 @@ export const savePrefs = (): void => {
 
 /** Kinds of thing on the scene, each of which can be hidden there to see the others. */
 export type Kind = 'lights' | 'hotspots' | 'exits' | 'spawns' | 'areas' | 'effects' | 'lines';
-/** Whether a kind is drawn on the scene: unless it is hidden, and always what is selected. */
-export const shown = (kind: Kind, selected = false): boolean => selected || !prefs.hidden.has(kind);
+/** Whether a kind is drawn on the scene: if it belongs to what is being worked on and is not hidden; and what is selected. */
+export const shown = (kind: Kind, selected = false): boolean => selected || (inTask(kind) && !prefs.hidden.has(kind));
 
 export const undoStack: string[] = [];
 export const t0 = performance.now();

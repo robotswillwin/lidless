@@ -18,7 +18,7 @@ import { listAssets, openScene, save, syncAddress, undo } from './files';
 import { lunaFrame } from './luna';
 import { bindOverlay, drawOverlay } from './overlay';
 import { drawSide } from './panels';
-import { base, dom, ed, gl, redraw, renderer, showError, t0, viewX } from './state';
+import { base, dom, ed, gl, inTask, prefs, redraw, renderer, savePrefs, showError, t0, viewX, type Kind, type Task } from './state';
 
 redraw.overlay = drawOverlay;
 redraw.side = drawSide;
@@ -61,6 +61,25 @@ function showView(v: 0 | 1): void {
   syncAddress();
 }
 
+/** The kind of thing a selection is, to tell whether it belongs to a task. */
+const KIND_OF: Record<string, Kind | 'layers'> = { light: 'lights', spawn: 'spawns', zone: 'areas', layer: 'layers', steam: 'effects', godray: 'effects', beacon: 'effects', drips: 'effects', mover: 'effects' };
+
+/** What is being worked on: its add buttons in the toolbar, its things over the scene, its parts of the panel. */
+function setTask(t: Task): void {
+  ed.task = t;
+  savePrefs();
+  const sel = ed.sel, kind = sel.kind === 'hotspot' ? (ed.file?.hotspots[sel.i]?.go ? 'exits' : 'hotspots') : KIND_OF[sel.kind];
+  // what is selected stays selected only if it belongs to the task (layers belong to the layout)
+  if (kind && t !== 'all' && !(kind === 'layers' ? t === 'layout' : inTask(kind))) ed.sel = { kind: 'scene' };
+  syncTask();
+  if (ed.file) { drawOverlay(); drawSide(); }
+}
+
+function syncTask(): void {
+  document.querySelectorAll<HTMLButtonElement>('[data-task]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.task === ed.task)));
+  document.querySelectorAll<HTMLElement>('.ed-bar [data-in]').forEach((e) => { e.hidden = ed.task !== 'all' && e.dataset.in !== ed.task; });
+}
+
 /** Both, raw or AR: in raw or AR, that view is on screen. */
 function setMode(m: typeof ed.mode): void {
   ed.mode = m;
@@ -95,6 +114,9 @@ const lighting = dom.button('lighting');
 const toggleLighting = () => { ed.lightView = !ed.lightView; lighting.setAttribute('aria-pressed', String(ed.lightView)); };
 lighting.addEventListener('click', toggleLighting);
 document.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.mode as typeof ed.mode)));
+document.querySelectorAll<HTMLButtonElement>('[data-task]').forEach((b) => b.addEventListener('click', () => setTask(b.dataset.task as Task)));
+const TASKS: Task[] = ['all', 'layout', 'interaction', 'lighting', 'effects'];
+setTask(TASKS.includes(prefs.task as Task) ? (prefs.task as Task) : 'all');
 dom.sceneSel.addEventListener('change', () => {
   if (ed.dirty && !confirm('Leave this scene without saving?')) { dom.sceneSel.value = ed.file.id; return; }
   void openScene(dom.sceneSel.value).catch(showError);
@@ -124,6 +146,7 @@ document.addEventListener('keydown', (e) => {
   if (k === 'e' || k === 'E') toggleView();
   else if (k === 'l' || k === 'L') ed.look?.toggle();
   else if (k === 'g' || k === 'G') toggleLighting();
+  else if (k >= '1' && k <= '5') setTask(TASKS[Number(k) - 1]);
   else if (k === 'Escape') { ed.sel = { kind: 'scene' }; drawOverlay(); drawSide(); }
   else if (k === 'Delete' || k === 'Backspace') { e.preventDefault(); deleteSelected(); }
   else if (k.startsWith('Arrow') && ed.sel.kind !== 'scene') {

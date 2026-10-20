@@ -82,6 +82,12 @@ backstreet leads home, and the radio repair's door on the main street leads into
 **The scene editor**, `/editor.html` on the dev server, shows a scene rendered as in the game, and Luna to judge the
 light on.
 
+- **All · Layout · Interaction · Lighting · Effects** (in the toolbar, or keys 1 to 5): what you work on. Each shows
+  only its own things over the scene, its own add buttons and its own parts of the scene's panel, so nothing else can be
+  picked up by mistake: **Layout** the walk line, the reflection line and the ground, inside and outside areas, layers,
+  the camera and the people's size; **Interaction** hotspots, exits and places to arrive at, and the Concierge's lines
+  here; **Lighting** lights and the scene's light; **Effects** steam, smoke, light shafts, beacons, drips and movers.
+  Problems always lists everything. The editor remembers which you had.
 - **Both · Raw · AR** (in the toolbar): which views your edits go to. In **Both**, what you change becomes the same in
   both views, and E shows the other view. In **Raw** or **AR** that view is on screen and what you change is its own:
   a light stronger or another colour there, a hotspot elsewhere there, a layer or an effect placed elsewhere; E switches

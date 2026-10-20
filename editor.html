@@ -14,16 +14,24 @@
     <label class="ed-scene">Scene <select id="scene"></select></label>
     <button id="new-scene" type="button" title="A new scene from a built background">New scene</button>
     <span class="ed-sep"></span>
-    <select id="add-light" class="ed-add" title="Add a light in the middle of the view: one of its own, or one of a kind (a preset)">
+    <div class="ed-tasks" role="group" aria-label="What you are working on">
+      <button type="button" data-task="all" aria-pressed="true" title="Everything (1)">All</button>
+      <button type="button" data-task="layout" aria-pressed="false" title="Layout (2): the walk line, the reflection line and the ground, inside and outside areas, layers, the camera, the people's size">Layout</button>
+      <button type="button" data-task="interaction" aria-pressed="false" title="Interaction (3): hotspots and exits, their texts and conversations, places to arrive at">Interaction</button>
+      <button type="button" data-task="lighting" aria-pressed="false" title="Lighting (4): lights and their kinds, the scene's light">Lighting</button>
+      <button type="button" data-task="effects" aria-pressed="false" title="Effects (5): steam and smoke, light shafts, beacons, drips, movers">Effects</button>
+    </div>
+    <span class="ed-sep"></span>
+    <select id="add-light" class="ed-add" data-in="lighting" title="Add a light in the middle of the view: one of its own, or one of a kind (a preset)">
       <option value="">+ Light</option>
       <option value="light">A light of its own</option>
     </select>
-    <button data-add="hotspot" type="button">+ Hotspot</button>
-    <button data-add="exit" type="button" title="A hotspot that leads to another scene">+ Exit</button>
-    <button data-add="spawn" type="button" title="A place to arrive at">+ Spawn</button>
-    <button data-add="zone" type="button" title="An area of the other kind: inside in a street, outside in a room">+ Area</button>
-    <button data-add="layer" type="button" title="Another built asset in the scene">+ Layer</button>
-    <select id="add-effect" class="ed-add" title="Add an effect in the middle of the view">
+    <button data-add="hotspot" data-in="interaction" type="button">+ Hotspot</button>
+    <button data-add="exit" data-in="interaction" type="button" title="A hotspot that leads to another scene">+ Exit</button>
+    <button data-add="spawn" data-in="interaction" type="button" title="A place to arrive at">+ Spawn</button>
+    <button data-add="zone" data-in="layout" type="button" title="An area of the other kind: inside in a street, outside in a room">+ Area</button>
+    <button data-add="layer" data-in="layout" type="button" title="Another built asset in the scene">+ Layer</button>
+    <select id="add-effect" class="ed-add" data-in="effects" title="Add an effect in the middle of the view">
       <option value="">+ Effect</option>
       <option value="steam">Steam</option>
       <option value="smoke">Smoke</option>
@@ -40,7 +48,7 @@
     </div>
     <span id="showing" class="ed-showing" aria-live="polite"></span>
     <button id="look" type="button" title="The look panel (L)">Look</button>
-    <button id="lighting" type="button" aria-pressed="false" title="Lighting view (G): everything a flat grey, so only what the lights do shows">Lighting</button>
+    <button id="lighting" data-in="lighting" type="button" aria-pressed="false" title="Lighting view (G): everything a flat grey, so only what the lights do shows">Lighting</button>
     <span class="ed-grow"></span>
     <span id="status" class="ed-status"></span>
     <button id="undo" type="button" title="Undo (Cmd+Z)">Undo</button>
@@ -54,7 +62,7 @@
         <svg id="overlay" class="ed-overlay" viewBox="0 0 960 540" aria-label="Lights, hotspots and places in the scene"></svg>
       </div>
       <input id="scroll" class="ed-scroll" type="range" min="0" max="0" value="0" aria-label="Scroll the scene" hidden>
-      <p class="ed-help">Click to select, drag to move; drag a corner to resize. Delete removes. E the other view, L look, G lighting view, Cmd+Z undo, Cmd+S save.</p>
+      <p class="ed-help">Click to select, drag to move; drag a corner to resize. Delete removes. 1 to 5 what you work on, E the other view, L look, G lighting view, Cmd+Z undo, Cmd+S save.</p>
     </div>
     <aside class="ed-side" id="side" aria-label="Selected item"></aside>
   </main>
