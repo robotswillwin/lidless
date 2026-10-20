@@ -82,17 +82,27 @@ export async function template(cutout = false, extra = []) {
   return sharp(Buffer.from(svg)).png().toBuffer();
 }
 
-/** The parts prompt for a character with these extra parts. */
-export const partsPromptFor = (extra = []) => extra.includes('ponytail')
-  ? partsPrompt.replace('the head with the neck and hair;', 'the head with the neck and the hair on the head, but without the ponytail; the ponytail on its own as a separate piece, from where it is tied at the back of the head to its tip, hanging straight down;')
-  : partsPrompt;
+/**
+ * What each piece is, for a character in a long coat. Other clothes say it their own way in a recipe's `parts.pieces`:
+ * said for a coat, a T-shirt comes back with a sleeve's end on the forearm and its arm drawn onto the torso.
+ */
+export const COAT_PIECES = 'the head with the neck and hair; the torso with the upper part of the coat, from the collar to the hips; the lower part of the coat, open, hanging from the waist; one upper arm in its coat sleeve; one forearm with the end of the sleeve and the hand, relaxed and open; one thigh in the trousers; one lower leg with its boot, toes pointing right.';
+
+/** The parts prompt for a character with these extra parts, its pieces said its own way if the recipe has them. */
+export const partsPromptFor = (extra = [], pieces = COAT_PIECES) => {
+  const p = partsPrompt.replace(COAT_PIECES, pieces);
+  return extra.includes('ponytail')
+    ? p.replace('the head with the neck and hair;', 'the head with the neck and the hair on the head, but without the ponytail; the ponytail on its own as a separate piece, from where it is tied at the back of the head to its tip, hanging straight down;')
+    : p;
+};
 
 export const partsPrompt = [
   'Draw a cut-out animation parts sheet of the character in the first image, seen from the side, facing right.',
   'The pale shapes in the second image only show where each part goes on the sheet and its rough size and direction; do not draw them.',
-  'Draw every part as a separate piece with empty space around it, complete as if nothing covered it, and a little longer at each joint so it overlaps its neighbour when it bends. Every part ends in its own clothing or skin, never in a grey or coloured cap:',
-  'the head with the neck and hair; the torso with the upper part of the coat, from the collar to the hips; the lower part of the coat, open, hanging from the waist;',
-  'one upper arm in its coat sleeve; one forearm with the end of the sleeve and the hand, relaxed and open; one thigh in the trousers; one lower leg with its boot, toes pointing right.',
+  // the model moves pieces about when only the shapes say where they go: said in words too, the cut finds each where it looks
+  'Put each piece where its pale shape is: along the top, from left to right, the head, the torso, what hangs from the waist, the upper arm and the forearm; along the bottom, from left to right, the thigh, the lower leg and, if there is one, the ponytail.',
+  'Draw every part as a separate piece with empty space around it, complete as if nothing covered it, and a little longer at each joint so it overlaps its neighbour when it bends; the torso ends at the hips, and what hangs from the waist is a piece of its own below it. Every part ends in its own clothing or skin, never in a grey or coloured cap:',
+  COAT_PIECES,
   'Keep every part at the same scale and in the same proportions as the character in the first image: no part shorter, longer, thinner or thicker than it is on her. Her thigh, from the hip to the knee, is long and slim, about three quarters as long as her lower leg from the knee to the sole.',
   'The same style, detail, colours and even, soft, frontal lighting as the first image.',
   'Transparent background, no text, no labels, no guide shapes.',
@@ -122,7 +132,7 @@ export const conciergePartsPrompt = (description, reshape = '') => [
  * Opaque blobs matched one to one with the parts: name → { pixels, box }. `at` gives each part's spot on the sheet
  * (the model may lay the sheet out its own way); without it, the template's layout is fitted onto the blobs'.
  */
-function blobs(sheet, at = null) {
+function blobs(sheet, at = null, places = null) {
   const { w, h, d } = sheet, seen = new Uint8Array(w * h), out = {}, found = [];
   for (let p = 0; p < w * h; p++) {
     if (seen[p] || d[p * 4 + 3] < 128) continue;
@@ -138,17 +148,23 @@ function blobs(sheet, at = null) {
     }
     if (pixels.length >= 40) found.push({ pixels, cx: sx / pixels.length, cy: sy / pixels.length });
   }
-  // the model draws the parts bigger or shifted: compare layouts after fitting both into the same box, then match
-  // the biggest blobs one to one with the slots, nearest pairs first; small leftovers join the nearest part
-  const slots = Object.entries(at ?? Object.fromEntries(Object.entries(PARTS).map(([n, p]) => [n, { at: p.at }]))).map(([n, v]) => [n, { at: Array.isArray(v) ? v : v.at }]);
+  // match the biggest blobs one to one with the slots, nearest pairs first; small leftovers join the nearest part
+  const slots = Object.entries(at ?? places ?? Object.fromEntries(Object.entries(PARTS).map(([n, p]) => [n, { at: p.at }]))).map(([n, v]) => [n, { at: Array.isArray(v) ? v : v.at }]);
   const big = [...found].sort((a, b) => b.pixels.length - a.pixels.length).slice(0, slots.length);
   const frame = (pts) => { const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]); return [Math.min(...xs), Math.min(...ys), Math.max(...xs) - Math.min(...xs) || 1, Math.max(...ys) - Math.min(...ys) || 1]; };
   const [sx0, sy0, sw, sh] = frame(slots.map(([, p]) => p.at)), [bx0, by0, bw, bh] = frame(big.map((b) => [b.cx, b.cy]));
-  const norm = (b) => (at ? [b.cx, b.cy] : [sx0 + ((b.cx - bx0) / bw) * sw, sy0 + ((b.cy - by0) / bh) * sh]);
-  const pairs = [];
-  for (const b of big) for (const [n, p] of slots) { const [x, y] = norm(b); pairs.push([Math.hypot(p.at[0] - x, p.at[1] - y), b, n]); }
-  pairs.sort((a, b) => a[0] - b[0]);
-  for (const [, b, n] of pairs) if (!out[n] && !b.name) { out[n] = { pixels: b.pixels }; b.name = n; }
+  const match = (norm) => {
+    const pairs = [], names = new Map(), taken = new Set();
+    for (const b of big) for (const [n, p] of slots) { const [x, y] = norm(b); pairs.push([Math.hypot(p.at[0] - x, p.at[1] - y), b, n]); }
+    pairs.sort((a, b) => a[0] - b[0]);
+    let cost = 0;
+    for (const [dist, b, n] of pairs) if (!taken.has(n) && !names.has(b)) { names.set(b, n); taken.add(n); cost += dist; }
+    return { names, cost };
+  };
+  // where the recipe says each piece is; else the template's places, as the sheet was asked to follow them, or, where
+  // the model drew the parts bigger or shifted, the layouts compared after fitting both into the same box: the closer
+  const direct = match((b) => [b.cx, b.cy]), fitted = at ? direct : match((b) => [sx0 + ((b.cx - bx0) / bw) * sw, sy0 + ((b.cy - by0) / bh) * sh]);
+  for (const [b, n] of (fitted.cost < direct.cost ? fitted : direct).names) { out[n] = { pixels: b.pixels }; b.name = n; }
   for (const b of found) if (!b.name) {
     let near = null, nd = Infinity;
     for (const o of big) if (o.name) { const dd = Math.hypot(o.cx - b.cx, o.cy - b.cy); if (dd < nd) { nd = dd; near = o; } }
@@ -200,8 +216,10 @@ function jointsOf(img, name, mirrored = false) {
  * Cut a sheet into its parts, each with its joints. `fix` overrides joints where the shape misleads (a hood on the
  * torso, a bun on the head), as fractions of the part's width and height, so one setting serves both views.
  */
-export function cut(sheet, at = null, fix = {}, mirrored = false) {
-  const found = blobs(sheet, at), parts = {};
+export function cut(sheet, at = null, fix = {}, mirrored = false, extra = []) {
+  // without the recipe's places, the template's, its extra parts too (a ponytail), on a mirrored sheet mirrored
+  const places = Object.fromEntries([...Object.entries(PARTS), ...extra.filter((n) => EXTRA_PARTS[n]).map((n) => [n, EXTRA_PARTS[n]])].map(([n, p]) => [n, mirrored ? [sheet.w - p.at[0], p.at[1]] : p.at]));
+  const found = blobs(sheet, at, places), parts = {};
   for (const [name, { pixels, box: [x0, y0, bw, bh] }] of Object.entries(found)) {
     const img = blank(bw, bh);
     for (const p of pixels) { const x = p % sheet.w, y = (p / sheet.w) | 0; img.d.set(sheet.d.subarray(p * 4, p * 4 + 4), ((y - y0) * bw + (x - x0)) * 4); }

@@ -19,7 +19,7 @@ export async function cmdParts([file], opt) {
   // --side left: the character seen from the other side; its parts live under raw-left and concierge-left
   const left = opt.side === 'left', view = left ? `${look}-left` : look;
   await mkdir(join(dir, view), { recursive: true });
-  const extra = r.parts?.extra ?? [], partsPrompt = partsPromptFor(extra);
+  const extra = r.parts?.extra ?? [], partsPrompt = partsPromptFor(extra, r.parts?.pieces);
   const tpl = await partsTemplate(false, extra);
   await writeFile(join(dir, 'template.png'), tpl);
   if (opt.preview) return previewParts(r, dir);
@@ -54,9 +54,25 @@ export async function cmdParts([file], opt) {
     res = await edit({ prompt: `${note}${conciergePartsPrompt(r.concierge, r.parts?.reshape)} ${left ? r.parts?.left?.concierge ?? '' : ''}`, images: [rawSheet, ...(await loadReferences(refs))], size: `${SHEET.w}x${SHEET.h}`, quality, n: 1, background: 'transparent' });
   }
   await writeFile(sheetFile, res.images[0]);
+  // --swap a,b: two pieces the last cut took for each other change places in the recipe's parts.at, which keeps every
+  // piece where that cut found it, for this cut and the ones after it
+  const jfile0 = join(dir, 'parts.json');
+  if (typeof opt.swap === 'string') {
+    const [a, b] = opt.swap.split(',').map((s) => s.trim()), cur = existsSync(jfile0) ? JSON.parse(await readFile(jfile0, 'utf8'))[look] : null;
+    if (!cur?.[a]?.box || !cur?.[b]?.box) throw new Error(`cut the ${look} parts first: --swap names two of their pieces`);
+    const mid = ([x, y, w, h]) => [Math.round(x + w / 2), Math.round(y + h / 2)], keep = new Set(r.parts?.same?.parts ?? []);
+    const at = { ...(r.parts?.at ?? {}) };
+    for (const [n, p] of Object.entries(cur)) if (!keep.has(n) && p.box) at[n] = mid(p.box);
+    [at[a], at[b]] = [mid(cur[b].box), mid(cur[a].box)];
+    r.parts = { ...r.parts, at };
+    const raw = JSON.parse(await readFile(r.file, 'utf8'));
+    raw.parts = { ...raw.parts, at };
+    await writeFile(r.file, JSON.stringify(raw, null, 2) + '\n');
+    console.log(`${r.name}: ${a} and ${b} swapped in ${rel(r.file)}'s parts.at`);
+  }
   // a mirrored left sheet has every part on the other side of the sheet
   const at = r.parts?.at && left && r.parts?.left?.mirror ? Object.fromEntries(Object.entries(r.parts.at).map(([n, [x, y]]) => [n, [SHEET.w - x, y]])) : r.parts?.at ?? null;
-  const parts = cutParts(await readRGBA(sheetFile), at, r.parts?.joints ?? {}, left);
+  const parts = cutParts(await readRGBA(sheetFile), at, r.parts?.joints ?? {}, left, extra);
   for (const [name, p] of Object.entries(parts)) await writePNG(join(dir, view, `${name}.png`), p.img);
   const jfile = join(dir, 'parts.json'), all = existsSync(jfile) ? JSON.parse(await readFile(jfile, 'utf8')) : {};
   // parts.same: parts taken as they are from another character's, for the same view, such as her head and hair in
@@ -79,9 +95,25 @@ export async function cmdParts([file], opt) {
   }
   all[view] = Object.fromEntries(Object.entries(parts).map(([n, p]) => [n, { size: [p.img.w, p.img.h], box: p.box, joints: p.joints }]));
   await writeFile(jfile, JSON.stringify(all, null, 2) + '\n');
+  await checkSheet(sheetFile, parts, join(dir, `${view}-check.png`));
   const missing = [...Object.keys(PARTS_NAMES), ...extra.filter((n) => EXTRA_PARTS[n])].filter((n) => !parts[n]);
   console.log(`${r.name}: ${Object.keys(parts).length} parts → ${rel(join(dir, view))}${missing.length ? ` · missing: ${missing.join(', ')}` : ''}`);
   console.log(res.cost == null ? 'Cost: not reported by the API.' : `Cost: $${res.cost.toFixed(4)}`);
+}
+
+/**
+ * The sheet with each piece the cut found outlined and named, to see at a glance that it took each for what it is: the
+ * image model does not always lay a sheet out as asked, and two pieces of a size, such as a forearm and a thigh, can
+ * change places. `parts --recut --swap forearm,thigh` puts them right.
+ */
+async function checkSheet(sheetFile, parts, out) {
+  const W = 960, meta = await sharp(sheetFile).metadata(), k = W / meta.width, H = Math.round(meta.height * k);
+  const marks = Object.entries(parts).filter(([, p]) => !p.same).map(([n, p]) => {
+    const [x, y, w, h] = p.box.map((v) => Math.round(v * k));
+    return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="none" stroke="#ff3d7f" stroke-width="2"/><text x="${x + 4}" y="${y + 18}" font-family="Helvetica, Arial, sans-serif" font-size="16" fill="#fff" stroke="#000" stroke-width="3" paint-order="stroke">${n}</text>`;
+  }).join('');
+  await sharp(sheetFile).resize(W, H).flatten({ background: '#2b2a33' }).composite([{ input: Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">${marks}</svg>`) }]).png().toFile(out);
+  console.log(`  each piece named: ${rel(out)}`);
 }
 
 /** Each part's length along its bone, in its own pixels: from joint to joint, or from its joint to its far end. */

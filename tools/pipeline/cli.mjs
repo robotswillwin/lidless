@@ -7,7 +7,7 @@ import { resolve } from 'node:path';
 import { ROOT } from './recipe.mjs';
 import { buildOne } from './build.mjs';
 import { cmdParts, cmdRig } from './characters.mjs';
-import { cmdErase, cmdExtend, cmdGenerate, cmdImport, cmdNew, cmdPick, cmdRedress, cmdReframe, cmdSheet, cmdTouch, cmdVariant } from './images.mjs';
+import { cmdErase, cmdExtend, cmdGenerate, cmdImport, cmdNew, cmdPaint, cmdPick, cmdRedress, cmdReframe, cmdSheet, cmdTouch, cmdVariant } from './images.mjs';
 import { cmdBlockout, cmdGround, cmdSplit, cmdZoom } from './scenes.mjs';
 
 try { process.loadEnvFile(resolve(ROOT, '.env.local')); } catch { /* no .env.local: fine until an API call needs the key */ }
@@ -51,11 +51,13 @@ const HELP = `Asset pipeline: generate art with an image AI, clean it and turn i
       shows Luna and the fixer standing in it, to judge the scale by eye. Free.
   npm run asset -- sheet <recipe>
       Lay all candidates side by side at game size, finished as the build would, to choose between them.
-  npm run asset -- parts <recipe> [--view raw|concierge] [--quality low|medium] [--dry]
+  npm run asset -- parts <recipe> [--view raw|concierge] [--side left --mirror] [--recut [--swap a,b]] [--quality low|medium] [--dry]
       Have GPT Image 2.5 Sunburst draw the character as a sheet of separate body parts (head, torso, coat, upper arm,
       forearm, thigh, shin) following a template, and cut them out with their joints into art/<scene>/<name>/parts/.
       The raw sheet is drawn from the recipe's parts.from image (default raw.png); the Concierge sheet is the raw
-      sheet edited, so the parts match. --dry only writes the template.
+      sheet edited, so the parts match. --dry only writes the template. Each cut writes <view>-check.png, every piece
+      outlined and named; --recut cuts the sheet again, and --swap forearm,thigh puts two pieces the cut took for each
+      other right, kept in the recipe's parts.at. Clothes other than a long coat say what each piece is in parts.pieces.
       --preview walks the parts in a GIF; --bake renders a standing frame and the walk from them into anims/.
   npm run asset -- rig <recipe> [--render-only]
       Rig the character's parts in Blender: one skeleton for both outfits and sides, the walk keyed with the coat and
@@ -63,6 +65,9 @@ const HELP = `Asset pipeline: generate art with an image AI, clean it and turn i
       file to change the walk in by hand; --render-only renders that file as it is. Needs Blender on the PATH.
   npm run asset -- erase <recipe> --file <image> --poly "x,y x,y x,y ..."
       Make everything inside the polygon transparent, to clear stray bits off cut-out art. Free; the old image is kept.
+  npm run asset -- paint <recipe> --file <image> --box x,y,w,h --like x,y,w,h [--skin]
+      Paint the box in the colour of the --like area, keeping its light and shade: a robe's thighs in the robe's
+      fabric; with --skin only the skin in it, such as an arm drawn onto a torso. Free; the old image is kept.
   npm run asset -- touch <recipe> --box x,y,w,h --prompt "what to change" [--view raw|concierge] [--quality low|medium] [--frame idle/1] [--dry]
       Change one area of the picked image with GPT Image 2.5 Sunburst, then rebuild. The box is in the picked
       image's pixels. Only a window around it is sent, and only the box is pasted back; the old image is kept
@@ -108,6 +113,6 @@ function parse(argv) {
 }
 
 const [cmd, ...rest] = process.argv.slice(2), { pos, opt } = parse(rest);
-const run = { new: cmdNew, rig: cmdRig, zoom: cmdZoom, extend: cmdExtend, generate: cmdGenerate, variant: cmdVariant, redress: cmdRedress, reframe: cmdReframe, blockout: cmdBlockout, pick: cmdPick, import: cmdImport, sheet: cmdSheet, touch: cmdTouch, split: cmdSplit, ground: cmdGround, erase: cmdErase, parts: cmdParts, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
+const run = { new: cmdNew, rig: cmdRig, zoom: cmdZoom, extend: cmdExtend, generate: cmdGenerate, variant: cmdVariant, redress: cmdRedress, reframe: cmdReframe, blockout: cmdBlockout, pick: cmdPick, import: cmdImport, sheet: cmdSheet, touch: cmdTouch, split: cmdSplit, ground: cmdGround, erase: cmdErase, paint: cmdPaint, parts: cmdParts, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
 if (!run) console.log(HELP);
 else run(pos, opt).catch((e) => { console.error(`error: ${e.message}`); process.exit(1); });

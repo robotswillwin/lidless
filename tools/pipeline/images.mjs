@@ -224,6 +224,43 @@ export function editWindow(W, H, bx, by, bw, bh) {
   return { left: Math.max(0, Math.min(W - w, Math.round(bx + bw / 2 - w / 2))), top: Math.max(0, Math.min(H - h, Math.round(by + bh / 2 - h / 2))), width: w, height: h };
 }
 
+/**
+ * Paint an area of an image in the colour of another, keeping its own light and shade: a piece in its garment's fabric,
+ * such as a robe's thighs, so the robe reads closed as she walks. With --skin only skin is painted, such as an arm the
+ * image model drew onto a torso, which the rig's own arm already is. Free; the old image is kept.
+ */
+export async function cmdPaint([file], opt) {
+  const r = await loadRecipe(file), src = typeof opt.file === 'string' ? join(r.dir, opt.file) : null;
+  const rect = (s) => { const b = String(s ?? '').split(',').map(Number); return b.length === 4 && b.every(Number.isFinite) ? b : null; };
+  const box = rect(opt.box), like = rect(opt.like);
+  if (!src || !existsSync(src) || !box || !like) throw new Error('usage: paint <recipe> --file <image in the asset folder> --box x,y,w,h --like x,y,w,h [--skin]');
+  const img = await readRGBA(src), { w, d } = img, at = (x, y) => (y * w + x) * 4;
+  const lum = (i) => 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
+  // skin: warm, red over green over blue, the way her skin is drawn in either view
+  const skin = (i) => d[i + 3] > 100 && d[i] > d[i + 1] && d[i + 1] >= d[i + 2] - 4 && d[i] - d[i + 2] > 20;
+  const within = ([x0, y0, bw, bh], f) => { for (let y = y0; y < y0 + bh; y++) for (let x = x0; x < x0 + bw; x++) f(at(x, y)); };
+  // the colour to paint: what is not skin in the area it is taken from; the light and shade: the painted pixels' own
+  let n = 0, m = 0, ml = 0;
+  const c = [0, 0, 0];
+  within(like, (i) => { if (d[i + 3] > 200 && !skin(i)) { n++; for (let k = 0; k < 3; k++) c[k] += d[i + k]; } });
+  if (!n) throw new Error(`nothing to take a colour from at ${opt.like}`);
+  const paint = (i) => d[i + 3] > 100 && (!opt.skin || skin(i));
+  within(box, (i) => { if (paint(i)) { m++; ml += lum(i); } });
+  if (!m) return console.log(`${r.name}: nothing to paint in ${opt.box}`);
+  ml /= m;
+  within(box, (i) => {
+    if (!paint(i)) return;
+    const k = Math.max(0.7, Math.min(1.2, lum(i) / ml));
+    for (let j = 0; j < 3; j++) d[i + j] = Math.round(Math.min(255, (c[j] / n) * k));
+  });
+  const dir = join(r.dir, 'candidates');
+  await mkdir(dir, { recursive: true });
+  const keep = join(dir, (await nextName(dir, `${basename(src, '.png')}-before-paint`))());
+  await copyFile(src, keep);
+  await writePNG(src, img);
+  console.log(`${r.name}: painted ${m} pixels in ${rel(src)} as rgb(${c.map((v) => Math.round(v / n)).join(',')}) (the old one is ${rel(keep)})`);
+}
+
 /** Make everything inside a polygon transparent: clearing stray bits off cut-out art, by hand and for free. */
 export async function cmdErase([file], opt) {
   const r = await loadRecipe(file), src = typeof opt.file === 'string' ? join(r.dir, opt.file) : null;

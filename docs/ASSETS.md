@@ -131,10 +131,18 @@ flickers:
   place: a cardigan's hem, a robe's skirt, a dress's skirt (`parts.proportions.coat`, its length). The image model lays
   out each parts sheet its own way: `parts.at` gives where each piece is on that sheet, and `parts --recut` cuts it
   again. A piece the rig swings out from under a skirt shows: the robe's thighs are coloured as the robe, so it reads
-  as closed. Check each sheet for what the template asks of a coat that a T-shirt does not have: the home clothes'
-  forearms came with a sleeve's end on them, and their torso with the near arm drawn on it, both painted out before
-  rigging (`art/cast/hero-lounge`); a Concierge sheet drawn as one piece from shoulders to hem is cut at the waist with
-  `erase`.
+  as closed.
+  - **Saying what each piece is** (`parts.pieces`): the sheet's prompt describes a long coat's pieces unless the
+    recipe says its own. Said for a coat, a T-shirt came back with a sleeve's end on each forearm and its near arm drawn
+    onto the torso; said for itself (a bare forearm with no sleeve, a torso with no arm drawn on it, the hem and shorts
+    as a piece of its own below the waist) it comes back right. The prompt also says in words where each piece goes,
+    so a sheet follows the template and the cut finds each piece where it looks, with no `parts.at`.
+  - **Checking a cut**: each cut writes `parts/<view>-check.png`, every piece outlined and named. Two pieces of a size
+    the cut took for each other, such as a forearm and a thigh, are put right with `parts --recut --swap
+    forearm,thigh`, which keeps the corrected places in the recipe's `parts.at`.
+  - **Fixing a sheet**: `paint` repaints an area in another's colour, keeping its light and shade (the robe's thighs in
+    its fabric; with `--skin`, an arm drawn onto a torso in the shirt's); `erase` cuts apart pieces drawn touching,
+    such as a Concierge shirt drawn in one piece from the shoulders to the hem.
 - **Characters that stand** (`touch --frame idle/N`): each frame repaints one area, such as a hand or a face, and
   everything outside it is identical in every frame. The recipe's `anims.idle` sets `fps` and `seq`. The fixer's
   soldering loop is made this way.

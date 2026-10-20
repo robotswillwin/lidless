@@ -16,3 +16,5 @@ art/**/*-fill.key
 art/**/layers-preview.png
 # the asset the bench opens: the one built last
 public/assets/latest.json
+# what each cut of a parts sheet took each piece for: made again with every cut
+art/**/parts/*-check.png
