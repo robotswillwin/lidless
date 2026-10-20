@@ -238,6 +238,13 @@ export interface MoverDef {
   wait: [number, number];
   /** 1 always left to right, -1 always right to left, 0 (the default) each way in turn. */
   dir?: 1 | -1 | 0;
+  /**
+   * Streaks of light from it, each from `at` (in its sprite's pixels, as built going right), `length` pixels long, in
+   * `colour`, `width` pixels thick where it starts (3 by default), thinning and fading: behind it for a length over 0 (a
+   * thruster's trail), ahead of it under 0 (a headlight's beam). Drawn by the engine, soft, where built art has hard
+   * edges; seen only where the mover's layer is. At most four in a scene.
+   */
+  lights?: { at: [number, number]; length: number; colour: [number, number, number]; width?: number }[];
   only?: Only;
   views?: Views<MoverDef>;
 }

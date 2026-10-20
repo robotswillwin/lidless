@@ -597,13 +597,41 @@
   {
    "asset": "home/flycar",
    "after": "home/cutaway-far",
-   "x0": -80,
-   "x1": 1060,
+   "x0": -120,
+   "x1": 1080,
    "y": 244,
-   "speed": 48,
+   "speed": 210,
    "wait": [
-    6,
-    16
+    4,
+    12
+   ],
+   "lights": [
+    {
+     "at": [
+      3.5,
+      11.3
+     ],
+     "length": 70,
+     "colour": [
+      0.55,
+      0.9,
+      1.0
+     ],
+     "width": 3.5
+    },
+    {
+     "at": [
+      60,
+      10.3
+     ],
+     "length": -24,
+     "colour": [
+      1.0,
+      0.97,
+      0.9
+     ],
+     "width": 2.5
+    }
    ],
    "only": "concierge"
   }

@@ -36,6 +36,9 @@ export class SceneRunner {
   private beacons = new Float32Array(128);
   private steam = new Float32Array(16);
   private steamFar = new Float32Array(4);
+  private trails = new Float32Array(16);
+  private trailColours = new Float32Array(16);
+  private nTrails = 0;
   private steamDefs: LoadedScene['def']['steam'] = [];
   private godrays = new Float32Array(16);
   private shadows = new Float32Array(32);
@@ -94,6 +97,17 @@ export class SceneRunner {
     };
   }
 
+  /** A mover's streaks of light where it is now: a thruster's back the way it came, a headlight's ahead; on its layer and what is behind it. */
+  private lightsOf(m: MoverDef, d: DrawSprite, cam: [number, number], depth: number): void {
+    for (const tr of m.lights ?? []) {
+      if (this.nTrails >= 4) return;
+      const ax = d.flip ? d.sprite.def.w - tr.at[0] : tr.at[0];
+      this.trails.set([d.x + ax + cam[0], d.y + tr.at[1] + cam[1], (d.flip ? -1 : 1) * tr.length, (depth + 0.5) / 3], this.nTrails * 4);
+      this.trailColours.set([tr.colour[0], tr.colour[1], tr.colour[2], (tr.width ?? 3) / 2], this.nTrails * 4);
+      this.nTrails++;
+    }
+  }
+
   /** `actors` are drawn after the scene's sprites; `smoke` moves the scene's smoke emitter (the hero's cigarette). */
   frame(t: number, v: ViewState, cam: [number, number], actors: DrawSprite[] = [], smoke?: [number, number]): Frame {
     const d = this.scene.def, view = v.view >= 0.5 ? 1 : 0, viewName = view ? 'concierge' : 'raw';
@@ -107,6 +121,7 @@ export class SceneRunner {
     // behind; then anything nearer than them
     const isPerson = (def: SpriteDef) => def.actor ?? def.kind === 'character';
     const set: DrawSprite[] = [], people: DrawSprite[] = [], front: DrawSprite[] = [];
+    this.nTrails = 0;
     this.scene.sprites.forEach((sprite, i) => {
       if (this.dynamic.has(sprite.def.name)) return;
       const def = sprite.def, facing = def.facing ?? 1;
@@ -125,7 +140,11 @@ export class SceneRunner {
       };
       (isPerson(def) ? people : def.front ? front : set).push(draw);
       // what moves through the scene behind the nearer layers goes right after its own
-      this.scene.movers?.forEach((m, k) => { if (m.after === i && inViewOf(m.def.only, view)) { const md = this.mover(k, t, cam, def.parallax, viewName); if (md) set.push(md); } });
+      this.scene.movers?.forEach((m, k) => {
+        if (m.after !== i || !inViewOf(m.def.only, view)) return;
+        const md = this.mover(k, t, cam, def.parallax, viewName);
+        if (md) { set.push(md); this.lightsOf(asIn(m.def, viewName), md, cam, def.depth); }
+      });
     });
     // flat layers over the first one blend their edges, so a moving camera slides them smoothly; it has set the flags
     // every flat layer shares. With anything else in the set, all of it stays cut out
@@ -171,6 +190,9 @@ export class SceneRunner {
       gi: lightGroups(t),
       cars: this.cars,
       nCars,
+      trails: this.trails,
+      trailColours: this.trailColours,
+      nTrails: this.nTrails,
       beacons: this.beacons,
       nBeacons: this.nBeacons,
       steam: this.steam,

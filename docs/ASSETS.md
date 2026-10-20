@@ -549,6 +549,10 @@ seen, `x0` to `x1` in that layer's pixels, as it comes out from behind something
 at the other; its `speed` in pixels a second; the `wait` between passes, in seconds, at random between two numbers;
 and `dir`, 1 always to the right, -1 always to the left, 0 (the default) each way in turn. Its sprite is drawn as
 built going right and mirrored going left, and its `y` is where its sprite.json puts it unless the mover gives one.
+`lights` are streaks of light the engine draws with it, soft where built art has hard edges: each from `at` (in its
+sprite's pixels as built going right), `length` long, behind it for a length over 0 (a thruster's trail) and ahead of
+it under 0 (a headlight's beam), in `colour`, `width` thick where it starts, thinning and fading; seen only where its
+layer is, so nearer layers cover them as they cover it.
 The street's train runs along the viaduct after the middle layer, between the building at the viaduct's left end
 and the billboard's tower at its right, every 10 to 25 seconds, each way in turn. How it was made: `touch` painted
 the two trains out of both views of the street's picture, and the long one was cut out of the pictures from before,
@@ -574,9 +578,12 @@ raw view; in the Concierge's, flying traffic in two lanes (one seen through her 
 city behind the building every 6 to 16 seconds, each way in turn, seen at both sides and through her window, its neon
 signs flickering and its hologram breathing; and in the flats around hers a failing bulb below and a screen's glow
 above. The flying car is a mover (`art/home/flycar`): cut from the Concierge's picture by a traced outline like the
-street's train, then redrawn by the image model in pure side view, since the picture drew it flying towards us at an
-angle and, moving straight sideways, it looked wrong; `touch` painted the picture's two still cars out, and one of its
-two KAZE signs. A mover goes straight across at one size, so whatever moves this way is drawn in side view. Her window is
+street's train, then redrawn by the image model in pure side view, with a white headlight at its nose and a red tail
+light at its back and none along its side, since the picture drew it flying towards us at an angle and, moving straight
+sideways, it looked wrong. It crosses fast, 210 px a second, its colours smeared back along its body as by speed, its
+thruster trailing a streak of light and its headlight shining ahead (the mover's `lights`). `touch` painted the
+picture's two still cars out, and one of its two KAZE signs. A mover goes straight across at one size, so whatever
+moves this way is drawn in side view, its lights saying which way it goes. Her window is
 outside (`zones`), so rain falls past it. `split` places a layer 3.5 px right of and 4 px below where the picture was,
 so the flat's layers are placed back (`x` -23.5, `y` 0) and its lights, hotspots and walk line stay where they were.
 

@@ -77,6 +77,10 @@ export interface Frame {
   gi: number[];
   cars: Float32Array;
   nCars: number;
+  /** Movers' streaks of light: x, y where each starts, its length signed by the way it trails, the deepest layer it shows on (0 to 1); and its colour and half its width. */
+  trails?: Float32Array;
+  trailColours?: Float32Array;
+  nTrails?: number;
   beacons: Float32Array;
   nBeacons: number;
   steam: Float32Array;
@@ -102,6 +106,8 @@ export interface Frame {
 const GLOSSY = 16;
 /** No steam emitter on a far layer. */
 const NO_FAR = new Float32Array(4);
+/** No movers' trails. */
+const NO_TRAILS = new Float32Array(16);
 
 const MAP_ORDER: [MapName, string][] = [
   ['albedo.raw', 'tAlbR'], ['albedo.concierge', 'tAlbC'], ['normal', 'tNrm'], ['normal.concierge', 'tNrmC'], ['material', 'tMat'],
@@ -312,6 +318,7 @@ export class Renderer {
       gl.uniform1fv(pr.u.uGI, gi);
       gl.uniform1f(pr.u.uView, f.view); gl.uniform1f(pr.u.uTime, f.t); gl.uniform1f(pr.u.uShadows, q.shadows ? 1 : 0);
       gl.uniform4fv(pr.u.uCars, f.cars); gl.uniform1i(pr.u.uNC, f.nCars);
+      gl.uniform4fv(pr.u.uTrail, f.trails ?? NO_TRAILS); gl.uniform4fv(pr.u.uTrailC, f.trailColours ?? NO_TRAILS); gl.uniform1i(pr.u.uNT, f.nTrails ?? 0);
       gl.uniform4fv(pr.u.uBeac, f.beacons); gl.uniform1i(pr.u.uNB, f.nBeacons);
       gl.uniform4f(pr.u.uLookL, k.lights, k.ambient * (f.ambient ?? 1), k.haze, k.glow);
       gl.uniform1f(pr.u.uPower, k.power);
@@ -380,7 +387,11 @@ export class Renderer {
     this.pass(this.prog.bright, t.q1, (pr) => { this.bind(pr, 'tSrc', t.fb.tex[0], 0); gl.uniform2f(pr.u.uSrcRes, NW * this.rs, NH * this.rs); gl.uniform1f(pr.u.uStep, this.rs); });
     this.pass(this.prog.blur, t.q2, (pr) => { this.bind(pr, 'tSrc', t.q1.tex[0], 0); gl.uniform2f(pr.u.uDir, 1, 0); });
     this.pass(this.prog.blur, t.q1, (pr) => { this.bind(pr, 'tSrc', t.q2.tex[0], 0); gl.uniform2f(pr.u.uDir, 0, 1); });
-    this.pass(this.prog.blur, t.e2, (pr) => { this.bind(pr, 'tSrc', t.q1.tex[0], 0); gl.uniform2f(pr.u.uDir, 1, 0); });
+    // the eighth: the quarter halved first, each of its pixels the average of the two by two under it (the blur, with no
+    // direction, only copies), then blurred there. Blurring straight into the smaller image skipped some of the pixels it
+    // halved, so the widest, faintest glow came and went as the camera slid
+    this.pass(this.prog.blur, t.e1, (pr) => { this.bind(pr, 'tSrc', t.q1.tex[0], 0); gl.uniform2f(pr.u.uDir, 0, 0); });
+    this.pass(this.prog.blur, t.e2, (pr) => { this.bind(pr, 'tSrc', t.e1.tex[0], 0); gl.uniform2f(pr.u.uDir, 1, 0); });
     this.pass(this.prog.blur, t.e1, (pr) => { this.bind(pr, 'tSrc', t.e2.tex[0], 0); gl.uniform2f(pr.u.uDir, 0, 1); });
 
     // anamorphic streaks

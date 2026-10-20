@@ -168,6 +168,7 @@ uniform vec4 uSh[8];      // shadows on the ground under the characters: feet x,
 uniform int uNSh;
 uniform float uShadowK;   // the look: how dark the ground gets right under a character
 uniform vec4 uCars[16]; uniform int uNC;
+uniform vec4 uTrail[4], uTrailC[4]; uniform int uNT;   // movers' streaks of light (see MoverDef.trail)
 uniform vec4 uBeac[32]; uniform int uNB;
 uniform float uLightView;  // 1: the lighting view (scene editor): everything a flat grey, so only what the lights do shows
 uniform vec4 uFloor;      // the ground the engine draws: 1 when there is one; how much of the painted floor shows (the
@@ -313,6 +314,13 @@ void main() {
   if (dep < 0.4 && uView > 0.5) {
     for (int k = 0; k < 16; k++) { if (k >= uNC) break; vec4 c = uCars[k]; vec2 r = p - (c.xy - uCam); float al = r.x * c.z;
       if (abs(r.y) < 1.2) { if (al > -c.w && al < 0.0) outc += vec3(2.2, 0.25, 0.2) * pow(1.0 + al / c.w, 2.0) * 0.6; if (al >= 0.0 && al < 4.0) outc += al < 2.0 ? vec3(4.0, 4.2, 4.6) : vec3(0.08, 0.08, 0.1); } }
+  }
+  for (int k = 0; k < 4; k++) {
+    if (k >= uNT) break; vec4 tr = uTrail[k]; if (dep > tr.w) continue;
+    vec2 r = p - (tr.xy - uCam); float len = abs(tr.z), back = -r.x * sign(tr.z);
+    if (back < -1.5 || back > len) continue;
+    float t = clamp(back / len, 0.0, 1.0), hw = uTrailC[k].w * (1.0 - 0.65 * t);
+    outc += lin(uTrailC[k].rgb) * 2.2 * smoothstep(hw + 1.0, hw * 0.3, abs(r.y)) * (1.0 - t) * (1.0 - t) * smoothstep(-1.5, 0.5, back);
   }
   vec3 bc = mix(vec3(5.0, 0.6, 0.5), tone(vec3(5.0, 0.6, 0.5), RAW_LIGHT), raw), bh = mix(vec3(0.6, 0.05, 0.05), tone(vec3(0.6, 0.05, 0.05), RAW_AIR), raw);
   for (int k = 0; k < 32; k++) { if (k >= uNB) break; vec4 b = uBeac[k]; if (sin(uTime * 2.4 + b.z) > 0.4) { float d = length(p - (b.xy - uCam)); outc += bc * smoothstep(2.0, 0.5, d) + bh * smoothstep(14.0, 0.0, d) * 0.4; } }
@@ -579,16 +587,17 @@ void main() {
 
 /**
  * What glows bright enough to bloom, at a quarter of the level's size: every pixel of the picture under each of its
- * pixels counts (taps two picture pixels apart, each averaging two by two, over all four by four level pixels), so a
- * thin glowing line, such as a door's lit frame, keeps its glow as the camera slides it across the screen. Sampling only
- * some of them, it was caught in one frame and missed in the next, and its glow flickered.
+ * pixels, four by four level pixels, each weighed against the threshold on its own and then averaged. A thin glowing
+ * line, such as a door's lit frame, then keeps its glow as the camera slides it across the screen: sampling only some of
+ * the pixels, it was caught in one frame and missed in the next; weighing averages of two by two against the threshold,
+ * it lost more of its glow straddling two of them than lying in one, and its glow still flickered.
  */
 export const BRIGHT_FS = HEAD + `
 uniform sampler2D tSrc; uniform vec2 uSrcRes; uniform float uStep;
-vec3 br(vec2 uv) { vec3 c = texture(tSrc, uv).rgb; return c * smoothstep(0.75, 1.6, lum(c)); }
+vec3 br(vec3 c) { return c * smoothstep(0.75, 1.6, lum(c)); }
 void main() {
-  vec2 uv = gl_FragCoord.xy / uRes, px = 1.0 / uSrcRes; int n = int(uStep * 2.0 + 0.5); vec3 s = vec3(0.0);
-  for (int j = 0; j < 8; j++) for (int i = 0; i < 8; i++) { if (i >= n || j >= n) continue; s += br(uv + px * (vec2(float(i), float(j)) - 0.5 * float(n - 1)) * 2.0); }
+  int n = int(uStep * 4.0 + 0.5); ivec2 base = ivec2(floor(gl_FragCoord.xy)) * n; vec3 s = vec3(0.0);
+  for (int j = 0; j < 8; j++) for (int i = 0; i < 8; i++) { if (i >= n || j >= n) continue; s += br(texelFetch(tSrc, base + ivec2(i, j), 0).rgb); }
   o = vec4(s / float(n * n), 1.0);
 }`;
 
