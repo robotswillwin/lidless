@@ -71,6 +71,12 @@ The design: https://claude.ai/artifact/X65FknT3sqWZBgJaHgHboZ. In code: `src/gam
   her pockets yet, and giving and using a thing she carries on another wait for items in the story. The Concierge's
   offers (rest, disposal) only answer for now.
 
+## Next, when the director says go
+
+The director's feedback of 20 October, with the plan for each point: `docs/art/LIDLESS_Feedback_v0.2_2026-10-20.md`
+(the bathrobe, her proportions in the new outfits, running in every outfit, outdoor clothes and underwear at home, her
+pace, a new character study, and wider outdoor scenes for more parallax).
+
 ## Milestones
 
 | Milestone | Status |
