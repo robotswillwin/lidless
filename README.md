@@ -93,7 +93,9 @@ light on.
   height and reach, steam, the ground's slabs) is in pixels; a factor that is 1 as standard (parallax, the people's
   size, ambient light) has a tick there. The box beside each slider takes an exact value. Places and sizes of what is
   dragged over the scene (x, y, widths, the walk line) stay as numbers.
-- **Undo** steps back one change; **Revert** goes back to the scene as last saved, itself a step Cmd+Z undoes.
+- **Undo** (Cmd+Z) steps back one change and **Redo** (Shift+Cmd+Z) forward again; undoing every change since the last
+  save leaves the scene as saved, not changed. **Revert** goes back to the scene as last saved, itself a step Cmd+Z
+  undoes.
 - **Copy and paste** (Cmd+C, Cmd+V, or **Paste** in the toolbar): anything selected, within a scene or into another;
   the clipboard outlasts a change of scene or a reload and goes between tabs. In the scene it came from, the copy lands
   20 px to the right at the same height; in another scene, where it was; off the screen, in the middle of it. A hotspot
@@ -148,7 +150,7 @@ light on.
   can have the camera follow Luna a little (its drift, in the scene's settings); **Move the camera with her** previews
   it with Luna where she stands in the editor.
 - **Keys:** E shows the other view (in Raw or AR, switches between them), L opens the look panel, G shows lights only,
-  Cmd+C and Cmd+V copy and paste, Cmd+D duplicates, Cmd+Z undoes, Cmd+S saves.
+  Cmd+C and Cmd+V copy and paste, Cmd+D duplicates, Cmd+Z undoes, Shift+Cmd+Z redoes, Cmd+S saves.
 
 Save writes the scene file, and an open game tab reloads the scene at once. In the game on the dev server, the key left
 of 1 (`` ` ``) opens the editor on the scene she is in, in the view on screen, always in the same tab.

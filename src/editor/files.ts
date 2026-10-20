@@ -4,7 +4,7 @@
 import { NW } from '../engine/renderer';
 import { SceneRunner } from '../game/scene';
 import { buildScene, loadSceneFile, zoneTexture, type SceneFile } from '../game/scenefile';
-import { base, dom, ed, gl, markDirty, redraw, setDirty, setStatus, snapshot, undoStack } from './state';
+import { base, dom, ed, gl, redoStack, redraw, setDirty, setStatus, snapshot, syncDirty, syncHistory, undoStack } from './state';
 
 /** Build the scene for rendering from the file. Lights stay shared with the file, so editing them shows at once. */
 export async function rebuild(): Promise<void> {
@@ -60,6 +60,9 @@ export async function openScene(id: string): Promise<void> {
   ed.file = await loadSceneFile(base, id);
   ed.look?.setScene(ed.file);
   undoStack.length = 0;
+  redoStack.length = 0;
+  syncHistory();
+  ed.saved = snapshot();
   setDirty(false);
   ed.sel = { kind: 'scene' };
   ed.camX = 0;
@@ -97,6 +100,7 @@ export async function save(): Promise<void> {
   try {
     const res = await fetch(`/__scene?id=${encodeURIComponent(ed.file.id)}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(ed.file) });
     if (!res.ok) throw new Error(await res.text());
+    ed.saved = snapshot();
     setDirty(false);
     if (!ed.world.scenes.includes(ed.file.id)) ed.world.scenes.push(ed.file.id);
     // the other scenes' checks see it as saved
@@ -127,9 +131,22 @@ async function become(next: SceneFile): Promise<void> {
 export async function undo(): Promise<void> {
   const prev = undoStack.pop();
   if (!prev) return;
+  redoStack.push(snapshot());
   await become(JSON.parse(prev) as SceneFile);
-  markDirty();
-  if (!undoStack.length) setStatus('Undone to where you started');
+  syncDirty();
+  syncHistory();
+  setStatus(!undoStack.length ? 'Undone to where you started' : ed.dirty ? 'Undone' : 'Undone: as saved');
+}
+
+/** What undo took back, again. */
+export async function redo(): Promise<void> {
+  const next = redoStack.pop();
+  if (!next) return;
+  undoStack.push(snapshot());
+  await become(JSON.parse(next) as SceneFile);
+  syncDirty();
+  syncHistory();
+  setStatus(redoStack.length ? 'Redone' : 'Redone: nothing more to redo');
 }
 
 /** Back to the scene as last saved. What you had is kept as an undo step, so Cmd+Z brings it back. */
@@ -140,6 +157,10 @@ export async function revert(): Promise<void> {
   await become(saved);
   ed.look?.setScene(ed.file);
   undoStack.push(before);
+  redoStack.length = 0;
+  syncHistory();
+  // as it is on disk now, whoever saved it last
+  ed.saved = snapshot();
   setDirty(false);
   setStatus('Back to the scene as saved. Cmd+Z brings back what you had');
 }

@@ -10,12 +10,12 @@ import { loadProjectLook } from '../engine/look';
 import { loadPresets, presets } from '../engine/presets';
 import { fitCanvas, type DrawSprite } from '../engine/renderer';
 import { heroDrawing } from '../game/hero';
-import { loadSceneFile, loadWorld } from '../game/scenefile';
+import { loadSceneFile, loadWorld, type SceneFile } from '../game/scenefile';
 import storyJson from '../story/main.ink';
 import { createLookPanel } from '../look-panel';
 import { copySelected, duplicate, paste, syncPaste } from './clipboard';
 import { add, deleteSelected, newScene, nudge } from './edit';
-import { listAssets, openScene, revert, save, syncAddress, undo } from './files';
+import { listAssets, openScene, redo, revert, save, syncAddress, undo } from './files';
 import { lunaFrame } from './luna';
 import { bindOverlay, drawOverlay } from './overlay';
 import { drawSide } from './panels';
@@ -120,6 +120,7 @@ addEffect.addEventListener('change', () => { const kind = addEffect.value; addEf
 dom.button('new-scene').addEventListener('click', () => void newScene().catch(showError));
 dom.button('save').addEventListener('click', () => void save());
 dom.button('undo').addEventListener('click', () => void undo());
+dom.button('redo').addEventListener('click', () => void redo());
 dom.button('revert').addEventListener('click', () => void revert().catch(showError));
 dom.button('paste').addEventListener('click', () => void paste().catch(showError));
 syncPaste();
@@ -151,7 +152,9 @@ document.addEventListener('keydown', (e) => {
   if (e.metaKey || e.ctrlKey) {
     if (e.key === 's') { e.preventDefault(); void save(); }
     else if (typing) return;
-    else if (e.key === 'z') { e.preventDefault(); void undo(); }
+    // Shift+Cmd+Z, or Ctrl+Y, redoes
+    else if (e.key === 'z' || e.key === 'Z') { e.preventDefault(); void (e.shiftKey ? redo() : undo()); }
+    else if (e.key === 'y' && e.ctrlKey) { e.preventDefault(); void redo(); }
     // text picked out on the page is the browser's to copy
     else if (e.key === 'c' && !window.getSelection()?.toString() && copySelected()) e.preventDefault();
     else if (e.key === 'v') { e.preventDefault(); void paste().catch(showError); }
@@ -197,7 +200,13 @@ async function start(): Promise<void> {
   ed.look = createLookPanel(renderer, project, dom.stage, {
     view: () => (ed.view < 0.5 ? 'raw' : 'concierge'),
     // the scene's own look was saved into its file: so the editor's own Save keeps it
-    onSceneSaved: (id, json) => { if (ed.file?.id === id) { if (json) ed.file.look = json; else delete ed.file.look; } },
+    onSceneSaved: (id, json) => {
+      if (ed.file?.id !== id) return;
+      // in the file on disk now: the scene as saved has it too
+      const saved = JSON.parse(ed.saved || '{}') as Partial<SceneFile>;
+      for (const f of [ed.file, saved]) { if (json) f.look = json; else delete f.look; }
+      if (ed.saved) ed.saved = JSON.stringify(saved);
+    },
   });
   // the other scenes as saved, to check the exits between them both ways; and the story's conversations
   const files = await Promise.all(ed.world.scenes.map((id) => loadSceneFile(base, id).catch(() => null)));

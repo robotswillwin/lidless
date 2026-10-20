@@ -337,7 +337,9 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .ed-tools { position: fixed; inset: 44px 0 auto 0; height: 38px; display: flex; align-items: center; gap: 6px; padding: 0 10px; background: #101018; border-bottom: 1px solid #23232e; z-index: 3; }
 .ed-tools-hint { color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 :is(.ed-bar, .ed-tools) button, .ed-play, :is(.ed-bar, .ed-tools) select { font: 400 12px/1 var(--ui); padding: 7px 9px; background: #1a1a24; color: var(--ink); border: 1px solid #30303e; border-radius: 3px; cursor: pointer; text-decoration: none; white-space: nowrap; }
-:is(.ed-bar, .ed-tools) button:hover, .ed-play:hover, :is(.ed-bar, .ed-tools) button:focus-visible { background: #262634; outline: none; }
+:is(.ed-bar, .ed-tools) button:hover:not(:disabled), .ed-play:hover, :is(.ed-bar, .ed-tools) button:focus-visible { background: #262634; outline: none; }
+/* nothing to undo, redo, revert or paste */
+:is(.ed-bar, .ed-tools) button:disabled { background: #13131a; color: #5e5b6c; border-color: #23232e; cursor: default; }
 .ed-tools [hidden] { display: none !important; }
 .ed-bar > button[aria-pressed="true"] { border-color: #ffe9a8; color: #ffe9a8; }
 .ed-scene { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }

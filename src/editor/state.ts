@@ -59,6 +59,8 @@ export const ed = {
   /** Where the editor is scrolled to, in a scene wider than the screen. */
   camX: 0,
   dirty: false,
+  /** The scene as last saved or opened: whether it is changed is whether it differs (a new scene is, until saved). */
+  saved: '',
   /** Every built asset, as scene/name: for new layers and scenes. */
   assets: [] as string[],
   /**
@@ -123,6 +125,8 @@ export type Kind = 'lights' | 'hotspots' | 'exits' | 'spawns' | 'areas' | 'effec
 export const shown = (kind: Kind, selected = false): boolean => selected || (inTask(kind) && !prefs.hidden.has(kind));
 
 export const undoStack: string[] = [];
+/** What undo took back, for redo; a new change empties it. */
+export const redoStack: string[] = [];
 export const t0 = performance.now();
 
 /**
@@ -146,12 +150,23 @@ export const setDirty = (dirty: boolean): void => {
   if (revert) revert.disabled = !dirty;
 };
 export const markDirty = (): void => { setDirty(true); setStatus('Not saved'); };
+/** After undo or redo: changed if it is not as saved, which undoing every change since makes it again. */
+export const syncDirty = (): void => setDirty(snapshot() !== ed.saved);
+/** Undo and Redo are there only when there is something to undo or redo. */
+export const syncHistory = (): void => {
+  for (const [id, stack] of [['undo', undoStack], ['redo', redoStack]] as const) {
+    const b = document.getElementById(id) as HTMLButtonElement | null;
+    if (b) b.disabled = !stack.length;
+  }
+};
 /** Keep the scene as it was before a change, for undo. */
 export const remember = (before: string): void => {
   if (before === snapshot()) return;
   undoStack.push(before);
   if (undoStack.length > 200) undoStack.shift();
+  redoStack.length = 0;
   markDirty();
+  syncHistory();
 };
 
 /**

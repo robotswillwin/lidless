@@ -6,7 +6,7 @@ import { NH, NW } from '../engine/renderer';
 import type { Hotspot } from '../game/level';
 import { rebuild, refresh, syncEffects, updatePlay } from './files';
 import { buttons, heading } from './form';
-import { base, dom, ed, LIMITS, markDirty, redraw, remember, setStatus, snapshot, undoStack, viewX } from './state';
+import { base, dom, ed, LIMITS, markDirty, redoStack, redraw, remember, setStatus, snapshot, syncHistory, undoStack, viewX } from './state';
 import { PLACEHOLDER } from './lint';
 import { editView, setFor, shownView } from './views';
 import { placeIn } from '../game/level';
@@ -156,6 +156,10 @@ export async function newScene(): Promise<void> {
     walk: { y: h - 74, x0: 30, x1: w - 30 }, spawns: { start: { x: Math.round(w / 2), facing: 1 } }, hotspots: [],
   };
   undoStack.length = 0;
+  redoStack.length = 0;
+  syncHistory();
+  // not saved until the first Save
+  ed.saved = '';
   ed.sel = { kind: 'scene' };
   ed.camX = 0;
   ed.luna = { x: Math.round(w / 2), facing: 1, show: true, follow: ed.luna.follow, track: ed.luna.track };

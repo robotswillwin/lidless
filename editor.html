@@ -32,7 +32,8 @@
     <button id="lighting" data-in="lighting" type="button" aria-pressed="false" title="Lights only (G): everything a flat grey, so only what the lights do shows">Lights only</button>
     <span class="ed-grow"></span>
     <span id="status" class="ed-status"></span>
-    <button id="undo" type="button" title="Undo (Cmd+Z)">Undo</button>
+    <button id="undo" type="button" title="Undo (Cmd+Z)" disabled>Undo</button>
+    <button id="redo" type="button" title="Redo (Shift+Cmd+Z)" disabled>Redo</button>
     <button id="revert" type="button" title="Back to the scene as last saved (Cmd+Z brings back what you had)" disabled>Revert</button>
     <a id="play" class="ed-play" target="_blank" rel="noopener" title="Play from this scene in a new tab">Play</a>
     <button id="save" class="ed-save" type="button" title="Save the scene file (Cmd+S)">Save</button>
@@ -68,7 +69,7 @@
         <svg id="overlay" class="ed-overlay" viewBox="0 0 960 540" aria-label="Lights, hotspots and places in the scene"></svg>
       </div>
       <input id="scroll" class="ed-scroll" type="range" min="0" max="0" value="0" aria-label="Scroll the scene" hidden>
-      <p class="ed-help">Click to select, drag to move; drag a corner to resize. Delete removes; Cmd+C and Cmd+V copy and paste, here or into another scene, Cmd+D duplicates. 1 to 5 what you work on, E the other view, L look, G lights only, Cmd+Z undo, Cmd+S save.</p>
+      <p class="ed-help">Click to select, drag to move; drag a corner to resize. Delete removes; Cmd+C and Cmd+V copy and paste, here or into another scene, Cmd+D duplicates. 1 to 5 what you work on, E the other view, L look, G lights only, Cmd+Z undo, Shift+Cmd+Z redo, Cmd+S save.</p>
     </div>
     <aside class="ed-side" id="side" aria-label="Selected item"></aside>
   </main>
