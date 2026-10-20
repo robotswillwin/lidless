@@ -9,7 +9,7 @@ import { actionFor, actionsFor, defaultOf, verbsIn, type Verb } from './actions'
 import { frameFor } from './anim';
 import { Camera, cameraTarget } from './camera';
 import { Dialogue } from './dialogue';
-import { heroDrawing, heroGaits, paceFor } from './hero';
+import { heroDrawing, heroGaits, holdPace, paceFor } from './hero';
 import { Hud, type Action, type Item, type Mark, type NotebookPages } from './hud';
 import { inView, pick, placeIn, type Hotspot } from './level';
 import { outfitAfter } from './outfits';
@@ -19,6 +19,9 @@ import { Talk } from './talk';
 import { buildScene, loadSceneFile, type Exit, type Scene, type WorldFile } from './scenefile';
 import { UI } from './ui';
 import { World } from './world';
+
+/** Seconds a finger is held down before it can run her (a tap is quicker): see Game.holdOn. */
+const HOLD = 0.25;
 
 export interface GameSetup {
   renderer: Renderer;
@@ -88,6 +91,12 @@ export class Game {
   private marked: Mark | null = null;
   /** Where a finger (or the mouse button) went down on the scene, while it is down. */
   private down: [number, number] | null = null;
+  /** Where that finger is now, and when it went down. */
+  private finger: [number, number] | null = null;
+  private downAt = 0;
+  /** Held down outdoors far from her, it runs her after it until it comes up (see holdOn); chasing while it is far. */
+  private holding = false;
+  private chasing = false;
   /** Who she is talking to: their lines go over their head. */
   private partner: Hotspot | null = null;
   /** What she is wearing, one of the world's outfits, and her sprites in them, each loaded the first time she wears it. */
@@ -273,6 +282,7 @@ export class Game {
   private async travel(exit: Exit): Promise<void> {
     if (this.travelling) return;
     this.travelling = true;
+    this.letGo();
     this.world.stop();
     this.releaseKeys();
     // dressed in what she does not go out in, she stays
@@ -465,7 +475,8 @@ export class Game {
   /**
    * A finger or the mouse button went down on the scene. With a verb chosen, what is under it lights up. Without one,
    * she goes there: up to a thing, through a way out (a door, the end of the street), running if it is far. A finger
-   * held down and moved steers her. Right-click puts the verb down, or looks. The balls' choices stay out; a panel
+   * held down and moved steers her; held down outdoors far from her, it runs her after it until it comes up (holdOn).
+   * Right-click puts the verb down, or looks. The balls' choices stay out; a panel
    * closes, and what she found goes as she is given something else to do.
    */
   pointerDown(clientX: number, clientY: number, button: number): void {
@@ -479,6 +490,9 @@ export class Game {
       return;
     }
     this.down = [clientX, clientY];
+    this.finger = [clientX, clientY];
+    this.downAt = this.clock();
+    this.holding = this.chasing = false;
     if (this.verb) return this.scan(clientX, clientY);
     const [x, y] = this.toLevel(clientX, clientY), h = this.world.hotspotAt(x, y, this.raw, this.cam[0]);
     this.pending = h?.go ? { kind: 'feet', label: '' } : null;
@@ -489,8 +503,9 @@ export class Game {
   /** It moved: with a verb, what it is over lights up (a mouse needs no button for that); a finger held down steers her. */
   pointerMove(clientX: number, clientY: number): void {
     if (this.talk.open || this.travelling) return;
+    if (this.down) this.finger = [clientX, clientY];
     if (this.verb) return this.scan(clientX, clientY);
-    if (this.down && Math.hypot(clientX - this.down[0], clientY - this.down[1]) > 12) {
+    if (this.down && !this.chasing && Math.hypot(clientX - this.down[0], clientY - this.down[1]) > 12) {
       this.pending = null;
       this.goTo(this.toLevel(clientX, clientY)[0]);
     }
@@ -499,7 +514,7 @@ export class Game {
   /** It came up: with a verb, letting go over what it lit does the verb to it, and the verb is put down. */
   pointerUp(): void {
     const was = this.down;
-    this.down = null;
+    this.letGo();
     if (!was || !this.verb) return;
     const m = this.marked;
     if (!m) return this.unmark();
@@ -509,8 +524,36 @@ export class Game {
 
   /** The finger was taken away, or the mouse left the scene without a button down. */
   pointerCancel(): void {
-    this.down = null;
+    this.letGo();
     this.unmark();
+  }
+
+  /** The finger is up, or she is leaving: if it was running her, she stops where she is, as she does letting go of a key. */
+  private letGo(): void {
+    this.down = null;
+    this.finger = null;
+    if (this.holding) { this.holding = this.chasing = false; this.world.stop(); }
+  }
+
+  /**
+   * A finger held down a moment outdoors, further from her than she would jog to, runs her after it: on a street wider
+   * than the screen it stays ahead of her as the camera follows, so she runs on until it comes up. Brought in near her,
+   * she stops chasing it and walks to where it points then, and stands there; moved, it steers her as any finger does,
+   * and taken far again, it runs her again. Letting go stops her; held past an end of the street, she goes on through its
+   * way out. A tap is a tap: she goes where it was.
+   */
+  private holdOn(t: number): void {
+    if (!this.finger || this.verb || this.talk.open || this.travelling || this.scene.file.kind !== 'exterior' || t - this.downAt < HOLD) return;
+    const x = this.toLevel(this.finger[0], this.finger[1])[0], tall = this.s.hero.def.h * (this.scene.file.actorScale ?? 1);
+    if (holdPace(Math.abs(x - this.world.heroX), this.s.world.hero, tall) === 'run') {
+      this.holding = this.chasing = true;
+      this.pending = null;
+      this.world.walkTo(x, null, 'run');
+    } else if (this.chasing) {
+      // near her: the camera following her would keep a point on screen just ahead of her for ever
+      this.chasing = false;
+      this.world.walkTo(x, null, 'walk');
+    }
   }
 
   /** The arrows walk her; with Shift she speeds up through a jog into a run. */
@@ -543,6 +586,7 @@ export class Game {
     const t = this.clock(), dt = Math.min(0.05, Math.max(0, t - this.lastT)), world = this.world, file = this.scene.file;
     this.lastT = t;
     const wasMoving = world.moving;
+    this.holdOn(t);
     const arrived = this.talk.open || this.travelling ? null : world.update(dt);
     // the view may have changed on the way: a generated person is not there to talk to in raw view
     if (arrived && inView(arrived, this.raw)) {
@@ -555,9 +599,10 @@ export class Game {
     // its greeting and its line of the day: the evening goes on, and it never says it is raining
     const minute = 21 * 60 + 40 + Math.floor(t / 60), hh = Math.floor(minute / 60) % 24, mm = minute % 60;
     this.hud.setStatus(file.greeting ?? 'Good evening, guest.', `Friday · Year 64 of Care · ${hh}:${String(mm).padStart(2, '0')} · ${file.kind === 'interior' ? 'Indoors, 21°' : '14°, umbrella advised'}`);
-    // walking into an end of the walk line that leads somewhere
-    if (world.keyDir !== 0 && !this.travelling) {
-      const end = world.keyDir < 0 ? file.walk.x0 : file.walk.x1, exit = Math.abs(world.heroX - end) < 0.5 ? this.exitAt(end) : undefined;
+    // walking into an end of the walk line that leads somewhere: with the keys, or with a finger running her past it
+    const push = world.keyDir || (this.chasing && this.finger ? Math.sign(this.toLevel(this.finger[0], this.finger[1])[0] - world.heroX) : 0);
+    if (push !== 0 && !this.travelling) {
+      const end = push < 0 ? file.walk.x0 : file.walk.x1, exit = Math.abs(world.heroX - end) < 0.5 ? this.exitAt(end) : undefined;
       if (exit?.go) void this.travel(exit.go);
     }
     this.cam[0] = this.s.fixedCam ?? this.camera.follow(this.cameraTarget(), dt, file.size[0] > NW);

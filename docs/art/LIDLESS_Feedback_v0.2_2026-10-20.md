@@ -77,6 +77,23 @@ Times are my own working time.
 - **The director's answers:** wider outdoor scenes; she may take off her coat by herself, staying in the
   clothes under it; private wear does not run.
 
+## Asked during the work, the same evening
+
+- **Her underwear "still off", then her head "far too small on all outfits":** her legs and arms are now rigged as one
+  image each (no seams at the knees and elbows), and every outfit has one body, measured against the drawings.
+- **"Panties always on top", "some bad seam", "head a bit small or the legs too big":** the briefs' sheet drew the tops
+  of her thighs and her buttocks on the hips, which stayed still over her swinging leg; below her hip joint they now
+  follow her near thigh. Where bare skin fades into the next piece, it now stays solid past that piece's outline, which
+  the game's rim light had drawn as a seam, and the small of her back runs on into the briefs without a notch. Drawn
+  true to life she was eight heads tall with her hip joint at 0.54 of her height; now she is about seven, her head 15%
+  bigger and her legs 6% shorter, in all seven outfits.
+- **Her flat in layers, with something moving out there:** split like the streets into the city and the building; the
+  camera leans as she crosses the flat, the city sliding behind the building and through her window. Smoke from the
+  smokestacks and blinking lights in raw view; flying traffic, flickering neon and the hologram in the Concierge's; a
+  failing bulb in the flat below and a screen's glow above. Rain falls past her window.
+- **Hold to run, outdoors:** a finger held down far from her runs her after it until it comes up, on along the street as
+  the camera follows; brought in near her, she walks to it. Indoors a hold does not run her.
+
 ## Open questions for the director
 
 - Tiling or switching (8): wider outdoor scenes as recommended, tiles, or one screen each?

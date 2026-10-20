@@ -137,16 +137,19 @@ flickers:
   `parts.coatSway` (1 swings like a coat's hem, 0 held still with her hips) and `parts.coat` (`front` in front of her
   legs, `over` in front of her torso too, as briefs over her belly); `parts.coatCut` keeps only the top of it, and
   `parts.coatFade` fades its bottom over a share of its height (0.35 for the briefs' hips, so her buttocks round off
-  into her thighs).
+  into her thighs). `parts.coatThigh` (0 to 1) has that much of it follow her near thigh below her hip joint, all of it
+  from halfway to its hem (0.9 for the briefs): their sheet draws the tops of her thighs and her buttocks on the hips,
+  which held still with her hips stayed on over her swinging leg as a still copy of it.
   - **Her body, the same in every outfit.** Every outfit has the same body proportions (`parts.proportions`, as shares
-    of her height): head 0.2 (from its top to the base of the neck), torso 0.26, thigh 0.31, lower leg 0.33, upper
+    of her height): head 0.23 (from its top to the base of the neck), torso 0.26, thigh 0.29, lower leg 0.31, upper
     arm 0.17, forearm 0.24, and `hipDrop` 0.08: the parts sheets draw her torso down to the waist, over hips of their
     own (briefs, a skirt, a coat's skirt), so her legs hang that far below the torso's lowest joint, from her hip joint,
-    not from her waist. They were measured against the underwear's drawn profile, where her body shows: the old ones
-    shrank her head to four fifths of how the image model drew it and gave her a long torso and short legs, which only
-    the coat hid. A garment hanging from the waist keeps the size it was drawn at against the torso (its length as the
-    image model drew it on her), unless the recipe gives it a length: `coat` scales it whole, `coatLength` stretches it
-    down only (her long coat, drawn short on the sheet). Any change to these goes in every outfit's recipe.
+    not from her waist. Standing, she is about seven heads tall (her head from the top of her hair to her chin), her hip
+    joint at about half her height: a little stylised, as the director asked. Drawn true to life (eight heads, the hip
+    joint at 0.54) her head read small and her legs long. A garment hanging from the waist keeps the size it was drawn at
+    against the torso (its length as the image model drew it on her), unless the recipe gives it a length: `coat`
+    scales it whole, `coatLength` stretches it down only (her long coat, drawn short on the sheet: 0.53 to end where it
+    did on her legs). Any change to these goes in every outfit's recipe.
   - **Her neck and feet.** A garment with no collar shows the neck her coat's collar hides: `parts.neckSink` sets the
     head lower on the torso, by a share of its height (0.07 for a T-shirt), and `parts.bareNeck` fades out the torso's
     own stump of a neck, so the head's neck shows instead of a straight cut. A shoe drawn too big (a fluffy slipper) is
@@ -159,7 +162,11 @@ flickers:
     joints showed a cut wherever skin was bare: the knees and elbows in her underwear, her home clothes and the
     bathrobe. Every outfit is rigged this way; a recipe can keep the pieces with `parts.limbs: "pieces"`.
   - **Bare skin** (`parts.skin`): where a piece of bare skin meets another still, it fades out over their overlap so no
-    straight cut shows: a limb at the hip or the shoulder, the torso below the hip, briefs' hips at both edges. The image model lays
+    straight cut shows: a limb at the hip or the shoulder, the torso below the hip, briefs' hips at both edges. It fades
+    only over the piece it meets: past that piece's outline, where the background would show through and the game's
+    rim light would draw the faded edge as a seam, it stays solid and its outline turns into the other's across the
+    fade. The torso under briefs keeps its back inside theirs (`tuckBack`): the sheets draw the hips narrower at the
+    waist than the torso's bottom, which left a notch in the small of her back. The image model lays
   out each parts sheet its own way: `parts.at` gives where each piece is on that sheet, and `parts --recut` cuts it
   again. A piece the rig swings out from under a skirt shows: the robe's thighs are coloured as the robe, so it reads
   as closed.
@@ -526,6 +533,9 @@ with the street Luna walks on, under 1 further away (0 stays put, like a sky), o
   for less motion get a still camera.
 - **Things on a far layer** take its parallax too, so they move with it: lights, light shafts and beacons (`parallax`
   on each), the flying traffic (`traffic.parallax`) and hotspots (`parallax`, so a click finds them where they are).
+  Smoke too (`parallax` on a steam emitter): a smokestack's, drawn only where its layer shows, so it never crosses the
+  nearer layers in front, darkening the smog as it rises slowly. Only smoke on the street's own layer can be her
+  cigarette's.
 - **Overscan:** every layer that moves needs art past the screen's edges, as far as it moves: the street the whole
   drift, a layer at 0.3 a third of it. `split` gives every layer its `margin`.
 - Pixel art is placed at whole pixels of the render, to stay crisp; flat art and characters, sampled smoothly, move by
@@ -551,8 +561,19 @@ recipe's `split`: its `layers`, far to near, each with its `parallax` (and `dept
 things with); `ground`, the walk line, below which everything is the street; `fixes`, rectangles (`rect`) or polygons
 (`poly`) moved to a layer, all of what is in them or only what is in the layers `from`; `margin`, how far past the
 screen's edges the layers reach; `thin`, the widest thing in front bridged across; `soft`, how wide a nearer thing's
-soft edge is; `rim`, how wide a ring of a middle layer around a near thing may be and still join it. All in level
-pixels. The street's is an example (`art/street/vista.json`).
+soft edge is; `rim`, how wide a ring of a middle layer around a near thing may be and still join it; `windows`,
+rectangles `[x, y, w, h]` cut out of every layer nearer than the furthest, which the image model painted behind them:
+give the window to the nearer layer with a fix, frame and all, and its panes are holes in it, so the city through it
+slides with the city. All in level pixels. The street's is an example (`art/street/vista.json`).
+
+**Her flat** is a one-screen interior split the same way into two layers (`art/home/cutaway.json`): the city behind
+and around the building at 0.3, seen at both sides and through her window, and the building, the cutaway of its three
+floors. The camera leans 24 px each way as she crosses the flat, so the city slides about 34 px against the building
+from one end to the other. What moves out there: smoke from two smokestacks and red lights blinking on the towers in
+raw view; in the Concierge's, flying traffic in two lanes (one seen through her window), its neon signs flickering and
+its hologram breathing; and in the flats around hers a failing bulb below and a screen's glow above. Her window is
+outside (`zones`), so rain falls past it. `split` places a layer 3.5 px right of and 4 px below where the picture was,
+so the flat's layers are placed back (`x` -23.5, `y` 0) and its lights, hotspots and walk line stay where they were.
 
 **Wide scenes.** An outdoor scene can be wider than the screen, the camera scrolling with her and every layer sliding
 at its own speed: the main street is 2400 px, two and a half screens, a bakery, a tree, a bench, a notice board (in raw

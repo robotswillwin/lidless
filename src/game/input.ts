@@ -1,5 +1,6 @@
 // The game's input: the pointer and the keyboard, turned into what the session does. A finger and a mouse work the same
-// way, and nothing needs a mouse to hover: tap to walk, choose a verb at the ball and slide over the scene.
+// way, and nothing needs a mouse to hover: tap to walk, hold down far from her outdoors to run, choose a verb at the ball
+// and slide over the scene.
 // Arrows or A/D walk (with Shift, run), E switches view, L opens the look panel, Q cycles quality, number keys answer in a
 // conversation, and on the dev server ` opens the scene editor.
 

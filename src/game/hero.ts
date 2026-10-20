@@ -54,3 +54,11 @@ export function heroGaits(def: SpriteDef, hero: WorldFile['hero'], scale: number
 export function paceFor(distance: number, hero: WorldFile['hero'], tall: number): Gait {
   return distance > (hero.runFrom ?? 5) * tall ? 'run' : distance > (hero.jogFrom ?? 2.5) * tall ? 'jog' : 'walk';
 }
+
+/**
+ * Outdoors, a finger held down further from her than she would jog to runs her after it, however far the street goes on
+ * as the camera follows her; nearer, she walks to it.
+ */
+export function holdPace(distance: number, hero: WorldFile['hero'], tall: number): Gait {
+  return distance > (hero.jogFrom ?? 2.5) * tall ? 'run' : 'walk';
+}
