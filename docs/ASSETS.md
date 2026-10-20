@@ -141,9 +141,14 @@ flickers:
     then looks small: `parts.neckSink` sets the head lower on the torso, by a share of its height (0.07 for a T-shirt).
     A shoe drawn too big (a fluffy slipper) is scaled with `parts.proportions.foot`, its length heel to toe as a share
     of her height: her boots are 0.13. The rig prints each outfit's foot length and flags one far from that.
-  - **Bare skin** (`parts.skin`): a piece of bare skin fades out over its overlap at the joint it turns on, so the
-    straight cut that a sleeve or a trouser leg would hide does not show: the upper arm at the shoulder, the forearm at
-    the elbow, the lower leg at the knee, the torso below the hip, briefs' hips at both edges. The image model lays
+  - **Whole limbs.** Her legs and arms are rigged as one image each, not as pieces on top of one another: the
+    pipeline joins a leg's thigh, lower leg and foot, and an arm's upper arm and forearm, cross-fading where they
+    overlap (`composeLimb` in tools/pipeline/characters.mjs), and the rig skins that one image on the limb's bones,
+    so it bends as one at the knee, the ankle and the elbow (tools/blender/rig.py, `LIMBS`). Pieces turning on their
+    joints showed a cut wherever skin was bare: the knees and elbows in her underwear, her home clothes and the
+    bathrobe. Every outfit is rigged this way; a recipe can keep the pieces with `parts.limbs: "pieces"`.
+  - **Bare skin** (`parts.skin`): where a piece of bare skin meets another still, it fades out over their overlap so no
+    straight cut shows: a limb at the hip or the shoulder, the torso below the hip, briefs' hips at both edges. The image model lays
   out each parts sheet its own way: `parts.at` gives where each piece is on that sheet, and `parts --recut` cuts it
   again. A piece the rig swings out from under a skirt shows: the robe's thighs are coloured as the robe, so it reads
   as closed.

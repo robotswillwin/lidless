@@ -40,6 +40,15 @@ RIG = [
     ('armUpper', 'upperArm', 'torso', 'shoulder', 'shoulder', False), ('armLower', 'forearm', 'armUpper', 'elbow', 'elbow', False),
 ]
 BY = {r[0]: r for r in RIG}
+# a limb drawn as one image (the pipeline joins its pieces: composeLimb in characters.mjs): one mesh in place of its
+# pieces, skinned on their bones, so it bends as one at the knee or the elbow; drawn where its first piece would be.
+# limb: (its first piece, its part, its pivot joint, far side, the pieces it replaces)
+LIMBS = {
+    'armFar': ('armFarUpper', 'arm', 'shoulder', True, ('armFarUpper', 'armFarLower')),
+    'legFar': ('legFarUpper', 'leg', 'hip', True, ('legFarUpper', 'legFarLower', 'footFar')),
+    'leg': ('legUpper', 'leg', 'hip', False, ('legUpper', 'legLower', 'foot')),
+    'arm': ('armUpper', 'arm', 'shoulder', False, ('armUpper', 'armLower')),
+}
 FAR_DARK = 0.62           # the far arm and leg, in the shadow of her body
 COAT_CHAIN = 3
 PONY_CHAIN = 3
@@ -184,6 +193,26 @@ def weights(name, part, x, y, bounce=0.0):
     far = 'Far' if 'Far' in name else ''
     up, low, foot = f'leg{far}Upper', f'leg{far}Lower', f'foot{far}'
     aup, alow = f'arm{far}Upper', f'arm{far}Lower'
+    if name in ('leg', 'legFar'):
+        # a whole leg: the thigh's bone, then across the knee the lower leg's, across the ankle the foot's. Its very top
+        # stays with the hips as the leg swings, as a hip does
+        k, a, hp = j['knee'][1], j['ankle'][1], j['hip'][1]
+        s = smooth(k - 0.045 * h, k + 0.045 * h, y)
+        t = smooth(a - 0.03 * h, a + 0.015 * h, y)
+        pin = 1 - smooth(hp - 0.01 * h, hp + 0.04 * h, y)
+        out = {up: (1 - s) * (1 - pin), low: s * (1 - t), foot: s * t}
+        if pin > 1e-4:
+            out['hips'] = pin
+        return out
+    if name in ('arm', 'armFar'):
+        # a whole arm: the upper arm's bone, then across the elbow the forearm's; its top stays on the torso, a shoulder
+        e, sh = j['elbow'][1], j['shoulder'][1]
+        s = smooth(e - 0.05 * h, e + 0.05 * h, y)
+        pin = 1 - smooth(sh - 0.01 * h, sh + 0.05 * h, y)
+        out = {aup: (1 - s) * (1 - pin), alow: s}
+        if pin > 1e-4:
+            out['torso'] = pin
+        return out
     if name in ('legUpper', 'legFarUpper'):
         k, band = j['knee'][1], 0.1 * h
         s = smooth(k - band, k + 0.5 * band, y)
@@ -269,16 +298,31 @@ def build_set(s, arm, far):
     col = bpy.data.collections.new(name)
     bpy.context.scene.collection.children.link(col)
     order = [r[0] for r in RIG if r[1] in parts]
+    # limbs drawn as one image each, in place of their pieces
+    for limb, (first, lpart, _, _, pieces) in LIMBS.items():
+        if lpart in parts and first in order:
+            at = order.index(first)
+            order = [p for p in order if p not in pieces]
+            order.insert(at, limb)
     if s.get('coatFront'):
         order.remove('coat')
         # in front of her legs; over: in front of her torso too, as briefs over her belly
-        order.insert(order.index('torso') + 1 if s.get('coatOver') else order.index('foot') + 1, 'coat')
+        legs_end = 'leg' if 'leg' in order else 'foot'
+        order.insert(order.index('torso') + 1 if s.get('coatOver') else order.index(legs_end) + 1, 'coat')
     for i, piece in enumerate(order):
-        part = parts[BY[piece][1]]
+        if piece in LIMBS:
+            first, image, pivot, is_far, _ = LIMBS[piece]
+            part = parts[image]
+            pv = part['joints'][pivot]
+            x0, y0 = pos[first][0] - pv[0], pos[first][1] - pv[1]
+        else:
+            image, is_far = BY[piece][1], BY[piece][5]
+            part = parts[image]
+            pv = part['joints'][BY[piece][4]]
+            x0, y0 = pos[piece][0] - pv[0], pos[piece][1] - pv[1]
         w, h = part['size']
-        pv = part['joints'][BY[piece][4]]
-        x0, y0 = pos[piece][0] - pv[0], pos[piece][1] - pv[1]
-        step = 16 if piece == 'torso' and bounce > 0 else 40
+        # a finer mesh where it bends: a limb at its joints, a chest that moves
+        step = 16 if piece in LIMBS or (piece == 'torso' and bounce > 0) else 40
         cols, rows = max(2, round(w / step)), max(2, round(h / step))
         verts, faces, uvs = [], [], []
         for r in range(rows + 1):
@@ -310,7 +354,7 @@ def build_set(s, arm, far):
         mod = ob.modifiers.new('rig', 'ARMATURE')
         mod.object = arm
         ob.parent = arm
-        me.materials.append(material(f'{name}.{piece}', os.path.join(RIG_DIR, name, f'{BY[piece][1]}.png'), FAR_DARK if BY[piece][5] else 1.0))
+        me.materials.append(material(f'{name}.{piece}', os.path.join(RIG_DIR, name, f'{image}.png'), FAR_DARK if is_far else 1.0))
     return col
 
 

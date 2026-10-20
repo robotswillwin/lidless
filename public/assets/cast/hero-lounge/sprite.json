@@ -34,7 +34,7 @@
     "walk": {
       "from": 16,
       "count": 16,
-      "stride": 173.89
+      "stride": 173.63
     },
     "idleLeft": {
       "from": 32,
@@ -44,7 +44,7 @@
     "walkLeft": {
       "from": 48,
       "count": 16,
-      "stride": 173.89
+      "stride": 173.63
     }
   },
   "res": 1.25

@@ -202,6 +202,59 @@ export function softenJoint(part, name) {
   return { ...part, img: out };
 }
 
+const smoothstep = (a, b, x) => { const t = Math.min(1, Math.max(0, b === a ? Number(x >= b) : (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+
+/**
+ * A limb's pieces at rest, each hung from the one before by a joint, as one image: the thigh, the lower leg and the foot
+ * as one leg; the upper arm and the forearm as one arm. Where two pieces overlap they cross-fade from the one above to
+ * the one below, so neither's drawn end shows, and the outline goes over from one to the other. Skinned on the limb's
+ * bones (tools/blender/rig.py), it bends as one at the knee and the elbow, with no seam where the pieces met.
+ * `chain` is [[piece], [piece, joint of the piece before it hangs from, its own joint], ...]; returns { img, joints },
+ * every piece's joints in the image's pixels.
+ */
+export function composeLimb(chain) {
+  const off = [[0, 0]];
+  for (let i = 1; i < chain.length; i++) {
+    const [p, from, own] = chain[i], prev = chain[i - 1][0], [px, py] = off[i - 1];
+    off.push([px + prev.joints[from][0] - p.joints[own][0], py + prev.joints[from][1] - p.joints[own][1]]);
+  }
+  const x0 = Math.floor(Math.min(...chain.map(([p], i) => off[i][0]))), y0 = Math.floor(Math.min(...chain.map(([p], i) => off[i][1])));
+  const x1 = Math.ceil(Math.max(...chain.map(([p], i) => off[i][0] + p.img.w))), y1 = Math.ceil(Math.max(...chain.map(([p], i) => off[i][1] + p.img.h)));
+  const W = x1 - x0, H = y1 - y0, img = blank(W, H), at = off.map(([x, y]) => [Math.round(x - x0), Math.round(y - y0)]);
+  // each piece's share of a row: all of it, but across its overlap with the piece above and the piece below, a cross-fade
+  const share = (i, y) => {
+    let w = 1;
+    const top = at[i][1], bottom = at[i][1] + chain[i][0].img.h - 1;
+    if (i > 0) { const pb = at[i - 1][1] + chain[i - 1][0].img.h - 1; if (pb > top) w *= smoothstep(top, pb, y); }
+    if (i < chain.length - 1) { const nt = at[i + 1][1]; if (bottom > nt) w *= 1 - smoothstep(nt, bottom, y); }
+    return w;
+  };
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    let a = 0, r = 0, g = 0, b = 0;
+    chain.forEach(([p], i) => {
+      const px = x - at[i][0], py = y - at[i][1];
+      if (px < 0 || py < 0 || px >= p.img.w || py >= p.img.h) return;
+      const j = (py * p.img.w + px) * 4, pa = (p.img.d[j + 3] / 255) * share(i, y);
+      if (pa <= 0) return;
+      a += pa; r += p.img.d[j] * pa; g += p.img.d[j + 1] * pa; b += p.img.d[j + 2] * pa;
+    });
+    if (a <= 0) continue;
+    const o = (y * W + x) * 4;
+    img.d[o] = r / a; img.d[o + 1] = g / a; img.d[o + 2] = b / a; img.d[o + 3] = Math.min(255, Math.round(a * 255));
+  }
+  const joints = {};
+  chain.forEach(([p], i) => { for (const [n, [jx, jy]] of Object.entries(p.joints)) joints[n] = [jx + at[i][0], jy + at[i][1]]; });
+  return { img, joints };
+}
+
+/** Her limbs as one image each, where she has their pieces: `leg` (thigh, lower leg, foot) and `arm` (upper arm, forearm). */
+export function composeLimbs(parts) {
+  const out = {};
+  if (parts.thigh && parts.shin && parts.foot) out.leg = composeLimb([[parts.thigh], [parts.shin, 'knee', 'knee'], [parts.foot, 'ankle', 'ankle']]);
+  if (parts.upperArm && parts.forearm) out.arm = composeLimb([[parts.upperArm], [parts.forearm, 'elbow', 'elbow']]);
+  return out;
+}
+
 /** Her measures in a set of parts: the head's height and the foot's length, heel to toe, as shares of her height. */
 export function measures(parts, prop) {
   if (!prop?.torso || !parts.torso) return null;
@@ -373,13 +426,21 @@ export async function cmdRig([file], opt) {
       // parts.coatCut: what hangs from the waist kept only down to this share of its height (hips in briefs, cut off
       // below the buttocks, so they do not lie over her thighs)
       if (r.parts?.coatCut && parts.coat) parts.coat = { ...parts.coat, img: crop(parts.coat.img, 0, 0, parts.coat.img.w, Math.round(parts.coat.img.h * r.parts.coatCut)) };
-      // parts.skin: pieces of bare skin, faded at their joints (see softenJoint)
-      for (const name of r.parts?.skin ?? []) if (parts[name]) parts[name] = softenJoint(parts[name], name);
+      // her limbs as one image each, which the rig skins on their bones (see composeLimb), unless the recipe keeps them
+      // in pieces (parts.limbs: "pieces")
+      const limbs = r.parts?.limbs === 'pieces' ? {} : composeLimbs(parts);
+      // parts.skin: pieces of bare skin, faded at their joints (see softenJoint). A limb in one image has no joint to fade
+      // at the knee or the elbow: only its top, at the hip or the shoulder
+      for (const name of r.parts?.skin ?? []) {
+        if (limbs.leg && (name === 'thigh' || name === 'shin')) { if (name === 'thigh') limbs.leg = softenJoint(limbs.leg, 'thigh'); continue; }
+        if (limbs.arm && (name === 'upperArm' || name === 'forearm')) { if (name === 'upperArm') limbs.arm = softenJoint(limbs.arm, 'upperArm'); continue; }
+        if (parts[name]) parts[name] = softenJoint(parts[name], name);
+      }
       if (v === 'raw') { const m = measures(parts, prop); if (m?.foot) console.log(`${r.name}: foot ${m.foot.toFixed(3)} of her height (her boots 0.13)${m.foot > 0.155 || m.foot < 0.09 ? ' — check it: set parts.proportions.foot' : ''}`); }
       if (!parts.foot) throw new Error(`${r.name}: the rig needs a separate foot: give the recipe parts.proportions`);
       await mkdir(join(out, v), { recursive: true });
       const pieces = {};
-      for (const [name, p] of Object.entries(parts)) {
+      for (const [name, p] of Object.entries({ ...parts, ...limbs })) {
         await writePNG(join(out, v, `${name}.png`), p.img);
         pieces[name] = { size: [p.img.w, p.img.h], joints: p.joints };
       }
