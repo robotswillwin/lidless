@@ -240,6 +240,18 @@ The lungs come from the ending: turning the Concierge off switches off everyone'
 
 Properties are human and grow with practice. High Signal opens doors only guests can use, but the Concierge knows Luna's plans. Low Signal hides her, and leaves her poor and on her own; some places can only be reached with none. *(Decided.)*
 
+### Water and nutrition
+
+Nobody eats: there is no food and no cooking anywhere. *(Decided 21 October.)*
+
+- **Water** is collected centrally or delivered. Every home and every public place has it.
+- **Nutrition** is taken at stations. You sit in a chair, the station measures all your vitals, and a cocktail made
+  for you is injected through a port in your lower back. Everyone has the port.
+
+*Proposed:* the Concierge still calls it dinner ("Good evening. Dinner is served."): its hotel manners for the chair and
+the needle. The main street's dining machine is such a station. See docs/art/LIDLESS_Flat_Redesign_Plan_2026-10-21.md
+for what this means for Luna's flat.
+
 ## Characters
 
 The cast so far is small: Luna, the fixer and the Concierge, plus the people of the street. Their looks are decided, because the art exists; their pasts and motives are mostly open, and the proposals below are only starting points.

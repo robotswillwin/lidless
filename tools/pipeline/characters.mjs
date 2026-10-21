@@ -387,6 +387,8 @@ export async function shapeParts(r, look, v, parts, sameAll) {
     // parts.coatFade: how much of the hips' height fades into the thighs (0.1 by default)
     if (parts[name]) parts[name] = softenJoint(parts[name], name, r.parts?.coatFade ?? 0.1, onto[name]);
   }
+  // her head and torso as one image, skinned on both their bones (parts.limbs "pieces" keeps them apart too)
+  if (r.parts?.limbs !== 'pieces' && parts.head?.joints?.neck && parts.torso?.joints?.neck) limbs.upper = composeUpper(parts.head, parts.torso);
   return limbs;
 }
 
@@ -407,6 +409,35 @@ export function fadeNeck(part) {
     for (let x = 0; x < img.w; x++) out.d[(y * img.w + x) * 4 + 3] *= k;
   }
   return { ...part, img: out };
+}
+
+/**
+ * Her head and torso as one image at rest, the head under the torso as the rig drew them (its neck tucks under a
+ * collar), so the rig skins it on the head's bone and the torso's: her neck bends as one when her head moves, as her
+ * knees do, with no join where the two pieces met to slide or open. Its joints: the torso's, its `top` (the head's), and
+ * where the ponytail is tied (`tie`), all in its own pixels.
+ */
+export function composeUpper(head, torso) {
+  const ox = torso.joints.neck[0] - head.joints.neck[0], oy = torso.joints.neck[1] - head.joints.neck[1];
+  const x0 = Math.floor(Math.min(0, ox)), y0 = Math.floor(Math.min(0, oy));
+  const W = Math.ceil(Math.max(torso.img.w, ox + head.img.w)) - x0, H = Math.ceil(Math.max(torso.img.h, oy + head.img.h)) - y0, img = blank(W, H);
+  // straight alpha, one over the other: the head first, the torso over it
+  const over = (src, dx, dy) => {
+    for (let y = 0; y < src.h; y++) for (let x = 0; x < src.w; x++) {
+      const s = (y * src.w + x) * 4, a = src.d[s + 3] / 255;
+      if (!a) continue;
+      const o = ((y + dy) * W + (x + dx)) * 4, b = img.d[o + 3] / 255, out = a + b * (1 - a);
+      for (let c = 0; c < 3; c++) img.d[o + c] = Math.round((src.d[s + c] * a + img.d[o + c] * b * (1 - a)) / out);
+      img.d[o + 3] = Math.round(out * 255);
+    }
+  };
+  const hx = Math.round(ox - x0), hy = Math.round(oy - y0);
+  over(head.img, hx, hy);
+  over(torso.img, -x0, -y0);
+  const joints = Object.fromEntries(Object.entries(torso.joints).map(([k, [x, y]]) => [k, [x - x0, y - y0]]));
+  joints.top = [joints.neck[0], hy];
+  if (head.joints.tie) joints.tie = [head.joints.tie[0] + hx, head.joints.tie[1] + hy];
+  return { img, joints };
 }
 
 /** Her limbs as one image each, where she has their pieces: `leg` (thigh, lower leg, foot) and `arm` (upper arm, forearm). */
@@ -433,9 +464,15 @@ export function measures(parts, prop) {
  * turns.
  */
 export function extendNeck(img, frac = 0.14) {
-  // the narrowest row in the head's lower part: the neck below the jaw, before it widens into the shoulders
+  // the neck's narrowest row, going down from the jaw, before it widens into the shoulders: the piece's bottom is cut on
+  // a slant, narrowing to a point below the shoulders, which is no neck
   let cut = -1, narrow = Infinity;
-  for (let y = Math.round(img.h * 0.55); y < Math.round(img.h * 0.97); y++) { const sp = span(img, y); if (sp && sp[1] - sp[0] < narrow) { narrow = sp[1] - sp[0]; cut = y; } }
+  for (let y = Math.round(img.h * 0.55); y < Math.round(img.h * 0.97); y++) {
+    const sp = span(img, y);
+    if (!sp) continue;
+    const w = sp[1] - sp[0];
+    if (w < narrow) { narrow = w; cut = y; } else if (w > narrow * 1.08 && cut > 0) break;
+  }
   if (cut < 0) return img;
   const out = blank(img.w, img.h + Math.round(img.h * frac));
   out.d.set(img.d.subarray(0, (cut + 1) * img.w * 4), 0);

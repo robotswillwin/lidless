@@ -173,7 +173,10 @@ flickers:
     overlap (`composeLimb` in tools/pipeline/characters.mjs), and the rig skins that one image on the limb's bones,
     so it bends as one at the knee, the ankle and the elbow (tools/blender/rig.py, `LIMBS`). Pieces turning on their
     joints showed a cut wherever skin was bare: the knees and elbows in her underwear, her home clothes and the
-    bathrobe. Every outfit is rigged this way; a recipe can keep the pieces with `parts.limbs: "pieces"`.
+    bathrobe. Every outfit is rigged this way; a recipe can keep the pieces with `parts.limbs: "pieces"`. Her head and
+    torso are one image too (`upper`, composeUpper): the head under the torso as they were drawn, skinned on the
+    torso's bone below the neck and the head's above it, blending up the neck, so her neck bends as one when her head
+    moves and the join between the two pieces can never slide or open.
   - **Bare skin** (`parts.skin`): where a piece of bare skin meets another still, it fades out over their overlap so no
     straight cut shows: a limb at the hip or the shoulder, the torso below the hip, briefs' hips at both edges. It fades
     only over the piece it meets: past that piece's outline, where the background would show through and the game's

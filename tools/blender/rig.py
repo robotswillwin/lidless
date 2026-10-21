@@ -48,6 +48,8 @@ LIMBS = {
     'legFar': ('legFarUpper', 'leg', 'hip', True, ('legFarUpper', 'legFarLower', 'footFar')),
     'leg': ('legUpper', 'leg', 'hip', False, ('legUpper', 'legLower', 'foot')),
     'arm': ('armUpper', 'arm', 'shoulder', False, ('armUpper', 'armLower')),
+    # her head and torso as one image, skinned on the torso's bone and the head's: the neck bends as one between them
+    'upper': ('torso', 'upper', 'hip', False, ('head', 'torso')),
 }
 FAR_DARK = 0.62           # the far arm and leg, in the shadow of her body
 COAT_CHAIN = 3
@@ -205,6 +207,21 @@ def weights(name, part, x, y, bounce=0.0):
         if pin > 1e-4:
             out['hips'] = pin
         return out
+    if name == 'upper':
+        # head and torso in one image: below the neck the torso's bone (the chest on its own where it bounces), above it
+        # the head's, blending up the neck, so it bends as one when the head moves instead of the head turning on a cut
+        ny, top = j['neck'][1], j['top'][1]
+        band = max(4.0, 0.18 * (ny - top))
+        s = smooth(ny - 1.6 * band, ny + 0.3 * band, y)
+        b = 0.0
+        if bounce > 0 and 'bust' in j:
+            bx, by = j['bust']
+            r = 0.15 * abs(j['hip'][1] - j['neck'][1])
+            b = bounce * (1 - smooth(0.55 * r, 1.5 * r, math.hypot(x - bx, y - by)))
+        out = {'head': 1 - s, 'torso': s * (1 - b)}
+        if b > 1e-4:
+            out['bust'] = s * b
+        return out
     if name in ('arm', 'armFar'):
         # a whole arm: the upper arm's bone, then across the elbow the forearm's; its top stays on the torso, a shoulder
         e, sh = j['elbow'][1], j['shoulder'][1]
@@ -312,14 +329,16 @@ def build_set(s, arm, far):
     # limbs drawn as one image each, in place of their pieces
     for limb, (first, lpart, _, _, pieces) in LIMBS.items():
         if lpart in parts and first in order:
-            at = order.index(first)
+            # drawn where the first of its pieces was: the upper body where the head was, behind the near arm
+            at = min(order.index(p) for p in pieces if p in order)
             order = [p for p in order if p not in pieces]
             order.insert(at, limb)
     if s.get('coatFront'):
         order.remove('coat')
         # in front of her legs; over: in front of her torso too, as briefs over her belly
         legs_end = 'leg' if 'leg' in order else 'foot'
-        order.insert(order.index('torso') + 1 if s.get('coatOver') else order.index(legs_end) + 1, 'coat')
+        trunk = 'upper' if 'upper' in order else 'torso'
+        order.insert(order.index(trunk) + 1 if s.get('coatOver') else order.index(legs_end) + 1, 'coat')
     for i, piece in enumerate(order):
         if piece in LIMBS:
             first, image, pivot, is_far, _ = LIMBS[piece]
