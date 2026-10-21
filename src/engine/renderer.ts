@@ -273,7 +273,8 @@ export class Renderer {
       gl.uniform1f(sp.u.uHasMeta, s.hasMeta ? 1 : 0);
       // a character stands in front of the set: lights behind it rim it, and the set's glow mostly stays behind it
       gl.uniform1f(sp.u.uHaze, (def.actor ?? def.kind === 'character') || def.lit ? (def.haze ?? k.charGlow) : -1);
-      gl.uniform1f(sp.u.uFoot, Math.min(1, Math.max(0, (y + dh) / NH)));
+      // where wet ground mirrors it: its feet, as they are in this frame (lifted off the ground in a run's flight)
+      gl.uniform1f(sp.u.uFoot, Math.min(1, Math.max(0, (y + dh - (fr?.lifts?.[fi] ?? 0) * sc) / NH)));
       gl.uniform4f(sp.u.uConst, def.occluder ?? 0, def.depth, def.reflectivity ?? 0, def.object ?? 0);
       gl.uniform3f(sp.u.uConstG, def.groupRaw ?? 0, def.groupConcierge ?? 0, def.machine ?? 0);
       if (d.clip) {

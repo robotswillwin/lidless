@@ -248,10 +248,18 @@ export async function writeAnimated(r, raws, concs, { anchorX, anims }) {
   for (const [name, imgs] of Object.entries(maps)) await writePNG(join(out, `${name}.png`), name.startsWith('albedo') ? bleedEdges(strip(imgs)) : strip(imgs), { rgb: !name.startsWith('albedo') });
   // sizes and places in level pixels; the frames' texels are res to each
   const lw = toLevel(w, res), lh = toLevel(h, res), anchor = [toLevel(anchorX ?? w / 2, res), lh], [cx, base] = r.position ?? [480, 464];
+  // how far each frame's lowest point is off the ground (a run's flight), in level pixels: wet ground mirrors her
+  // around her feet as they are in that frame, so her reflection stays with them
+  const lifts = Array.from({ length: n }, (_, k) => {
+    const imgs = [raws?.[k], concs?.[k]].filter(Boolean);
+    let low = -1;
+    for (const img of imgs) for (let y = h - 1; y > low; y--) { let on = false; for (let x = 0; x < w && !on; x++) on = img.d[(y * w + x) * 4 + 3] > 128; if (on) { low = y; break; } }
+    return low < 0 ? 0 : Math.round(((h - 1 - low) / res) * 10) / 10;
+  });
   const sprite = {
     name: r.name, x: Math.round(cx - anchor[0]), y: Math.round(base - lh), w: lw, h: lh, maps: Object.keys(maps).sort(),
     depth: r.depth ?? spec.depth, parallax: r.parallax ?? 1, occluder: (r.occluder ?? spec.occluder) ? 1 : 0, reflectivity: r.reflectivity ?? 0, object: r.object ?? 0,
-    ...(flat ? flatFlags(r) : {}), anchor, exists, kind: r.kind, frames: { count: n, gutter: G, cols }, anims, ...(res !== 1 ? { res } : {}), ...(r.lit ? { lit: true } : {}),
+    ...(flat ? flatFlags(r) : {}), anchor, exists, kind: r.kind, frames: { count: n, gutter: G, cols, ...(lifts.some((v) => v > 0) ? { lifts } : {}) }, anims, ...(res !== 1 ? { res } : {}), ...(r.lit ? { lit: true } : {}),
   };
   await writeFile(join(out, 'sprite.json'), JSON.stringify(sprite, null, 2) + '\n');
   for (const f of await readdir(out)) if (f.endsWith('.png') && !sprite.maps.includes(f.slice(0, -4))) await rm(join(out, f));

@@ -57,7 +57,11 @@ export interface SpriteDef {
    * Animation frames in every map, in rows of `cols` (all in one row without it), a transparent gutter between them;
    * w and h are one frame.
    */
-  frames?: { count: number; gutter: number; cols?: number };
+  /**
+   * `lifts`: how far each frame's lowest point is off the ground, in level pixels (a run's flight): wet ground mirrors
+   * her around her feet as they are in that frame, so her reflection stays with them.
+   */
+  frames?: { count: number; gutter: number; cols?: number; lifts?: number[] };
   /**
    * Texels per level pixel, 1 by default: art built at 2 has twice the detail, and shows it at a render scale of 2. Every
    * other size and place here (w, h, x, y, anchor, strides) is in level pixels; the frames' gutter is in texels.
