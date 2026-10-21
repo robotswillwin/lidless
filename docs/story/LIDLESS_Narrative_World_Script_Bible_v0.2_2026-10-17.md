@@ -1,5 +1,11 @@
 # LIDLESS — Narrative, World & Opening Script Bible (Early Draft v0.2)
 
+> **Superseded where it disagrees.** The current bible is
+> [LIDLESS_Game_Bible_v0.4_2026-10-21.md](LIDLESS_Game_Bible_v0.4_2026-10-21.md) (21 October 2026). Where this document
+> disagrees with it (raw view is legal; privacy zones; no immediate goal of switching the Concierge off; feeding at the
+> wrist), v0.4 holds. This document is kept as historical source material, as v0.4 says.
+
+
 **Version:** 0.2 — EARLY DRAFT  
 **Date:** 17 October 2026  
 **Status:** Living creative document; not a locked production specification  

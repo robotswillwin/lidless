@@ -453,7 +453,7 @@ export class Game {
 
   /**
    * Raw view and back. On the dev server E switches view from the start (`force`), to look at both views while building
-   * the game; the button and every built version keep the story's lock until the fixer has opened her eye.
+   * the game; the button and every built version keep the story's lock until the fixer has switched raw view on.
    */
   toggleView(force = false): void {
     if (!this.canSwitch() && !force) return;

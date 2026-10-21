@@ -2,6 +2,12 @@
 
 Oct 16, 2026 · @Andreas Jeansson
 
+> **Superseded where it disagrees.** The current bible is
+> [LIDLESS_Game_Bible_v0.4_2026-10-21.md](LIDLESS_Game_Bible_v0.4_2026-10-21.md) (21 October 2026). Where this document
+> disagrees with it (raw view is legal; privacy zones; no immediate goal of switching the Concierge off; feeding at the
+> wrist), v0.4 holds. This document is kept as history, and for its writing brief: the Ink format scripts follow, and the game's scene and hotspot ids.
+
+
 ## How to use this document
 
 This is the canon for Lidless: what is decided, what is only proposed, and how scripts must be written to drop straight into the game.

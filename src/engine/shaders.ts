@@ -492,7 +492,11 @@ void main() {
     bool mine = false;
     if (F > 0.0 && p.y > F) { vec2 qa = vec2(p.x + rip, 2.0 * F - p.y); if (isActor(T(tG3, qa).a) > 0.5) { q = qa; mine = true; } }
     float keep = 1.0;
-    if (!mine && uSmudge < 0.5 && isActor(T(tG3, qs).a) > 0.5) {
+    // the set's mirror lands on a character standing elsewhere (or on her own legs, seen through a gap in her reflection,
+    // as when she runs): what is behind her is not in the picture. The set's own reflection, with the people left out of
+    // it, has it, filled in from around her (below); without that, the set beside her stands in
+    bool behind = !mine && uSmudge < 0.5 && isActor(T(tG3, qs).a) > 0.5;
+    if (behind && uReflBlur < 0.5) {
       keep = 0.0;
       for (int j = 1; j <= 4; j++) for (int s = -1; s <= 1; s += 2) { vec2 b = qs + vec2(float(s * j) * 14.0, 0.0); if (keep < 0.5 && isActor(T(tG3, b).a) < 0.5) { q = b; keep = 1.0; } }
     }
@@ -517,7 +521,13 @@ void main() {
       vec4 b = T(tRefl, qq);
       // a glossy floor mirrors sharply where things touch it, softer the further they are
       if (uReflFade > 0.0) b = mix(T(tReflNear, qq), b, smoothstep(0.0, uReflFade, p.y - GY));
-      if (b.a > 0.02) r = b.rgb / b.a;
+      // where a person stood, the set's reflection is a hole only partly filled by its blur: the nearest of it beside
+      for (int j = 1; j <= 8; j++) {
+        if (b.a >= 0.3) break;
+        for (int s = -1; s <= 1; s += 2) { vec4 e = T(tRefl, qq + vec2(float(s * j) * 6.0, 0.0)); if (e.a > b.a) b = e; }
+      }
+      if (b.a > 0.02) { r = b.rgb / b.a; if (behind) rs = r; }
+      else if (behind) keep = 0.0;
     }
     float k, seen = keep * (mine ? cover : max(1.0 - uBakedC, uRefl.w * below)) * uRefl.x;
     if (gnd) {

@@ -11,7 +11,7 @@ how to write a deep plot, side errands and many objects without code.
 | Variable | What it is |
 | --- | --- |
 | `raw_view` | Set by the game as a conversation starts and at every choice: true while she sees raw view. |
-| `has_raw` | True once the fixer has opened her eye; the view switch unlocks. |
+| `has_raw` | True once the fixer has switched on raw view in her eyepiece; the view switch unlocks. |
 | `conditions` | What the city is like now: a variant the scenes have (`rain`, `fog`, `outage`), `""` as they are. |
 | `carried` | What is in her pockets: a list of `Things`. Her things (the left ball) show it. |
 | `taken` | Everything she has ever picked up from where it was: it is gone from there for good. |

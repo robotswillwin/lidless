@@ -55,7 +55,7 @@ Then open the address Vite prints.
 - **Saves**, from the menu: the game saves as she goes (never in the middle of a conversation), and three slots she
   saves into and goes back to. A save made with an older version of the story keeps what she knew and carried.
   `?new` starts a new game.
-- Talk to the fixer in the radio shop. Once he has opened your eye, **E** or the view switch at the top right switches
+- Talk to the fixer in the radio shop. Once he has switched on your raw view, **E** or the view switch at the top right switches
   between Concierge view and raw view, and many things read differently. On the dev server, E works from the start.
 - Conversations go as in Monkey Island: each line over the head of whoever says it, in their colour (hers, the
   fixer's amber, the Concierge's cyan), narration quietly at the top, one line at a time for as long as it takes to
