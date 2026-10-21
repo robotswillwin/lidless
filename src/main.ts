@@ -1,7 +1,8 @@
 // Lidless: boot. Loads the world, the look and the hero, starts a game session (src/game/game.ts) and runs its frames.
 // The address can ask for ?new (start over), ?scene=id&spawn=place, ?view=raw, ?variant=rain (the scenes in a variant,
-// whatever the story says), ?q=low|medium|high, ?debug (tier and frame rate), and for tests ?t=seconds (a still frame)
-// and ?cam=x (the camera held there).
+// whatever the story says), ?q=low|medium|high, ?debug (tier and frame rate), and for tests ?t=seconds (a still frame),
+// ?cam=x (the camera held there) and ?fast (a story's pauses cut short). The title screen shows as it opens, except for
+// an address that asks for a scene or a new game; the player's settings are kept in the browser (game/settings.ts).
 
 import './style.css';
 import { loadSprite, setTexelBudget, spriteDefaults } from './engine/assets';
@@ -13,6 +14,8 @@ import type { Item, Notebook } from './game/hud';
 import { bindInput } from './game/input';
 import { clearSave, loadSave } from './game/save';
 import { loadWorld } from './game/scenefile';
+import { loadSettings, READING, TEXT_SCALE, type Settings } from './game/settings';
+import { showTitle, titleAtStart } from './game/title';
 
 const params = new URLSearchParams(location.search);
 const canvas = document.getElementById('game') as HTMLCanvasElement;
@@ -29,10 +32,15 @@ function pickTier(): Tier {
   return matchMedia('(pointer: coarse)').matches ? 'medium' : 'high';
 }
 
+/** The settings as the game takes them: the graphics tier (the address's ?q first), and whether motion is reduced. */
+const tierOf = (s: Settings): Tier => (params.has('q') || s.quality === 'auto' ? pickTier() : s.quality);
+const reducedOf = (s: Settings): boolean => (s.motion === 'auto' ? matchMedia('(prefers-reduced-motion: reduce)').matches : s.motion === 'reduced');
+
 async function boot(): Promise<void> {
   if (params.has('new')) clearSave();
   const assets = `${import.meta.env.BASE_URL}assets`;
-  const renderer = new Renderer(canvas, QUALITY[pickTier()]), gl = renderer.gl;
+  let settings = loadSettings();
+  const renderer = new Renderer(canvas, QUALITY[tierOf(settings)]), gl = renderer.gl;
   // textures as detailed as the screen shows: a phone, drawing the level at its own size, keeps a quarter of a background
   setTexelBudget(renderer.quality.scale);
   const optional = <T>(file: string, fallback: T) => fetch(`${assets}/${file}`, { cache: 'no-store' }).then((r) => (r.ok ? (r.json() as Promise<T>) : fallback)).catch(() => fallback);
@@ -47,7 +55,7 @@ async function boot(): Promise<void> {
   const game = await Game.start({
     renderer, canvas, stage: document.querySelector('.stage') as HTMLElement, fade: document.getElementById('fade') as HTMLElement,
     assets, world, hero, projectLook, items, notebook, journal, save: loadSave(),
-    reduceMotion: matchMedia('(prefers-reduced-motion: reduce)').matches,
+    reduceMotion: reducedOf(settings), fast: params.has('fast'),
     fixedT, fixedCam: number('cam'), rawView: params.get('view') === 'raw', variant: params.get('variant'),
   }, asked ? { scene: asked, spawn: params.get('spawn') ?? undefined } : undefined);
 
@@ -64,6 +72,26 @@ async function boot(): Promise<void> {
   // on the dev server: art or a scene file changed
   import.meta.hot?.on('lidless:asset', (data: { files: string[] }) => game.assetsChanged(data.files));
 
+  // the settings, applied now and as they change, from the title screen or the menu
+  const stage = document.querySelector('.stage') as HTMLElement;
+  const apply = (s: Settings) => {
+    settings = s;
+    renderer.quality = QUALITY[tierOf(s)];
+    document.documentElement.style.setProperty('--ts', String(TEXT_SCALE[s.text]));
+    game.talk.speed = game.hud.noteSpeed = READING[s.speed];
+    game.setMotion(reducedOf(s));
+    document.documentElement.dataset.motion = reducedOf(s) ? 'reduced' : 'full';
+  };
+  apply(settings);
+  const title = () => {
+    game.inputLocked = true;
+    game.hud.closeAll();
+    showTitle(stage, { settings: () => settings, onSettings: apply, onContinue: () => { game.inputLocked = false; } });
+  };
+  game.hud.settings = () => settings;
+  game.hud.onSettings = apply;
+  game.hud.onTitle = title;
+
   stats.hidden = !params.has('debug');
   let frames = 0, fpsAt = performance.now(), fps = 0;
   const draw = () => {
@@ -75,8 +103,9 @@ async function boot(): Promise<void> {
   };
   draw();
   document.documentElement.dataset.ready = '1';
-  // the first scene drawn: the fade the page opened with, its name over it, lifts
+  // the first scene drawn: the fade the page opened with, its name over it, lifts; the title screen over the scene
   document.getElementById('fade')?.classList.remove('on', 'boot');
+  if (titleAtStart(params)) title();
   if (fixedT !== null) return;
 
   let visible = true, last = 0;

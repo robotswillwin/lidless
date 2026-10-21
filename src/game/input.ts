@@ -31,7 +31,7 @@ export function bindInput(canvas: HTMLCanvasElement, game: Game, extras: InputEx
   canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 
   document.addEventListener('keydown', (e) => {
-    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.metaKey || e.ctrlKey || e.altKey || game.inputLocked) return;
     if (e.key === 'l' || e.key === 'L') return game.look.toggle();
     // the keys a slider or list uses itself stay with it: arrows move a look slider, not the hero; E, Q and L still work
     if (e.target instanceof Element && e.target.closest('.look') && /^(Arrow|Home|End|Page)/.test(e.key)) return;

@@ -26,14 +26,14 @@ async function fresh(query) {
   page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
   await page.setViewport({ width: 1920, height: 1080 });
   await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
-  await page.goto(`${url}?new&${query}`);
+  await page.goto(`${url}?new&fast&${query}`);
   await ready(page);
   return page;
 }
 const ready = (page) => page.waitForFunction(() => document.documentElement.dataset.ready === '1' || document.documentElement.dataset.err, { timeout: 30000 }).then(() => wait(1000));
 /** A page loaded again with what was saved: a scene asked for, the save's story and clothes. */
 async function again(page, query) {
-  await page.goto(`${url}?${query}`);
+  await page.goto(`${url}?fast&${query}`);
   await ready(page);
 }
 
@@ -282,7 +282,7 @@ const checks = {
     await page.setViewport({ width: 1920, height: 1080 });
     await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
     await page.evaluateOnNewDocument(() => { if (sessionStorage.getItem('seeded')) return; sessionStorage.setItem('seeded', '1'); localStorage.setItem('lidless.save.v1', JSON.stringify({ v: 2, scene: 'street', heroX: 1480, facing: 1, view: 1, ink: null })); });
-    await page.goto(url);
+    await page.goto(`${url}?notitle&fast`);
     await ready(page);
     await verb(page, 'heart');
     const at = await findThing(page, 'Civic guardian');
@@ -320,6 +320,32 @@ const checks = {
     await out();
     const toast = await page.$eval('.hud-toast', (t) => t.textContent).catch(() => '');
     check('a third time: the Concierge notices, and says so', /Back again so soon/.test(toast) && (await save(page))?.attention === 1, `${toast} | attention ${(await save(page))?.attention}`);
+    await page.close();
+  },
+
+  /** The title screen as the game opens, over its first scene; the settings, kept, from the menu at the top right. */
+  async title() {
+    const page = await browser.newPage();
+    page.on('pageerror', (e) => errors.push(String(e)));
+    await page.setViewport({ width: 1920, height: 1080 });
+    await page.goto(`${url}?fast`);
+    await ready(page);
+    check('the title screen, as the game opens', !!(await page.$('.title-screen')) && (await page.$eval('.title-screen .name', (n) => n.textContent)) === 'Lidless');
+    await page.evaluate(() => document.querySelector('.title-screen .menu button.primary')?.click());
+    await wait(800);
+    check('in: the title gone, the game to play', !(await page.$('.title-screen')) && !(await page.$eval('.stage', (s) => 'title' in s.dataset)));
+    await panel(page, 'saves');
+    await page.evaluate(() => [...document.querySelectorAll('.hud-panel.menu .tab')].find((t) => t.textContent === 'Settings')?.click());
+    await wait(300);
+    await page.evaluate(() => [...document.querySelectorAll('.settings .choice')].find((c) => c.textContent === 'Large')?.click());
+    await wait(200);
+    const ts = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--ts').trim());
+    const kept = await page.evaluate(() => JSON.parse(localStorage.getItem('lidless.settings') ?? '{}').text);
+    check('settings from the menu: large text, applied and kept', ts === '1.22' && kept === 'large', `--ts ${ts}, kept ${kept}`);
+    await page.evaluate(() => document.querySelector('.hud-panel.menu .to-title')?.click());
+    await wait(500);
+    check('the menu leads back to the title screen', !!(await page.$('.title-screen')));
+    await page.evaluate(() => localStorage.removeItem('lidless.settings'));
     await page.close();
   },
 

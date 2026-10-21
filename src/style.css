@@ -98,7 +98,7 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
   padding: 12px 16px; background: var(--glass-strong); border: 1px solid var(--edge); border-radius: 14px; animation: hud-fade .2s ease-out both;
 }
 .hud-toast > svg { color: var(--co); margin-top: 2px; }
-.hud-toast p { margin: 0; font: italic 500 clamp(14px, 1.3cqw, 18px)/1.35 var(--serif); }
+.hud-toast p { margin: 0; font: italic 500 calc(clamp(14px, 1.3cqw, 18px) * var(--ts, 1))/1.35 var(--serif); }
 .hud-toast .row { grid-column: 2; }
 .hud[data-view="raw"] :is(.hud-co, .hud-toast) { display: none; }
 
@@ -193,7 +193,7 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .hud-note { position: absolute; z-index: 1; width: max-content; max-width: min(360px, 40cqw); padding: 10px 14px 12px; pointer-events: auto; animation: hud-fade .2s ease-out both;
   background: var(--glass-strong); border: 1px solid var(--edge); border-radius: 12px; box-shadow: 0 6px 22px rgba(0, 0, 0, .45); }
 .hud-note .name { margin-bottom: 4px; font: 500 clamp(9px, .75cqw, 11px)/1.3 var(--ui); letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
-.hud-note p { margin: 0; text-wrap: pretty; font: 400 clamp(14px, 1.3cqw, 17px)/1.4 var(--ui); }
+.hud-note p { margin: 0; text-wrap: pretty; font: 400 calc(clamp(14px, 1.3cqw, 17px) * var(--ts, 1))/1.4 var(--ui); }
 
 /* what a chosen verb lights up under her finger: corners around it, its name and the verb */
 .hud-mark { position: absolute; pointer-events: none; }
@@ -204,7 +204,7 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .hud-mark-label { position: absolute; left: 50%; bottom: calc(100% + 14px); transform: translateX(-50%); display: grid; justify-items: center; gap: 2px; padding: 7px 12px 8px; white-space: nowrap;
   background: var(--glass-strong); border: 1px solid var(--edge); border-radius: 12px; }
 .hud-mark.below .hud-mark-label { bottom: auto; top: calc(100% + 14px); }
-.hud-mark-label .name { font: 500 clamp(14px, 1.25cqw, 17px)/1.2 var(--ui); }
+.hud-mark-label .name { font: 500 calc(clamp(14px, 1.25cqw, 17px) * var(--ts, 1))/1.2 var(--ui); }
 .hud-mark-label .tag { font: 400 clamp(9px, .75cqw, 11px)/1.3 var(--ui); letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
 .hud-mark-label .verb { display: flex; align-items: center; gap: 6px; margin-top: 3px; font: 500 clamp(10px, .82cqw, 12px)/1 var(--ui); letter-spacing: .14em; text-transform: uppercase; }
 .hud-mark-label .cost { stroke: #ff6a4d; stroke-width: 1.6; }
@@ -214,17 +214,17 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
    her answers as a list along the bottom between the balls */
 .talk-skip { position: absolute; inset: 0; pointer-events: auto; cursor: pointer; }
 .talk-line { position: absolute; z-index: 2; width: max-content; max-width: min(440px, 46cqw); margin: 0; text-align: center; text-wrap: balance; pointer-events: none;
-  font: 500 clamp(15px, 1.55cqw, 21px)/1.3 var(--ui); letter-spacing: .01em; color: #f4f1ea;
+  font: 500 calc(clamp(15px, 1.55cqw, 21px) * var(--ts, 1))/1.3 var(--ui); letter-spacing: .01em; color: #f4f1ea;
   text-shadow: 0 0 1px #000, 0 1px 1px #000, 1px 0 1px #000, -1px 0 1px #000, 0 -1px 1px #000, 0 2px 6px rgba(0, 0, 0, .9); animation: hud-fade .15s ease-out both; }
 .talk-line[data-voice="warm"] { color: var(--amber); }
 .talk-line[data-voice="co"] { color: var(--cyan); font-weight: 400; letter-spacing: .03em; }
 .talk-line[data-voice="other"] { color: #e3c6ff; }
 .talk-line.top { top: calc(var(--m) + 64px); max-width: min(560px, 62cqw); padding: 8px 16px; border-radius: 12px; background: rgba(15, 16, 21, .7);
-  font: italic 500 clamp(14px, 1.35cqw, 18px)/1.4 var(--serif); color: rgba(244, 241, 234, .9); text-shadow: none; }
+  font: italic 500 calc(clamp(14px, 1.35cqw, 18px) * var(--ts, 1))/1.4 var(--serif); color: rgba(244, 241, 234, .9); text-shadow: none; }
 .talk-choices { position: absolute; z-index: 2; left: 50%; bottom: var(--m); transform: translateX(-50%); width: min(600px, calc(100% - 2 * var(--m) - 2 * var(--slot) * 1.15 - 32px));
   margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; pointer-events: auto; animation: hud-fade .15s ease-out both; }
 .talk-choice { width: 100%; display: flex; gap: 10px; align-items: baseline; padding: 8px 14px; border: 1px solid var(--edge); border-radius: 12px; text-align: left; cursor: pointer;
-  background: var(--glass-strong); color: var(--text); font: 400 clamp(14px, 1.35cqw, 18px)/1.3 var(--ui); }
+  background: var(--glass-strong); color: var(--text); font: 400 calc(clamp(14px, 1.35cqw, 18px) * var(--ts, 1))/1.3 var(--ui); }
 .talk-choice .key { min-width: 1ch; font: 500 12px/1 var(--ui); color: var(--dim); }
 .talk-choice:is(:hover, :focus-visible) { border-color: var(--edge-strong); background: rgba(40, 42, 50, .92); outline: none; }
 
@@ -237,8 +237,14 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .hud-panel .head .hint { flex: 1; font: 400 clamp(12px, 1cqw, 14px)/1.2 var(--ui); color: var(--dim); }
 .hud-panel .head .hud-close { align-self: center; }
 
-/* her saves */
-.hud-panel.menu { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(680px, calc(100% - 2 * var(--m))); max-height: calc(100% - 2 * var(--m)); overflow: auto; display: grid; gap: 14px; padding: 16px 18px 18px; }
+/* the menu: her saves, the settings, how to play; and the way to the title screen */
+.hud-panel.menu { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(720px, calc(100% - 2 * var(--m))); max-height: calc(100% - 2 * var(--m)); overflow: auto; display: grid; gap: 14px; padding: 12px 16px 18px 18px; }
+.hud-panel.menu .head { align-items: center; flex-wrap: wrap; row-gap: 8px; }
+.hud-panel.menu .tabs { flex: 1; display: flex; gap: 2px; padding: 3px; border-radius: 12px; background: rgba(255, 255, 255, .06); width: max-content; max-width: max-content; }
+.hud-panel.menu .tab { padding: 7px 13px; border: 0; border-radius: 9px; background: none; color: var(--dim); font: 500 clamp(12px, 1.05cqw, 14px)/1 var(--ui); }
+.hud-panel.menu .tab.on { background: rgba(255, 255, 255, .15); color: #fff; }
+.hud-panel.menu .to-title { margin-left: auto; min-height: 30px; padding: 0 12px; border: 1px solid var(--edge); border-radius: 15px; background: none; color: var(--dim); font: 500 12px/1 var(--ui); }
+.hud-panel.menu .to-title:hover { color: var(--text); border-color: var(--edge-strong); }
 .hud-panel.menu .saves { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(190px, 100%), 1fr)); gap: 10px; }
 .hud-panel.menu .save { display: grid; gap: 6px; align-content: start; padding: 12px 14px 14px; border: 1px solid var(--edge); border-radius: 14px; background: rgba(255, 255, 255, .04); }
 .hud-panel.menu .save .name { font: 500 15px/1.2 var(--ui); }
@@ -258,8 +264,8 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .hud-panel.journal .empty { margin: 0; font: 400 14px/1.4 var(--ui); color: var(--dim); }
 .hud-panel.journal .entries { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 10px; align-content: start; }
 .hud-panel.journal .entry { display: grid; gap: 4px; align-content: start; padding: 12px 14px; border: 1px solid var(--edge); border-radius: 14px; background: rgba(255, 255, 255, .04); }
-.hud-panel.journal .entry .name { display: flex; align-items: center; gap: 6px; font: 500 15px/1.25 var(--ui); }
-.hud-panel.journal .entry .note { font: 400 14px/1.4 var(--ui); color: var(--dim); }
+.hud-panel.journal .entry .name { display: flex; align-items: center; gap: 6px; font: 500 calc(15px * var(--ts, 1))/1.25 var(--ui); }
+.hud-panel.journal .entry .note { font: 400 calc(14px * var(--ts, 1))/1.4 var(--ui); color: var(--dim); }
 .hud-panel.journal .entry.done { opacity: .62; }
 .hud-panel.journal .entry.done .name { text-decoration: line-through; text-decoration-thickness: 1px; }
 .hud-panel.journal .entry :is(.name, .note).fresh::after { content: ""; display: inline-block; flex: none; width: 6px; height: 6px; margin-left: 7px; border-radius: 50%; background: #fff; vertical-align: .2em; }
@@ -313,8 +319,8 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .hud-panel.notebook .warning { margin: 0 40px 6px 0; font-size: clamp(13px, 1.1cqw, 16px); color: var(--red-pencil); transform: rotate(-2deg); transform-origin: left; }
 .hud-panel.notebook .entries { columns: 2 280px; column-gap: 40px; }
 .hud-panel.notebook .entry { break-inside: avoid; margin-bottom: 14px; }
-.hud-panel.notebook .entry .name { font-size: clamp(17px, 1.6cqw, 22px); font-weight: 700; line-height: 1.25; }
-.hud-panel.notebook .note, .hud-panel.notebook li { font-size: clamp(15px, 1.4cqw, 19px); line-height: 1.4; color: #3c3630; }
+.hud-panel.notebook .entry .name { font-size: calc(clamp(17px, 1.6cqw, 22px) * var(--ts, 1)); font-weight: 700; line-height: 1.25; }
+.hud-panel.notebook .note, .hud-panel.notebook li { font-size: calc(clamp(15px, 1.4cqw, 19px) * var(--ts, 1)); line-height: 1.4; color: #3c3630; }
 .hud-panel.notebook p.note { margin: 0; }
 .hud-panel.notebook .fresh::after { content: ""; display: inline-block; width: 6px; height: 6px; margin-left: 7px; border-radius: 50%; background: var(--red-pencil); vertical-align: .25em; }
 /* an errand run: crossed out in pencil */
@@ -553,3 +559,38 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .ed-overlay .mover text { fill: #ff6ad5; font: 500 11px var(--ui); paint-order: stroke; stroke: #000; stroke-width: 3; }
 .ed-overlay .mover.sel rect { fill: rgba(255, 106, 213, .18); stroke-width: 2; }
 .editor .look { top: 12px; right: 12px; }
+
+/* the settings and how to play: in the menu and on the title screen */
+.settings { display: grid; gap: 12px; }
+.settings .setting { display: grid; grid-template-columns: 110px 1fr; align-items: center; gap: 12px; }
+.settings .name { font: 500 14px/1.2 var(--ui); color: rgba(245, 243, 239, .78); }
+.settings .choices { display: flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: 12px; background: rgba(255, 255, 255, .07); width: max-content; max-width: 100%; }
+.settings .choice { padding: 8px 12px; border: 0; border-radius: 9px; background: none; color: rgba(245, 243, 239, .62); font: 500 13px/1 var(--ui); cursor: pointer; }
+.settings .choice:hover { color: #fff; }
+.settings .choice.on { background: rgba(255, 255, 255, .17); color: #fff; }
+.settings .note { margin: 2px 0 0; font: 400 12px/1.4 var(--ui); color: rgba(245, 243, 239, .5); }
+.help { display: grid; gap: 10px; max-width: 660px; }
+.help .row-help { display: grid; grid-template-columns: 96px 1fr; gap: 12px; }
+.help .name { font: 500 14px/1.4 var(--ui); color: #f5f3ef; }
+.help .text { font: 400 14px/1.45 var(--ui); color: rgba(245, 243, 239, .72); }
+@media (max-width: 640px) { .settings .setting, .help .row-help { grid-template-columns: 1fr; gap: 6px; } }
+
+/* the title screen: the name over the first scene, drawn and moving behind it, and the ways in */
+.stage[data-title] .hud { visibility: hidden; }
+.title-screen { position: absolute; inset: 0; z-index: 5; display: grid; place-content: center; justify-items: center; gap: 8px; padding: 16px; overflow: auto;
+  background: radial-gradient(ellipse at 50% 45%, rgba(6, 7, 12, .3), rgba(4, 5, 9, .9)); color: #f5f3ef; animation: hud-fade .6s ease-out both; }
+.title-screen.out { opacity: 0; transition: opacity .35s ease-in; }
+.title-screen .name { margin: 0; font: 300 clamp(38px, 7vw, 92px)/1 var(--ui); letter-spacing: .5em; text-indent: .5em; text-transform: uppercase; }
+.title-screen .line { margin: 0 0 22px; font: 400 clamp(11px, 1vw, 13px)/1 var(--ui); letter-spacing: .32em; text-indent: .32em; text-transform: uppercase; color: rgba(245, 243, 239, .6); }
+.title-screen .panel { display: grid; gap: 16px; justify-items: center; width: min(560px, calc(100vw - 32px)); padding: 16px 18px; border-radius: 18px; }
+.title-screen .panel:has(.settings, .help) { background: rgba(15, 16, 21, .78); border: 1px solid rgba(255, 255, 255, .14); justify-items: stretch; }
+.title-screen .menu { display: grid; gap: 8px; width: min(300px, 80vw); }
+.title-screen .menu button, .title-screen .back { min-height: 44px; padding: 0 20px; border: 1px solid rgba(255, 255, 255, .22); border-radius: 22px; background: rgba(15, 16, 21, .55);
+  color: #f5f3ef; font: 500 15px/1 var(--ui); letter-spacing: .05em; cursor: pointer; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.title-screen .menu button:hover, .title-screen .back:hover { border-color: rgba(255, 255, 255, .5); }
+.title-screen .menu button.primary { background: #f5f3ef; border-color: #f5f3ef; color: #121318; }
+.title-screen .back { justify-self: center; }
+.title-screen .ask { margin: 0; max-width: 360px; text-align: center; font: 400 15px/1.45 var(--ui); color: rgba(245, 243, 239, .85); }
+.title-screen button:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+/* less motion, as the settings ask: nothing slides, fades or blinks */
+:root[data-motion="reduced"] *, :root[data-motion="reduced"] *::before, :root[data-motion="reduced"] *::after { animation: none !important; transition: none !important; }

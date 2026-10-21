@@ -28,6 +28,8 @@ export class Talk {
   /** What a line has the game do before it is said (she walks, changes, a fade): the conversation waits for it. */
   run: (commands: Command[]) => Promise<void> = async () => {};
   open = false;
+  /** How long lines stay, times the normal (the text speed setting). */
+  speed = 1;
 
   private queue: Line[] = [];
   /** A line's commands are being done: nothing moves on until they are. */
@@ -85,7 +87,7 @@ export class Talk {
       this.line.hidden = false;
       this.skip.hidden = false;
       this.place();
-      this.timer = window.setTimeout(() => this.next(), readingTime(l.text));
+      this.timer = window.setTimeout(() => this.next(), readingTime(l.text) * this.speed);
       return;
     }
     this.current = null;

@@ -17,6 +17,7 @@ import { note, pick, type Hotspot } from './level';
 import { drawJournal, PLACES } from './journal';
 import { drawMap, type MapNow, type Travel } from './map';
 import { drawNotebook, notebookNow, type Notebook } from './notebook';
+import { drawSettings, type Settings } from './settings';
 import { drawInspect, drawTray, thingsNow, type Item } from './tray';
 
 export type { Item } from './tray';
@@ -72,6 +73,12 @@ export class Hud {
   onRead: (keys: string[]) => void = () => {};
   /** Where the assets are, for her things' pictures. */
   assets = 'assets';
+  /** The player's settings, and changing them (from the menu's settings); back to the title screen. */
+  settings: () => Settings | null = () => null;
+  onSettings: (s: Settings) => void = () => {};
+  onTitle: () => void = () => {};
+  /** How long notes stay, times the normal (the text speed setting). */
+  noteSpeed = 1;
 
   private raw = false;
   private unlocked = false;
@@ -112,6 +119,8 @@ export class Hud {
   private notebookTab: string | null = null;
   private journal: Notebook = { pages: [] };
   private journalTab: string | null = null;
+  /** The menu's tab: her saves, the settings, how to play. */
+  private menuTab: 'saves' | 'settings' | 'help' = 'saves';
   /** Her things' pictures, fetched once. */
   private readonly fetched = new Set<string>();
 
@@ -137,7 +146,7 @@ export class Hud {
     this.journalBtn = button('hud-btn journal', 'Her journal (J)', top, () => this.openJournal());
     this.journalBtn.innerHTML = icon('journal', 22);
     this.notebookBtn = button('hud-btn notebook', 'Her notebook (N)', top, () => this.togglePanel('notebook'));
-    button('hud-btn menu', 'Saves', top, () => this.togglePanel('menu')).innerHTML = icon('menu', 22);
+    button('hud-btn menu', 'Menu: saves, settings, help', top, () => this.togglePanel('menu')).innerHTML = icon('menu', 22);
 
     // the two balls: her things on the left, what she can do on the right, the verb chosen named beside it
     this.thingsBall = button('hud-ball things', 'Her things (I)', root, () => this.toggleTray());
@@ -473,7 +482,7 @@ export class Hud {
     el('p', 'text', n, text);
     n.addEventListener('pointerdown', (e) => { e.stopPropagation(); this.dismissNote(); });
     this.placeNote(box);
-    this.noteTimer = window.setTimeout(() => this.dismissNote(), Math.min(9000, Math.max(2500, 800 + text.length * 66)));
+    this.noteTimer = window.setTimeout(() => this.dismissNote(), Math.min(9000, Math.max(2500, 800 + text.length * 66)) * this.noteSpeed);
   }
 
   /** The thing the note is written at, while there is one. */
@@ -598,14 +607,27 @@ export class Hud {
     });
   }
 
-  /** The menu: her saves, where she is now (saved as she goes) and three slots she saves into and goes back to. */
+  /**
+   * The menu: her saves (where she is now, saved as she goes, and three slots she saves into and goes back to), the
+   * settings, how to play, and the title screen.
+   */
   private drawMenu(p: HTMLElement): void {
-    p.setAttribute('aria-label', 'Saves');
-    const head = el('div', 'head', p);
-    el('h2', '', head, 'Saves');
-    el('div', 'hint', head, 'Pick up where you left off');
+    p.setAttribute('aria-label', 'Menu');
+    const head = el('div', 'head', p), tabs = el('nav', 'tabs', head);
+    tabs.setAttribute('aria-label', 'Menu');
+    const settings = this.settings();
+    for (const [id, title] of [['saves', 'Saves'], ['settings', 'Settings'], ['help', 'How to play']] as const) {
+      if (id === 'settings' && !settings) continue;
+      const t = button(`tab${this.menuTab === id ? ' on' : ''}`, title, tabs, () => { this.menuTab = id; this.openPanel('menu'); });
+      t.textContent = title;
+      t.setAttribute('aria-current', String(this.menuTab === id));
+    }
+    button('to-title', 'To the title screen', head, () => { this.closePanel(); this.onTitle(); }).textContent = 'Title screen';
     button('hud-close', 'Close', head, () => this.closePanel()).innerHTML = icon('close', 18);
-    const list = el('div', 'saves', p), all = this.saves();
+    const body = el('div', 'body', p);
+    if (this.menuTab === 'settings' && settings) return drawSettings(body, settings, (s) => this.onSettings(s));
+    if (this.menuTab === 'help') return drawHelp(body);
+    const list = el('div', 'saves', body), all = this.saves();
     const when = (t?: number) => (t ? new Date(t).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '');
     for (const slot of ['auto', 1, 2, 3] as const) {
       const s = all.find((x) => x.slot === slot), card = el('div', 'save', list);
@@ -628,4 +650,17 @@ export class Hud {
     if (k === 'j' || k === 'J') { this.openJournal(); return true; }
     return false;
   }
+}
+
+/** How to play: the controls, by touch and by keyboard. */
+export function drawHelp(p: HTMLElement): void {
+  const box = el('div', 'help', p);
+  const rows: [string, string][] = [
+    ['Walk', 'Tap where she should go. A door, or the end of the street, takes her through. Outdoors, hold a finger far ahead of her to run.'],
+    ['Do', 'The ball at the bottom right: choose Look, Talk, Use, Take (or Ask, in its view), then slide over the scene and let go on what lights up.'],
+    ['Her things', 'The ball at the bottom left. Tap a thing to use it on something; press and hold to look at it close up.'],
+    ['Top right', 'The view switch once she has it, the map, her journal (anywhere) and her notebook (only where it cannot see her), and this menu.'],
+    ['Keys', 'Arrows or A and D walk, with Shift she runs. E switches view, I her things, M the map, J her journal, N her notebook, Esc closes. Numbers pick an answer.'],
+  ];
+  for (const [name, text] of rows) { const r = el('div', 'row-help', box); el('div', 'name', r, name); el('div', 'text', r, text); }
 }

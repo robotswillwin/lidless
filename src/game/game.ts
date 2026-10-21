@@ -16,6 +16,7 @@ import { inView, pick, placeIn, type Hotspot } from './level';
 import { mapNow, onMap, type MapNow, type MapScene, type Travel } from './map';
 import { noticedOnLeaving } from './privacy';
 import { rotateOnArrival } from './rotate';
+import { reloadIntoGame } from './title';
 import { dressedFor, keepsProjection, outfitAfter } from './outfits';
 import { Wardrobe } from './wardrobe';
 import { listSaves, loadSave, writeSave, type SaveData, type Slot } from './save';
@@ -48,6 +49,8 @@ export interface GameSetup {
   save: SaveData | null;
   /** Players who asked for less motion: no camera drift, no switch glitch, no fade. */
   reduceMotion: boolean;
+  /** For the checks: a story's pauses (`wait`) cut short, so a playthrough runs quickly. */
+  fast?: boolean;
   /** For tests: a clock held at this time, in seconds; a camera held at this x. */
   fixedT?: number | null;
   fixedCam?: number | null;
@@ -76,6 +79,8 @@ export class Game {
   readonly hud: Hud;
   readonly look: LookPanel;
   travelling = false;
+  /** The title screen is up: the keyboard leaves the game alone. */
+  inputLocked = false;
 
   private runner!: SceneRunner;
   private readonly camera = new Camera();
@@ -566,7 +571,7 @@ export class Game {
       await this.stage.sleep(260);
     },
     view: (raw) => { if (raw !== this.raw) this.toggleView(true); },
-    sleep: (ms) => new Promise((r) => setTimeout(r, this.s.reduceMotion ? Math.min(ms, 50) : ms)),
+    sleep: (ms) => new Promise((r) => setTimeout(r, this.s.fast ? Math.min(ms, 50) : ms)),
     closeup: (name) => this.hud.showCloseup(name),
   };
 
@@ -861,10 +866,12 @@ export class Game {
     const d = loadSave(slot);
     if (!d) return;
     writeSave(d);
-    const p = new URLSearchParams(location.search);
-    for (const k of ['new', 'scene', 'spawn']) p.delete(k);
-    const q = p.toString();
-    location.replace(`${location.pathname}${q ? `?${q}` : ''}`);
+    reloadIntoGame();
+  }
+
+  /** Less motion, or full: the settings' Motion, as it changes. */
+  setMotion(reduced: boolean): void {
+    this.s.reduceMotion = reduced;
   }
 
   /* ---------- each frame ---------- */
