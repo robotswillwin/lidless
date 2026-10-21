@@ -1,8 +1,8 @@
 // Raw view's skin, as it really is: the Concierge's view shows her flawless, raw view natural. On an outfit's raw parts
 // (both sides of her, each its own), where skin shows: a little unevenness of tone, faint ribs on her side, fine hair on
-// her forearms and legs, a few bruises, freckles and moles, knees and elbows a little redder; and the nutrition port in
-// her lower back, which everyone has, a small ring of dull metal. All of it is drawn small
-// and soft, in the flat style of the art. Done once, in place; parts/natural.json says which views have it.
+// her forearms and legs, a few bruises, freckles and moles, knees and elbows a little redder. All of it is drawn small
+// and soft, in the flat style of the art. Done once, in place; parts/natural.json says which views have it. (Feeding is
+// at the wrist, bible v0.4: there is no port in her back.)
 //   node tools/pipeline/natural.mjs <recipe> [--views raw,raw-left]
 
 import { existsSync } from 'node:fs';
@@ -113,31 +113,6 @@ function ribs(d, w, h, skin, bust, hip, frontRight) {
   }
 }
 
-/** Her nutrition port: a small ring of dull metal round a dark opening, in her lower back, lit from above. */
-function port(d, w, h, j, frontRight) {
-  const y0 = Math.round(j.hip[1] - 0.1 * h);
-  let edge = -1;
-  if (frontRight) { for (let x = 0; x < w; x++) if (d[(y0 * w + x) * 4 + 3] > 128) { edge = x; break; } }
-  else for (let x = w - 1; x >= 0; x--) if (d[(y0 * w + x) * 4 + 3] > 128) { edge = x; break; }
-  if (edge < 0) return;
-  const cx = edge + (frontRight ? 6 : -6), cy = y0, R = 5.5;
-  for (let y = Math.floor(cy - R - 2); y <= cy + R + 2; y++) for (let x = Math.floor(cx - R - 2); x <= cx + R + 2; x++) {
-    const o = (y * w + x) * 4;
-    if (x < 0 || y < 0 || x >= w || y >= h || d[o + 3] < 128) continue;
-    let cover = 0, col = [0, 0, 0];
-    for (let sy = 0; sy < 4; sy++) for (let sx = 0; sx < 4; sx++) {
-      const px = x + (sx + 0.5) / 4 - cx, py = y + (sy + 0.5) / 4 - cy, rr = Math.hypot(px, py * 1.15);
-      if (rr > R) continue;
-      cover++;
-      const c = rr < R * 0.45 ? [28, 28, 32] : rr < R * 0.6 ? [55, 56, 60] : py < 0 ? [150, 152, 156] : [88, 90, 96];
-      col = col.map((a, i) => a + c[i]);
-    }
-    if (!cover) continue;
-    const f = cover / 16;
-    for (let c = 0; c < 3; c++) d[o + c] = Math.round(d[o + c] * (1 - f) + (col[c] / cover) * f);
-  }
-}
-
 /** A joint a little redder and darker: a knee, an elbow. */
 function flush(d, w, h, skin, cx, cy, r) {
   for (let y = Math.floor(cy - r); y <= cy + r; y++) for (let x = Math.floor(cx - r); x <= cx + r; x++) {
@@ -161,8 +136,6 @@ for (const view of String(opt.views ?? 'raw,raw-left').split(',')) {
     if (!existsSync(file) || !J[name]) continue;
     const { data, info: im } = await sharp(file).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
     const w = im.width, h = im.height, d = Buffer.from(data), j = J[name].joints;
-    // the port first: it is metal, not skin, so nothing below draws on it
-    if (name === 'torso' && j.hip) port(d, w, h, j, frontRight);
     const skin = skinOf(d, w, h), rand = rng(`${r.name}/${view}/${name}`);
     mottle(d, w, h, skin, rand);
     if (name === 'torso') {

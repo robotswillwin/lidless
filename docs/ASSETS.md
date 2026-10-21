@@ -142,7 +142,8 @@ flickers:
   covers where her nipples and her vulva would be; nothing anatomical is drawn, under it or anywhere. Raw view's skin is
   natural (`tools/pipeline/natural.mjs`, on the underwear's raw parts before the undressed ones are made from them): a
   little unevenness of tone, faint ribs, fine hair on her forearms and shins, a few bruises, freckles and moles, knees
-  and elbows a little redder, and the nutrition port in her lower back. The Concierge's view keeps her flawless: the
+  and elbows a little redder. (Feeding is at the wrist, bible v0.4: the port once drawn in her lower back is gone.) The
+  Concierge's view keeps her flawless: the
   contrast between its perfection and her natural self is what raw view is for. Each outfit is the same character in
   other clothes, each made as she is in her coat, from a profile drawn with her
   model sheet as the reference. `parts.same` takes her head and ponytail from her own parts (`art/cast/hero`), so her
