@@ -54,17 +54,16 @@ const verb = async (page, v) => {
   await page.evaluate((v) => document.querySelector(`[data-verb="${v}"]`)?.click(), v);
   await wait(150);
 };
-// the left ball's panels: her things, her notebook, her saves
+// what the HUD opens: her things (the tray from the left ball), her notebook, the map, her saves (the menu)
 const panel = async (page, which) => {
-  await page.evaluate(() => document.querySelector('.hud-ball.things')?.click());
-  await wait(300);
-  await page.evaluate((w) => document.querySelector(`[data-menu="${w}"]`)?.click(), which);
-  await wait(400);
+  const sel = { things: '.hud-ball.things', notebook: '.hud-btn.notebook', map: '.hud-btn.map', saves: '.hud-btn.menu' }[which];
+  await page.evaluate((s) => document.querySelector(s)?.click(), sel);
+  await wait(which === 'map' ? 800 : 400);
 };
-// a thing out of her pockets, in her hand
+// a thing out of her pockets, in her hand: tapped in the tray
 const holdThing = async (page, name) => {
   await panel(page, 'things');
-  await page.evaluate((n) => [...document.querySelectorAll('.hud-panel .use')].find((b) => new RegExp(n, 'i').test(b.getAttribute('aria-label') ?? ''))?.click(), name);
+  await page.evaluate((n) => document.querySelector(`.hud-tray .slot[data-item="${n}"]`)?.click(), name);
   await wait(300);
 };
 // a conversation through to its end, or its answers
@@ -156,7 +155,7 @@ const checks = {
     await tap(page, 500, 340);
     await wait(3500);
     await panel(page, 'saves');
-    check('her saves: now and three slots', (await page.$$('.hud-panel .card.save')).length === 4);
+    check('her saves: now and three slots', (await page.$$('.hud-panel.menu .save')).length === 4);
     await page.evaluate(() => document.querySelector('[aria-label="Save in slot 1"]')?.click());
     await wait(300);
     const slot = await page.evaluate(() => JSON.parse(localStorage.getItem('lidless.slot.1') ?? 'null'));
@@ -175,6 +174,35 @@ const checks = {
     const talking = await page.waitForFunction(() => !!document.querySelector('.talk-line:not([hidden]), .talk-choices:not([hidden])'), { timeout: 12000 }).then(() => true).catch(() => false);
     await wait(500);
     check('in a conversation, not saved', talking && (await save(page))?.savedAt === before, `talking ${talking}`);
+    await page.close();
+  },
+
+  /** The map: where she has been and what she has seen, and going there; her notebook, read only out of its sight. */
+  async map() {
+    const page = await fresh('scene=home&spawn=door');
+    // out through her door: the backstreet, and the way to the main street at its end
+    await tap(page, 816, 290);
+    await wait(4500);
+    await panel(page, 'map');
+    const places = await page.$$eval('.chart button.place', (bs) => bs.map((b) => b.getAttribute('aria-label')));
+    check('the map: her home and the backstreet, the main street sketched in', places.some((l) => /Luna's home/.test(l)) && places.some((l) => /Backstreet: you are here/.test(l)) && places.some((l) => /Main street: not been there yet/.test(l)), places.join(' / '));
+    // home again, from the map
+    await page.evaluate(() => [...document.querySelectorAll('.chart button.place')].find((b) => /Luna's home/.test(b.getAttribute('aria-label') ?? ''))?.click());
+    await wait(3500);
+    check('from the map, home', (await save(page))?.scene === 'home', (await save(page))?.scene);
+    // her notebook: open at home; shut out on the street, where it can see
+    await panel(page, 'notebook');
+    check('her notebook opens at home', !!(await page.$('.hud-panel.notebook .entry')));
+    await page.keyboard.press('Escape');
+    await again(page, 'scene=backstreet&spawn=from-street');
+    await panel(page, 'notebook');
+    const said = await talkThrough(page, 4000);
+    check('in its sight her notebook stays shut', !(await page.$('.hud-panel.notebook')) && said.some((l) => /can see/.test(l)), said.join(' / '));
+    // the alley mouth, out of its sight: it opens
+    await tap(page, 690, 470);
+    await wait(3000);
+    await panel(page, 'notebook');
+    check('out of its sight, in the alley mouth, it opens', !!(await page.$('.hud-panel.notebook')));
     await page.close();
   },
 

@@ -50,6 +50,8 @@ export interface Hotspot {
   story?: string;
   /** A thing she can pick up (one of the story's Things): Take puts it in her pockets, and it is gone from here for good. */
   item?: string;
+  /** On the map once she has seen it, to go to: ways out and people are on it anyway. */
+  map?: boolean;
 }
 
 /** Where a hotspot is: its area, where she stands to use it and which way she faces then. */

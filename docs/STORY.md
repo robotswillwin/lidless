@@ -93,8 +93,34 @@ A short cutscene is a knot of such lines. Speaker tags (`#luna`, `#fixer`, `#con
 
 ## The notebook
 
-`public/assets/notebook.json`: each errand and person has `when` (she has written it once this holds) and `done`
-(crossed out once this holds); the questions page has a `when`.
+`public/assets/notebook.json`: her notebook, on paper, read only where the Concierge cannot see her (a scene that is
+`private`, her home, or a scene's `blind` spots: x ranges along the walk line). It is pages, each a tab:
+
+```json
+{ "id": "errands", "title": "errands", "empty": "nothing to do. good.", "entries": [
+  { "id": "parcel", "name": "parcel 4471", "done": "parcel_delivered", "lines": [
+    "to the radio repair, main street. by ten.",
+    { "text": "on his bench now. he didn't open it.", "when": "parcel_delivered" } ] } ] }
+```
+
+| Field | On | What it does |
+| --- | --- | --- |
+| `when` | a page, an entry, a line | Written once the condition holds: an entry for a person she has met, a line for what she learned since. |
+| `done` | an entry | Crossed out once it holds (an errand run), and put last. |
+| `empty` | a page | What it says while nothing is written on it; without it, the page waits until something is. |
+| `list` | a page | Its entries as a numbered list of their names (questions to ask). |
+
+What she has not read yet (an entry, a line, a crossing out) has a red dot, on the page's tab too; the save keeps what
+she has read. The tests check every condition in it, and that pages and entries have ids of their own.
+
+## The map
+
+`world.json` has where each place (a scene) is drawn on the map: `"map": { "places": { "street": { "at": [96, 0] } } }`,
+in map units, a street a tenth of its width long, a room a box (`size`, 56 by 36 by default), with `spawn`, where
+she arrives when she goes there from the map. Every scene of the world's is on it (the tests check). What she has
+seen of what goes on the map is kept as she plays: ways out (`go`) and people (`talk`) are on it once they have been
+on screen, and any other hotspot marked `"map": true` (the bar, the corner shop). A way out she has seen leads to a
+place sketched in until she has been there.
 
 ## Things she can take or move are props
 

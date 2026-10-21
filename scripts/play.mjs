@@ -86,10 +86,10 @@ await page.mouse.click(870, 160);
 await wait(300);
 console.log('asked:', await text('.hud-toast'));
 
-// her things, in the left ball: her things, her notebook and the Concierge's bell; the verbs go in as they come out
+// her things, in a tray from the left ball; the verbs go in as they come out
 await page.click('.hud-ball.things');
 await wait(250);
-console.log('things:', await page.$$eval('.hud-menu [data-menu]', (b) => b.map((e) => e.getAttribute('aria-label')).join(', ')));
+console.log('things:', await page.$$eval('.hud-tray .slot', (b) => b.map((e) => e.getAttribute('aria-label')).join(', ')));
 await shot('things');
 console.log('verbs put away:', !(await page.$('.hud-menu.verbs')));
 await page.keyboard.press('Escape');
@@ -140,13 +140,13 @@ await wait(600);
 await verb('eyes');
 await page.mouse.click(865, 420);
 await wait(600);
-console.log('found:', await found(), '| attention:', await page.$eval('.hud-eye', (e) => e.dataset.level));
+console.log('found:', await found(), '| attention:', await page.$eval('.hud-btn.view', (e) => e.dataset.level));
 await shot('raw-dock');
 
-// her notebook, and what is really in her pockets
+// her notebook (shut where it can see her), and what is really in her pockets
 await page.keyboard.press('n');
 await wait(300);
-console.log('notebook:', (await text('.hud-panel.notebook')).slice(0, 80));
+console.log('notebook:', (await page.$('.hud-panel.notebook')) ? (await text('.hud-panel.notebook')).slice(0, 80) : `shut: ${await text('.talk-line')}`);
 await shot('raw-notebook');
 await page.keyboard.press('i');
 await wait(300);
@@ -157,7 +157,7 @@ await page.keyboard.press('Escape');
 await page.goto(url);
 await ready();
 await wait(300);
-console.log('after reload, view switch:', await page.$eval('.hud', (e) => 'switch' in e.dataset), '| skin:', await page.$eval('.hud', (e) => e.dataset.skin));
+console.log('after reload, view switch:', await page.$eval('.hud-btn.view', (e) => !e.hidden), '| view:', await page.$eval('.hud', (e) => e.dataset.view));
 await shot('reloaded');
 
 console.log(errors.length ? `errors:\n${errors.join('\n')}` : 'no errors');

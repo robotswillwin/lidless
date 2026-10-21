@@ -59,7 +59,8 @@
     "raw": "Rusted shutters, a smiley sprayed across them. Whatever it sold, it stopped."
    },
    "tag": "Concierge Store 24 · open",
-   "ask": "Coffee, drinks, snacks and essentials, guest. Shall I place an order?"
+   "ask": "Coffee, drinks, snacks and essentials, guest. Shall I place an order?",
+   "map": true
   },
   {
    "id": "entrance",
@@ -483,5 +484,11 @@
     "power": 0
    }
   }
- }
+ },
+ "blind": [
+  [
+   640,
+   740
+  ]
+ ]
 }

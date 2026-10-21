@@ -5,12 +5,14 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { conditionProblem, variablesIn } from './conditions';
 import { Dialogue } from './dialogue';
-import type { SceneFile } from './scenefile';
+import type { Notebook } from './notebook';
+import type { SceneFile, WorldFile } from './scenefile';
 
 const assets = join(__dirname, '../../public/assets');
 const scenes: SceneFile[] = readdirSync(join(assets, 'scenes')).map((id) => JSON.parse(readFileSync(join(assets, 'scenes', id, 'scene.json'), 'utf8')));
 const items = JSON.parse(readFileSync(join(assets, 'items.json'), 'utf8')) as Record<string, unknown>;
-const notebook = JSON.parse(readFileSync(join(assets, 'notebook.json'), 'utf8')) as Record<string, unknown>;
+const notebook = JSON.parse(readFileSync(join(assets, 'notebook.json'), 'utf8')) as Notebook;
+const world = JSON.parse(readFileSync(join(assets, 'world.json'), 'utf8')) as WorldFile;
 const story = new Dialogue(null);
 /** Every item of the story's lists: the Things she can carry. */
 const things = new Set((story.story.listDefinitions?.lists ?? []).flatMap((l) => [...l.items.keys()].map((k) => JSON.parse(k).itemName as string)));
@@ -24,10 +26,13 @@ function conditions(): [string, string][] {
     s.layers.forEach((l, i) => { if (l.when) out.push([`${s.id}: layers[${i}]`, l.when]); });
     s.lights.forEach((l, i) => { if (l.when) out.push([`${s.id}: lights[${i}]`, l.when]); });
   }
-  const entries = (['errands', 'people'] as const).flatMap((k) => (notebook[k] as { name: string; when?: string; done?: string }[] | undefined) ?? []);
-  for (const e of entries) for (const c of [e.when, e.done]) if (c) out.push([`notebook: ${e.name}`, c]);
-  const q = notebook.questions as { when?: string } | undefined;
-  if (q?.when) out.push(['notebook: questions', q.when]);
+  for (const p of notebook.pages) {
+    if (p.when) out.push([`notebook: page ${p.id}`, p.when]);
+    for (const e of p.entries) {
+      for (const c of [e.when, e.done]) if (c) out.push([`notebook: ${p.id}/${e.id}`, c]);
+      (e.lines ?? []).forEach((l, i) => { if (typeof l !== 'string' && l.when) out.push([`notebook: ${p.id}/${e.id} line ${i}`, l.when]); });
+    }
+  }
   return out;
 }
 
@@ -52,6 +57,24 @@ describe('what the scenes and the notebook name in the story', () => {
       if (h.story && !story.has(h.story)) bad.push(`${s.id}: hotspot ${h.id} tells its story in ${h.story}, which the story does not have`);
       if (h.item && !things.has(h.item)) bad.push(`${s.id}: hotspot ${h.id} is ${h.item}, which is none of the story's Things`);
       if (h.item && !items[h.item]) bad.push(`${s.id}: hotspot ${h.id} is ${h.item}, which items.json does not show`);
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it('has a scene for every place on the map, and the places to arrive it names', () => {
+    const bad: string[] = [];
+    for (const [id, place] of Object.entries(world.map?.places ?? {})) {
+      const s = scenes.find((x) => x.id === id);
+      if (!s || !world.scenes.includes(id)) bad.push(`map: ${id} is no scene of the world's`);
+      else if (place.spawn && !s.spawns[place.spawn]) bad.push(`map: ${id} arrives at ${place.spawn}, which the scene does not have`);
+    }
+    for (const id of world.scenes) if (!world.map?.places[id]) bad.push(`map: ${id} is not on it`);
+    const ids = new Set<string>();
+    for (const p of notebook.pages) {
+      if (ids.has(p.id)) bad.push(`notebook: two pages are ${p.id}`);
+      ids.add(p.id);
+      const entries = new Set<string>();
+      for (const e of p.entries) { if (entries.has(e.id)) bad.push(`notebook: ${p.id} has two entries ${e.id}`); entries.add(e.id); }
     }
     expect(bad).toEqual([]);
   });

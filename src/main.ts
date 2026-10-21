@@ -9,7 +9,7 @@ import { loadProjectLook } from './engine/look';
 import { loadPresets } from './engine/presets';
 import { QUALITY, Renderer, type Tier } from './engine/renderer';
 import { Game } from './game/game';
-import type { Item, NotebookPages } from './game/hud';
+import type { Item, Notebook } from './game/hud';
 import { bindInput } from './game/input';
 import { clearSave, loadSave } from './game/save';
 import { loadWorld } from './game/scenefile';
@@ -37,7 +37,7 @@ async function boot(): Promise<void> {
   setTexelBudget(renderer.quality.scale);
   const optional = <T>(file: string, fallback: T) => fetch(`${assets}/${file}`, { cache: 'no-store' }).then((r) => (r.ok ? (r.json() as Promise<T>) : fallback)).catch(() => fallback);
   const [world, projectLook, items, notebook] = await Promise.all([
-    loadWorld(assets), loadProjectLook(assets), optional<Record<string, Item>>('items.json', {}), optional<NotebookPages>('notebook.json', {}), loadPresets(assets),
+    loadWorld(assets), loadProjectLook(assets), optional<Record<string, Item>>('items.json', {}), optional<Notebook>('notebook.json', { pages: [] }), loadPresets(assets),
   ]);
   const heroPath = world.hero.sprite, cut = heroPath.lastIndexOf('/');
   const hero = await loadSprite(gl, `${assets}/${heroPath.slice(0, cut)}`, heroPath.slice(cut + 1), spriteDefaults(gl));

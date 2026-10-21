@@ -21,6 +21,11 @@ export interface SaveData {
   /** When it was saved (ms since 1970), and where: the scene's name. For the list of saves. */
   savedAt?: number;
   where?: string;
+  /** The places she has been, and in each what she has seen of what goes on the map (ways out, people): see map.ts. */
+  visited?: string[];
+  seen?: Record<string, string[]>;
+  /** What she has read in her notebook (see notebook.ts). */
+  read?: string[];
 }
 
 /** The autosave, or one of the slots she saves into. */

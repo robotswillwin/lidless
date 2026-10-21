@@ -382,7 +382,8 @@
    "tag": {
     "concierge": "Bakery · open late",
     "raw": "closed for good"
-   }
+   },
+   "map": true
   },
   {
    "id": "tree",
@@ -400,7 +401,8 @@
    "look": {
     "concierge": "A real tree, strung with lights. It is always spring here.",
     "raw": "Dead for years. Somebody still hung a wire of bulbs in it once."
-   }
+   },
+   "map": true
   },
   {
    "id": "bench",
@@ -460,7 +462,8 @@
    "tag": {
     "concierge": "Bar · open",
     "raw": "nobody drinks here"
-   }
+   },
+   "map": true
   },
   {
    "id": "corner-shop",
@@ -478,7 +481,8 @@
    "look": {
     "concierge": "Everything a guest could need, gift-wrapped.",
     "raw": "Shutters, and behind them shelves of nothing."
-   }
+   },
+   "map": true
   }
  ],
  "beacons": [

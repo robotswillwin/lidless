@@ -11,14 +11,15 @@ import { Camera, cameraTarget } from './camera';
 import { Dialogue, STITCH } from './dialogue';
 import { direct, type Stage } from './direct';
 import { heroDrawing, heroGaits, holdPace, paceFor } from './hero';
-import { Hud, type Action, type Item, type Mark, type NotebookPages } from './hud';
+import { Hud, type Action, type Item, type Mark, type Notebook } from './hud';
 import { inView, pick, placeIn, type Hotspot } from './level';
+import { mapNow, onMap, type MapNow, type MapScene, type Travel } from './map';
 import { dressedFor, keepsProjection, outfitAfter } from './outfits';
 import { Wardrobe } from './wardrobe';
 import { listSaves, loadSave, writeSave, type SaveData, type Slot } from './save';
 import { SceneRunner, type ViewState } from './scene';
 import { Talk } from './talk';
-import { type Exit, type Scene, type WorldFile } from './scenefile';
+import { type Scene, type WorldFile } from './scenefile';
 import { Scenes } from './scenes';
 import { UI } from './ui';
 import { World } from './world';
@@ -39,7 +40,7 @@ export interface GameSetup {
   hero: Sprite;
   projectLook: LookSet;
   items: Record<string, Item>;
-  notebook: NotebookPages;
+  notebook: Notebook;
   save: SaveData | null;
   /** Players who asked for less motion: no camera drift, no switch glitch, no fade. */
   reduceMotion: boolean;
@@ -115,6 +116,11 @@ export class Game {
   private picker: ((i: number) => void) | null = null;
   /** The variant the scene on screen is shown in. */
   private variant: string | undefined;
+  /** The places she has been, and what she has seen in each (its ways out, people): what the map shows (see map.ts). */
+  private readonly been: Set<string>;
+  private readonly seen: Map<string, Set<string>>;
+  /** What she has read in her notebook: the rest is marked new. */
+  private readonly notesRead: Set<string>;
 
   private constructor(private readonly s: GameSetup) {
     this.scenes = new Scenes(s.renderer.gl, s.assets, s.world);
@@ -124,6 +130,10 @@ export class Game {
     this.syncThings();
     this.hud.setNotebook(s.notebook);
     this.hud.known = (cond) => this.dialogue.test(cond);
+    this.hud.assets = s.assets;
+    this.been = new Set(s.save?.visited ?? []);
+    this.seen = new Map(Object.entries(s.save?.seen ?? {}).map(([k, v]) => [k, new Set(v)]));
+    this.notesRead = new Set(s.save?.read ?? []);
     this.state = { view: s.rawView ? 0 : s.save && this.canSwitch() ? s.save.view : 1, sinceSwitch: 10 };
     this.attention = s.save?.attention ?? 0;
     const gl = s.renderer.gl;
@@ -162,7 +172,17 @@ export class Game {
     this.hud.onLoad = (slot) => this.loadFrom(slot);
     // what a story's line has the game do before it is said: the conversation waits for it
     this.talk.run = (commands) => direct(commands, this.stage);
-    this.hud.onTemple = () => this.toggleView();
+    this.hud.onView = () => this.toggleView();
+    this.hud.mapNow = () => this.mapNow();
+    this.hud.onTravel = (t) => void this.jump(t);
+    // her notebook, where it can see her: she keeps it shut
+    this.hud.onShut = () => this.say('Not here. It can see.');
+    this.hud.read = () => this.notesRead;
+    this.hud.onRead = (keys) => {
+      const fresh = keys.filter((k) => !this.notesRead.has(k));
+      for (const k of fresh) this.notesRead.add(k);
+      if (fresh.length) this.persist();
+    };
     this.hud.onBell = () => this.hud.toast(this.scene.file.assist ?? 'Is there anything I can do for you, guest?');
     this.hud.onPanel = () => this.ui.hideCaption();
     this.hud.onDispose = (_id, dispose) => this.hud.toast(dispose ? 'Of course, guest. I will collect it at your convenience.' : 'As you wish, guest.');
@@ -186,9 +206,10 @@ export class Game {
     return this.state.view < 0.5;
   }
 
-  /** The Concierge sees and hears her here: everywhere but a private scene, her home. */
+  /** The Concierge sees and hears her here: everywhere but a private scene (her home) and a scene's blind spots. */
   get watched(): boolean {
-    return !this.scene?.file.private;
+    const f = this.scene?.file;
+    return !!f && !f.private && !(f.blind ?? []).some(([a, b]) => this.world.heroX >= a && this.world.heroX <= b);
   }
 
   /** Seconds since the session started, or the held time. */
@@ -214,7 +235,8 @@ export class Game {
     this.world = new World(next.level, at.x ?? sp?.x, at.facing ?? sp?.facing);
     this.world.raw = this.raw;
     // what is there depends on the story: a thing only while a condition holds, a thing she took gone for good
-    this.world.shown = (h) => this.dialogue.test(h.when) && !(h.item && this.dialogue.took(h.item));
+    this.world.shown = this.there;
+    this.been.add(id);
     this.runner.shown = (when) => this.dialogue.test(when);
     this.camera.jump(this.cameraTarget());
     this.cam[0] = this.s.fixedCam ?? this.camera.x;
@@ -224,6 +246,9 @@ export class Game {
     this.variant = this.variantOf(next);
     this.look.setScene(next.file, this.variant);
   }
+
+  /** Whether a hotspot is there now: only while its condition holds, and a thing she took is gone for good. */
+  private readonly there = (h: Hotspot): boolean => this.dialogue.test(h.when) && !(h.item && this.dialogue.took(h.item));
 
   /** The variant of a scene for the city's conditions now: the story's, or the address's; none if it has none for them. */
   private variantOf(scene: Scene): string | undefined {
@@ -314,9 +339,12 @@ export class Game {
     this.talk.show([{ text, speaker: 'luna' }], []);
   }
 
-  /** A door or the end of the street: fade out, go to the other scene, fade in. */
-  /** She goes through a way out. For the story (`story`), whatever she wears, and the conversation goes on there. */
-  private async travel(exit: Exit, story = false): Promise<void> {
+  /**
+   * She goes through a way out (a door, the end of the street), or somewhere on the map: fade out, go to the other
+   * scene, arriving at one of its places or at x, fade in. For the story (`story`), whatever she wears, and the
+   * conversation goes on there.
+   */
+  private async travel(exit: { scene: string } & Arrival, story = false): Promise<void> {
     if (this.travelling) return;
     this.travelling = true;
     this.letGo();
@@ -340,12 +368,10 @@ export class Game {
     if (story) this.partner = null;
     this.s.fade.classList.add('on');
     await new Promise((r) => setTimeout(r, this.s.reduceMotion ? 0 : 260));
-    // a scene not ready once the fade is dark: after a moment a small sign from the world that it is coming, the
-    // Concierge's ring turning in its view, her eyepiece's iris in raw view. One fetched ahead never shows it
-    this.s.fade.dataset.view = this.raw ? 'raw' : 'concierge';
+    // a scene not ready once the fade is dark: after a moment a small ring turning. One fetched ahead never shows it
     const waiting = setTimeout(() => this.s.fade.classList.add('wait'), 300);
     try {
-      await this.enter(exit.scene, { spawn: exit.spawn });
+      await this.enter(exit.scene, exit);
       this.syncKeys();
       this.persist();
     } catch (err) {
@@ -354,6 +380,36 @@ export class Game {
     clearTimeout(waiting);
     this.s.fade.classList.remove('wait', 'on');
     this.travelling = false;
+  }
+
+  /** Going somewhere on the map: a place (where one arrives there), or a door or a person in it (where she stands to use it). */
+  private async jump(t: Travel): Promise<void> {
+    if (this.talk.open || this.travelling) return;
+    const file = await this.scenes.file(t.scene).catch(() => null), h = t.at ? file?.hotspots.find((x) => x.id === t.at) : undefined;
+    if (!file) return;
+    if (!h) return this.travel({ scene: t.scene, spawn: t.spawn && file.spawns[t.spawn] ? t.spawn : Object.keys(file.spawns)[0] });
+    const { rect, stand, face } = placeIn(h, this.raw), x = stand ?? rect[0] + rect[2] / 2;
+    return this.travel({ scene: t.scene, x, facing: face ?? (rect[0] + rect[2] / 2 >= x ? 1 : -1) });
+  }
+
+  /** The map as she knows it: every place on it whose file there is, what she has been to and seen, where she is. */
+  private async mapNow(): Promise<MapNow> {
+    const layout = this.s.world.map ?? { places: {} }, ids = Object.keys(layout.places).filter((id) => this.s.world.scenes.includes(id));
+    const files = await Promise.all(ids.map((id) => this.scenes.file(id).catch(() => null)));
+    const scenes: Record<string, MapScene> = {};
+    ids.forEach((id, i) => { const f = files[i]; if (f) scenes[id] = f; });
+    return mapNow(layout, scenes, this.been, (sc, id) => !!this.seen.get(sc)?.has(id), { scene: this.scene.file.id, x: this.world.heroX }, this.raw, this.there);
+  }
+
+  /** What is on screen now of what goes on the map (ways out, people): seen, for the map. */
+  private noticeSpots(): void {
+    const f = this.scene.file, seen = this.seen.get(f.id) ?? new Set<string>();
+    for (const h of f.hotspots) {
+      if (seen.has(h.id) || !onMap(h) || !inView(h, this.raw) || !this.there(h)) continue;
+      const [x, , w] = placeIn(h, this.raw).rect, sx = x - this.cam[0] * (h.parallax ?? 1);
+      if (sx + w > 0 && sx < NW) seen.add(h.id);
+    }
+    this.seen.set(f.id, seen);
   }
 
   /** An exit at an end of the walk line, which walking into with the keyboard takes. */
@@ -718,6 +774,7 @@ export class Game {
     return {
       v: 2, scene: this.scene.file.id, heroX: Math.round(this.world.heroX), facing: this.world.facing, view: this.state.view, ink: this.dialogue.save(),
       attention: this.attention, outfit: this.outfit || undefined, projection: this.projection ?? undefined, savedAt: Date.now(), where: this.scene.file.name,
+      visited: [...this.been], seen: Object.fromEntries([...this.seen].map(([k, v]) => [k, [...v]])), read: [...this.notesRead],
     };
   }
 
@@ -774,6 +831,9 @@ export class Game {
       if (exit?.go) void this.travel(exit.go);
     }
     this.cam[0] = this.s.fixedCam ?? this.camera.follow(this.cameraTarget(), dt, file.size[0] > NW);
+    // what she sees goes on the map; out of its sight her notebook opens
+    this.noticeSpots();
+    this.hud.setUnseen(!this.watched);
     if (wasMoving && !world.moving) this.persist();
     this.state.sinceSwitch = this.s.reduceMotion ? 10 : t - this.switchedAt;
     // she is drawn at the scene's scale, bobbing a little if her sprite has no walk of its own; the scene's smoke

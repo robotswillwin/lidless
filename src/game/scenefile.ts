@@ -8,6 +8,7 @@ import { presets, type PlacedLight } from '../engine/presets';
 import { conditionProblem } from './conditions';
 import { textureFromImage, type GL } from '../engine/gl';
 import type { Hotspot, LevelDef } from './level';
+import type { MapLayout } from './map';
 import type { Outfits } from './outfits';
 
 export type Rect = [number, number, number, number];
@@ -95,6 +96,11 @@ export interface SceneFile {
    */
   private?: boolean;
   /**
+   * Blind spots: where along the walk line (x from, x to) the Concierge cannot see her, out of its cameras' sight. There,
+   * as at home, she can read her notebook.
+   */
+  blind?: [number, number][];
+  /**
    * The scene's own look: the settings it sets its own way over the game's look (public/assets/look.json), shaped like
    * that file but with only those settings: rain, fog, depth of field, the light on its people, anything the look panel
    * has. Tuned in the look panel with "This scene", which saves here.
@@ -138,6 +144,8 @@ export interface WorldFile {
     outfit?: string;
   };
   scenes: string[];
+  /** Where each place is drawn on the map (see map.ts). */
+  map?: MapLayout;
 }
 
 export interface Scene {
