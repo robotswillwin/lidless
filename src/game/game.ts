@@ -8,6 +8,7 @@ import { createLookPanel, type LookPanel } from '../look-panel';
 import { actionFor, actionsFor, defaultOf, itemActionFor, verbsIn, type Verb } from './actions';
 import { frameFor } from './anim';
 import { Camera, cameraTarget } from './camera';
+import { holds } from './conditions';
 import { Dialogue, STITCH } from './dialogue';
 import { direct, type Stage } from './direct';
 import { heroDrawing, heroGaits, holdPace, paceFor } from './hero';
@@ -265,7 +266,8 @@ export class Game {
     // what is there depends on the story: a thing only while a condition holds, a thing she took gone for good
     this.world.shown = this.there;
     this.been.add(id);
-    this.runner.shown = (when) => this.dialogue.test(when);
+    // the scene's own things by the story, the city's conditions by the address when it asks for a variant (?variant=)
+    this.runner.shown = (when) => holds(when, (n) => (n === 'conditions' && this.s.variant ? this.s.variant : this.dialogue.read(n)));
     this.camera.jump(this.cameraTarget());
     this.cam[0] = this.s.fixedCam ?? this.camera.x;
     // the scene she left and this one stay on the GPU, where she can go next is fetched, the rest let go
