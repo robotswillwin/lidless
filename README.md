@@ -56,6 +56,8 @@ Then open the address Vite prints.
   the towers; a civic guardian stands by the nutrition station on the main street, a hologram sign for directions
   coming and going beside it in the Concierge's view (look at it, or ask it there); and a repair bot welds at the
   backstreet's wall panel. White and lit in the Concierge's view, rusty in raw view.
+- **Her wrist devices**, one on each wrist, go with her eyepiece: sleek white bands with a cyan light in the Concierge's
+  view, brass on leather with an amber lens in raw view.
 - **The nutrition station** on the main street: a column with two seats built into it, a cuff for the right wrist on
   each armrest. Nobody eats; the station feeds and treats. Real food and drink are rare and dear, but the bars are open,
   and so is Store 24, all night: drinks, tobacco, umbrellas, care for her devices, and new looks in its window.

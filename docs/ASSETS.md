@@ -142,7 +142,11 @@ flickers:
   covers where her nipples and her vulva would be; nothing anatomical is drawn, under it or anywhere. Raw view's skin is
   natural (`tools/pipeline/natural.mjs`, on the underwear's raw parts before the undressed ones are made from them): a
   little unevenness of tone, faint ribs, fine hair on her forearms and shins, a few bruises, freckles and moles, knees
-  and elbows a little redder. (Feeding is at the wrist, bible v0.4: the port once drawn in her lower back is gone.) The
+  and elbows a little redder. (Feeding is at the wrist, bible v0.4: the port once drawn in her lower back is gone.) Her
+  wrist device, in the style of her eyepiece, is drawn on each outfit's forearm parts by `tools/pipeline/wristband.mjs`
+  (a sleek white band with a cyan light in the Concierge's view, a brass plate on a leather strap with an amber lens in
+  raw view; at the narrowest of a bare forearm above the hand, or where a sleeve ends, its top under the sleeve); her rig
+  draws both arms from the one forearm picture, so she wears one on each wrist. Then rig and build the outfit again. The
   Concierge's view keeps her flawless: the
   contrast between its perfection and her natural self is what raw view is for. Each outfit is the same character in
   other clothes, each made as she is in her coat, from a profile drawn with her

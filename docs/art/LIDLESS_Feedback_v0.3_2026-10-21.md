@@ -1,5 +1,5 @@
 # LIDLESS — Feedback v0.3
-**21 October 2026 · saved, waiting for the director's go: nothing below is done yet**
+**21 October 2026 · the director said go the same evening: see Done, at the end**
 
 ## What the director asked for
 
@@ -71,3 +71,28 @@ Times are my own working time.
 4. **The guardian:** taken off with the cleaner and the delivery bot, or keep one standing somewhere?
 5. **Luna's wrist:** does she wear a device on her right wrist, or is the cuff on the station's armrest all there is?
 6. **The woman at the station:** in raw view still wire-thin, as now?
+
+## The director's answers
+
+1. The bakery becomes a bar; pharmacies are not needed, people get their medicine through their nutrition.
+2. Store 24: not decided; what do people need? (Proposed: drinks, tobacco, umbrellas, care for their devices, and AR
+   looks to try on.)
+3. The bar is open in the real world, of course: AR only enhances it digitally.
+4. The guardian can stay, and do something.
+5. Luna wears a wrist device in the same style as her eyewear. Later: "maybe we need bracelets on both arms then".
+6. The woman at the station is thin, but she sits in the station.
+
+## Done
+
+1. **Her reflection when she runs** (16e9797): her run has a flight, up to 20 pixels off the ground in two frames of
+   each cycle, and wet ground mirrored her around the ground line, so her reflection jumped away from her feet. The
+   build records each frame's lift, and the reflection follows her feet.
+2. **Robots** (05d19a6): all rebuilt at the second sheet's sizes; only drones on the main street, every 40 to 150
+   seconds; the guardian stands by the station with a hologram sign that comes and goes (the Concierge's view); the
+   maintenance bot welds at the backstreet's panel, in bursts with a flickering light. The cleaner and the delivery bot
+   wait for later scenes.
+3. **The station and the bakery** (05d19a6): the feeding machine is the new station in both views, the woman seated in
+   it, wire-thin in raw view; the bakery is a cocktail bar; the main street's bar and corner shop are open in raw view.
+4. **Food and the store** (05d19a6): Store 24 sells drinks, tobacco, umbrellas and care for devices, with an ad for the
+   city's wardrobe in its window, and is open in raw view. "Please take a seat and rest your wrist on the armrest."
+5. **Her wrist devices**: on both wrists, in every outfit, in both views (`tools/pipeline/wristband.mjs`).
