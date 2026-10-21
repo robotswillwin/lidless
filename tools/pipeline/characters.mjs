@@ -172,6 +172,44 @@ export async function proportion(parts, prop, unit) {
 }
 
 /**
+ * Another outfit's thigh and lower leg (her bare legs), sized as this outfit's are, in the colours this outfit drew its
+ * own legs in: each pixel the median colour of this one's thigh, or of its lower leg, shaded by how light or dark the
+ * bare leg is there against its own median, so the tights keep her knee, her calf and her outline. The foot stays this
+ * outfit's (its shoe), hung from the borrowed shin's ankle.
+ */
+async function legsFrom(from, v, prop, unit, own) {
+  const dir = join(resolve(ROOT, from), 'parts'), info = JSON.parse(await readFile(join(dir, 'parts.json'), 'utf8'))[v];
+  if (!info?.thigh || !info?.shin || !info?.torso) throw new Error(`no ${v} thigh and lower leg in ${rel(dir)} to take her legs from`);
+  // sized with their torso at this outfit's scale; a set seen from the left is mirrored to face right, as the rig has it
+  const theirs = {};
+  for (const n of ['torso', 'thigh', 'shin']) {
+    const img = await readRGBA(join(dir, v, `${n}.png`));
+    theirs[n] = v.endsWith('-left') ? mirrorPart(img, info[n].joints) : { img, joints: { ...info[n].joints } };
+  }
+  await proportion(theirs, { thigh: prop.thigh, shin: prop.shin, torso: prop.torso }, unit);
+  const median = (img, from = 0, to = 1) => {
+    const px = [];
+    for (let y = Math.round(img.h * from); y < Math.round(img.h * to); y++) for (let x = 0; x < img.w; x++) { const i = (y * img.w + x) * 4; if (img.d[i + 3] > 200) px.push([img.d[i], img.d[i + 1], img.d[i + 2]]); }
+    return [0, 1, 2].map((c) => (px.length ? px.map((p) => p[c]).sort((a, b) => a - b)[px.length >> 1] : 0));
+  };
+  const lum = (c) => 0.3 * c[0] + 0.59 * c[1] + 0.11 * c[2];
+  const dress = (img, colour) => {
+    const out = { w: img.w, h: img.h, d: new Uint8ClampedArray(img.d) }, base = lum(median(img));
+    for (let i = 0; i < out.d.length; i += 4) {
+      if (!out.d[i + 3]) continue;
+      const s = Math.min(1.8, lum([img.d[i], img.d[i + 1], img.d[i + 2]]) / Math.max(1, base));
+      for (let c = 0; c < 3; c++) out.d[i + c] = Math.round(colour[c] * Math.pow(s, 1.3));
+    }
+    return out;
+  };
+  // the lower leg's own colour from its shaft, above the shoe
+  return {
+    thigh: { ...theirs.thigh, img: dress(theirs.thigh.img, median(own.thigh.img)) },
+    shin: { ...theirs.shin, img: dress(theirs.shin.img, median(own.shin.img, 0.1, 0.55)) },
+  };
+}
+
+/**
  * A foot's length, heel to toe: its widest row below the ankle. Not where it touches the ground: a sock or a bare foot,
  * rounded at the heel and the toe, touches it only in the middle.
  */
@@ -210,6 +248,8 @@ export function softenJoint(part, name, bottom = 0.1, onto = {}) {
       }
     }
   };
+  // a bare neck: the torso's top, down to its shoulders, melds into the head's neck behind it (see shapeParts)
+  if (name === 'neck') { fade('top', Math.max(h * 0.06, (joints.shoulder?.[1] ?? h * 0.15) * 1.15)); return { ...part, img: out }; }
   // hips in briefs, drawn over her belly and the tops of her thighs: both of their straight edges; the bottom over
   // `bottom` of the piece's height, long enough for the buttocks to round off into the thighs under them
   if (name === 'coat') { fade('top', Math.max(h * 0.08, joints.waist?.[1] ?? 0)); fade('bottom', h * bottom); return { ...part, img: out }; }
@@ -296,8 +336,12 @@ export function composeLimb(chain) {
  * the limbs.
  */
 export async function shapeParts(r, look, v, parts, sameAll) {
-  const prop = proportionsFor(r, look), them = sameAll?.[v]?.torso;
-  await proportion(parts, prop, them && prop?.torso ? BONE.torso(them) / prop.torso : undefined);
+  const prop = proportionsFor(r, look), them = sameAll?.[v]?.torso, unit = them && prop?.torso ? BONE.torso(them) / prop.torso : undefined;
+  // parts.legs: her legs' shape from another outfit (her bare legs), in this one's colours, its own shoes kept: a sheet
+  // can draw legs in tights as thin as tubes. Taken before this outfit's own are sized, at the same scale
+  const own = r.parts?.legs ? { thigh: parts.thigh, shin: parts.shin } : null;
+  await proportion(parts, prop, unit);
+  if (own?.thigh && parts.thigh && parts.foot) Object.assign(parts, await legsFrom(r.parts.legs.from, v, prop, unit ?? BONE.torso(parts.torso) / prop.torso, own));
   // a garment with no collar shows the neck her coat's high collar hides: the head sits lower on the torso by
   // parts.neckSink, a share of the head's height, so less of the neck shows and the head does not look small
   if (r.parts?.neckSink && parts.head?.joints?.neck) parts.head = { ...parts.head, joints: { ...parts.head.joints, neck: [parts.head.joints.neck[0], parts.head.joints.neck[1] - r.parts.neckSink * parts.head.img.h] } };
@@ -309,8 +353,15 @@ export async function shapeParts(r, look, v, parts, sameAll) {
     const [wx, wy] = parts.coat.joints.waist, [hx, hy] = parts.torso.joints.hip, [lx, ly] = parts.torso.joints.legs;
     parts.coat = { ...parts.coat, joints: { ...parts.coat.joints, legs: [wx + lx - hx, wy + ly - hy] } };
   }
-  // a bare neck (parts.bareNeck): the torso's own stump of a neck goes, so the head's neck shows whole
-  if (r.parts?.bareNeck && parts.torso) parts.torso = fadeNeck(parts.torso);
+  // a bare neck (parts.bareNeck): the torso's own stump of a neck goes, so the head's neck shows whole above a collar.
+  // "shoulders", her shoulders bare too: the torso's top melds into the head's neck behind it, its outline sloping from
+  // the neck's down to its own at the shoulders, so her neck flows into them. The sheets cut the torso flat across the
+  // shoulders, which showed above them as a stiff collar of skin; a garment's own collar keeps its crisp edge
+  if (r.parts?.bareNeck && r.parts.bareNeck !== 'shoulders' && parts.torso) parts.torso = fadeNeck(parts.torso);
+  if (r.parts?.bareNeck === 'shoulders' && parts.torso && parts.head?.joints?.neck && parts.torso.joints?.neck) {
+    const [tx, ty] = parts.torso.joints.neck, [hx, hy] = parts.head.joints.neck;
+    parts.torso = softenJoint(parts.torso, 'neck', 0, { top: { img: parts.head.img, at: [Math.round(tx - hx), Math.round(ty - hy)] } });
+  }
   // parts.coatCut: what hangs from the waist kept only down to this share of its height (hips in briefs, cut off
   // below the buttocks, so they do not lie over her thighs)
   if (r.parts?.coatCut && parts.coat) parts.coat = { ...parts.coat, img: crop(parts.coat.img, 0, 0, parts.coat.img.w, Math.round(parts.coat.img.h * r.parts.coatCut)) };
@@ -374,20 +425,22 @@ export function measures(parts, prop) {
 }
 
 /**
- * The neck carried on below the head's cut, so it tucks under the collar: every column whose lowest pixel is in the
- * bottom of the piece (the neck, not hair hanging higher up) continues downward. The torso is drawn over it, so only the
- * neckline shows it, and no gap opens between the neck and the collar however the head turns.
+ * The neck carried on below the head, so it tucks under the collar: cut where it is narrowest under the jaw, and carried
+ * straight down from there, as wide as it is there, `frac` of the head's height past the piece's own end. The sheets cut
+ * the head with the base of the neck flaring into the shoulders and the chest, which the torso draws itself: where a
+ * garment leaves her neck bare, that flare showed above her shoulders as a stiff flap, a collar of skin. The torso is
+ * drawn over the neck, so only a neckline shows it, and no gap opens between the neck and the collar however the head
+ * turns.
  */
 export function extendNeck(img, frac = 0.14) {
-  const extra = Math.round(img.h * frac), out = blank(img.w, img.h + extra);
-  out.d.set(img.d, 0);
-  for (let x = 0; x < img.w; x++) {
-    let low = -1;
-    for (let y = img.h - 1; y >= 0; y--) if (img.d[(y * img.w + x) * 4 + 3] >= 128) { low = y; break; }
-    if (low < img.h * 0.86) continue;
-    const src = img.d.subarray((Math.max(0, low - 2) * img.w + x) * 4, (Math.max(0, low - 2) * img.w + x) * 4 + 4);
-    for (let y = low + 1; y < img.h + extra; y++) out.d.set(src, (y * img.w + x) * 4);
-  }
+  // the narrowest row in the head's lower part: the neck below the jaw, before it widens into the shoulders
+  let cut = -1, narrow = Infinity;
+  for (let y = Math.round(img.h * 0.55); y < Math.round(img.h * 0.97); y++) { const sp = span(img, y); if (sp && sp[1] - sp[0] < narrow) { narrow = sp[1] - sp[0]; cut = y; } }
+  if (cut < 0) return img;
+  const out = blank(img.w, img.h + Math.round(img.h * frac));
+  out.d.set(img.d.subarray(0, (cut + 1) * img.w * 4), 0);
+  const row = img.d.subarray(cut * img.w * 4, (cut + 1) * img.w * 4);
+  for (let y = cut + 1; y < out.h; y++) out.d.set(row, y * img.w * 4);
   return out;
 }
 

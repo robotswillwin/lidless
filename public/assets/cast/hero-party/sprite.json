@@ -1,8 +1,8 @@
 {
   "name": "hero-party",
-  "x": 406,
+  "x": 403,
   "y": 224,
-  "w": 148,
+  "w": 152.8,
   "h": 240,
   "maps": [
     "albedo.concierge",
@@ -15,7 +15,7 @@
   "reflectivity": 0,
   "object": 0,
   "anchor": [
-    74.4,
+    76.8,
     240
   ],
   "exists": "both",
@@ -34,17 +34,17 @@
     "walk": {
       "from": 16,
       "count": 16,
-      "stride": 154.5
+      "stride": 155.28
     },
     "jog": {
       "from": 32,
       "count": 16,
-      "stride": 240.34
+      "stride": 241.55
     },
     "run": {
       "from": 48,
       "count": 16,
-      "stride": 297.56
+      "stride": 299.07
     },
     "idleLeft": {
       "from": 64,
@@ -54,17 +54,17 @@
     "walkLeft": {
       "from": 80,
       "count": 16,
-      "stride": 154.5
+      "stride": 155.28
     },
     "jogLeft": {
       "from": 96,
       "count": 16,
-      "stride": 240.34
+      "stride": 241.55
     },
     "runLeft": {
       "from": 112,
       "count": 16,
-      "stride": 297.56
+      "stride": 299.07
     }
   },
   "res": 1.25

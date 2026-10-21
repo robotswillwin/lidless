@@ -150,11 +150,20 @@ flickers:
     against the torso (its length as the image model drew it on her), unless the recipe gives it a length: `coat`
     scales it whole, `coatLength` stretches it down only (her long coat, drawn short on the sheet: 0.53 to end where it
     did on her legs). Any change to these goes in every outfit's recipe.
-  - **Her neck and feet.** A garment with no collar shows the neck her coat's collar hides: `parts.neckSink` sets the
-    head lower on the torso, by a share of its height (0.07 for a T-shirt), and `parts.bareNeck` fades out the torso's
-    own stump of a neck, so the head's neck shows instead of a straight cut. A shoe drawn too big (a fluffy slipper) is
-    scaled with `parts.proportions.foot`, its length heel to toe as a share of her height: her boots are 0.13. The rig
-    prints each outfit's foot length and flags one far from that.
+  - **Her neck and feet.** `parts.neckSink` sets the head lower on the torso, by a share of its height: 0.08 in her
+    coat, and more where a garment has no collar to hide her neck (0.15 for a T-shirt); with her head made bigger, her
+    neck had grown long. The head piece is cut with the base of the neck flaring into the shoulders and the chest, which
+    the torso draws itself: the neck is cut where it is narrowest under the jaw and carried straight down from there,
+    behind the torso. `parts.bareNeck`, for a neck a garment leaves bare: the torso's top melds into that neck, its
+    outline sloping from the neck's down to its own at the shoulders and its own stump of a neck fading out, so her neck
+    flows into her shoulders. The sheets cut the torso flat across the shoulders, which showed above a bare neckline as
+    a stiff collar of skin. A shoe drawn too big (a fluffy slipper) is scaled with `parts.proportions.foot`, its length
+    heel to toe as a share of her height: her boots are 0.13. The rig prints each outfit's foot length and flags one
+    far from that.
+  - **Her legs from another outfit** (`parts.legs`, `from` a recipe): the shape of her bare legs, in the colours this
+    outfit drew its own in, its own shoes kept. A sheet can draw legs in tights as thin as tubes: the party dress's were
+    half as wide as her bare legs at the thigh. Each pixel takes the median colour of this outfit's own thigh, or lower
+    leg, shaded as the bare leg is there, so the tights keep her knee, her calf and her outline.
   - **Whole limbs.** Her legs and arms are rigged as one image each, not as pieces on top of one another: the
     pipeline joins a leg's thigh, lower leg and foot, and an arm's upper arm and forearm, cross-fading where they
     overlap (`composeLimb` in tools/pipeline/characters.mjs), and the rig skins that one image on the limb's bones,
