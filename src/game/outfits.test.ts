@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { outfitAfter, outfitIn, shownOutfit, type Outfits } from './outfits';
+import { dressedFor, keepsProjection, outfitAfter, outfitIn, shownOutfit, type Outfits } from './outfits';
 
 const outfits: Outfits = {
   coat: { sprite: 'cast/hero', name: 'Coat', out: true, home: 'clothes' },
@@ -34,6 +34,14 @@ describe('outfits', () => {
     expect(shownOutfit(withProjection, 'coat', null, false)).toBe('coat');
     // only a virtual outfit can be projected
     expect(shownOutfit(withProjection, 'clothes', 'robe', false)).toBe('clothes');
+  });
+
+  it('dresses her in her clothes under a projection, keeps it on over them and her coat, and takes it off as she undresses', () => {
+    const withGown: Outfits = { ...outfits, underwear: { sprite: 'cast/hero-underwear', name: 'Underwear', stay: 'No.' }, gown: { sprite: 'cast/hero-gown', name: 'Gown', virtual: true, over: 'clothes' } };
+    expect(dressedFor(withGown, 'gown')).toBe('clothes');
+    expect(keepsProjection(withGown, 'gown', 'clothes')).toBe(true);
+    expect(keepsProjection(withGown, 'gown', 'coat')).toBe(true);
+    expect(keepsProjection(withGown, 'gown', 'underwear')).toBe(false);
   });
 
   it('starts her in her first outfit, out of her coat if she starts at home; an outfit not listed is her first', () => {

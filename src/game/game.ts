@@ -12,7 +12,7 @@ import { Dialogue } from './dialogue';
 import { heroDrawing, heroGaits, holdPace, paceFor } from './hero';
 import { Hud, type Action, type Item, type Mark, type NotebookPages } from './hud';
 import { inView, pick, placeIn, type Hotspot } from './level';
-import { outfitAfter } from './outfits';
+import { dressedFor, keepsProjection, outfitAfter } from './outfits';
 import { writeSave, type SaveData } from './save';
 import { SceneRunner, type ViewState } from './scene';
 import { Talk } from './talk';
@@ -126,6 +126,7 @@ export class Game {
     // a projection saved as what she wore (an older save) goes back on over her own clothes
     this.projection = s.save?.projection && outfits[s.save.projection]?.virtual ? s.save.projection : saved && outfits[saved].virtual ? saved : null;
     this.outfit = saved && !outfits[saved].virtual ? saved : s.world.hero.outfit ?? Object.keys(outfits).find((k) => !outfits[k].virtual) ?? '';
+    if (this.projection && !keepsProjection(outfits, this.projection, this.outfit)) this.outfit = dressedFor(outfits, this.projection) ?? this.outfit;
     this.heroes.set(s.world.hero.sprite, Promise.resolve(s.hero));
     // the look panel (L): from the game's saved look, with each scene's own settings over it; split settings follow the view
     this.look = createLookPanel(s.renderer, s.projectLook, s.stage, {
@@ -306,9 +307,17 @@ export class Game {
     this.s.fade.classList.add('on');
     await new Promise((r) => setTimeout(r, this.s.reduceMotion ? 0 : 260 + hold));
     try {
-      const virtual = key ? this.s.world.hero.outfits?.[key]?.virtual : true;
-      if (virtual) await this.project(key);
-      else if (key) { await this.wear(key); if (hold) await this.project(null); }
+      const outfits = this.s.world.hero.outfits ?? {}, virtual = key ? outfits[key]?.virtual : true;
+      if (virtual) {
+        // a projection goes on over her clothes: she dresses in them first, so raw view shows her dressed
+        const under = key ? dressedFor(outfits, key) : undefined;
+        if (under && outfits[under] && !keepsProjection(outfits, key!, this.outfit)) await this.wear(under);
+        await this.project(key);
+      } else if (key) {
+        await this.wear(key);
+        // undressing takes a projection off with her clothes, as the shower does
+        if (hold || (this.projection && !keepsProjection(outfits, this.projection, key))) await this.project(null);
+      }
       this.fitGaits(this.scene);
       this.persist();
     } catch (err) {

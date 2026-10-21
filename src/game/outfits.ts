@@ -16,10 +16,15 @@ export interface Outfit {
   /** What she says when she will not go out in it. */
   stay?: string;
   /**
-   * A projection: her AR system puts it on her over whatever she really wears. The Concierge's view shows it and raw view
-   * what is under it; it stays on her indoors and out until she takes it off, and does not change what she wears.
+   * A projection: her AR system puts it on her over what she really wears. The Concierge's view shows it and raw view
+   * what is under it; it stays on her indoors and out until she takes it off.
    */
   virtual?: true;
+  /**
+   * A projection is worn over her clothes (this outfit): putting it on, she dresses in them first, so raw view shows her
+   * dressed; changing into anything else (her underwear, nothing) takes it off. Outside, over her coat on them.
+   */
+  over?: string;
 }
 
 export type Outfits = Record<string, Outfit>;
@@ -40,6 +45,17 @@ export function outfitAfter(outfits: Outfits, wearing: string, fromHome: boolean
     if (home && outfits[home]) o = home;
   }
   return o;
+}
+
+/** What she wears under a projection: the clothes it goes over, which she dresses in as she puts it on. */
+export const dressedFor = (outfits: Outfits, projection: string): string | undefined => outfits[projection]?.over;
+
+/** Whether a projection stays on her in what she wears now: over the clothes it goes over, or the coat she wears them under outside. */
+export function keepsProjection(outfits: Outfits, projection: string, wearing: string): boolean {
+  const over = outfits[projection]?.over;
+  if (!over) return true;
+  const out = outfits[over]?.out;
+  return wearing === over || (typeof out === 'string' && wearing === out);
 }
 
 /** The outfit a view shows her in: in the Concierge's a projection over what she wears, if one is on; raw view what she wears. */

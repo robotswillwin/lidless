@@ -39,7 +39,8 @@
       "party": {
         "sprite": "cast/hero-party",
         "name": "Party dress",
-        "virtual": true
+        "virtual": true,
+        "over": "clothes"
       }
     },
     "outfit": "coat",

@@ -132,8 +132,10 @@ flickers:
 - **Outfits** (`art/cast/hero-*.json`). What she really owns is little: her underwear (plain white cotton in raw view,
   red satin in the Concierge's), her clothes, which she wears at home, and her raincoat over them outside. Anything
   finer is a projection her AR system puts on her over what she wears (`virtual` in world.json, see outfits.ts): the
-  Concierge's view shows it, raw view what is under it, and it stays on her indoors and out. The party dress is the one
-  projection so far; her wardrobe offers it in the Concierge's view. A projection needs only the Concierge's art. The
+  Concierge's view shows it, raw view what is under it, and it stays on her indoors and out. A projection is worn over
+  her clothes (`over`): putting it on, she dresses in them first, so raw view always shows her dressed under it, and
+  changing into her underwear or nothing takes it off. The party dress is the one projection so far; her wardrobe
+  offers it in the Concierge's view. A projection needs only the Concierge's art. The
   home clothes, the cardigan and the bathrobe are no longer worn (their art is kept). Undressed (`art/cast/hero-nude`),
   which the shower leaves her in, is made from her underwear by `tools/pipeline/censor.mjs`, never generated: the
   underwear becomes her skin, a smooth field of the skin's colour around it, and a small mosaic of her skin's tones
