@@ -5,10 +5,10 @@ import { freeSprite, loadSprite, spriteDefaults, type Sprite } from '../engine/a
 import type { LookSet } from '../engine/look';
 import { fitCanvas, NH, NW, type Renderer } from '../engine/renderer';
 import { createLookPanel, type LookPanel } from '../look-panel';
-import { actionFor, actionsFor, defaultOf, verbsIn, type Verb } from './actions';
+import { actionFor, actionsFor, defaultOf, itemActionFor, verbsIn, type Verb } from './actions';
 import { frameFor } from './anim';
 import { Camera, cameraTarget } from './camera';
-import { Dialogue } from './dialogue';
+import { Dialogue, STITCH, type Command } from './dialogue';
 import { heroDrawing, heroGaits, holdPace, paceFor } from './hero';
 import { Hud, type Action, type Item, type Mark, type NotebookPages } from './hud';
 import { inView, pick, placeIn, type Hotspot } from './level';
@@ -101,6 +101,10 @@ export class Game {
   private chasing = false;
   /** Who she is talking to: their lines go over their head. */
   private partner: Hotspot | null = null;
+  /** A thing she holds, out of her pockets, to use on the next thing her finger lights up. */
+  private inHand: string | null = null;
+  /** A story's line is having the game do something (walk, change): she moves though a conversation is open. */
+  private directing = false;
   /** What she is wearing, one of the world's outfits, and her sprites in them, each loaded the first time she wears it. */
   private outfit: string;
   /** A projection over what she wears (a virtual outfit), and its sprite, shown in the Concierge's view. */
@@ -117,9 +121,9 @@ export class Game {
     this.dialogue = new Dialogue(s.save?.ink ?? null);
     this.ui = new UI(s.stage);
     this.hud = new Hud(s.canvas);
-    this.hud.setThings(s.items, s.world.hero.items ?? []);
+    this.syncThings();
     this.hud.setNotebook(s.notebook);
-    this.hud.known = (v) => Boolean(this.dialogue.story.variablesState[v]);
+    this.hud.known = (cond) => this.dialogue.test(cond);
     this.state = { view: s.rawView ? 0 : s.save && this.canSwitch() ? s.save.view : 1, sinceSwitch: 10 };
     this.attention = s.save?.attention ?? 0;
     const outfits = s.world.hero.outfits ?? {}, saved = s.save?.outfit && outfits[s.save.outfit] ? s.save.outfit : undefined;
@@ -154,6 +158,9 @@ export class Game {
     };
     this.talk.onEnd = () => this.endTalk();
     this.hud.onVerb = (v) => this.setVerb(v);
+    this.hud.onHold = (id) => this.hold(id);
+    // what a story's line has the game do before it is said: the conversation waits for it
+    this.talk.run = (commands) => this.direct(commands);
     this.hud.onTemple = () => this.toggleView();
     this.hud.onBell = () => this.hud.toast(this.scene.file.assist ?? 'Is there anything I can do for you, guest?');
     this.hud.onPanel = () => this.ui.hideCaption();
@@ -204,6 +211,9 @@ export class Game {
     this.fitGaits(next);
     this.world = new World(next.level, at.x ?? sp?.x, at.facing ?? sp?.facing);
     this.world.raw = this.raw;
+    // what is there depends on the story: a thing only while a condition holds, a thing she took gone for good
+    this.world.shown = (h) => this.dialogue.test(h.when) && !(h.item && this.dialogue.took(h.item));
+    this.runner.shown = (when) => this.dialogue.test(when);
     this.camera.jump(this.cameraTarget());
     this.cam[0] = this.s.fixedCam ?? this.camera.x;
     // the scene she left and this one stay on the GPU, where she can go next is fetched, the rest let go
@@ -332,7 +342,8 @@ export class Game {
   }
 
   /** A door or the end of the street: fade out, go to the other scene, fade in. */
-  private async travel(exit: Exit): Promise<void> {
+  /** She goes through a way out. For the story (`story`), whatever she wears, and the conversation goes on there. */
+  private async travel(exit: Exit, story = false): Promise<void> {
     if (this.travelling) return;
     this.travelling = true;
     this.letGo();
@@ -340,7 +351,7 @@ export class Game {
     this.releaseKeys();
     // dressed in what she does not go out in, she stays
     const outfits = this.s.world.hero.outfits;
-    if (outfits && this.scene.file.wardrobe) {
+    if (outfits && this.scene.file.wardrobe && !story) {
       const to = await this.scenes.file(exit.scene).catch(() => null);
       if (to && outfitAfter(outfits, this.outfit, true, !!to.wardrobe) === null) {
         this.travelling = false;
@@ -351,7 +362,9 @@ export class Game {
     this.hud.closeAll();
     // what she was looking at, and who she was talking to, stay behind
     this.ui.hideCaption();
-    if (this.talk.open) { this.talk.hide(); this.endTalk(); }
+    if (this.talk.open && !story) { this.talk.hide(); this.endTalk(); }
+    // a conversation going on there: whoever she talked to here is left behind
+    if (story) this.partner = null;
     this.s.fade.classList.add('on');
     await new Promise((r) => setTimeout(r, this.s.reduceMotion ? 0 : 260));
     // a scene not ready once the fade is dark: after a moment a small sign from the world that it is coming, the
@@ -372,7 +385,7 @@ export class Game {
 
   /** An exit at an end of the walk line, which walking into with the keyboard takes. */
   private exitAt(x: number): Hotspot | undefined {
-    return this.scene.file.hotspots.find((h) => { const [rx, , rw] = placeIn(h, this.raw).rect; return h.go && inView(h, this.raw) && x >= rx - 1 && x <= rx + rw + 1; });
+    return this.scene.file.hotspots.find((h) => { const [rx, , rw] = placeIn(h, this.raw).rect; return h.go && inView(h, this.raw) && this.world.shown(h) && x >= rx - 1 && x <= rx + rw + 1; });
   }
 
   /**
@@ -433,6 +446,7 @@ export class Game {
     const v = this.variantOf(this.scene);
     if (v !== this.variant) { this.variant = v; this.look.setScene(this.scene.file, v); }
     this.hud.setTalking(false);
+    this.syncThings();
     // the conversation that unlocks the view switch, whichever it is, says how to use it
     const unlocked = this.lockedBeforeTalk && this.canSwitch();
     this.lockedBeforeTalk = false;
@@ -444,9 +458,83 @@ export class Game {
     }
   }
 
+  /** Whether a thing's knot in the story has this stitch. */
+  private stitch(h: Hotspot, name: string): boolean {
+    return !!h.story && this.dialogue.has(h.story, name);
+  }
+  private readonly stitches = (h: Hotspot, name: string): boolean => this.stitch(h, name);
+
+  /**
+   * What a story's line has the game do before it is said, one command after another (see dialogue.ts): she walks to a
+   * place or a thing, turns, changes, goes to another scene, the screen fades, the view switches, a pause.
+   */
+  private async direct(commands: Command[]): Promise<void> {
+    const sleep = (ms: number) => new Promise((r) => setTimeout(r, this.s.reduceMotion ? Math.min(ms, 50) : ms));
+    for (const c of commands) {
+      if (c.name === 'walk') {
+        const h = this.scene.file.hotspots.find((x) => x.id === c.arg), place = h ? placeIn(h, this.raw) : null;
+        const x = place ? place.stand ?? place.rect[0] + place.rect[2] / 2 : Number(c.arg);
+        if (!Number.isFinite(x)) continue;
+        this.directing = true;
+        this.goTo(x);
+        // until she is there (or gives up, at the end of the walk line)
+        const until = performance.now() + 15000;
+        while (this.world.moving && performance.now() < until) await sleep(50);
+        this.directing = false;
+        if (place) this.world.facing = place.face ?? (place.rect[0] + place.rect[2] / 2 >= this.world.heroX ? 1 : -1);
+      } else if (c.name === 'face') this.world.facing = c.arg === 'left' ? -1 : 1;
+      else if (c.name === 'wear') await this.change(c.arg);
+      else if (c.name === 'go') {
+        const [scene, spawn] = c.arg.split('/').map((v) => v.trim());
+        await this.travel({ scene, spawn: spawn || Object.keys((await this.scenes.file(scene)).spawns)[0] }, true);
+      } else if (c.name === 'fade') {
+        this.s.fade.classList.add('on');
+        await sleep(260 + (Number(c.arg) || 0.6) * 1000);
+        this.s.fade.classList.remove('on');
+        await sleep(260);
+      } else if (c.name === 'view') { if ((c.arg === 'raw') !== this.raw) this.toggleView(true); }
+      else if (c.name === 'wait') await sleep((Number(c.arg) || 1) * 1000);
+    }
+  }
+
+  /**
+   * A thing's knot in the story, at a stitch: one plain line with nothing to answer is written at the thing, as a look
+   * is; anything more (several lines, someone speaking, answers, something the game does) is a conversation.
+   */
+  private runStory(h: Hotspot, path: string): void {
+    const lines = this.dialogue.start(path, this.raw), choices = this.dialogue.choices, one = lines[0];
+    if (lines.length === 1 && !choices.length && !one.commands && (one.speaker === 'narration' || one.speaker === 'luna')) {
+      this.hud.note(h, one.text, this.boxOf(h));
+      this.endTalk();
+      return;
+    }
+    if (!lines.length && !choices.length) return this.endTalk();
+    this.lockedBeforeTalk = !this.canSwitch();
+    this.partner = h;
+    this.hud.setTalking(true);
+    this.talk.show(lines, choices);
+  }
+
   private act(h: Hotspot, a: Action): void {
     const raw = this.raw;
     if (a.kind === 'feet' && h.go) return void this.travel(h.go);
+    // a thing she holds, used on this one: the story's use_<thing>, or nothing comes of it
+    if (a.kind === 'item') {
+      const id = this.inHand;
+      this.hold(null);
+      if (id && this.stitch(h, `use_${id}`)) return this.runStory(h, `${h.story}.use_${id}`);
+      return this.hud.note(h, raw ? 'nothing.' : 'Nothing happens.', this.boxOf(h));
+    }
+    const st = STITCH[a.kind as keyof typeof STITCH];
+    if (st && this.stitch(h, st)) return this.runStory(h, `${h.story}.${st}`);
+    // a thing to pick up: into her pockets, gone from here for good
+    if (a.kind === 'take' && h.item) {
+      this.dialogue.take(h.item);
+      this.syncThings();
+      this.persist();
+      const name = this.s.items[h.item] ? pick(this.s.items[h.item].name, raw) : h.item;
+      return this.hud.note(h, h.take ? pick(h.take, raw) : raw ? `${name}, in my pocket.` : `${name}: added to your things.`, this.boxOf(h));
+    }
     if (a.kind === 'heart' && h.talk) {
       this.lockedBeforeTalk = !this.canSwitch();
       this.partner = h;
@@ -484,14 +572,32 @@ export class Game {
     this.world.walkTo(x, then, paceFor(Math.abs(x - this.world.heroX), this.s.world.hero, tall));
   }
 
+  /* ---------- her things ---------- */
+
+  /** Her pockets as the story has them now (or as the world lists them, in a story that keeps none). */
+  private syncThings(): void {
+    this.hud.setThings(this.s.items, this.dialogue.carried() ?? this.s.world.hero.items ?? []);
+    if (this.inHand && !(this.dialogue.carried() ?? []).includes(this.inHand)) this.hold(null);
+  }
+
+  /** She takes a thing out to use it on something, the next thing her finger lights up; null puts it back. */
+  private hold(id: string | null): void {
+    this.inHand = id;
+    if (id) { this.hud.closePanel(); this.setVerb(null); }
+    this.unmark();
+    this.hud.setHeld(id);
+    this.s.canvas.style.cursor = id ? 'crosshair' : '';
+  }
+
   /* ---------- input: verbs, the pointer in level pixels, the walk keys ---------- */
 
   /** A verb chosen at the ball, or put down. */
   private setVerb(v: Verb | null): void {
     this.verb = v;
+    if (v && this.inHand) { this.inHand = null; this.hud.setHeld(null); }
     this.unmark();
     this.hud.setVerb(v);
-    this.s.canvas.style.cursor = v ? 'crosshair' : '';
+    this.s.canvas.style.cursor = v || this.inHand ? 'crosshair' : '';
   }
 
   /** The point under the pointer, in level pixels: the screen's position in the scene. */
@@ -521,8 +627,9 @@ export class Game {
 
   /** With a verb chosen: what is under the pointer lights up if the verb does something to it. */
   private scan(clientX: number, clientY: number): void {
-    const [x, y] = this.toLevel(clientX, clientY), h = this.verb ? this.world.hotspotAt(x, y, this.raw, this.cam[0]) : null;
-    const a = h && this.verb ? actionFor(h, this.verb, this.raw, this.watched) : null;
+    const [x, y] = this.toLevel(clientX, clientY), h = this.verb || this.inHand ? this.world.hotspotAt(x, y, this.raw, this.cam[0]) : null;
+    const name = this.inHand && this.s.items[this.inHand] ? pick(this.s.items[this.inHand].name, this.raw) : this.inHand ?? '';
+    const a = !h ? null : this.inHand ? itemActionFor(name, this.raw) : this.verb ? actionFor(h, this.verb, this.raw, this.watched, this.stitches) : null;
     this.marked = h && a ? { h, a, box: this.boxOf(h) } : null;
     this.hud.mark(this.marked);
   }
@@ -544,8 +651,9 @@ export class Game {
     if (this.hud.panelOpen) return this.hud.closePanel();
     this.hud.dismissNote();
     if (button === 2) {
+      if (this.inHand) return this.hold(null);
       if (this.verb) return this.setVerb(null);
-      const [x, y] = this.toLevel(clientX, clientY), h = this.world.hotspotAt(x, y, this.raw, this.cam[0]), a = h && actionFor(h, 'eyes', this.raw, this.watched);
+      const [x, y] = this.toLevel(clientX, clientY), h = this.world.hotspotAt(x, y, this.raw, this.cam[0]), a = h && actionFor(h, 'eyes', this.raw, this.watched, this.stitches);
       if (h && a) this.perform(h, a);
       return;
     }
@@ -553,7 +661,7 @@ export class Game {
     this.finger = [clientX, clientY];
     this.downAt = this.clock();
     this.holding = this.chasing = false;
-    if (this.verb) return this.scan(clientX, clientY);
+    if (this.verb || this.inHand) return this.scan(clientX, clientY);
     const [x, y] = this.toLevel(clientX, clientY), h = this.world.hotspotAt(x, y, this.raw, this.cam[0]);
     this.pending = h?.go ? { kind: 'feet', label: '' } : null;
     const stand = h ? placeIn(h, this.raw).stand : undefined;
@@ -564,7 +672,7 @@ export class Game {
   pointerMove(clientX: number, clientY: number): void {
     if (this.talk.open || this.travelling) return;
     if (this.down) this.finger = [clientX, clientY];
-    if (this.verb) return this.scan(clientX, clientY);
+    if (this.verb || this.inHand) return this.scan(clientX, clientY);
     if (this.down && !this.chasing && Math.hypot(clientX - this.down[0], clientY - this.down[1]) > 12) {
       this.pending = null;
       this.goTo(this.toLevel(clientX, clientY)[0]);
@@ -575,10 +683,11 @@ export class Game {
   pointerUp(): void {
     const was = this.down;
     this.letGo();
-    if (!was || !this.verb) return;
+    if (!was || (!this.verb && !this.inHand)) return;
     const m = this.marked;
     if (!m) return this.unmark();
-    this.setVerb(null);
+    if (this.verb) this.setVerb(null);
+    this.unmark();
     this.perform(m.h, m.a);
   }
 
@@ -647,10 +756,11 @@ export class Game {
     this.lastT = t;
     const wasMoving = world.moving;
     this.holdOn(t);
-    const arrived = this.talk.open || this.travelling ? null : world.update(dt);
+    // she moves while a conversation is open only when its story has her walk
+    const arrived = (this.talk.open && !this.directing) || this.travelling ? null : world.update(dt);
     // the view may have changed on the way: a generated person is not there to talk to in raw view
     if (arrived && inView(arrived, this.raw)) {
-      const actions = actionsFor(arrived, this.raw, this.watched), a = actions.find((x) => x.kind === this.pending?.kind) ?? defaultOf(actions);
+      const actions = actionsFor(arrived, this.raw, this.watched, this.stitches), a = this.pending?.kind === 'item' ? this.pending : actions.find((x) => x.kind === this.pending?.kind) ?? defaultOf(actions);
       this.pending = null;
       if (a) this.act(arrived, a);
     }

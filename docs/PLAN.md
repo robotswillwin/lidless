@@ -96,7 +96,12 @@ rigged character about an hour and $1: forty scenes is a question of production,
    - Keep the scene she is in and the ones its exits lead to; free the rest.
    - Load those neighbours in the background while she is in a scene, and put them on the GPU during the fade.
    - Glow maps at half resolution: about a third less memory per scene.
-2. **The story drives the world (about 4 hours)**, for a deep plot, side missions and many objects. Today the story
+2. **The story drives the world (about 4 hours). Done 21 October** (docs/STORY.md): conditions on the story's state on
+   hotspots, layers and lights; an object's knot, a stitch for each verb and `use_<thing>`; her pockets and what she
+   took as Ink lists, things to take, and using a thing she carries on another; command tags in lines (walk, face,
+   wear, go, fade, view, wait); the notebook's errands written and crossed out by conditions. Played through in her
+   flat and the radio repair: the parcel and the valve taken, the radio mended, the parcel delivered. Part of step 3
+   came with it: the story runs headlessly in the tests, and every reference is checked. What was planned: today the story
    runs only conversations: Look, Use and Take show a hotspot's fixed text, taking gives her nothing (her pockets are a
    fixed list in world.json), nothing in a scene can appear, change or go as the story moves on, and there is no "use
    this on that".

@@ -34,7 +34,9 @@ Then open the address Vite prints.
   something else to do, clears it. Right-click puts the verb down, or looks; **Esc** puts it down.
 - **The ball at the bottom left** slides out her things (her pockets in raw view), her notebook, the view switch once
   she has it, and in Concierge view *Assistance*, which asks the Concierge for a hint. **N** opens the notebook, **I**
-  her things, **Esc** closes.
+  her things, **Esc** closes. **Use** on one of her things takes it out: it sits on the right ball, and sliding over the
+  scene uses it on what lights up (the radio needs a valve; the fixer is waiting for a parcel). The ball, right-click
+  or **Esc** puts it back. **Take** puts what can be picked up in her pockets: the parcel and the valve on her desk.
 - Talk to the fixer in the radio shop. Once he has opened your eye, **E** or her temple (with her things) switches
   between Concierge view and raw view, and many things read differently. On the dev server, E works from the start.
 - Conversations go as in Monkey Island: each line over the head of whoever says it, in their colour (hers, the
@@ -240,7 +242,7 @@ itself whenever `build` runs.
   `overlay.ts` (what is drawn over the scene, and dragging it), `panels.ts` with `form.ts` (the side panel), `edit.ts`
   (adding and deleting), `main.ts` (wiring and start). `src/bench.ts` is the asset bench, `src/look-panel.ts` the look
   panel both use.
-- `src/story`: dialogue in Ink, compiled at build time. `main.ink` declares the variables and includes one file per scene; a tag on a line names its speaker (`#luna`, `#fixer`, `#concierge`), and untagged lines are narration.
+- `src/story`: the story in Ink, compiled at build time. `main.ink` declares the variables and includes one file per scene; a tag on a line names its speaker (`#luna`, `#fixer`, `#concierge`), and untagged lines are narration. The story drives the world: what is in a scene, what an object does, what she carries (docs/STORY.md).
 - `public/assets`: game assets in the format described in [docs/ASSETS.md](docs/ASSETS.md), one folder per scene
   (`home`, `backstreet`, `street`, `radio`) plus `cast` for recurring characters; `scenes/<id>/scene.json` places them,
   and `world.json` lists the scenes and where the game starts.

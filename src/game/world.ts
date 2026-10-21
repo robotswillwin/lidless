@@ -34,6 +34,8 @@ export class World {
   private pace: Gait = 'walk';
   /** Raw view on screen: hotspots are where they are in it. */
   raw = false;
+  /** Whether a thing is there now, as the story has it (a condition, a thing she took): the game sets it. */
+  shown: (h: Hotspot) => boolean = () => true;
 
   constructor(readonly level: LevelDef, x?: number, facing?: 1 | -1) {
     this.heroX = this.clamp(x ?? level.hero.x);
@@ -144,7 +146,7 @@ export class World {
   hotspotAt(x: number, y: number, raw: boolean, look = 0): Hotspot | null {
     const hs = this.level.hotspots;
     for (let i = hs.length - 1; i >= 0; i--) {
-      if (!inView(hs[i], raw)) continue;
+      if (!inView(hs[i], raw) || !this.shown(hs[i])) continue;
       const [rx0, ry, rw, rh] = placeIn(hs[i], raw).rect, rx = rx0 - look * ((hs[i].parallax ?? 1) - 1);
       if (x >= rx && x < rx + rw && y >= ry && y < ry + rh) return hs[i];
     }

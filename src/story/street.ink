@@ -52,6 +52,17 @@ He works fast, with tools older than you: no cable, no code. A needle at your te
 + [Never mind.]
     -> END
 
+= use_parcel
+{ parcel_delivered:
+    "You already brought it." #fixer
+    -> END
+}
+"Delivery 4471." He weighs it in his hand, doesn't open it, and puts it under the counter. #fixer
+~ carried -= parcel
+~ parcel_delivered = true
+"Tell them it came." #fixer
+-> END
+
 === kiosk ===
 { raw_view: In your opened eye the screen is dark, but the voice still comes, from everywhere at once. }
 "Good evening, guest. Dinner is served." #concierge

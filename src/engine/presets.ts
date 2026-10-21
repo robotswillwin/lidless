@@ -11,7 +11,8 @@ export type LightSettings = { [K in keyof LightDef]?: LightDef[K] | null };
  * A light as a scene file has it: its place, its preset if it has one, and whatever it sets its own way; and `views`,
  * what it does its own way in one view only (stronger in raw view, another colour in the Concierge's).
  */
-export type PlacedLight = LightSettings & { x: number; y: number; preset?: string; suggested?: number; views?: Partial<Record<'raw' | 'concierge', LightSettings>> };
+/** `when`: there only while a condition on the story holds (the game's conditions.ts reads it). */
+export type PlacedLight = LightSettings & { x: number; y: number; preset?: string; suggested?: number; views?: Partial<Record<'raw' | 'concierge', LightSettings>>; when?: string };
 
 export interface LightPreset {
   label: string;

@@ -12,7 +12,8 @@
 import { verbName, verbsIn, type Verb } from './actions';
 import { note, pick, type Hotspot, type ViewText } from './level';
 
-export type ActionKind = 'feet' | 'hands' | 'take' | 'eyes' | 'heart' | 'ask';
+/** `item`: using a thing she holds on it. */
+export type ActionKind = 'feet' | 'hands' | 'take' | 'eyes' | 'heart' | 'ask' | 'item';
 
 export interface Action {
   kind: ActionKind;
@@ -35,8 +36,10 @@ export interface Item {
 export interface NoteEntry {
   name: string;
   note: string;
-  /** An Ink variable that must be true for her to have written this. */
+  /** A condition on the story (see conditions.ts) that must hold for her to have written this. */
   when?: string;
+  /** Done (an errand run): crossed out once this condition on the story holds. */
+  done?: string;
 }
 
 export interface NotebookPages {
@@ -73,6 +76,8 @@ const ITEM_ICONS: Record<string, string> = {
   matches: '<rect x="10" y="28" width="44" height="20" rx="2"/><path d="M10 34h44M40 28l7-12"/><circle class="accent" cx="48" cy="14" r="2.6"/>',
   cigarettes: '<path d="M18 26h28v28H18z"/><path d="M18 33h28M24 26V12h6v14M34 26V16h6v10"/><path class="accent" d="M24 12h6"/>',
   map: '<path d="M8 14l16-4 16 4 16-4v38l-16 4-16-4-16 4z"/><path d="M24 10v38M40 14v38"/><path class="accent" d="M14 40c6-4 8-12 16-10s8 10 16 6 6-10 10-10" stroke-dasharray="3 4"/>',
+  // a radio valve: its glass, the filament inside, its pins
+  valve: '<path d="M22 46V22a10 10 0 0 1 20 0v24z"/><path d="M20 46h24v6H20zM26 52v6M32 52v6M38 52v6"/><path class="accent" d="M28 40V28l4 6 4-6v12"/>',
 };
 
 /** A hand-drawn loop, for her slots and buttons: on a 54 grid. */
@@ -116,8 +121,10 @@ export class Hud {
   onDispose: (id: string, dispose: boolean) => void = () => {};
   /** A panel opened over the frame. */
   onPanel: () => void = () => {};
-  /** Whether an Ink variable is true, for what her notebook holds. */
-  known: (variable: string) => boolean = () => false;
+  /** Whether a condition on the story holds, for what her notebook holds. */
+  known: (cond: string) => boolean = () => false;
+  /** She takes a thing out of her pockets to use it on something (null: puts it back). */
+  onHold: (id: string | null) => void = () => {};
 
   private raw = false;
   private ribbon: HTMLElement;
@@ -130,6 +137,8 @@ export class Hud {
   private verbBall: HTMLButtonElement;
   private verbLabel: HTMLElement;
   private verb: Verb | null = null;
+  /** A thing she holds to use on something, and what it is called. */
+  private held: { id: string; name: string } | null = null;
   private unlocked = false;
   private menu: HTMLElement | null = null;
   private menuKind: 'things' | 'verbs' | null = null;
@@ -163,7 +172,8 @@ export class Hud {
 
     // the two balls: her things on the left, what she can do on the right, the verb chosen named beside it
     this.thingsBall = button('hud-ball things', 'Her things', root, () => this.toggleMenu('things'));
-    this.verbBall = button('hud-ball verbs', 'What she can do', root, () => this.toggleMenu('verbs'));
+    // holding a thing, the ball puts it back; else it slides out the verbs
+    this.verbBall = button('hud-ball verbs', 'What she can do', root, () => (this.held ? this.onHold(null) : this.toggleMenu('verbs')));
     this.verbLabel = el('div', 'hud-ball-label', root);
     this.verbLabel.hidden = true;
     this.setAttention(0);
@@ -197,6 +207,13 @@ export class Hud {
   }
 
   /** The verb chosen, or none: the right ball shows it, its slot is lit, and with the verbs put away it is named beside the ball. */
+  /** A thing she holds to use on something, on the right ball in place of a verb; null puts it back. */
+  setHeld(id: string | null): void {
+    const it = id ? this.items[id] : undefined;
+    this.held = id && it ? { id, name: pick(it.name, this.raw) } : null;
+    this.drawBalls();
+  }
+
   setVerb(v: Verb | null): void {
     this.verb = v;
     this.menu?.querySelectorAll<HTMLElement>('[data-verb]').forEach((b) => {
@@ -240,7 +257,7 @@ export class Hud {
       const tag = note(m.h.tag, this.raw);
       if (tag) el('div', 'tag', label, tag);
       const verb = el('div', 'verb', label);
-      verb.insertAdjacentHTML('beforeend', icon(m.a.kind, 16, this.raw));
+      verb.insertAdjacentHTML('beforeend', icon(m.a.kind === 'item' ? 'hands' : m.a.kind, 16, this.raw));
       el('span', '', verb, m.a.label);
       if (m.a.cost) verb.insertAdjacentHTML('beforeend', '<svg class="cost" width="30" height="16" viewBox="0 0 34 18" fill="none" stroke-linecap="round" aria-hidden="true"><path d="M2 9C5 4 8.5 3 12 3s7 1 10 6c-3 5-6.5 6-10 6S5 14 2 9z"/><circle cx="12" cy="9" r="2"/><path d="M26 9h6M29 6v6"/></svg>');
     }
@@ -420,6 +437,7 @@ export class Hud {
   /** N for the notebook, I for her things, Escape closes what is open or puts the verb down. Returns true if it used the key. */
   key(k: string): boolean {
     if (k === 'Escape' && (this.menu || this.panel)) { this.closeAll(); return true; }
+    if (k === 'Escape' && this.held) { this.onHold(null); return true; }
     if (k === 'Escape' && this.verb) { this.onVerb(null); return true; }
     if (k === 'n' || k === 'N') { this.togglePanel('notebook'); return true; }
     if (k === 'i' || k === 'I') { this.togglePanel('things'); return true; }
@@ -437,12 +455,17 @@ export class Hud {
     const n = this.thingCount();
     this.thingsBall.innerHTML = `${loop}${icon('satchel', 26, this.raw)}${this.raw ? '' : `<span class="badge">${n}</span>`}`;
     this.thingsBall.setAttribute('aria-label', `${this.raw ? 'Her pockets, her notebook' : 'Your things, your notebook'}${this.unlocked ? ', the view switch' : ''} (I, N)`);
-    this.verbBall.innerHTML = `${loop}${icon(this.verb ?? 'verbs', 26, this.raw)}`;
-    this.verbBall.setAttribute('aria-pressed', String(this.verb !== null));
-    this.verbBall.setAttribute('aria-label', this.verb ? `${verbName(this.verb, this.raw)}: choose another, or put it down` : 'What she can do: look, talk, use, take');
+    const held = this.held ? this.items[this.held.id] : undefined;
+    this.verbBall.innerHTML = `${loop}${held ? itemIcon(held.icon, 30, this.raw) : icon(this.verb ?? 'verbs', 26, this.raw)}`;
+    this.verbBall.setAttribute('aria-pressed', String(this.verb !== null || this.held !== null));
+    this.verbBall.setAttribute('aria-label', this.held ? `${this.held.name}: put it back` : this.verb ? `${verbName(this.verb, this.raw)}: choose another, or put it down` : 'What she can do: look, talk, use, take');
     // with the verbs out, the lit slot names it; put away, the name sits beside the ball
-    this.verbLabel.hidden = !this.verb || this.menuKind === 'verbs';
-    if (this.verb) {
+    this.verbLabel.hidden = (!this.verb && !this.held) || this.menuKind === 'verbs';
+    if (this.held) {
+      this.verbLabel.replaceChildren();
+      el('div', 'verb', this.verbLabel, this.raw ? `use ${this.held.name}` : `Use ${this.held.name}`);
+      el('div', 'hint', this.verbLabel, this.raw ? 'on what?' : 'Slide over what to use it on');
+    } else if (this.verb) {
       this.verbLabel.replaceChildren();
       el('div', 'verb', this.verbLabel, verbName(this.verb, this.raw));
       el('div', 'hint', this.verbLabel, this.raw ? 'slide over things' : 'Slide over what you see');
@@ -476,6 +499,7 @@ export class Hud {
       const words = el('div', 'words', card);
       el('div', 'name hud-serif', words, pick(it.name, false));
       if (it.note) el('div', 'note hud-caps', words, pick(it.note, false));
+      button('hud-caps use', `Use ${pick(it.name, false)}`, words, () => this.onHold(id)).textContent = 'Use';
       if (it.unlicensed) {
         el('div', 'offer hud-serif', words, 'Shall I dispose of it for you?');
         const row = el('div', 'row', words);
@@ -500,6 +524,7 @@ export class Hud {
       card.insertAdjacentHTML('beforeend', gone ? '<svg width="96" height="64" viewBox="0 0 96 64" fill="none" stroke="currentColor" aria-hidden="true"><g filter="url(#lidless-pencil)"><rect x="10" y="10" width="76" height="44" rx="4" stroke-dasharray="5 5" stroke-width="1.6"/></g></svg>' : itemIcon(it.icon, 64, true));
       el('div', 'name', card, pick(it.name, true));
       if (it.note) el('div', 'note', card, pick(it.note, true));
+      if (!gone) button('use', `use ${pick(it.name, true)}`, card, () => this.onHold(id)).textContent = 'use';
     }
   }
 
@@ -514,7 +539,7 @@ export class Hud {
       if (!shown.length && !empty) return;
       el('h2', '', page, title);
       if (!shown.length) el('p', 'note', page, empty);
-      for (const e of shown) { const d = el('div', 'entry', page); el('div', 'name', d, e.name); el('div', 'note', d, e.note); }
+      for (const e of shown) { const d = el('div', `entry${e.done && this.known(e.done) ? ' done' : ''}`, page); el('div', 'name', d, e.name); el('div', 'note', d, e.note); }
     };
     if (nb.warning) el('div', 'warning', leftPage, nb.warning);
     section(leftPage, 'errands', nb.errands ?? []);

@@ -3,7 +3,13 @@
  "errands": [
   {
    "name": "parcel 4471",
-   "note": "to the radio repair, main street. by ten."
+   "note": "to the radio repair, main street. by ten.",
+   "done": "parcel_delivered"
+  },
+  {
+   "name": "my radio",
+   "note": "needs a valve. the left one's dead.",
+   "done": "radio_heard"
   }
  ],
  "people": [

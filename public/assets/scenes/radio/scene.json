@@ -224,7 +224,8 @@
         "concierge": "Guest · repairs",
         "raw": "the radio man"
       },
-      "ask": "He repairs old radios, guest. A charming pastime."
+      "ask": "He repairs old radios, guest. A charming pastime.",
+      "story": "fixer"
     }
   ],
   "lights": [

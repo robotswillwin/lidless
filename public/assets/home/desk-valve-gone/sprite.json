@@ -1,0 +1,25 @@
+{
+  "name": "desk-valve-gone",
+  "x": 643,
+  "y": 283,
+  "w": 17,
+  "h": 27,
+  "maps": [
+    "albedo.concierge",
+    "albedo.raw",
+    "glow.concierge",
+    "glow.raw"
+  ],
+  "depth": 3,
+  "parallax": 1,
+  "occluder": 0,
+  "reflectivity": 0,
+  "object": 0,
+  "anchor": [
+    9,
+    27
+  ],
+  "exists": "both",
+  "kind": "background",
+  "res": 2
+}

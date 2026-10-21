@@ -7,7 +7,6 @@
     "sprite": "cast/hero",
     "speed": 170,
     "items": [
-      "parcel",
       "credits",
       "matches",
       "cigarettes",

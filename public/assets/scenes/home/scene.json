@@ -19,6 +19,18 @@
    "asset": "home/cutaway-building",
    "x": -23.5,
    "y": 0
+  },
+  {
+   "asset": "home/desk-valve-gone",
+   "x": 638.56,
+   "y": 280.91,
+   "when": "taken has valve"
+  },
+  {
+   "asset": "home/desk-parcel-gone",
+   "x": 672.31,
+   "y": 296.79,
+   "when": "taken has parcel"
   }
  ],
  "lights": [
@@ -262,7 +274,7 @@
    "own": 1
   },
   {
-   "x": 645,
+   "x": 646,
    "y": 295,
    "z": 8,
    "r": 50,
@@ -274,7 +286,8 @@
    "i": 0.6,
    "zone": 0,
    "layer": 1,
-   "g": 2
+   "g": 2,
+   "when": "!(taken has valve)"
   },
   {
    "x": 635,
@@ -487,10 +500,7 @@
     20
    ],
    "stand": 590,
-   "look": {
-    "concierge": "You, alone, smiling at something out of frame.",
-    "raw": "You, and the one you're looking for, an arm round your shoulders. The Concierge shows you alone."
-   }
+   "story": "photo"
   },
   {
    "id": "screen",
@@ -538,15 +548,20 @@
     "raw": "Radio valve"
    },
    "rect": [
-    640,
-    286,
-    11,
-    20
+    641,
+    285,
+    12,
+    21
    ],
-   "stand": 645,
+   "stand": 646,
    "look": {
     "concierge": "A vintage ornament, the Concierge calls it. It glows a little.",
     "raw": "An old radio valve in a jar. You don't know why you bought it, or why you keep looking at it."
+   },
+   "item": "valve",
+   "take": {
+    "concierge": "You pocket the curio.",
+    "raw": "The valve. The radio's been waiting for one."
    }
   },
   {
@@ -559,31 +574,29 @@
     657,
     289,
     24,
-    18
+    17
    ],
-   "stand": 668,
-   "look": {
-    "concierge": "A decorative retro speaker. It plays whatever the Concierge thinks you'd like.",
-    "raw": "A transistor radio with its back off, a screwdriver beside it. Weeks of work. It almost works."
-   },
-   "use": {
-    "concierge": "Soft music, chosen for you.",
-    "raw": "Static. Somewhere under it, almost, a voice."
-   }
+   "stand": 669,
+   "story": "radio"
   },
   {
    "id": "parcel",
    "name": "Parcel",
    "rect": [
-    676,
-    298,
-    19,
-    11
+    674,
+    299,
+    17,
+    10
    ],
-   "stand": 685,
+   "stand": 682,
    "look": {
     "concierge": "A neat white box with the Concierge's mark. Due at Radio Repair by 22:00.",
     "raw": "Brown paper and string, no address on the outside. Due at Radio Repair by 22:00."
+   },
+   "item": "parcel",
+   "take": {
+    "concierge": "Delivery 4471: in your things. Due at Radio Repair by 22:00.",
+    "raw": "The parcel. For the radio man. Don't open it."
    }
   },
   {

@@ -5,6 +5,7 @@
 
 import { fetchSprite, imageFromBlob, loadBlob, makeSprite, spriteDefaults, type FetchedSprite, type GodrayDef, type GroundDef, type LoadedScene, type Only, type Views, type MoverDef, type SceneDef, type Sprite, type SteamDef } from '../engine/assets';
 import { presets, type PlacedLight } from '../engine/presets';
+import { conditionProblem } from './conditions';
 import { textureFromImage, type GL } from '../engine/gl';
 import type { Hotspot, LevelDef } from './level';
 import type { Outfits } from './outfits';
@@ -30,6 +31,8 @@ export interface LayerDef {
   only?: Only;
   /** Placed elsewhere in one view. */
   views?: Views<{ x: number; y: number }>;
+  /** There only while this condition on the story holds (see conditions.ts): a window broken, a sign that comes on. */
+  when?: string;
 }
 
 /** Where a door or an edge leads: a scene, and the place there to arrive at. */
@@ -218,7 +221,13 @@ export function checkSceneFile(data: unknown, id?: string): string[] {
     const go = h?.go as Record<string, unknown> | undefined;
     if (go !== undefined && (!isStr(go?.scene) || !isStr(go?.spawn))) out.push(`${name}: go needs a scene and a spawn to arrive at`);
     if (h?.only !== undefined && h.only !== 'raw' && h.only !== 'concierge') out.push(`${name}: only must be "raw" or "concierge"`);
+    for (const k of ['story', 'item'] as const) if (h?.[k] !== undefined && !isStr(h[k])) out.push(`${name}: ${k} must be a name`);
+    if (h?.when !== undefined) { const p = isStr(h.when) ? conditionProblem(h.when) : 'it must be text'; if (p) out.push(`${name}: when: ${p}`); }
   });
+  // a layer or a light there only when a condition holds
+  for (const [list, items] of [['layers', layers ?? []], ['lights', Array.isArray(f.lights) ? (f.lights as Record<string, unknown>[]) : []]] as const) {
+    items.forEach((x, i) => { if (x?.when !== undefined) { const p = isStr(x.when) ? conditionProblem(x.when) : 'it must be text'; if (p) out.push(`${list}[${i}]: when: ${p}`); } });
+  }
   if (f.movers !== undefined) {
     if (!Array.isArray(f.movers)) out.push('movers must be a list');
     else (f.movers as Record<string, unknown>[]).forEach((m, i) => {
@@ -319,7 +328,7 @@ export async function makeScene(gl: GL, fetched: FetchedScene, world: WorldFile)
   const sprites = await Promise.all(file.layers.map(async (layer) => {
     const s = await sprite(layer.asset), d = s.def;
     // each layer has a definition of its own, so the same asset can be placed twice
-    return { ...s, def: { ...d, x: layer.x ?? d.x, y: layer.y ?? d.y, parallax: layer.parallax ?? d.parallax, front: layer.front ?? d.front, depth: layer.depth ?? d.depth, facing: layer.facing ?? d.facing, footprint: layer.footprint ?? d.footprint, only: layer.only, views: layer.views } };
+    return { ...s, def: { ...d, x: layer.x ?? d.x, y: layer.y ?? d.y, parallax: layer.parallax ?? d.parallax, front: layer.front ?? d.front, depth: layer.depth ?? d.depth, facing: layer.facing ?? d.facing, footprint: layer.footprint ?? d.footprint, only: layer.only, views: layer.views, when: layer.when } };
   }));
   const zone = fetched.zone ? textureFromImage(gl, await imageFromBlob(await fetched.zone, file.zoneMap), false) : zoneTexture(gl, file);
   const def: SceneDef = {

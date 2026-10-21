@@ -2,7 +2,7 @@
 // for as long as it takes to read, and a tap, a click, Space or Enter moves on sooner. What is narrated is a quiet line
 // at the top. Her answers are a list along the bottom to pick from, and the one she picks she says over her head.
 
-import type { Line } from './dialogue';
+import type { Command, Line } from './dialogue';
 
 /** Where a speaker's lines go: the point over their head, in the HUD's pixels; null for the top, where narration is. */
 export type SpeakerAt = (speaker: string) => [number, number] | null;
@@ -25,9 +25,13 @@ export class Talk {
   onChoose: (i: number) => void = () => {};
   /** The conversation is over: its last line has been said and there is nothing left to answer. */
   onEnd: () => void = () => {};
+  /** What a line has the game do before it is said (she walks, changes, a fade): the conversation waits for it. */
+  run: (commands: Command[]) => Promise<void> = async () => {};
   open = false;
 
   private queue: Line[] = [];
+  /** A line's commands are being done: nothing moves on until they are. */
+  private directing = false;
   private choices: string[] = [];
   private current: Line | null = null;
   private timer = 0;
@@ -58,7 +62,22 @@ export class Talk {
   /** On to the next line; after the last one her answers, or, with none, the end. */
   next(): void {
     window.clearTimeout(this.timer);
+    if (this.directing) return;
     const l = this.queue.shift();
+    if (l?.commands?.length) {
+      // what the line has the game do first, nothing said meanwhile; then its words, if it has any
+      this.directing = true;
+      this.current = null;
+      this.line.hidden = true;
+      this.skip.hidden = true;
+      void this.run(l.commands).catch(() => {}).then(() => {
+        this.directing = false;
+        if (!this.open) return;
+        if (l.text) this.queue.unshift({ text: l.text, speaker: l.speaker });
+        this.next();
+      });
+      return;
+    }
     if (l) {
       this.current = l;
       this.line.textContent = l.text;
@@ -105,6 +124,7 @@ export class Talk {
   hide(): void {
     window.clearTimeout(this.timer);
     this.open = false;
+    this.directing = false;
     this.current = null;
     this.queue = [];
     this.line.hidden = true;

@@ -44,6 +44,9 @@ export class SceneRunner {
   private shadows = new Float32Array(32);
   private smokeSlot = -1;
 
+  /** Whether a condition on the story holds: a layer or a light with one is there only while it does. */
+  shown: (when: string) => boolean = () => true;
+
   /** Sprites named in `dynamic` are left out; the game draws them itself (the hero). */
   constructor(readonly scene: LoadedScene, private dynamic = new Set<string>()) {
     this.sync();
@@ -125,8 +128,8 @@ export class SceneRunner {
     this.scene.sprites.forEach((sprite, i) => {
       if (this.dynamic.has(sprite.def.name)) return;
       const def = sprite.def, facing = def.facing ?? 1;
-      // a layer placed for one view only: its movers go with it
-      if (!inViewOf(def.only, view)) return;
+      // a layer placed for one view only, or only while something holds: its movers go with it
+      if (!inViewOf(def.only, view) || (def.when && !this.shown(def.when))) return;
       // a character placed in the scene plays its idle loop, facing the way the scene says; placed elsewhere in this view,
       // it is drawn there
       const at = def.views?.[viewName];
@@ -186,7 +189,7 @@ export class SceneRunner {
       zone: this.scene.zone,
       sprites,
       // each light with its preset and as it is in this view, and on a far layer where that layer is
-      lights: d.lights.map((placed) => { const l = resolveLight(placed, viewName); return (l.parallax ?? 1) === 1 ? l : { ...l, x: l.x + along(l.parallax) }; }),
+      lights: d.lights.filter((placed) => !placed.when || this.shown(placed.when)).map((placed) => { const l = resolveLight(placed, viewName); return (l.parallax ?? 1) === 1 ? l : { ...l, x: l.x + along(l.parallax) }; }),
       gi: lightGroups(t),
       cars: this.cars,
       nCars,

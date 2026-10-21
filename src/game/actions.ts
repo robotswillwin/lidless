@@ -17,24 +17,36 @@ const NAMES: Record<Verb, string> = { eyes: 'Look', heart: 'Talk', hands: 'Use',
 /** A verb's name: the Concierge's, capitalised, in its view; hers, in lower case, in raw view. */
 export const verbName = (v: Verb, raw: boolean): string => (raw ? NAMES[v].toLowerCase() : NAMES[v]);
 
-/** What the verb does to this thing in the view on screen, or null if it does nothing to it. `watched`: the Concierge sees her here. */
-export function actionFor(h: Hotspot, v: Verb, raw: boolean, watched = true): Action | null {
+/** Whether a thing's knot in the story has a stitch: an object with `story` answers a verb there. */
+export type Stitches = (h: Hotspot, stitch: string) => boolean;
+const STITCHES: Record<Verb, string> = { eyes: 'look', heart: 'talk', hands: 'use', take: 'take', ask: 'ask' };
+
+/**
+ * What the verb does to this thing in the view on screen, or null if it does nothing to it. `watched`: the Concierge sees
+ * her here. `stitches`: whether the thing's knot in the story answers a verb (over its texts).
+ */
+export function actionFor(h: Hotspot, v: Verb, raw: boolean, watched = true, stitches: Stitches = () => false): Action | null {
+  const st = stitches(h, STITCHES[v]);
   if (v === 'eyes') {
-    if (!h.look) return null;
-    const stare = raw && typeof h.look === 'object' && h.look.raw !== h.look.concierge;
+    if (!h.look && !st) return null;
+    // staring is looking closely at what the Concierge shows otherwise: plain texts that differ (the story says itself)
+    const stare = raw && !st && typeof h.look === 'object' && h.look.raw !== h.look.concierge;
     return { kind: 'eyes', label: raw ? (stare ? 'look closely' : 'look') : 'Look', cost: stare && watched ? 1 : 0 };
   }
-  if (v === 'heart') return h.talk ? { kind: 'heart', label: verbName(v, raw) } : null;
-  if (v === 'hands') return h.use || h.wardrobe || h.wear ? { kind: 'hands', label: verbName(v, raw) } : null;
-  if (v === 'take') return h.take ? { kind: 'take', label: verbName(v, raw) } : null;
-  return !raw && h.ask ? { kind: 'ask', label: 'Ask' } : null;
+  if (v === 'heart') return h.talk || st ? { kind: 'heart', label: verbName(v, raw) } : null;
+  if (v === 'hands') return h.use || h.wardrobe || h.wear || st ? { kind: 'hands', label: verbName(v, raw) } : null;
+  if (v === 'take') return h.take || h.item || st ? { kind: 'take', label: verbName(v, raw) } : null;
+  return !raw && (h.ask || st) ? { kind: 'ask', label: 'Ask' } : null;
 }
 
+/** Using a thing she holds on this one: on anything, to try; what comes of it is the story's (use_<thing>), or nothing. */
+export const itemActionFor = (name: string, raw: boolean): Action => ({ kind: 'item', label: raw ? `use ${name}` : `Use ${name}` });
+
 /** Everything that can be done with a thing in the view on screen: going through it first, then the verbs in order. */
-export function actionsFor(h: Hotspot, raw: boolean, watched = true): Action[] {
+export function actionsFor(h: Hotspot, raw: boolean, watched = true, stitches: Stitches = () => false): Action[] {
   const out: Action[] = h.go ? [{ kind: 'feet', label: raw ? 'go' : 'Go' }] : [];
   for (const v of verbsIn(raw)) {
-    const a = actionFor(h, v, raw, watched);
+    const a = actionFor(h, v, raw, watched, stitches);
     if (a) out.push(a);
   }
   return out;

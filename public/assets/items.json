@@ -57,5 +57,16 @@
    "concierge": "Unlicensed item",
    "raw": "drawn by hand. no names on it."
   }
+ },
+ "valve": {
+  "icon": "valve",
+  "name": {
+   "concierge": "Vintage valve",
+   "raw": "a radio valve"
+  },
+  "note": {
+   "concierge": "Decorative curio",
+   "raw": "for the radio. the left one's dead."
+  }
  }
 }

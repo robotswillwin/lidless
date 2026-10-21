@@ -253,6 +253,10 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .hud-panel.pockets .note { font-size: clamp(14px, 1.15cqw, 17px); line-height: 1.2; color: #5a5148; }
 .hud-panel.pockets .gone { color: #5a5148; }
 .hud-panel.pockets .gone .name { text-decoration: line-through; text-decoration-thickness: 2px; }
+/* a thing taken out to use on something: in her pockets a word underlined in pencil, in its catalogue a thin button */
+.hud-panel.pockets .use { justify-self: start; margin-top: 2px; padding: 4px 2px; border: 0; border-bottom: 2px solid #a8661c; background: transparent; color: #2b2824; font: inherit; font-size: clamp(15px, 1.3cqw, 19px); cursor: pointer; }
+.hud-panel.things .use { justify-self: start; margin-top: 8px; min-height: 30px; padding: 0 14px; border: 1px solid var(--co-line); border-radius: 2px; background: transparent; color: var(--cyan); cursor: pointer; }
+.hud-panel .use:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
 .hud-panel.notebook {
   left: 50%; right: auto; top: var(--m); transform: translateX(-50%); width: min(1180px, calc(100% - 2 * var(--m))); max-height: none;
   display: grid; grid-template-columns: 1fr 1fr; padding: 14px; background: #3a2a1e; border-radius: 10px; box-shadow: 0 18px 40px rgba(0, 0, 0, .7);
@@ -263,6 +267,8 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .hud-panel.notebook h2 { margin: 0; font-size: clamp(22px, 2.2cqw, 32px); }
 .hud-panel.notebook .warning { justify-self: end; font-size: clamp(13px, 1.1cqw, 16px); color: #a03b24; transform: rotate(-3deg); }
 .hud-panel.notebook .entry .name { font-size: clamp(16px, 1.5cqw, 22px); font-weight: 700; }
+/* an errand run: crossed out in pencil */
+.hud-panel.notebook .entry.done .name, .hud-panel.notebook .entry.done .note { text-decoration: line-through; text-decoration-thickness: 2px; color: #7a7064; }
 .hud-panel.notebook .note, .hud-panel.notebook li { font-size: clamp(14px, 1.3cqw, 19px); line-height: 1.35; color: #3c3630; }
 .hud-panel.notebook p.note { margin: 0; }
 .hud-panel.notebook .questions { margin: 0; padding-left: 1.4em; }

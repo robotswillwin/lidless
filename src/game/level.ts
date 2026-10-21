@@ -39,8 +39,17 @@ export interface Hotspot {
   views?: Partial<Record<'raw' | 'concierge', Partial<Place>>>;
   /** Her wardrobe: using it, she picks what to wear. */
   wardrobe?: boolean;
-  /** Using it, she changes into this outfit, a while passing behind a fade: the shower leaves her in her bathrobe. */
+  /** Using it, she changes into this outfit, a while passing behind a fade: the shower leaves her undressed. */
   wear?: string;
+  /** There only while this condition on the story holds (see conditions.ts): a thing that turns up, a door that opens. */
+  when?: string;
+  /**
+   * Its knot in the story: each verb runs the knot's stitch of its name (look, talk, use, take, ask) where it has one,
+   * over the texts here, and using a thing she carries on it runs use_<thing>. The story then says what happens.
+   */
+  story?: string;
+  /** A thing she can pick up (one of the story's Things): Take puts it in her pockets, and it is gone from here for good. */
+  item?: string;
 }
 
 /** Where a hotspot is: its area, where she stands to use it and which way she faces then. */

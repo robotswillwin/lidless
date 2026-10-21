@@ -34,6 +34,8 @@ export interface SpriteDef {
   exists?: 'both' | 'concierge' | 'raw';
   /** Placed in a scene only for one view: the scene's say over where the asset itself exists. */
   only?: Only;
+  /** A layer placed only while a condition on the story holds (the game reads it; the engine draws what it is given). */
+  when?: string;
   /** Placed elsewhere in one view of a scene. */
   views?: Views<{ x: number; y: number }>;
   /** What the pipeline built it as: character, prop, background or portrait. */
