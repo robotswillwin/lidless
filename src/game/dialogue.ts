@@ -18,8 +18,11 @@ const SPEAKER_TAG = /^[a-z][a-z0-9_]*$/;
  *   fade: 0.6                  the screen goes dark for so many seconds, and comes back
  *   view: raw | concierge      the view switches
  *   wait: 1.5                  a pause, in seconds
+ *   closeup: station | off     a close-up over the dimmed scene, or none
+ *   terminal: relay7           an old machine's screen (public/assets/terminals/relay7.json); the line waits until she
+ *                              switches it off
  */
-export const COMMANDS = ['walk', 'face', 'wear', 'go', 'fade', 'view', 'wait', 'closeup'] as const;
+export const COMMANDS = ['walk', 'face', 'wear', 'go', 'fade', 'view', 'wait', 'closeup', 'terminal'] as const;
 export type CommandName = (typeof COMMANDS)[number];
 export interface Command { name: CommandName; arg: string }
 

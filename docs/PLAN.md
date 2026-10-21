@@ -129,8 +129,10 @@ and wardrobe.ts (what she wears) each stand alone and are tested on their own; t
 game.ts, about 800 lines, which is the next to go when it grows.
 
 **Not built yet for a full game**: sound (none so far: the director is making the music, the same composition in a
-digital and an analogue arrangement to blend between the views; no effects yet), a title, menu and settings screen
-(next), and translations: English only for now, decided 21 October.
+digital and an analogue arrangement to blend between the views; no effects yet), and translations: English only for
+now, decided 21 October. Built 21 October: the title screen with its menu and settings (also in the game's menu at the
+top right), and old machines' terminals (`# terminal: <id>`, a small read-only Unix over a file system in data; see
+STORY.md), with Relay 7 as a placeholder until the story has its machine.
 
 **Loading between screens.** No logo between scenes: with the neighbours loaded beforehand, the quarter-second fade is
 the whole way from one scene to the next. If a scene is not ready when the fade ends (a slow network, a jump across the

@@ -15,7 +15,7 @@ const SKIP = 'lidless.skipTitle';
 export function titleAtStart(params: URLSearchParams): boolean {
   let skip = false;
   try { skip = sessionStorage.getItem(SKIP) === '1'; sessionStorage.removeItem(SKIP); } catch { /* no session storage */ }
-  return !skip && !['scene', 'new', 't', 'notitle'].some((k) => params.has(k));
+  return !skip && !['scene', 'new', 't', 'notitle', 'terminal'].some((k) => params.has(k));
 }
 
 /** The page loaded again straight into the game: after a new game, or a save loaded. */

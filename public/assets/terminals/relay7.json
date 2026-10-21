@@ -1,0 +1,199 @@
+{
+  "name": "Relay 7",
+  "host": "relay7",
+  "system": "MRA/UX 3.2 PM-11",
+  "clock": "2030-11-02 03:12",
+  "boot": [
+    "MRA PM-11 ROM monitor 2.04",
+    "Memory test: 65536K OK",
+    "Booting from sd0a ...",
+    "MRA/UX 3.2 #14: Mon Oct 14 2030",
+    "real memory  = 67108864",
+    "avail memory = 59768832",
+    "sd0 at scsi0 target 0: <MRA DK-200> 200MB",
+    "le0: no carrier",
+    "WARNING: clock battery flat; the date may be wrong",
+    "WARNING: last shutdown was not clean",
+    "/dev/sd0a: 1 bad block, marked",
+    "/dev/sd0a: mounted read-only; run fsck by hand",
+    "starting: syslogd relayd(disabled)",
+    "",
+    "Last login: Sat Nov  2 02:47 on tty1"
+  ],
+  "user": "okafor",
+  "users": {
+    "root": {
+      "name": "Charlie &",
+      "home": "/root",
+      "password": "w1nter-carrier",
+      "login": {
+        "relay7_root": true
+      }
+    },
+    "okafor": {
+      "name": "Daniel Okafor, relay technician",
+      "home": "/home/okafor"
+    },
+    "lind": {
+      "name": "Mara Lind, night operator",
+      "home": "/home/lind"
+    }
+  },
+  "files": {
+    "/etc/motd": {
+      "date": "2030-10-14 10:20",
+      "text": "MRA/UX 3.2  -  Municipal Relay Authority\nRELAY 7  -  Eastern District\n\nAuthorised personnel only. Sessions are logged.\nFaults to the duty engineer, extension 4471."
+    },
+    "/etc/passwd": {
+      "date": "2030-06-03 14:02",
+      "text": "root:x:0:0:Charlie &:/root:/bin/sh\ndaemon:x:1:1:system:/:/sbin/nologin\nokafor:x:1001:100:Daniel Okafor, relay technician:/home/okafor:/bin/sh\nlind:x:1002:100:Mara Lind, night operator:/home/lind:/bin/sh"
+    },
+    "/etc/hosts": {
+      "date": "2030-06-03 14:05",
+      "text": "127.0.0.1   localhost\n10.7.0.1    relay7\n10.7.0.2    relay6\n10.7.0.3    relay8\n10.0.0.10   central     # MRA central\n10.0.0.40   registry    # district registry"
+    },
+    "/etc/relay/": {
+      "date": "2030-10-01 09:00"
+    },
+    "/etc/relay/README": {
+      "date": "2030-10-01 09:00",
+      "text": "The schedule is kept in /home/okafor/schedule.txt during the trial.\nIt moves here when the trial ends."
+    },
+    "/bin/sh": {
+      "kind": "MRA/UX executable, m88k",
+      "size": 151552,
+      "mode": "rwxr-xr-x",
+      "date": "2030-06-03 14:00"
+    },
+    "/bin/ls": {
+      "kind": "MRA/UX executable, m88k",
+      "size": 40960,
+      "mode": "rwxr-xr-x",
+      "date": "2030-06-03 14:00"
+    },
+    "/bin/cat": {
+      "kind": "MRA/UX executable, m88k",
+      "size": 16384,
+      "mode": "rwxr-xr-x",
+      "date": "2030-06-03 14:00"
+    },
+    "/usr/bin/grep": {
+      "kind": "MRA/UX executable, m88k",
+      "size": 73728,
+      "mode": "rwxr-xr-x",
+      "date": "2030-06-03 14:00"
+    },
+    "/usr/sbin/relayd": {
+      "kind": "MRA/UX executable, m88k",
+      "size": 212992,
+      "mode": "rwxr-x---",
+      "date": "2030-10-14 09:58"
+    },
+    "/home/okafor/": {
+      "owner": "okafor",
+      "date": "2030-11-02 02:47"
+    },
+    "/home/okafor/.profile": {
+      "owner": "okafor",
+      "date": "2030-06-03 14:20",
+      "text": "PATH=/bin:/usr/bin:/usr/local/bin\nPS1='$USER@relay7:$PWD$ '\numask 022\nexport PATH PS1"
+    },
+    "/home/okafor/.sh_history": {
+      "owner": "okafor",
+      "mode": "rw-------",
+      "date": "2030-11-02 02:58",
+      "text": "ls\ncd /var/spool/relay\nls -l\ntar tf archive.tar\ncd\ncat todo\nsu\nw1nter-carrier\nsu\nexit\nmail\nlogout"
+    },
+    "/home/okafor/todo": {
+      "owner": "okafor",
+      "date": "2030-10-30 17:41",
+      "text": "- rack B fan is loud again. part 77-104, ask stores\n- ask Mara about the 03:00 test pattern. it is not on the schedule\n- copy the schedule before the handover\n- spare key back to the district office"
+    },
+    "/home/okafor/schedule.txt": {
+      "owner": "okafor",
+      "date": "2030-10-01 09:00",
+      "text": "RELAY 7 - TRANSMISSION SCHEDULE          rev. 14, 1 Oct 2030\n\nTIME    kHz    WHAT\n00:00   4625   time signal\n00:30   5110   district bulletin (recorded)\n02:00   6998   weather, sea area 3\n04:00   4625   time signal\n06:00   5110   district bulletin (live)\n12:00   4625   time signal\n18:00   5110   district bulletin (live)\n23:00   6998   weather, sea area 3\n\nMaintenance: Tuesdays 01:00-01:45, carrier off."
+    },
+    "/home/okafor/notes/": {
+      "owner": "okafor",
+      "date": "2030-09-12 11:03"
+    },
+    "/home/okafor/notes/rack-b": {
+      "owner": "okafor",
+      "date": "2030-09-12 11:03",
+      "text": "Rack B, 12 Sep\nFan bearing going. Swapped the PSU, the hum is gone.\nTransmitter 2 drifts 40 Hz warm. Left it; it is not ours to retune."
+    },
+    "/home/lind/": {
+      "owner": "lind",
+      "mode": "rwx------",
+      "date": "2030-11-01 03:20"
+    },
+    "/home/lind/notes": {
+      "owner": "lind",
+      "mode": "rw-------",
+      "date": "2030-11-01 03:20",
+      "read": {
+        "relay7_pattern": true
+      },
+      "text": "It starts at 03:00 and runs nine minutes. 7350 kHz.\nNot ours: relayd logs it as unscheduled.\nCentral says it is a test and to log it. I log it.\nI also write it down. See pattern."
+    },
+    "/home/lind/pattern": {
+      "owner": "lind",
+      "mode": "rw-------",
+      "date": "2030-11-01 03:18",
+      "text": "1 Nov  03:00  7350\n  4 1 7 . 2 2 . 0 9 . 3 1 . 6\n  4 1 7 . 2 2 . 0 9 . 3 1 . 6\n  (then a tone, then nothing)"
+    },
+    "/root/": {
+      "mode": "rwx------",
+      "date": "2030-10-28 09:10"
+    },
+    "/root/handover.txt": {
+      "mode": "rw-------",
+      "date": "2030-10-28 09:10",
+      "read": {
+        "relay7_handover": true
+      },
+      "text": "RELAY 7 - HANDOVER                              28 Oct 2030\n\nFrom 1 December the relay is run from Central. Local staff are\nreleased with thanks. The district registry entry for this site\nwill be closed.\n\nLeave the machine as it is. The local archive will be collected.\nDo not discuss the 03:00 pattern outside the Authority.\n\n- K. Varga, for the Authority"
+    },
+    "/var/log/messages": {
+      "date": "2030-11-02 03:12",
+      "text": "Oct 31 23:58:01 relay7 relayd[88]: carrier up, 4625 kHz\nNov  1 00:00:00 relay7 relayd[88]: time signal\nNov  1 02:00:00 relay7 relayd[88]: weather, sea area 3\nNov  1 03:00:00 relay7 relayd[88]: unscheduled carrier, 7350 kHz\nNov  1 03:09:12 relay7 relayd[88]: unscheduled carrier stopped\nNov  2 00:00:00 relay7 relayd[88]: time signal\nNov  2 02:47:10 relay7 login: okafor on tty1\nNov  2 03:00:00 relay7 relayd[88]: unscheduled carrier, 7350 kHz\nNov  2 03:04:41 relay7 kernel: power failure, running on battery\nNov  2 03:12:05 relay7 kernel: battery low, halting"
+    },
+    "/var/mail/okafor": {
+      "owner": "okafor",
+      "mode": "rw-------",
+      "date": "2030-11-01 03:15",
+      "text": "From lind@relay7 Fri Nov  1 03:15:22 2030\nFrom: Mara Lind <lind@relay7>\nTo: okafor@relay7\nSubject: it did it again\n\n03:00 again. 7350, nine minutes, then nothing.\nNot on any schedule I have. Central says it is a test and to log it.\nI logged it. I also wrote it down.\n\nM.\n\nFrom varga@central Mon Oct 28 09:02:47 2030\nFrom: K. Varga <varga@central>\nTo: okafor@relay7, lind@relay7\nSubject: Handover\n\nPlease see the note in /root. Thank you both for your years at Relay 7.\n\nK. Varga"
+    },
+    "/var/spool/relay/": {
+      "date": "2030-10-31 23:50"
+    },
+    "/var/spool/relay/archive.tar": {
+      "kind": "tar archive",
+      "size": 18874368,
+      "date": "2030-10-31 23:50",
+      "damaged": true,
+      "entries": [
+        "schedule/rev01.txt",
+        "schedule/rev02.txt",
+        "schedule/rev03.txt",
+        "schedule/rev04.txt",
+        "schedule/rev05.txt",
+        "schedule/rev06.txt",
+        "schedule/rev07.txt",
+        "schedule/rev08.txt",
+        "schedule/rev09.txt",
+        "schedule/rev10.txt",
+        "schedule/rev11.txt",
+        "schedule/rev12.txt",
+        "schedule/rev13.txt",
+        "schedule/rev14.txt",
+        "log/2030-09.txt",
+        "log/2030-10.txt"
+      ]
+    }
+  },
+  "man": {
+    "relayd": "RELAYD(8)            MRA/UX Manager's Manual\n\nNAME\n    relayd - key the relay's transmitters to its schedule\n\nSYNOPSIS\n    relayd [-s schedule] [-l log]\n\nDESCRIPTION\n    relayd keys the transmitters as the schedule says\n    (/etc/relay/schedule; during the trial, the technician's\n    copy). Every carrier is logged to /var/log/messages.\n    A carrier relayd did not key is logged as unscheduled.\n\nFILES\n    /etc/relay/schedule   /var/log/messages   /var/spool/relay"
+  }
+}

@@ -1,8 +1,9 @@
 // Lidless: boot. Loads the world, the look and the hero, starts a game session (src/game/game.ts) and runs its frames.
 // The address can ask for ?new (start over), ?scene=id&spawn=place, ?view=raw, ?variant=rain (the scenes in a variant,
 // whatever the story says), ?q=low|medium|high, ?debug (tier and frame rate), and for tests ?t=seconds (a still frame),
-// ?cam=x (the camera held there) and ?fast (a story's pauses cut short). The title screen shows as it opens, except for
-// an address that asks for a scene or a new game; the player's settings are kept in the browser (game/settings.ts).
+// ?cam=x (the camera held there) and ?fast (a story's pauses cut short); ?terminal=id opens an old machine's screen
+// (public/assets/terminals/id.json) at once. The title screen shows as it opens, except for an address that asks for a
+// scene, a new game or a machine; the player's settings are kept in the browser (game/settings.ts).
 
 import './style.css';
 import { loadSprite, setTexelBudget, spriteDefaults } from './engine/assets';
@@ -105,7 +106,9 @@ async function boot(): Promise<void> {
   document.documentElement.dataset.ready = '1';
   // the first scene drawn: the fade the page opened with, its name over it, lifts; the title screen over the scene
   document.getElementById('fade')?.classList.remove('on', 'boot');
-  if (titleAtStart(params)) title();
+  const machine = params.get('terminal');
+  if (machine) void game.terminal(machine);
+  else if (titleAtStart(params)) title();
   if (fixedT !== null) return;
 
   let visible = true, last = 0;

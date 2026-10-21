@@ -21,7 +21,9 @@ import { dressedFor, keepsProjection, outfitAfter } from './outfits';
 import { Wardrobe } from './wardrobe';
 import { listSaves, loadSave, writeSave, type SaveData, type Slot } from './save';
 import { SceneRunner, type ViewState } from './scene';
+import type { Machine } from './shell';
 import { Talk } from './talk';
+import { openTerminal } from './terminal';
 import { type Scene, type WorldFile } from './scenefile';
 import { Scenes } from './scenes';
 import { UI } from './ui';
@@ -573,6 +575,7 @@ export class Game {
     view: (raw) => { if (raw !== this.raw) this.toggleView(true); },
     sleep: (ms) => new Promise((r) => setTimeout(r, this.s.fast ? Math.min(ms, 50) : ms)),
     closeup: (name) => this.hud.showCloseup(name),
+    terminal: (id) => this.terminal(id),
   };
 
   /**
@@ -872,6 +875,24 @@ export class Game {
   /** Less motion, or full: the settings' Motion, as it changes. */
   setMotion(reduced: boolean): void {
     this.s.reduceMotion = reduced;
+  }
+
+  /**
+   * An old machine's screen over the game (public/assets/terminals/<id>.json), until she switches it off. What she
+   * reads there, and the users she becomes, tell the story; what is on it can wait for the story (a file's `when`).
+   */
+  async terminal(id: string): Promise<void> {
+    const machine = await fetch(`${this.s.assets}/terminals/${id}.json`, { cache: 'no-store' }).then((r) => (r.ok ? (r.json() as Promise<Machine>) : null)).catch(() => null);
+    if (!machine) return;
+    const locked = this.inputLocked;
+    this.inputLocked = true;
+    this.hud.closeAll();
+    await openTerminal(this.s.stage, machine, {
+      test: (cond) => this.dialogue.test(cond),
+      tell: (vars) => { for (const [k, v] of Object.entries(vars)) this.dialogue.set(k, v); },
+    }, { fast: this.s.fast });
+    this.inputLocked = locked;
+    this.persist();
   }
 
   /* ---------- each frame ---------- */

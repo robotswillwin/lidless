@@ -349,6 +349,32 @@ const checks = {
     await page.close();
   },
 
+  /** An old machine's screen: shut files, a password in a careless history, root, and the story keeps what she read. */
+  async terminal() {
+    const page = await fresh('scene=home&terminal=relay7');
+    await page.waitForSelector('.terminal .line:not([hidden])', { timeout: 15000 });
+    const type = async (line) => { await page.type('.terminal input', line); await page.keyboard.press('Enter'); await wait(80); };
+    const last = (n = 1) => page.$$eval('.terminal .out .l', (ls, k) => ls.slice(-k).map((l) => l.textContent), n);
+    const prompt = () => page.$eval('.terminal .prompt', (p) => p.textContent);
+    check('the machine comes up: its message, then its prompt', /^okafor@relay7:~\$ $/.test(await prompt()) && (await page.$eval('.terminal .out', (o) => o.textContent)).includes('Municipal Relay Authority'), await prompt());
+    await type('cat /root/handover.txt');
+    check('root\'s files are shut to her', (await last())[0] === 'cat: /root/handover.txt: Permission denied', (await last())[0]);
+    await type('cat .sh_history');
+    check('her history: a password typed where a command goes', (await last(12)).includes('w1nter-carrier'));
+    await type('su');
+    check('su asks for the password, hidden as it is typed', (await page.$eval('.terminal input', (i) => i.type)) === 'password');
+    await type('w1nter-carrier');
+    check('the password opens root', (await prompt()).endsWith('# '), await prompt());
+    await type('cat /root/handover.txt');
+    check('root reads the handover', (await last(10)).some((l) => l.includes('HANDOVER')));
+    await type('exit');
+    await type('exit');
+    const gone = await page.waitForFunction(() => !document.querySelector('.terminal'), { timeout: 5000 }).then(() => true).catch(() => false);
+    const story = await ink(page);
+    check('switched off: the screen goes, the story keeps what she found', gone && /"relay7_root":\s*true/.test(story) && /"relay7_handover":\s*true/.test(story));
+    await page.close();
+  },
+
   /** Held far from her outdoors, a finger runs her after it until it comes up; a tap walks her there. */
   async run() {
     const page = await fresh('scene=street&spawn=from-backstreet');

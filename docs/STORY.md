@@ -97,6 +97,7 @@ on a line of its own before a line belongs to that line.
 | `view: raw`, `view: concierge` | The view switches. |
 | `wait: 1.5` | A pause, in seconds. |
 | `closeup: station`, `closeup: off` | A close-up over the dimmed scene (`public/assets/closeups/station.concierge.webp` and `.raw.webp`, as the view on screen has it) until `off` or the conversation's end; lines are said at the top meanwhile. Made with `npm run asset -- closeups`. |
+| `terminal: relay7` | An old machine's screen over the game (`public/assets/terminals/relay7.json`), until she switches it off; the line waits. See Old machines, below. |
 
 A short cutscene is a knot of such lines. Speaker tags (`#luna`, `#fixer`, `#concierge`) stay as they are.
 
@@ -125,6 +126,30 @@ what she keeps from it (what she saw, what she thinks, what to ask it), read onl
 What she has not read yet (an entry, a line added to it, a crossing out) has a dot, on the page's tab and the book's
 button too; the save keeps what she has read. The tests check every condition in both, and that pages and entries have
 ids of their own (the journal's `places` is the map).
+
+## Old machines: terminals
+
+An old computer, offline, is a file system written in data, `public/assets/terminals/<id>.json`, and a small Unix
+over it (src/game/shell.ts): `ls`, `cd`, `cat`, `grep`, `find`, `head`, `tail`, `file`, `tar`, `man`, `su` and the
+rest (`help` lists them), with pipes, quotes, wildcards, Tab completion and history. Its disk is mounted read-only and
+there is no network, so she can read and search it but change nothing. `# terminal: <id>` in a line opens it, and
+`?terminal=<id>` in the address opens it at once, for trying one out. On a phone, keys under the screen type the
+common commands and the names where she is.
+
+- `name` (on the screen's bar), `host`, `system` (what `uname -a` says), `clock` (the machine's date as it comes up),
+  `boot` (lines it prints coming up), `user` (who was left logged in), `man` (manual pages of its own).
+- `users`: each with `home`, and a `password` if `su` can reach it (none: it cannot); `login`, variables the story
+  is told when she becomes that user.
+- `files`: by absolute path; a path ending in `/` is a directory. Each can have `text`, `owner`, `mode` (as ls shows
+  it, `rw-r--r--`; the group counts as others), `date`, `kind` and `size` for one that is not text (a program, an
+  archive, which `cat` shows as garbage), `entries` and `damaged` for an archive, `when` (there only while a
+  condition on the story holds), and `read`: variables the story is told when she reads it whole (`cat`, `more`,
+  `less`; a search through it with `grep` does not count).
+
+Relay 7 (`relay7.json`) is a placeholder: a municipal radio relay's machine from 2030, its technician's files, the
+night operator's locked ones, logs, mail, a damaged archive, and root's password where a careless history left it. It
+tells the story `relay7_root`, `relay7_handover` and `relay7_pattern` (main.ink). Where the machine comes from, and
+where in her flat it stands, is the story's to decide; nothing in the game opens it yet but the address.
 
 ## The map
 

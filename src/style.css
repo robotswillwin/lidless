@@ -592,5 +592,34 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .title-screen .back { justify-self: center; }
 .title-screen .ask { margin: 0; max-width: 360px; text-align: center; font: 400 15px/1.45 var(--ui); color: rgba(245, 243, 239, .85); }
 .title-screen button:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+/* an old machine's screen (game/terminal.ts): green phosphor on dark glass, scanlines over it, a little flicker */
+.stage[data-terminal] .hud { visibility: hidden; }
+.terminal { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  background: rgba(2, 4, 3, .82); animation: hud-fade .25s ease-out both; }
+.terminal.out { opacity: 0; transition: opacity .25s ease-in; }
+.terminal .crt { --phosphor: #8dff9b; --dim-phosphor: rgba(141, 255, 155, .35); position: relative; display: grid; grid-template-rows: auto 1fr auto; width: min(100%, 1100px); height: min(100%, 780px); overflow: hidden;
+  border-radius: 18px; background: radial-gradient(ellipse at 50% 42%, #0f1d12 0%, #060c07 68%, #020403 100%);
+  box-shadow: 0 0 0 9px #191b18, 0 0 0 10px #2c2f2a, 0 24px 60px rgba(0, 0, 0, .75), inset 0 0 70px rgba(0, 0, 0, .85);
+  color: var(--phosphor); font: 400 calc(clamp(17px, 1.75vw, 25px) * var(--ts, 1))/1.12 'VT323', ui-monospace, Menlo, monospace;
+  text-shadow: 0 0 3px rgba(120, 255, 140, .55), 0 0 11px rgba(120, 255, 140, .16); }
+.terminal .crt::after { content: ''; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  background: repeating-linear-gradient(to bottom, transparent 0 2px, rgba(0, 0, 0, .24) 2px 3px), radial-gradient(ellipse at 50% 50%, transparent 62%, rgba(0, 0, 0, .45) 100%); }
+.terminal .crt::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: rgba(150, 255, 170, .03); animation: crt-flicker 7s steps(1) infinite; }
+@keyframes crt-flicker { 0%, 100% { opacity: .5; } 61% { opacity: 1; } 62% { opacity: .3; } 63% { opacity: .9; } 88% { opacity: .6; } }
+.terminal .bar { display: flex; align-items: center; gap: 14px; padding: 8px 14px 6px; border-bottom: 1px solid rgba(141, 255, 155, .16); font-size: .82em; letter-spacing: .12em; text-transform: uppercase; }
+.terminal .bar .state { opacity: .55; }
+.terminal .bar .off { margin-left: auto; min-height: 32px; padding: 0 12px; border: 1px solid var(--dim-phosphor); border-radius: 6px; background: transparent; color: inherit; font: inherit; letter-spacing: inherit; text-transform: inherit; text-shadow: inherit; cursor: pointer; }
+.terminal .screen { position: relative; overflow-y: auto; padding: 10px 16px 8px; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: var(--dim-phosphor) transparent; cursor: text; }
+.terminal .out .l { white-space: pre-wrap; overflow-wrap: anywhere; }
+.terminal .line { display: flex; align-items: baseline; }
+.terminal .line[hidden] { display: none; }
+.terminal .prompt { white-space: pre; }
+.terminal .line input { flex: 1; min-width: 0; height: 1.12em; padding: 0; border: 0; outline: 0; background: transparent; color: inherit; font: inherit; text-shadow: inherit; caret-color: var(--phosphor); caret-shape: block; }
+.terminal .keys { display: flex; gap: 6px; overflow-x: auto; padding: 8px 12px 10px; border-top: 1px solid rgba(141, 255, 155, .12); scrollbar-width: none; }
+.terminal .keys::-webkit-scrollbar { display: none; }
+.terminal .key { flex: none; min-height: 34px; padding: 0 11px; border: 1px solid var(--dim-phosphor); border-radius: 6px; background: rgba(141, 255, 155, .05); color: inherit; font: inherit; font-size: .92em; text-shadow: inherit; white-space: pre; cursor: pointer; }
+.terminal .key.fn { background: rgba(141, 255, 155, .13); }
+.terminal .key:active, .terminal .bar .off:active { background: rgba(141, 255, 155, .25); }
+.terminal .probe { position: absolute; visibility: hidden; white-space: pre; }
 /* less motion, as the settings ask: nothing slides, fades or blinks */
 :root[data-motion="reduced"] *, :root[data-motion="reduced"] *::before, :root[data-motion="reduced"] *::after { animation: none !important; transition: none !important; }

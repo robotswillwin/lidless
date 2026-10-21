@@ -35,5 +35,10 @@ VAR taken = ()
 VAR parcel_delivered = false
 // her radio, mended: what she heard under the static
 VAR radio_heard = false
+// what she found on the old machine, Relay 7 (public/assets/terminals/relay7.json, `# terminal: relay7`): placeholders,
+// until the story has the machine. Root's password found, the handover read, the night operator's notes read
+VAR relay7_root = false
+VAR relay7_handover = false
+VAR relay7_pattern = false
 
 -> END
