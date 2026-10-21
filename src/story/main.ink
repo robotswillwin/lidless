@@ -15,10 +15,13 @@ VAR favours_owed = 0
 // read by the game: what the city is like now, a variant the scenes have ("rain", "fog", "outage"); "" as they are
 VAR conditions = ""
 
+// Her credits: digital, her allowance, on her account. The Concierge's greeting shows them in its view
+VAR credits = 312
+
 // The things she can carry: public/assets/items.json says how each looks and what it is called. What she carries now,
 // and what she has picked up anywhere, which is gone from where it was (the game adds to both as she takes a thing)
-LIST Things = parcel, credits, matches, cigarettes, map, valve
-VAR carried = (credits, matches, cigarettes, map)
+LIST Things = parcel, matches, cigarettes, map, valve
+VAR carried = (matches, cigarettes, map)
 VAR taken = ()
 
 // the errand the game begins with: the parcel on her desk, to the radio repair by ten

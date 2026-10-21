@@ -1,11 +1,12 @@
 // The HUD over the frame, the same in both views: it is hers and the player's, not the Concierge's, so it does not
 // change when the view does. What changes with the view is what things are (their names, whether they exist at all)
 // and the Concierge's own voice, which only its view has: its greeting at the top left, its messages, its offers.
-// Her notebook is the one thing on paper: she keeps it from the Concierge, and opens it only where it cannot see her.
+// Her journal is on her device: she reads it anywhere, and the Concierge can read it too. Her notebook is the one thing
+// on paper: what she keeps from the Concierge, opened only in a privacy zone, where it cannot see her.
 //
 // Made for thumbs, nothing that needs a mouse to hover. Her things on the left ball: a tray of them slides out along the
 // bottom. What she can do on the right ball (look, talk, use, take, ask), sliding out the other way. At the top right
-// the view switch with her sense of being watched, the map, her notebook and the menu with her saves. With a verb
+// the view switch with her sense of being watched, the map, her journal, her notebook and the menu with her saves. With a verb
 // chosen, what her finger is over lights up if the verb does something to it, and letting go does it; what she finds is
 // written at the thing.
 
@@ -13,6 +14,7 @@ import { verbName, verbsIn, type Verb } from './actions';
 import { button, el } from './dom';
 import { icon } from './icons';
 import { note, pick, type Hotspot } from './level';
+import { drawJournal, PLACES } from './journal';
 import { drawMap, type MapNow, type Travel } from './map';
 import { drawNotebook, notebookNow, type Notebook } from './notebook';
 import { drawInspect, drawTray, thingsNow, type Item } from './tray';
@@ -39,7 +41,7 @@ export interface Mark {
   box: [number, number, number, number];
 }
 
-type PanelKind = 'notebook' | 'map' | 'menu';
+type PanelKind = 'journal' | 'notebook' | 'menu';
 
 export class Hud {
   readonly root: HTMLElement;
@@ -65,7 +67,7 @@ export class Hud {
   onTravel: (t: Travel) => void = () => {};
   /** Her notebook, reached for where it can see her: she keeps it shut. */
   onShut: () => void = () => {};
-  /** What she has read in her notebook, and reading more of it. */
+  /** What she has read in her journal and her notebook, and reading more of them. */
   read: () => ReadonlySet<string> = () => new Set();
   onRead: (keys: string[]) => void = () => {};
   /** Where the assets are, for her things' pictures. */
@@ -78,9 +80,11 @@ export class Hud {
   private co: HTMLButtonElement;
   private greet: HTMLElement;
   private status: HTMLElement;
+  private credits: HTMLElement;
   private toastEl: HTMLElement | null = null;
   private toastTimer = 0;
   private viewBtn: HTMLButtonElement;
+  private journalBtn: HTMLButtonElement;
   private notebookBtn: HTMLButtonElement;
   private thingsBall: HTMLButtonElement;
   private verbBall: HTMLButtonElement;
@@ -103,6 +107,8 @@ export class Hud {
   private carried: string[] = [];
   private notebook: Notebook = { pages: [] };
   private notebookTab: string | null = null;
+  private journal: Notebook = { pages: [] };
+  private journalTab: string | null = null;
   /** Her things' pictures, fetched once. */
   private readonly fetched = new Set<string>();
 
@@ -117,12 +123,16 @@ export class Hud {
     const words = el('span', 'words', this.co);
     this.greet = el('span', 'greet', words);
     this.status = el('span', 'status', words);
+    this.credits = el('span', 'credits', this.co);
+    this.credits.hidden = true;
 
-    // at the top right: the view and her sense of being watched, the map, her notebook, the menu
+    // at the top right: the view and her sense of being watched, the map, her journal, her notebook, the menu
     const top = el('div', 'hud-top', root);
     this.viewBtn = button('hud-btn view', 'See it as it is (E)', top, () => this.onView());
     this.viewBtn.innerHTML = `${icon('view', 22)}<span class="ticks" aria-hidden="true"><span></span><span></span><span></span></span>`;
-    button('hud-btn map', 'Map (M)', top, () => this.togglePanel('map')).innerHTML = icon('map', 22);
+    button('hud-btn map', 'Map (M)', top, () => this.openJournal(PLACES)).innerHTML = icon('map', 22);
+    this.journalBtn = button('hud-btn journal', 'Her journal (J)', top, () => this.openJournal());
+    this.journalBtn.innerHTML = icon('journal', 22);
     this.notebookBtn = button('hud-btn notebook', 'Her notebook (N)', top, () => this.togglePanel('notebook'));
     button('hud-btn menu', 'Saves', top, () => this.togglePanel('menu')).innerHTML = icon('menu', 22);
 
@@ -145,10 +155,25 @@ export class Hud {
     this.drawBalls();
     if (this.trayEl) this.openTray();
     if (this.inspecting && !carried.includes(this.inspecting)) this.closeInspect();
+    // the story moved on: something new written down?
+    this.drawFresh();
   }
 
   setNotebook(nb: Notebook): void {
     this.notebook = nb;
+    this.drawFresh();
+  }
+
+  setJournal(j: Notebook): void {
+    this.journal = j;
+    this.drawFresh();
+  }
+
+  /** A dot on the journal's and the notebook's buttons while there is something in them she has not read. */
+  private drawFresh(): void {
+    const read = this.read();
+    this.journalBtn.classList.toggle('fresh', notebookNow(this.journal, this.known, read, 'journal:').some((p) => p.fresh));
+    this.notebookBtn.classList.toggle('fresh', notebookNow(this.notebook, this.known, read).some((p) => p.fresh));
   }
 
   /** Which view is on screen, and whether she can switch yet: the switch and her sense of being watched come with the biohack. */
@@ -204,6 +229,13 @@ export class Hud {
   setStatus(greeting: string, status: string): void {
     if (this.greet.textContent !== greeting) this.greet.textContent = greeting;
     if (this.status.textContent !== status) this.status.textContent = status;
+  }
+
+  /** Her credits, digital, on her account: shown with its greeting, in its view; null hides them. */
+  setCredits(n: number | null): void {
+    const text = n === null ? '' : `${n.toLocaleString('en-GB')} credits`;
+    if (this.credits.textContent !== text) this.credits.textContent = text;
+    this.credits.hidden = n === null;
   }
 
   /** How closely the Concierge is watching her, 0 to 3: the ticks under the view switch. */
@@ -469,7 +501,7 @@ export class Hud {
     this.dismissNote();
   }
 
-  /* ---------- panels: her notebook, the map, the menu ---------- */
+  /* ---------- panels: her journal (with the map), her notebook, the menu ---------- */
 
   /** Her notebook's button: open where it cannot see her, its strap closed where it can. */
   private drawNotebookButton(): void {
@@ -495,7 +527,7 @@ export class Hud {
     p.addEventListener('pointerdown', (e) => e.stopPropagation());
     this.onPanel();
     if (kind === 'notebook') this.drawNotebookPanel(p);
-    else if (kind === 'map') this.drawMapPanel(p);
+    else if (kind === 'journal') this.drawJournalPanel(p);
     else this.drawMenu(p);
   }
 
@@ -505,6 +537,17 @@ export class Hud {
     this.panelKind = null;
     delete this.root.dataset.panel;
     this.closeTray();
+    this.drawFresh();
+  }
+
+  /**
+   * Her journal, open at a tab (the map's is `places`), or closed if it is open there already. Its own button opens it at
+   * the page last read, never the map.
+   */
+  private openJournal(tab?: string): void {
+    if (this.panelKind === 'journal' && (tab === undefined ? this.journalTab !== PLACES : this.journalTab === tab)) return this.closePanel();
+    this.journalTab = tab ?? (this.journalTab === PLACES ? null : this.journalTab);
+    this.openPanel('journal');
   }
 
   private drawNotebookPanel(p: HTMLElement): void {
@@ -516,10 +559,15 @@ export class Hud {
     });
   }
 
-  private drawMapPanel(p: HTMLElement): void {
-    void this.mapNow().then((now) => {
-      if (this.panel !== p) return;
-      drawMap(p, now, { go: (t) => { this.closePanel(); this.onTravel(t); }, close: () => this.closePanel() });
+  private drawJournalPanel(p: HTMLElement): void {
+    drawJournal(p, notebookNow(this.journal, this.known, this.read(), 'journal:'), this.journalTab, {
+      tab: (id) => { this.journalTab = id; this.openPanel('journal'); },
+      read: (keys) => this.onRead(keys),
+      close: () => this.closePanel(),
+      map: (body) => void this.mapNow().then((now) => {
+        if (this.panel !== p) return;
+        drawMap(body, now, (t) => { this.closePanel(); this.onTravel(t); });
+      }),
     });
   }
 
@@ -542,14 +590,15 @@ export class Hud {
     }
   }
 
-  /** N her notebook, I her things, M the map, Escape closes what is open or puts the verb down. Returns true if it used the key. */
+  /** N her notebook, J her journal, M the map, I her things, Escape closes what is open or puts the verb down. Returns true if it used the key. */
   key(k: string): boolean {
     if (k === 'Escape' && (this.menu || this.panelOpen)) { this.closeAll(); return true; }
     if (k === 'Escape' && this.held) { this.onHold(null); return true; }
     if (k === 'Escape' && this.verb) { this.onVerb(null); return true; }
     if (k === 'n' || k === 'N') { this.togglePanel('notebook'); return true; }
     if (k === 'i' || k === 'I') { this.toggleTray(); return true; }
-    if (k === 'm' || k === 'M') { this.togglePanel('map'); return true; }
+    if (k === 'm' || k === 'M') { this.openJournal(PLACES); return true; }
+    if (k === 'j' || k === 'J') { this.openJournal(); return true; }
     return false;
   }
 }

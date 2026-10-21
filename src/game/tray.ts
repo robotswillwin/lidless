@@ -1,7 +1,7 @@
 // Her things: a tray that slides out along the bottom from the left ball, each thing painted as it really is. Tapping
 // one takes it out to use on something; pressing and holding it (or right-clicking it) shows it close up, with what is
-// known about it. In the Concierge's view its own words are on them ("Unlicensed item"), and what exists only in its eye
-// (credits) is its own graphic, a projection; in raw view that is an empty place in her pocket.
+// known about it. In the Concierge's view its own words are on them ("Unlicensed item"), and a thing that exists only in
+// its eye (a projection) is its own graphic; in raw view that is an empty place in her pocket.
 
 import { button, el } from './dom';
 import { arIcon, icon } from './icons';
@@ -11,7 +11,7 @@ export interface Item {
   /** The thing painted, an image under the assets (items/parcel.webp); without one, its icon stands in. */
   art?: string;
   icon: string;
-  /** Only in one view: credits exist only in the Concierge's eye. */
+  /** Only in one view: a projection exists only in the Concierge's eye. */
   only?: 'raw' | 'concierge';
   /** Made by people, outside its catalogue: the Concierge offers to dispose of it. */
   unlicensed?: boolean;

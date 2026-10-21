@@ -2,50 +2,10 @@
  "warning": "don't read this where it can see",
  "pages": [
   {
-   "id": "errands",
-   "title": "errands",
-   "empty": "nothing to do. good.",
+   "id": "seen",
+   "title": "what I saw",
+   "empty": "nothing yet. keep looking.",
    "entries": [
-    {
-     "id": "parcel",
-     "name": "parcel 4471",
-     "done": "parcel_delivered",
-     "lines": [
-      "to the radio repair, main street. by ten.",
-      {
-       "text": "on his bench now. he didn't open it. he didn't need to.",
-       "when": "parcel_delivered"
-      }
-     ]
-    },
-    {
-     "id": "radio",
-     "name": "my radio",
-     "done": "radio_heard",
-     "lines": [
-      "needs a valve. the left one's dead.",
-      {
-       "text": "it works. a voice under the static. whose?",
-       "when": "radio_heard"
-      }
-     ]
-    }
-   ]
-  },
-  {
-   "id": "people",
-   "title": "people",
-   "empty": "nobody yet.",
-   "entries": [
-    {
-     "id": "fixer",
-     "name": "the fixer",
-     "when": "has_raw",
-     "lines": [
-      "radio shop, main street. sees what I see now.",
-      "I owe him one favour. he didn't say what."
-     ]
-    },
     {
      "id": "cradle",
      "name": "the woman at the cradle",
@@ -55,14 +15,28 @@
      ]
     },
     {
-     "id": "sleeper",
-     "name": "under the shop window",
+     "id": "voice",
+     "name": "my radio",
+     "when": "radio_heard",
+     "lines": [
+      "a voice under the static. whose?"
+     ]
+    },
+    {
+     "id": "favour",
+     "name": "the fixer",
      "when": "has_raw",
      "lines": [
-      "a man asleep. not there for them. who is he?"
+      "I owe him one favour. he didn't say what."
      ]
     }
    ]
+  },
+  {
+   "id": "think",
+   "title": "what I think",
+   "empty": "nothing I'd write down. yet.",
+   "entries": []
   },
   {
    "id": "questions",

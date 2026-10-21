@@ -41,6 +41,8 @@ export interface GameSetup {
   projectLook: LookSet;
   items: Record<string, Item>;
   notebook: Notebook;
+  /** Her journal, on her device (see journal.ts): the same shape as the notebook. */
+  journal: Notebook;
   save: SaveData | null;
   /** Players who asked for less motion: no camera drift, no switch glitch, no fade. */
   reduceMotion: boolean;
@@ -183,6 +185,7 @@ export class Game {
       for (const k of fresh) this.notesRead.add(k);
       if (fresh.length) this.persist();
     };
+    this.hud.setJournal(s.journal);
     this.hud.onBell = () => this.hud.toast(this.scene.file.assist ?? 'Is there anything I can do for you, guest?');
     this.hud.onPanel = () => this.ui.hideCaption();
     this.hud.onDispose = (_id, dispose) => this.hud.toast(dispose ? 'Of course, guest. I will collect it at your convenience.' : 'As you wish, guest.');
@@ -206,10 +209,12 @@ export class Game {
     return this.state.view < 0.5;
   }
 
-  /** The Concierge sees and hears her here: everywhere but a private scene (her home) and a scene's blind spots. */
+  /**
+   * The Concierge sees and hears her here: everywhere but a privacy zone (her home; later public restrooms and approved
+   * meeting rooms), which the law it keeps forbids it to watch.
+   */
   get watched(): boolean {
-    const f = this.scene?.file;
-    return !!f && !f.private && !(f.blind ?? []).some(([a, b]) => this.world.heroX >= a && this.world.heroX <= b);
+    return !!this.scene && !this.scene.file.private;
   }
 
   /** Seconds since the session started, or the held time. */
@@ -463,8 +468,6 @@ export class Game {
     this.syncView();
     this.hud.setVerb(this.verb);
     this.persist();
-    // back in its view after staring too long: it noticed, and it is concerned
-    if (this.state.view > 0.5 && this.attention >= 3) this.hud.toast('You seem distracted this evening, guest. Shall I schedule some rest for you?', [{ label: 'Yes, please', primary: true }, { label: 'No, thank you' }]);
   }
 
   /* ---------- conversations and doing things ---------- */
@@ -653,7 +656,7 @@ export class Game {
   private scan(clientX: number, clientY: number): void {
     const [x, y] = this.toLevel(clientX, clientY), h = this.verb || this.inHand ? this.world.hotspotAt(x, y, this.raw, this.cam[0]) : null;
     const name = this.inHand && this.s.items[this.inHand] ? pick(this.s.items[this.inHand].name, this.raw) : this.inHand ?? '';
-    const a = !h ? null : this.inHand ? itemActionFor(name, this.raw) : this.verb ? actionFor(h, this.verb, this.raw, this.watched, this.stitches) : null;
+    const a = !h ? null : this.inHand ? itemActionFor(name, this.raw) : this.verb ? actionFor(h, this.verb, this.raw, this.stitches) : null;
     this.marked = h && a ? { h, a, box: this.boxOf(h) } : null;
     this.hud.mark(this.marked);
   }
@@ -677,7 +680,7 @@ export class Game {
     if (button === 2) {
       if (this.inHand) return this.hold(null);
       if (this.verb) return this.setVerb(null);
-      const [x, y] = this.toLevel(clientX, clientY), h = this.world.hotspotAt(x, y, this.raw, this.cam[0]), a = h && actionFor(h, 'eyes', this.raw, this.watched, this.stitches);
+      const [x, y] = this.toLevel(clientX, clientY), h = this.world.hotspotAt(x, y, this.raw, this.cam[0]), a = h && actionFor(h, 'eyes', this.raw, this.stitches);
       if (h && a) this.perform(h, a);
       return;
     }
@@ -815,7 +818,7 @@ export class Game {
     const arrived = (this.talk.open && !this.directing) || this.travelling ? null : world.update(dt);
     // the view may have changed on the way: a generated person is not there to talk to in raw view
     if (arrived && inView(arrived, this.raw)) {
-      const actions = actionsFor(arrived, this.raw, this.watched, this.stitches), a = this.pending?.kind === 'item' ? this.pending : actions.find((x) => x.kind === this.pending?.kind) ?? defaultOf(actions);
+      const actions = actionsFor(arrived, this.raw, this.stitches), a = this.pending?.kind === 'item' ? this.pending : actions.find((x) => x.kind === this.pending?.kind) ?? defaultOf(actions);
       this.pending = null;
       if (a) this.act(arrived, a);
     }
@@ -824,6 +827,8 @@ export class Game {
     // its greeting and its line of the day: the evening goes on, and it never says it is raining
     const minute = 21 * 60 + 40 + Math.floor(t / 60), hh = Math.floor(minute / 60) % 24, mm = minute % 60;
     this.hud.setStatus(file.greeting ?? 'Good evening, guest.', `Friday · Year 64 of Care · ${hh}:${String(mm).padStart(2, '0')} · ${file.kind === 'interior' ? 'Indoors, 21°' : '14°, umbrella advised'}`);
+    const credits = this.dialogue.read('credits');
+    this.hud.setCredits(typeof credits === 'number' ? credits : null);
     // walking into an end of the walk line that leads somewhere: with the keys, or with a finger running her past it
     const push = world.keyDir || (this.chasing && this.finger ? Math.sign(this.toLevel(this.finger[0], this.finger[1])[0] - world.heroX) : 0);
     if (push !== 0 && !this.travelling) {

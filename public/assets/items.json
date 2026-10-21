@@ -11,18 +11,6 @@
   },
   "art": "items/parcel.webp"
  },
- "credits": {
-  "icon": "credits",
-  "only": "concierge",
-  "name": {
-   "concierge": "312 credits",
-   "raw": "credits"
-  },
-  "note": {
-   "concierge": "Weekly allowance · renews in 4 days",
-   "raw": "only there in its eye."
-  }
- },
  "matches": {
   "icon": "matches",
   "unlicensed": true,

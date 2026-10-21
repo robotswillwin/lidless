@@ -12,6 +12,8 @@ const assets = join(__dirname, '../../public/assets');
 const scenes: SceneFile[] = readdirSync(join(assets, 'scenes')).map((id) => JSON.parse(readFileSync(join(assets, 'scenes', id, 'scene.json'), 'utf8')));
 const items = JSON.parse(readFileSync(join(assets, 'items.json'), 'utf8')) as Record<string, unknown>;
 const notebook = JSON.parse(readFileSync(join(assets, 'notebook.json'), 'utf8')) as Notebook;
+const journal = JSON.parse(readFileSync(join(assets, 'journal.json'), 'utf8')) as Notebook;
+const books = { notebook, journal };
 const world = JSON.parse(readFileSync(join(assets, 'world.json'), 'utf8')) as WorldFile;
 const story = new Dialogue(null);
 /** Every item of the story's lists: the Things she can carry. */
@@ -26,11 +28,11 @@ function conditions(): [string, string][] {
     s.layers.forEach((l, i) => { if (l.when) out.push([`${s.id}: layers[${i}]`, l.when]); });
     s.lights.forEach((l, i) => { if (l.when) out.push([`${s.id}: lights[${i}]`, l.when]); });
   }
-  for (const p of notebook.pages) {
-    if (p.when) out.push([`notebook: page ${p.id}`, p.when]);
+  for (const [book, b] of Object.entries(books)) for (const p of b.pages) {
+    if (p.when) out.push([`${book}: page ${p.id}`, p.when]);
     for (const e of p.entries) {
-      for (const c of [e.when, e.done]) if (c) out.push([`notebook: ${p.id}/${e.id}`, c]);
-      (e.lines ?? []).forEach((l, i) => { if (typeof l !== 'string' && l.when) out.push([`notebook: ${p.id}/${e.id} line ${i}`, l.when]); });
+      for (const c of [e.when, e.done]) if (c) out.push([`${book}: ${p.id}/${e.id}`, c]);
+      (e.lines ?? []).forEach((l, i) => { if (typeof l !== 'string' && l.when) out.push([`${book}: ${p.id}/${e.id} line ${i}`, l.when]); });
     }
   }
   return out;
@@ -69,12 +71,14 @@ describe('what the scenes and the notebook name in the story', () => {
       else if (place.spawn && !s.spawns[place.spawn]) bad.push(`map: ${id} arrives at ${place.spawn}, which the scene does not have`);
     }
     for (const id of world.scenes) if (!world.map?.places[id]) bad.push(`map: ${id} is not on it`);
-    const ids = new Set<string>();
-    for (const p of notebook.pages) {
-      if (ids.has(p.id)) bad.push(`notebook: two pages are ${p.id}`);
-      ids.add(p.id);
-      const entries = new Set<string>();
-      for (const e of p.entries) { if (entries.has(e.id)) bad.push(`notebook: ${p.id} has two entries ${e.id}`); entries.add(e.id); }
+    for (const [book, b] of Object.entries(books)) {
+      const ids = new Set<string>(book === 'journal' ? ['places'] : []);
+      for (const p of b.pages) {
+        if (ids.has(p.id)) bad.push(`${book}: two pages are ${p.id}`);
+        ids.add(p.id);
+        const entries = new Set<string>();
+        for (const e of p.entries) { if (entries.has(e.id)) bad.push(`${book}: ${p.id} has two entries ${e.id}`); entries.add(e.id); }
+      }
     }
     expect(bad).toEqual([]);
   });

@@ -29,10 +29,11 @@ describe('verbs', () => {
     expect(actionFor(dock, 'ask', true)).toBeNull();
   });
 
-  it('makes looking at what the Concierge hides a stare in raw view, which costs attention', () => {
-    expect(actionFor(dock, 'eyes', true)).toMatchObject({ label: 'look closely', cost: 1 });
-    expect(actionFor(dock, 'eyes', false)).toMatchObject({ label: 'Look', cost: 0 });
-    expect(actionFor({ ...dock, look: 'A bench.' }, 'eyes', true)?.cost).toBe(0);
+  it('looks closely in raw view at what the Concierge shows otherwise, at no cost: raw view is legal', () => {
+    expect(actionFor(dock, 'eyes', true)).toMatchObject({ label: 'look closely' });
+    expect(actionFor(dock, 'eyes', true)?.cost).toBeUndefined();
+    expect(actionFor(dock, 'eyes', false)).toMatchObject({ label: 'Look' });
+    expect(actionFor({ ...dock, look: 'A bench.' }, 'eyes', true)).toMatchObject({ label: 'look' });
   });
 });
 

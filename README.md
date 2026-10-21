@@ -26,8 +26,8 @@ Then open the address Vite prints.
   while she is near them, so that is all it takes; if one is still coming after a third of a second, a small ring
   turns. The game opens with its name over the same fade.
 - **The HUD is the same in both views**: it is hers, not the Concierge's. What changes with the view is what things are
-  and are called, and the Concierge's own voice, which only its view has: its greeting at the top left (tap it for its
-  assistance), its messages, its offers.
+  and are called, and the Concierge's own voice, which only its view has: its greeting at the top left with her credits
+  (digital, her allowance; tap it for its assistance), its messages, its offers.
 - **The ball at the bottom right** slides out what she can do along the bottom: Look, Talk, Use, Take, and in
   Concierge view Ask (its bell). They stay out until the ball is tapped again, or the other one. Choose one, then press
   and slide over the scene: what that verb does something to lights up under your finger, and letting go does it. What
@@ -37,17 +37,21 @@ Then open the address Vite prints.
   the right ball, and sliding over the scene uses it on what lights up (the radio needs a valve; the fixer is waiting
   for a parcel). The ball, right-click or **Esc** puts it back. Pressing and holding one (or right-clicking it) shows it
   close up, with what is known about it; in the Concierge's view, where it can see her, a pink dot marks what it did
-  not make, and close up it offers to dispose of it. What exists only in its eye (her credits) is its own graphic there, and in raw view an
-  empty place in her pocket. **Take** puts what can be picked up in her pockets: the parcel and the valve on her desk.
-- **At the top right**: the view switch once she has it, with her sense of being watched under it; the **map** (**M**);
-  her **notebook** (**N**); and the menu with her saves.
-- **The map** shows the places she has been, with the ways out and people she has seen in them (and places marked for
-  it, such as the bar); a door she has seen leads to a place sketched in with a question mark until she has been
-  through it. A pin shows where she is. Tapping a place she has been takes her there, behind a fade; a door or a
-  person to them; a place sketched in to its door.
-- **Her notebook** is paper, the one thing she keeps from the Concierge: it opens only where it cannot see her, at home
-  and in blind spots (the alley mouth in the backstreet), where its button lights up. Anywhere else it stays shut.
-  Pages are tabs (errands, people, and what to ask it once she sees); what she has not read yet has a red dot.
+  not make, and close up it offers to dispose of it. A thing that exists only in its eye (a projection) is its own
+  graphic there, and in raw view an empty place in her pocket. **Take** puts what can be picked up in her pockets: the
+  parcel and the valve on her desk.
+- **At the top right**: the view switch once she has it (its attention shows under it once it notices something; raw
+  view itself is legal and costs nothing); the **map** (**M**); her **journal** (**J**); her **notebook** (**N**); and
+  the menu with her saves. A dot on the journal or the notebook means something new is written in it.
+- **Her journal** is on her device: she reads it anywhere, and the Concierge can read it too. Its pages are tabs:
+  objectives, people, places (the map) and evidence anyone may see.
+- **The map** (her journal's places) shows the places she has been, with the ways out and people she has seen in them
+  (and places marked for it, such as the bar); a door she has seen leads to a place sketched in with a question mark
+  until she has been through it. A pin shows where she is. Tapping a place she has been takes her there, behind a fade;
+  a door or a person to them; a place sketched in to its door.
+- **Her notebook** is paper, what she keeps from the Concierge: what she saw, what she thinks, what to ask it. It opens
+  only in a privacy zone, where the law it keeps forbids it to watch: her home (public restrooms and approved meeting
+  rooms to come). Anywhere else it stays shut. What she has not read yet has a red dot.
 - **Saves**, from the menu: the game saves as she goes (never in the middle of a conversation), and three slots she
   saves into and goes back to. A save made with an older version of the story keeps what she knew and carried.
   `?new` starts a new game.

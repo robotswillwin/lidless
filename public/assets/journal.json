@@ -1,0 +1,56 @@
+{
+ "pages": [
+  {
+   "id": "objectives",
+   "title": "Objectives",
+   "empty": "Nothing to do.",
+   "entries": [
+    {
+     "id": "parcel",
+     "name": "Parcel 4471",
+     "done": "parcel_delivered",
+     "lines": [
+      "Deliver to Radio Repair, Main Street, by 22:00.",
+      {
+       "text": "Delivered.",
+       "when": "parcel_delivered"
+      }
+     ]
+    },
+    {
+     "id": "radio",
+     "name": "My radio",
+     "done": "radio_heard",
+     "lines": [
+      "Needs a new valve. The left one is dead.",
+      {
+       "text": "Working again.",
+       "when": "radio_heard"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "people",
+   "title": "People",
+   "empty": "Nobody yet.",
+   "entries": [
+    {
+     "id": "fixer",
+     "name": "The fixer",
+     "when": "has_raw",
+     "lines": [
+      "Radio Repair, Main Street. Repairs old electronics."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "evidence",
+   "title": "Evidence",
+   "empty": "Nothing yet.",
+   "entries": []
+  }
+ ]
+}

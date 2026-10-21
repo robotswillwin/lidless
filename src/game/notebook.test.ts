@@ -33,6 +33,12 @@ describe('her notebook', () => {
     expect(errands.entries[1].lines.map((l) => l.text)).toEqual(['to the radio repair.', 'on his bench now.']);
   });
 
+  it('keeps one book\'s keys apart from the other\'s', () => {
+    const [errands] = notebookNow(nb, story(), new Set(), 'journal:');
+    expect(errands.entries[0].key).toBe('journal:errands/parcel');
+    expect(notebookNow(nb, story(), new Set(['errands/parcel']), 'journal:')[0].entries[0].new).toBe(true);
+  });
+
   it('marks what she has not read, and nothing once she has read the page', () => {
     let read = new Set<string>();
     let [errands] = notebookNow(nb, story(), read);

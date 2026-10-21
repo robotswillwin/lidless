@@ -54,9 +54,10 @@ const verb = async (page, v) => {
   await page.evaluate((v) => document.querySelector(`[data-verb="${v}"]`)?.click(), v);
   await wait(150);
 };
-// what the HUD opens: her things (the tray from the left ball), her notebook, the map, her saves (the menu)
+// what the HUD opens: her things (the tray from the left ball), her journal, the map (in her journal), her notebook,
+// her saves (the menu)
 const panel = async (page, which) => {
-  const sel = { things: '.hud-ball.things', notebook: '.hud-btn.notebook', map: '.hud-btn.map', saves: '.hud-btn.menu' }[which];
+  const sel = { things: '.hud-ball.things', journal: '.hud-btn.journal', notebook: '.hud-btn.notebook', map: '.hud-btn.map', saves: '.hud-btn.menu' }[which];
   await page.evaluate((s) => document.querySelector(s)?.click(), sel);
   await wait(which === 'map' ? 800 : 400);
 };
@@ -131,9 +132,9 @@ const checks = {
     await tap(page, 669, 297);
     await talkThrough(page);
     check('the radio mended, a voice under the static', /"radio_heard":\s*true/.test(await ink(page)));
-    await panel(page, 'notebook');
-    const done = await page.$$eval('.hud-panel.notebook .entry.done .name', (es) => es.map((e) => e.textContent));
-    check('the notebook crosses out the radio', done.includes('my radio') && !done.includes('parcel 4471'), done.join(', '));
+    await panel(page, 'journal');
+    const done = await page.$$eval('.hud-panel.journal .entry.done .name', (es) => es.map((e) => e.textContent));
+    check('her journal crosses out the radio', done.includes('My radio') && !done.includes('Parcel 4471'), done.join(', '));
     await page.keyboard.press('Escape');
     await again(page, 'scene=radio');
     await holdThing(page, 'parcel');
@@ -190,19 +191,22 @@ const checks = {
     await page.evaluate(() => [...document.querySelectorAll('.chart button.place')].find((b) => /Luna's home/.test(b.getAttribute('aria-label') ?? ''))?.click());
     await wait(3500);
     check('from the map, home', (await save(page))?.scene === 'home', (await save(page))?.scene);
-    // her notebook: open at home; shut out on the street, where it can see
+    // her notebook: open at home, a privacy zone; shut out on the street, where it can see
     await panel(page, 'notebook');
-    check('her notebook opens at home', !!(await page.$('.hud-panel.notebook .entry')));
+    check('her notebook opens at home', !!(await page.$('.hud-panel.notebook')));
     await page.keyboard.press('Escape');
     await again(page, 'scene=backstreet&spawn=from-street');
     await panel(page, 'notebook');
     const said = await talkThrough(page, 4000);
     check('in its sight her notebook stays shut', !(await page.$('.hud-panel.notebook')) && said.some((l) => /can see/.test(l)), said.join(' / '));
-    // the alley mouth, out of its sight: it opens
+    // no blind spots: in the alley mouth too it stays shut; her journal opens anywhere
     await tap(page, 690, 470);
     await wait(3000);
     await panel(page, 'notebook');
-    check('out of its sight, in the alley mouth, it opens', !!(await page.$('.hud-panel.notebook')));
+    await talkThrough(page, 4000);
+    check('no blind spots: in the alley mouth it stays shut', !(await page.$('.hud-panel.notebook')));
+    await panel(page, 'journal');
+    check('her journal opens anywhere', !!(await page.$('.hud-panel.journal .entry')));
     await page.close();
   },
 

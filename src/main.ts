@@ -36,8 +36,9 @@ async function boot(): Promise<void> {
   // textures as detailed as the screen shows: a phone, drawing the level at its own size, keeps a quarter of a background
   setTexelBudget(renderer.quality.scale);
   const optional = <T>(file: string, fallback: T) => fetch(`${assets}/${file}`, { cache: 'no-store' }).then((r) => (r.ok ? (r.json() as Promise<T>) : fallback)).catch(() => fallback);
-  const [world, projectLook, items, notebook] = await Promise.all([
-    loadWorld(assets), loadProjectLook(assets), optional<Record<string, Item>>('items.json', {}), optional<Notebook>('notebook.json', { pages: [] }), loadPresets(assets),
+  const [world, projectLook, items, notebook, journal] = await Promise.all([
+    loadWorld(assets), loadProjectLook(assets), optional<Record<string, Item>>('items.json', {}), optional<Notebook>('notebook.json', { pages: [] }),
+    optional<Notebook>('journal.json', { pages: [] }), loadPresets(assets),
   ]);
   const heroPath = world.hero.sprite, cut = heroPath.lastIndexOf('/');
   const hero = await loadSprite(gl, `${assets}/${heroPath.slice(0, cut)}`, heroPath.slice(cut + 1), spriteDefaults(gl));
@@ -45,7 +46,7 @@ async function boot(): Promise<void> {
   const fixedT = number('t');
   const game = await Game.start({
     renderer, canvas, stage: document.querySelector('.stage') as HTMLElement, fade: document.getElementById('fade') as HTMLElement,
-    assets, world, hero, projectLook, items, notebook, save: loadSave(),
+    assets, world, hero, projectLook, items, notebook, journal, save: loadSave(),
     reduceMotion: matchMedia('(prefers-reduced-motion: reduce)').matches,
     fixedT, fixedCam: number('cam'), rawView: params.get('view') === 'raw', variant: params.get('variant'),
   }, asked ? { scene: asked, spawn: params.get('spawn') ?? undefined } : undefined);

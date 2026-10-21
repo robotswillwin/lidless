@@ -259,9 +259,9 @@ preset**. The main street's lights are all of a kind.
 
 A scene folder holds the sprite sets plus `scene.json` (sprite order back to front, lights, beacons,
 steam and smoke, light shafts, drips, the reflection line, traffic) and `zone.png`, a level-sized map of
-where it is inside (R), outside (G) and how much static shadow there is (B). A scene with `private` is one the Concierge
-neither sees nor hears her in (her home): looking closely in raw view costs no attention there, and it answers only
-when she asks it.
+where it is inside (R), outside (G) and how much static shadow there is (B). A scene with `private` is a privacy zone
+(her home; public restrooms and approved meeting rooms): the Concierge neither sees nor hears her there, and it answers
+only when she asks it.
 
 Characters walk in front of the set, so lights and characters need to know which is in front of which:
 
@@ -686,9 +686,10 @@ In a scene that scrolls, `split` cuts and fills its layers for long slides, not 
 
 Each real thing she can carry has a picture of its own for her tray (the HUD's inventory): painted once, as it really
 is, in the game's look, square, 256 pixels, on a transparent ground (`public/assets/items/<id>.webp`, about 13 KB).
-`items.json` names it as the thing's `art`; a thing without one shows its line icon until it has. What exists only in
-the Concierge's eye (her credits) is never painted: the HUD draws it as the Concierge's own graphic, in its colour,
-and in raw view leaves an empty place in her pocket.
+`items.json` names it as the thing's `art`; a thing without one shows its line icon until it has. A thing that exists
+only in the Concierge's eye (a projection) is never painted: the HUD draws it as the Concierge's own graphic, in its
+colour, and in raw view leaves an empty place in her pocket. Her credits are no thing at all: they are digital, a
+number in the story (`credits`), shown with the Concierge's greeting.
 
 1. Describe the thing in `art/items/items.json` (`things`): what it is, as it really is, worn and used. Its
    `references` are the pictures whose style it matches (her flat and the radio repair, in raw view).

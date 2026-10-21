@@ -91,10 +91,13 @@ on a line of its own before a line belongs to that line.
 
 A short cutscene is a knot of such lines. Speaker tags (`#luna`, `#fixer`, `#concierge`) stay as they are.
 
-## The notebook
+## The journal and the notebook
 
-`public/assets/notebook.json`: her notebook, on paper, read only where the Concierge cannot see her (a scene that is
-`private`, her home, or a scene's `blind` spots: x ranges along the walk line). It is pages, each a tab:
+What she writes down is in two places, the same shape. `public/assets/journal.json` is her journal, on her device:
+she reads it anywhere and the Concierge can read it too, so it holds what she does not mind it knowing (objectives,
+people, evidence anyone may see; its places are the map). `public/assets/notebook.json` is her notebook, on paper:
+what she keeps from it (what she saw, what she thinks, what to ask it), read only in a privacy zone, a scene that is
+`private` (her home; public restrooms and approved meeting rooms to come). Each is pages, each a tab:
 
 ```json
 { "id": "errands", "title": "errands", "empty": "nothing to do. good.", "entries": [
@@ -110,8 +113,9 @@ A short cutscene is a knot of such lines. Speaker tags (`#luna`, `#fixer`, `#con
 | `empty` | a page | What it says while nothing is written on it; without it, the page waits until something is. |
 | `list` | a page | Its entries as a numbered list of their names (questions to ask). |
 
-What she has not read yet (an entry, a line, a crossing out) has a red dot, on the page's tab too; the save keeps what
-she has read. The tests check every condition in it, and that pages and entries have ids of their own.
+What she has not read yet (an entry, a line added to it, a crossing out) has a dot, on the page's tab and the book's
+button too; the save keeps what she has read. The tests check every condition in both, and that pages and entries have
+ids of their own (the journal's `places` is the map).
 
 ## The map
 

@@ -4,7 +4,7 @@ import { commandOf, Dialogue } from './dialogue';
 describe('the story', () => {
   it('keeps what she carries, and what she has picked up for good', () => {
     const d = new Dialogue(null);
-    expect(d.carried()).toEqual(['credits', 'matches', 'cigarettes', 'map']);
+    expect(d.carried()).toEqual(['matches', 'cigarettes', 'map']);
     d.take('parcel');
     expect(d.carried()).toContain('parcel');
     expect(d.took('parcel')).toBe(true);
@@ -14,6 +14,22 @@ describe('the story', () => {
     // a thing the story's lists do not have is left be
     d.take('spaceship');
     expect(d.carried()).not.toContain('spaceship');
+  });
+
+  it('keeps her credits as a number, and loads a save from when they were a thing she carried', () => {
+    expect(new Dialogue(null).read('credits')).toBe(312);
+    // such a save: the parcel taken, the credits in her pockets, the list's items numbered as they were then
+    const d = new Dialogue(null);
+    d.take('parcel');
+    const old = JSON.parse(d.save());
+    old.variablesState.carried = { list: { 'Things.parcel': 1, 'Things.credits': 2, 'Things.matches': 3, 'Things.cigarettes': 4, 'Things.map': 5 } };
+    const loaded = new Dialogue(JSON.stringify(old));
+    expect(loaded.loaded).not.toBe('fresh');
+    expect(loaded.read('credits')).toBe(312);
+    expect(loaded.carried()).toEqual(expect.arrayContaining(['parcel', 'matches', 'cigarettes', 'map']));
+    loaded.drop('parcel');
+    loaded.take('valve');
+    expect(loaded.test('carried has valve && !(carried has parcel) && carried has map')).toBe(true);
   });
 
   it('reads conditions on its state', () => {

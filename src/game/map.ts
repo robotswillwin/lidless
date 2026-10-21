@@ -4,7 +4,6 @@
 // A street is drawn as long as it is wide, so where things are along it is where they are on the map.
 
 import { button, el } from './dom';
-import { icon } from './icons';
 import { inView, pick, placeIn, type Hotspot } from './level';
 
 export interface MapLayout {
@@ -89,14 +88,9 @@ export function mapNow(layout: MapLayout, scenes: Record<string, MapScene>, been
   return { places, spots, links, you, bounds };
 }
 
-/** The map drawn into the panel: the places, their doors and people as dots, where she is; each a thing to tap. */
-export function drawMap(p: HTMLElement, now: MapNow, on: { go: (t: Travel, name: string) => void; close: () => void }): void {
-  p.setAttribute('aria-label', 'Map');
-  const head = el('div', 'head', p);
-  el('h2', '', head, 'Map');
-  el('div', 'hint', head, 'Tap a place to go there');
-  button('hud-close', 'Close', head, on.close).innerHTML = icon('close', 18);
-  const body = el('div', 'body', p), chart = el('div', 'chart', body);
+/** The map drawn into `body` (her journal's places): the places, their doors and people as dots, where she is; each a thing to tap. */
+export function drawMap(body: HTMLElement, now: MapNow, go: (t: Travel, name: string) => void): void {
+  const chart = el('div', 'chart', body);
   const [bx, by, bw, bh] = now.bounds;
   // as large as the panel allows, at the map's own shape; names over the dots in rows, so none covers another
   const fit = () => {
@@ -121,14 +115,14 @@ export function drawMap(p: HTMLElement, now: MapNow, on: { go: (t: Travel, name:
   // each place a thing to tap; a room's name in it, a street's under it at its far end, clear of its doors and people
   for (const q of now.places) {
     const cls = `${q.state}${q.here ? ' here' : ''}${q.street ? ' street' : ''}`;
-    const b = button(`place ${cls}`, q.state === 'seen' ? `${q.name}: not been there yet, go to its door` : q.here ? `${q.name}: you are here` : `Go to ${q.name}`, chart, () => on.go(q.go, q.name));
+    const b = button(`place ${cls}`, q.state === 'seen' ? `${q.name}: not been there yet, go to its door` : q.here ? `${q.name}: you are here` : `Go to ${q.name}`, chart, () => go(q.go, q.name));
     b.setAttribute('style', `${pct(q.box[0], q.box[1])};width:${(q.box[2] / bw) * 100}%;height:${(q.box[3] / bh) * 100}%`);
     const name = el('span', `place-name ${cls}`, chart, q.state === 'seen' ? `${q.name}?` : q.name);
     name.setAttribute('style', q.street ? `${pct(q.box[0] + q.box[2], q.box[1] + q.box[3])}` : pct(q.box[0], q.box[1]));
   }
   const named: { at: number; label: HTMLElement }[] = [];
   for (const s of now.spots) {
-    const b = button(`spot ${s.kind}`, `Go to ${s.name}`, chart, () => on.go(s.go, s.name));
+    const b = button(`spot ${s.kind}`, `Go to ${s.name}`, chart, () => go(s.go, s.name));
     b.setAttribute('style', pct(s.at[0], s.at[1]));
     if (s.named) named.push({ at: s.at[0], label: el('span', 'name', b, s.name) });
   }

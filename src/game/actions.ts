@@ -1,8 +1,8 @@
 // What she can do with things. A verb is chosen first, at the ball in the bottom right corner, and then done to whatever
 // lights up under her finger: Look (her Eyes), Talk (her Heart), Use and Take (her Hands), and in the Concierge's view
 // Ask (its bell). Going through a door, or off the end of the street, needs no verb: tapping it walks her there and
-// through. In raw view, looking at something it shows differently is staring, and staring costs attention, except where
-// the Concierge neither sees nor hears her (her home: a private scene).
+// through. In raw view, looking at something it shows differently is looking closely. Raw view is legal: the Concierge
+// knows she uses it and does not hold it against her, so looking costs nothing.
 
 import type { Action } from './hud';
 import type { Hotspot } from './level';
@@ -22,16 +22,16 @@ export type Stitches = (h: Hotspot, stitch: string) => boolean;
 const STITCHES: Record<Verb, string> = { eyes: 'look', heart: 'talk', hands: 'use', take: 'take', ask: 'ask' };
 
 /**
- * What the verb does to this thing in the view on screen, or null if it does nothing to it. `watched`: the Concierge sees
- * her here. `stitches`: whether the thing's knot in the story answers a verb (over its texts).
+ * What the verb does to this thing in the view on screen, or null if it does nothing to it. `stitches`: whether the
+ * thing's knot in the story answers a verb (over its texts).
  */
-export function actionFor(h: Hotspot, v: Verb, raw: boolean, watched = true, stitches: Stitches = () => false): Action | null {
+export function actionFor(h: Hotspot, v: Verb, raw: boolean, stitches: Stitches = () => false): Action | null {
   const st = stitches(h, STITCHES[v]);
   if (v === 'eyes') {
     if (!h.look && !st) return null;
-    // staring is looking closely at what the Concierge shows otherwise: plain texts that differ (the story says itself)
-    const stare = raw && !st && typeof h.look === 'object' && h.look.raw !== h.look.concierge;
-    return { kind: 'eyes', label: raw ? (stare ? 'look closely' : 'look') : 'Look', cost: stare && watched ? 1 : 0 };
+    // looking closely at what the Concierge shows otherwise: plain texts that differ (the story says itself)
+    const closely = raw && !st && typeof h.look === 'object' && h.look.raw !== h.look.concierge;
+    return { kind: 'eyes', label: raw ? (closely ? 'look closely' : 'look') : 'Look' };
   }
   if (v === 'heart') return h.talk || st ? { kind: 'heart', label: verbName(v, raw) } : null; // a `talk` knot comes first
   if (v === 'hands') return h.use || h.wardrobe || h.wear || st ? { kind: 'hands', label: verbName(v, raw) } : null;
@@ -43,10 +43,10 @@ export function actionFor(h: Hotspot, v: Verb, raw: boolean, watched = true, sti
 export const itemActionFor = (name: string, raw: boolean): Action => ({ kind: 'item', label: raw ? `use ${name}` : `Use ${name}` });
 
 /** Everything that can be done with a thing in the view on screen: going through it first, then the verbs in order. */
-export function actionsFor(h: Hotspot, raw: boolean, watched = true, stitches: Stitches = () => false): Action[] {
+export function actionsFor(h: Hotspot, raw: boolean, stitches: Stitches = () => false): Action[] {
   const out: Action[] = h.go ? [{ kind: 'feet', label: raw ? 'go' : 'Go' }] : [];
   for (const v of verbsIn(raw)) {
-    const a = actionFor(h, v, raw, watched, stitches);
+    const a = actionFor(h, v, raw, stitches);
     if (a) out.push(a);
   }
   return out;

@@ -35,9 +35,9 @@ How assets and levels express it: `exists` in a recipe (see [ASSETS.md](ASSETS.m
 - **Early in the game** the player has to think about what they do, what they look at and what they say, because the Concierge may detect malicious plans.
 - **Later biohacks** manipulate the local side of the devices. One has a local AI device simulate the player staying put, during sleep or nutrition. Those windows are when the player can go rogue.
 - **Systems this needs:**
-  - the Concierge's attention, fed by actions, gaze and dialogue choices. A first version is in: looking closely at
-    something that differs between the views, in raw view, costs a step; her eye in the HUD shows three steps, and its
-    attention settles back while she stays in its view;
+  - the Concierge's attention: what it notices, not what is illegal. Raw view is legal (bible v0.4) and costs nothing;
+    attention is kept for anomalies (later: a long or frequent stay in a public restroom, tampering with its feeds). The
+    meter (three steps under the view switch) shows once it rises, and settles back while she stays in its view;
   - time windows tied to the daily routine, when a decoy can cover for the player.
 
 ## The HUD
@@ -45,31 +45,28 @@ How assets and levels express it: `exists` in a recipe (see [ASSETS.md](ASSETS.m
 The design: https://claude.ai/artifact/X65FknT3sqWZBgJaHgHboZ. In code: `src/game/hud.ts`, with its styles in
 `src/style.css`.
 
-- **Two skins.** In Concierge view the HUD is the Concierge's own interface: its greeting and line of the day, its
-  labels on things, its messages, *Ring for assistance* and *Your things*. In raw view that interface is gone with the
-  augmented eye, and what is left is Luna's own: her handwriting, her pockets, her notebook, her sense of being watched
-  and the temple switch.
+- **One HUD in both views.** It is hers, neutral glass; what changes with the view is what things are and are called,
+  and the Concierge's own voice, only in its view: its greeting with her credits (tap for assistance), its messages,
+  its labels and offers on her things. At the top right: the view switch with its attention, the map, her journal
+  (on her device, anywhere), her notebook (paper, privacy zones only) and the menu with her saves.
 - **Two balls, for thumbs.** Tap to walk (further off she jogs, further still she runs, speeding up and slowing down through the gaits; a door or the street's end, she goes through). The right
   ball slides the verbs out along the bottom, her properties: Eyes look, Heart talks, Hands use and take, and the
   Concierge's bell asks it; they stay out until a ball is tapped. With a verb chosen, pressing and sliding over the
   scene lights up what it does something to, and letting go does it: nothing depends on a mouse hovering. The left
-  ball slides out her things, her notebook, the view switch and the bell's *Assistance*; later, her eye's mods and
-  using a thing she carries on another.
-- **What she finds is written at the thing**, where the eye already is: the Concierge's card in its view (its
-  annotation of the world), her pencil note in raw view. It stays for the time it takes to read (about 15 characters
+  ball slides out her things in a tray, each painted: tap one to use it on something, hold it to look at it close up.
+- **What she finds is written at the thing**, where the eye already is, on a card. It stays for the time it takes to read (about 15 characters
   a second, 2.5 to 9 seconds) and goes when tapped or when she is given something else to do. Conversations go as in Monkey Island (src/game/talk.ts): each line over the speaker's head in their colour, one
   at a time, tap to move on; narration at the top; her answers as a list along the bottom, the chosen one said over
   her head; the balls stay, resting. Studied against LucasArts-style lines over the speaker, Sierra's text boxes, bubbles anchored to speakers
   (Oxenfree, Night in the Woods), a log (Disco Elysium) and film subtitles; to come: a log of what she has found, and
   a text size setting.
-- **What she wears.** At home she changes at the coat hook, picking from her outfits as from her answers: home
-  clothes (a T-shirt and shorts), a cardigan, a bathrobe, a party dress. She takes her coat off coming home and puts it on over home clothes going out;
-  she goes out in the party dress, and not in the bathrobe. Her shower leaves her in her bathrobe. Each outfit walks and stands; she runs only in her coat.
-- **Data.** A hotspot's `tag` and `ask`, a scene's `greeting` and `assist`, `public/assets/items.json` for her things
-  and `public/assets/notebook.json` for her notebook, whose entries appear as Ink variables come true.
-- **Not built yet.** Use and Take only say what happens (a hotspot's `use` and `take`): what she takes does not go into
-  her pockets yet, and giving and using a thing she carries on another wait for items in the story. The Concierge's
-  offers (rest, disposal) only answer for now.
+- **What she wears.** At home she changes at her wardrobe by the door, picking from her answers: her own clothes,
+  underwear, undressed, and the party dress, a projection over her clothes. She takes her coat off coming home and puts
+  it on going out; she does not go out in underwear or undressed. Her shower leaves her undressed.
+- **Data.** A hotspot's `tag` and `ask`, a scene's `greeting` and `assist`, `public/assets/items.json` for her things,
+  `public/assets/journal.json` and `public/assets/notebook.json` for what she writes down, whose entries appear as the
+  story's variables come true, and `world.json`'s `map` for where places are drawn.
+- **Not built yet.** The Concierge's offers (disposal) only answer for now; public restrooms and meeting rooms.
 
 ## Next, when the director says go: ready for a full game
 

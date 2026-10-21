@@ -347,22 +347,6 @@
    "ask": "Dinner is served here every evening, guest. Everything you need, and nothing you don't."
   },
   {
-   "id": "sleeper",
-   "name": "Someone asleep",
-   "rect": [
-    110,
-    410,
-    104,
-    34
-   ],
-   "stand": 150,
-   "only": "raw",
-   "look": "A man asleep against the shop front under a wet blanket. Nobody has woken him in a while.",
-   "tag": {
-    "raw": "they all walk past him"
-   }
-  },
-  {
    "id": "bakery",
    "name": {
     "concierge": "Bakery",

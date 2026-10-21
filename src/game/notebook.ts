@@ -1,7 +1,8 @@
-// Her notebook: paper and pencil, in her hand, the same in both views. She reads it only where the Concierge cannot see
-// her (her home, a blind spot): anywhere else it stays shut. What is in it follows the story: an entry is written once
-// its condition holds, a line is added to it as she learns more, an errand is crossed out once it is run. Pages are
-// tabs along its edge; what she has not read yet is marked with a dot, on its tab and at the line.
+// What she writes down, in two places. Her journal is on her device: objectives, people, places and what anyone may
+// see, readable anywhere, and the Concierge can read it too. Her notebook is paper and pencil, in her hand: what she
+// keeps from it (what she saw, what she thinks, what to ask it), read only in a privacy zone (her home), shut anywhere
+// else. Both follow the story the same way: an entry is written once its condition holds, a line is added to it as she
+// learns more, an errand is crossed out once it is run; pages are tabs, and what she has not read yet has a dot.
 
 import { button, el } from './dom';
 import { icon } from './icons';
@@ -50,13 +51,13 @@ const lineOf = (l: string | NoteLine): NoteLine => (typeof l === 'string' ? { te
 /**
  * What is written in it now: the pages and entries whose conditions hold, the lines she has added, errands run crossed
  * out and put last. `read` holds what she has read (entries' and lines' keys, and `!done` for a crossing out she has
- * seen): the rest is fresh.
+ * seen): the rest is fresh. `prefix` keeps one book's keys apart from the other's (the journal's are `journal:…`).
  */
-export function notebookNow(nb: Notebook, known: (cond: string) => boolean, read: ReadonlySet<string>): ShownPage[] {
+export function notebookNow(nb: Notebook, known: (cond: string) => boolean, read: ReadonlySet<string>, prefix = ''): ShownPage[] {
   const holds = (c?: string) => !c || known(c);
   return (nb.pages ?? []).filter((p) => holds(p.when)).flatMap((p) => {
     const entries = p.entries.filter((e) => holds(e.when)).map((e): ShownEntry => {
-      const key = `${p.id}/${e.id}`, done = !!e.done && known(e.done);
+      const key = `${prefix}${p.id}/${e.id}`, done = !!e.done && known(e.done);
       const lines = (e.lines ?? []).map(lineOf).map((l, i) => ({ key: `${key}#${i}`, text: l.text, when: l.when })).filter((l) => holds(l.when))
         .map(({ key: k, text }) => ({ key: k, text, fresh: !read.has(k) }));
       const isNew = !read.has(key) || (done && !read.has(`${key}!done`));
@@ -101,7 +102,7 @@ export function drawNotebook(p: HTMLElement, nb: Notebook, pages: ShownPage[], t
     for (const e of page.entries) {
       const d = el('div', `entry${e.done ? ' done' : ''}`, col);
       el('div', `name${e.new ? ' fresh' : ''}`, d, e.name);
-      for (const l of e.lines) el('div', `note${l.fresh ? ' fresh' : ''}`, d, l.text);
+      for (const l of e.lines) el('div', `note${l.fresh && !e.new ? ' fresh' : ''}`, d, l.text);
     }
   }
   on.read(keysOf(page));

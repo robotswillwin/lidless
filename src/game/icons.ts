@@ -1,5 +1,5 @@
 // The HUD's icons: thin white lines on a 24 grid, the same in both views. And the Concierge's own graphics for what
-// exists only in its eye (credits): crisp lines on a 64 grid, drawn in its colour, as projections are.
+// exists only in its eye (a projection): crisp lines on a 64 grid, drawn in its colour.
 
 const SVG_ATTRS = 'fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
 
@@ -18,6 +18,8 @@ const ICONS: Record<string, string> = {
   // the Concierge's bell
   ask: '<path d="M3 18h18M5 18a7 7 0 0 1 14 0M12 11V8.5M10.5 8h3M4 21h16"/>',
   notebook: '<rect x="5" y="3" width="14" height="18" rx="1.5"/><path d="M9 3v18M12 8h4M12 11.5h4"/>',
+  // her journal: on her device, a few lines on its screen
+  journal: '<rect x="5.5" y="2.5" width="13" height="19" rx="2.5"/><path d="M9 7.5h6M9 11h6M9 14.5h4"/>',
   // shut, its elastic band round it: not here, it can see
   locked: '<rect x="5" y="3" width="14" height="18" rx="1.5"/><path d="M9 3v18"/><path d="M15.5 1.5v21" stroke-width="2.4"/>',
   satchel: '<path d="M4.5 9h15l-1.2 11.2a1 1 0 0 1-1 .8H6.7a1 1 0 0 1-1-.8L4.5 9z"/><path d="M9 9V7a3 3 0 0 1 6 0v2"/>',
