@@ -42,7 +42,15 @@ blockout, and the blockout also places hotspots and lights: `toScene` in tools/p
 in metres into scene pixels. A set drawn too big can also be shrunk with `asset reframe`, which keeps what is in it and
 paints the new edges. People in a scene are characters built at
 this scale and placed as layers, never painted into a background; only far-off figures, like a crowd behind the
-street, may be part of the art.
+street, and people sitting still behind a window (the restaurant's diners) may be part of the art.
+
+**Every new piece of art is measured against Luna before it is shown.** On the street she is 124 level px, 248
+picture px, for 1.7 m: a door is 1.15 to 1.25 times her height, a seated adult (head to floor) about 0.75, a storey at
+least 1.8, a window 0.9 to 1.3. Image edits of a small area drift to their own, smaller scale (the restaurant above the
+bar came out at a quarter of it, the corner shop's door shorter than her), so anything with a size of its own, people
+above all, is painted from a guide: flat shapes measured against her, painted over the area in a copy of the picture,
+then `touch --guide <copy>`, which keeps every shape's place and size. Check the result in the game next to her
+before showing it.
 
 ## Resolution
 
@@ -745,7 +753,9 @@ back down.
 ## The main street's tower and the restroom; the restroom inside
 
 Painted into the street's picture with `touch` (the Concierge's view, then raw view `--from` it): above the bar in the
-middle, a restaurant floor with diners and a tower rising out of the frame; at the far right, the old second bar's front
+middle, the restaurant's floor, one tall window reaching out of the frame with a waiter as tall as Luna and two diners
+at a table (repainted from a guide at true scale, `touch --guide`, after the first try came out at a quarter of it); at
+the far right, the old second bar's front
 turned into the public restroom's entrance (frosted glass, pictograms and the closed eye, no words; in raw view a
 concrete front with steel doors and faded stencils). Both layer maps (`layers.png`, `layers-raw.png`) mark the new
 building as the near layer, so the far city and the viaduct slide behind it; the street split again with its fills
