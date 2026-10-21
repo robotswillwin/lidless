@@ -3,6 +3,7 @@
     "cleaner-bot",
     "delivery-bot",
     "drone",
+    "drone-near",
     "guardian-bot",
     "guardian-sign",
     "maintenance-bot"

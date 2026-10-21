@@ -1,0 +1,33 @@
+{
+  "name": "drone-near",
+  "scene": "bots",
+  "kind": "prop",
+  "exists": "both",
+  "look": "vector",
+  "res": 2,
+  "referenceNote": "machine",
+  "framing": "One robot alone, in pure side view facing right, the whole machine in frame with a little space around it, standing on nothing: no ground, no floor line, no shadow, no wall, no people, no text, no border, on a transparent background. Even, soft, frontal lighting with no cast shadows and no glow halos.",
+  "prompt": "A small quadcopter drone seen from the side: a compact boxy body of old cream-grey metal plates, scratched and rusted, a round camera lens at its front, four rotor arms with small rotors, amber lights at the rotor tips, a short antenna below.",
+  "concierge": "The city AI's view of the same drone: a sleek white body with soft edges, cyan lights at the rotor tips, a violet light under its body, a crisp grey letter C on its side.",
+  "height": 24,
+  "position": [
+    600,
+    150
+  ],
+  "depth": 3,
+  "occluder": false,
+  "material": "metal",
+  "glow": {
+    "raw": "auto",
+    "concierge": "auto",
+    "machine": true
+  },
+  "palette": 0,
+  "references": [
+    "art/reference/robots/crops/drone-raw.png"
+  ],
+  "conciergeReferences": [
+    "art/reference/robots/crops/drone-concierge.png"
+  ],
+  "lit": true
+}

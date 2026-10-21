@@ -9,7 +9,7 @@
   "framing": "One robot alone, in pure side view facing right, the whole machine in frame with a little space around it, standing on nothing: no ground, no floor line, no shadow, no wall, no people, no text, no border, on a transparent background. Even, soft, frontal lighting with no cast shadows and no glow halos.",
   "prompt": "A tall civic guardian robot standing on two long jointed legs, one step apart: a slim upright body of old cream metal plates with rust at the seams and the faded letters C on its chest, a narrow upright rectangular head with one amber visor light, thin dark joints. Worn, functional and patient.",
   "concierge": "The city AI's view of the same guardian robot: smooth white panels, clean dark joints, a cyan glowing visor light in its head, crisp grey letters C on its chest, an upright, friendly stance.",
-  "height": 74,
+  "height": 118,
   "position": [
     975,
     452
@@ -47,7 +47,7 @@
       ]
     },
     "walk": {
-      "stride": 32
+      "stride": 51
     }
   }
 }

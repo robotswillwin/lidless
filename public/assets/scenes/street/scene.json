@@ -724,43 +724,11 @@
    ]
   },
   {
-   "asset": "bots/drone",
-   "after": "street/vista-far",
-   "x0": 0,
-   "x1": 1400,
-   "y": 110,
-   "speed": 30,
-   "wait": [
-    40,
-    120
-   ],
-   "bob": [
-    2,
-    1.7
-   ]
-  },
-  {
-   "asset": "bots/drone",
-   "after": "street/vista-mid",
-   "x0": 0,
-   "x1": 1850,
-   "y": 175,
-   "speed": 48,
-   "wait": [
-    60,
-    150
-   ],
-   "bob": [
-    1.5,
-    1.3
-   ]
-  },
-  {
    "asset": "bots/guardian-bot",
    "after": "street/vista-street",
    "x0": 1540,
    "x1": 1770,
-   "y": 392,
+   "y": 348,
    "speed": 16,
    "wait": [
     9,
@@ -772,6 +740,54 @@
      "x": 1655,
      "seconds": 6
     }
+   ]
+  },
+  {
+   "asset": "bots/drone",
+   "after": "street/vista-far",
+   "x0": 0,
+   "x1": 1400,
+   "y": 110,
+   "speed": 26,
+   "wait": [
+    18,
+    45
+   ],
+   "bob": [
+    2,
+    1.7
+   ]
+  },
+  {
+   "asset": "bots/drone",
+   "after": "street/vista-mid",
+   "x0": 0,
+   "x1": 1850,
+   "y": 170,
+   "speed": 42,
+   "wait": [
+    10,
+    28
+   ],
+   "bob": [
+    1.5,
+    1.3
+   ]
+  },
+  {
+   "asset": "bots/drone-near",
+   "after": "street/vista-street",
+   "x0": -40,
+   "x1": 2440,
+   "y": 214,
+   "speed": 75,
+   "wait": [
+    14,
+    36
+   ],
+   "bob": [
+    2.5,
+    1.1
    ]
   }
  ],

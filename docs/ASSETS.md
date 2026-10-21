@@ -602,11 +602,12 @@ delivery bot, a civic guardian, a maintenance bot and a drone, each drawn by the
 sheet (`referenceNote: "machine"`: the design to draw, not only a style), raw view first and the Concierge's view from
 it so the outlines match: rusty cream with amber lamps in raw view, dulled into its smog with the lamps kept bright;
 white with cyan and violet light in the Concierge's. They are small (the director's second sheet, Luna about 1.7 m):
-cleaner 0.5 m (37 px on the street), delivery bot 0.6 m (44), guardian 1.0 m (74), drone 0.3 m; the maintenance bot a
-little bigger than the sheet, 64 px. They are `lit`: part of the set at their own size, but lit as the people are, by
+cleaner 0.5 m (37 px on the street), delivery bot 0.6 m (44), drone 0.3 m; the maintenance bot a little bigger than the
+sheet, 64 px, and the guardian much bigger, nearly her height (1.6 m, 118 px), as the director asked. They are `lit`: part of the set at their own size, but lit as the people are, by
 the scene's lamps rather than as painted, and mirrored in wet ground around their own feet. Few of them, more later in
 the game:
-- now and then a drone crosses the main street;
+- drones cross the main street every half minute or so: two far off between the towers, and a nearer one, bigger,
+  just under the viaduct (`bots/drone-near`, the same drone built at 24 px);
 - the guardian walks its own beat past the info screen, near the front of the pavement (a mover with `patrol`): it
   walks (a stride, standing, the stride mirrored round its hip), stops halfway, rests at each end, turns; resting, it
   shows a direction sign in the Concierge's view (in its idle frames). Its hotspot `follows` it;
