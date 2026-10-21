@@ -75,7 +75,7 @@ function lightSide(i: number): void {
     choice('Preset', l.preset ?? '', [['', 'None: its own settings'], ...Object.entries(kinds).map(([k, p]) => [k, p.label] as [string, string])], (v) => {
       const o = l as Record<string, unknown>;
       // taking a preset takes all of it; leaving one keeps how the light looks, as its own settings
-      if (v) { for (const k of Object.keys(o)) if (!['x', 'y', 'parallax', 'suggested', 'views'].includes(k)) delete o[k]; l.preset = v; }
+      if (v) { for (const k of Object.keys(o)) if (!['x', 'y', 'parallax', 'suggested', 'views', 'when'].includes(k)) delete o[k]; l.preset = v; }
       else { const { views, ...flat } = resolveLight(l) as LightDef & { views?: unknown }; void views; Object.assign(o, flat); delete l.preset; }
       reselect();
     }),
@@ -95,6 +95,7 @@ function lightSide(i: number): void {
     check('Power of its own (stays on in a power cut, and keeps what it lights in the art lit)', !!both.own, (v) => own('own', v ? 1 : 0)),
     m(choice('Flicker', String(eff.g ?? 0), GROUPS, (v) => set('g', Number(v))), 'g'),
     slider('Parallax (on a far layer: its parallax)', l.parallax ?? 1, (v) => { if (v === 1) delete l.parallax; else l.parallax = v; }, { min: 0, max: 2, step: 0.05, mark: 1 }),
+    str('On only when (a condition on the story)', l.when ?? '', (v) => { if (v.trim()) l.when = v.trim(); else delete l.when; }),
     m(check('Cone', !!eff.cone, (v) => { set('cone', v ? (kind?.light.cone ?? [0, 1, 0.4]) : undefined); drawSide(); }), 'cone'),
   );
   if (eff.cone) {
@@ -104,7 +105,7 @@ function lightSide(i: number): void {
       m(slider('Cone half-angle, degrees', deg(Math.acos(Math.max(-1, Math.min(1, cone[2])))), (v) => { cone[2] = +Math.cos((Math.min(179, Math.max(1, v)) * Math.PI) / 180).toFixed(3); set('cone', [...cone]); }, { min: 1, max: 179, step: 1 }), 'cone'),
     );
   }
-  const ownSettings = Object.keys(l).filter((k) => !['x', 'y', 'preset', 'parallax', 'suggested', 'views'].includes(k));
+  const ownSettings = Object.keys(l).filter((k) => !['x', 'y', 'preset', 'parallax', 'suggested', 'views', 'when'].includes(k));
   side(buttons(
     ...(hasOwn(l, shown) ? [[`Same in both views`, () => { const before = snapshot(); sameInBoth(l, shown); remember(before); reselect(); }] as [string, () => void]] : []),
     ...(kind && ownSettings.length ? [['Back to the preset', () => { const before = snapshot(), o = l as Record<string, unknown>; for (const k of ownSettings) delete o[k]; remember(before); reselect(); }] as [string, () => void]] : []),
@@ -122,6 +123,8 @@ function hotspotSide(i: number): void {
   modeNote(inView(h, shown === 'raw'), 'Its texts have a field for each view.');
   side(str('Id', h.id, (v) => { h.id = v; }));
   side(...viewText('Name', h.name, (v) => { h.name = v ?? ''; }));
+  // there only while the story says so (docs/STORY.md): a door that opens, a thing that turns up
+  side(str('There only when (a condition on the story)', h.when ?? '', (v) => { if (v.trim()) h.when = v.trim(); else delete h.when; }));
   side(
     shownIn(h.only, (v) => { if (v) h.only = v; else delete h.only; }, reselect),
     m(num('x', r[0], (v) => { r[0] = v; setPlace('rect', [...r]); }), 'rect'), m(num('y', r[1], (v) => { r[1] = v; setPlace('rect', [...r]); }), 'rect'),
@@ -147,6 +150,9 @@ function hotspotSide(i: number): void {
     const outfits = ed.world.hero.outfits ?? {};
     if (Object.keys(outfits).length) side(choice('Using it, she changes into', h.wear ?? '', [['', 'Nothing: she stays as she is'], ...Object.entries(outfits).map(([k, o]) => [k, o.name] as [string, string])], (v) => { if (v) h.wear = v; else delete h.wear; }));
     side(str('Conversation (Ink knot)', h.talk ?? '', (v) => { if (v) h.talk = v; else delete h.talk; }));
+    // its own knot: look, use, take, talk and ask stitches over the texts below, use_<thing> for a thing used on it
+    side(str('Its knot in the story (stitches: look, use, take, use_<thing>…)', h.story ?? '', (v) => { if (v.trim()) h.story = v.trim(); else delete h.story; }));
+    side(str('A thing to take (one of the story’s Things)', h.item ?? '', (v) => { if (v.trim()) h.item = v.trim(); else delete h.item; }));
     // what the Use and Take verbs do to it: without a text, they do nothing to it and it does not light up for them
     side(...viewText('Use text', h.use, (v) => { if (v === undefined) delete h.use; else h.use = v; }, true));
     side(...viewText('Take text', h.take, (v) => { if (v === undefined) delete h.take; else h.take = v; }, true));
@@ -235,6 +241,7 @@ function layerSide(i: number): void {
     slider('Parallax (1 moves with the street)', l.parallax ?? d?.parallax ?? 1, (v) => { l.parallax = v; }, { min: 0, max: 2, step: 0.05, mark: 1, after: place }),
     check('In front of the people', l.front ?? d?.front ?? false, (v) => { if (v) l.front = true; else delete l.front; if (d) d.front = v; }),
     choice('Depth', String(l.depth ?? d?.depth ?? 3), [['0', 'Sky'], ['1', 'Far'], ['2', 'Middle'], ['3', 'Near']], (v) => { l.depth = Number(v); }, place),
+    str('There only when (a condition on the story)', l.when ?? '', (v) => { if (v.trim()) l.when = v.trim(); else delete l.when; }),
   );
   const move = (to: number) => {
     if (to < 0 || to >= file.layers.length) return;
