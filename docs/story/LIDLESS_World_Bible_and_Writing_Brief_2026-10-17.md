@@ -245,7 +245,10 @@ Properties are human and grow with practice. High Signal opens doors only guests
 What people own is little, and real: underwear, everyday clothes, a coat. Anything finer is a projection their AR
 system puts on them over what they wear: the Concierge's view shows a party dress, raw view the same plain clothes as
 always. *(Decided 21 October.)* Luna's real clothes are white cotton underwear (red satin to the Concierge), the black
-top and cargo trousers she wears at home, and her raincoat over them outside.
+top and cargo trousers she wears at home, and her raincoat over them outside. Undressed, as the shower leaves her, the
+game shows her censored: a small mosaic over her nipples and her vulva. Raw view shows her body as it is, freckles,
+fine hair, bruises, ribs; the Concierge's, perfected. That contrast, perfection against natural beauty, is what raw
+view is for.
 
 ### Water and nutrition
 
@@ -253,7 +256,8 @@ Nobody eats: there is no food and no cooking anywhere. *(Decided 21 October.)*
 
 - **Water** is collected centrally or delivered. Every home and every public place has it.
 - **Nutrition** is taken at stations. You sit in a chair, the station measures all your vitals, and a cocktail made
-  for you is injected through a port in your lower back. Everyone has the port.
+  for you is injected through a port in your lower back. Everyone has the port. Luna's shows in raw view above her
+  underwear, a small ring of dull metal; the Concierge's view smooths it away.
 
 *Proposed:* the Concierge still calls it dinner ("Good evening. Dinner is served."): its hotel manners for the chair and
 the needle. The main street's dining machine is such a station. See docs/art/LIDLESS_Flat_Redesign_Plan_2026-10-21.md
@@ -369,7 +373,7 @@ A one-room flat up the stairs of Entrance 3. In raw view it is cramped, damp and
 | `screen` | A wall screen: GOOD EVENING, the time, the weather | A dead grey box of valves and gauges |
 | `parcels` | White boxes with the Concierge's mark | Parcels in brown paper and string |
 
-It is the start of each day and the place where she sleeps. Later, sleep is when a decoy can cover for her. The Concierge sees everything she sees, even here.
+It is the start of each day and the place where she sleeps. Later, sleep is when a decoy can cover for her. At home the Concierge neither sees nor hears her: homes are private, unless she calls it. *(Changed 21 October; the director's updated bible is to come.)* So her flat is where she can think, look into things, bring people she trusts and say what she cannot say outside. Its redesign: docs/art/LIDLESS_Flat_Redesign_Plan_2026-10-21.md.
 
 *Proposed:* the mirror is the best place to first see what raw view does, because it shows her own face in both views.
 

@@ -1,0 +1,51 @@
+{
+  "name": "hero-nude",
+  "x": 409,
+  "y": 224,
+  "w": 142.4,
+  "h": 240,
+  "maps": [
+    "albedo.concierge",
+    "albedo.raw",
+    "glow.concierge"
+  ],
+  "depth": 3,
+  "parallax": 1,
+  "occluder": 1,
+  "reflectivity": 0,
+  "object": 0,
+  "anchor": [
+    71.2,
+    240
+  ],
+  "exists": "both",
+  "kind": "character",
+  "frames": {
+    "count": 64,
+    "gutter": 2,
+    "cols": 11
+  },
+  "anims": {
+    "idle": {
+      "from": 0,
+      "count": 16,
+      "fps": 5
+    },
+    "walk": {
+      "from": 16,
+      "count": 16,
+      "stride": 158.36
+    },
+    "idleLeft": {
+      "from": 32,
+      "count": 16,
+      "fps": 5
+    },
+    "walkLeft": {
+      "from": 48,
+      "count": 16,
+      "stride": 158.36
+    }
+  },
+  "res": 1.25
+}

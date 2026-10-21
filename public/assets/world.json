@@ -31,6 +31,11 @@
         "name": "Underwear",
         "stay": "Not like this."
       },
+      "nude": {
+        "sprite": "cast/hero-nude",
+        "name": "Undressed",
+        "stay": "Not like this."
+      },
       "party": {
         "sprite": "cast/hero-party",
         "name": "Party dress",

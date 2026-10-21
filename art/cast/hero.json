@@ -28,7 +28,7 @@
       "concierge": "Seen from her left side: her left eye is uncovered, made up, with no visor or glow over it at all; the visor is on her right eye, out of sight. Only the pink band of her ponytail and the hair show above her ear."
     },
     "right": "Seen from her right side: the goggles' right lens over her right eye in raw view, the glowing visor over her right eye in the Concierge's.",
-    "neckSink": 0.08,
+    "neckSink": 0.15,
     "proportions": {
       "head": 0.23,
       "torso": 0.26,

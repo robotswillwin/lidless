@@ -1,0 +1,109 @@
+{
+  "name": "hero-nude",
+  "scene": "cast",
+  "kind": "character",
+  "exists": "both",
+  "prompt": "Luna undressed, censored: never generated. Made from her underwear's parts (art/cast/hero-underwear) by tools/pipeline/censor.mjs, the underwear under a mosaic of her skin's tones, as a censored game shows someone in the shower, its straps plain skin.",
+  "concierge": "As raw view: made from the underwear's Concierge parts, censored the same way.",
+  "height": 240,
+  "position": [
+    480,
+    464
+  ],
+  "material": "cloth",
+  "glow": {
+    "raw": "none",
+    "concierge": "auto",
+    "machine": false
+  },
+  "references": [
+    "art/cast/hero/raw.png"
+  ],
+  "conciergeReferences": [
+    "art/cast/hero/concierge.png",
+    "art/reference/luna/v2/ar-head.png"
+  ],
+  "look": "vector",
+  "res": 1.25,
+  "framing": "One full-length figure in exact profile, seen straight from the side and facing right, standing in a neutral pose for animation: arms hanging relaxed and slightly away from the body, hands empty and open, legs straight and a little apart so both are fully visible, nothing held and nothing crossing the body. Feet at the bottom of the frame. Even, soft, frontal lighting with no cast shadows and no rim light. Transparent background, the whole figure in frame with a little space around it, no ground, no text, no border.",
+  "referenceNote": "character",
+  "anims": {
+    "idle": {
+      "fps": 5
+    },
+    "idleLeft": {
+      "fps": 5
+    }
+  },
+  "parts": {
+    "from": "raw.png",
+    "left": {
+      "mirror": true,
+      "coat": "over",
+      "raw": "Seen from her left side: the goggles' left lens over her left eye, the strap around her head, the ponytail behind.",
+      "concierge": "Seen from her left side: her left eye is uncovered, made up, with no visor or glow over it at all; the visor is on her right eye, out of sight. Only the pink band of her ponytail and the hair show above her ear."
+    },
+    "right": "Seen from her right side: the goggles' right lens over her right eye in raw view, the glowing visor over her right eye in the Concierge's.",
+    "proportions": {
+      "head": 0.23,
+      "torso": 0.26,
+      "upperArm": 0.17,
+      "forearm": 0.24,
+      "thigh": 0.29,
+      "shin": 0.31,
+      "ponytail": 0.3,
+      "hipDrop": 0.08
+    },
+    "gait": {
+      "idle": {
+        "step": 0.06,
+        "heel": 10
+      }
+    },
+    "extra": [
+      "ponytail"
+    ],
+    "proportionsByView": {
+      "concierge": {
+        "ponytail": 0.34
+      }
+    },
+    "reshape": "The ponytail piece, on its own at the far left of the sheet, is fuller: about one and a half times as wide, with spiky strands, and it stays a separate piece with clear empty space between it and the head, never touching it. The torso's bust is fuller and rounder under the black bra, the collar, shoulders, waist and hips staying where they are.",
+    "coat": "over",
+    "joints": {
+      "torso": {
+        "bust": [
+          0.74,
+          0.39
+        ]
+      }
+    },
+    "bounce": {
+      "concierge": 1
+    },
+    "same": {
+      "from": "art/cast/hero",
+      "parts": [
+        "head",
+        "ponytail"
+      ]
+    },
+    "gaits": [
+      "walk"
+    ],
+    "pieces": "the head with the neck and hair; the torso in the black bra, from the collar to the hips, with the bare stomach, and no arm drawn on it; below the waist, as a separate piece of its own, her hips in the black briefs down to the top of the thighs; one bare upper arm; one bare forearm with the hand, relaxed and open; one bare thigh; one bare lower leg with its bare foot, toes pointing right.",
+    "neckSink": 0.22,
+    "coatSway": 0,
+    "coatThigh": 0.9,
+    "skin": [
+      "upperArm",
+      "forearm",
+      "shin",
+      "torso",
+      "coat"
+    ],
+    "coatCut": 1,
+    "bareNeck": "shoulders",
+    "coatFade": 0.35
+  }
+}

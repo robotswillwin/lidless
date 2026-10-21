@@ -1,8 +1,8 @@
 {
   "name": "hero-underwear",
-  "x": 410,
+  "x": 409,
   "y": 224,
-  "w": 139.2,
+  "w": 142.4,
   "h": 240,
   "maps": [
     "albedo.concierge",
@@ -15,7 +15,7 @@
   "reflectivity": 0,
   "object": 0,
   "anchor": [
-    69.6,
+    71.2,
     240
   ],
   "exists": "both",
@@ -34,7 +34,7 @@
     "walk": {
       "from": 16,
       "count": 16,
-      "stride": 155.49
+      "stride": 158.36
     },
     "idleLeft": {
       "from": 32,
@@ -44,7 +44,7 @@
     "walkLeft": {
       "from": 48,
       "count": 16,
-      "stride": 155.49
+      "stride": 158.36
     }
   },
   "res": 1.25

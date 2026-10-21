@@ -1,8 +1,8 @@
 {
   "name": "hero-clothes",
-  "x": 421,
+  "x": 420,
   "y": 224,
-  "w": 119.2,
+  "w": 120,
   "h": 240,
   "maps": [
     "albedo.concierge",
@@ -15,7 +15,7 @@
   "reflectivity": 0,
   "object": 0,
   "anchor": [
-    59.2,
+    60,
     240
   ],
   "exists": "both",
@@ -34,7 +34,7 @@
     "walk": {
       "from": 16,
       "count": 16,
-      "stride": 146.37
+      "stride": 147.72
     },
     "idleLeft": {
       "from": 32,
@@ -44,7 +44,7 @@
     "walkLeft": {
       "from": 48,
       "count": 16,
-      "stride": 146.37
+      "stride": 147.72
     }
   },
   "res": 1.25

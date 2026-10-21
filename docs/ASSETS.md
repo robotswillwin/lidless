@@ -134,8 +134,15 @@ flickers:
   finer is a projection her AR system puts on her over what she wears (`virtual` in world.json, see outfits.ts): the
   Concierge's view shows it, raw view what is under it, and it stays on her indoors and out. The party dress is the one
   projection so far; her wardrobe offers it in the Concierge's view. A projection needs only the Concierge's art. The
-  home clothes, the cardigan and the bathrobe are no longer worn (their art is kept); the shower leaves her in her
-  underwear. Each outfit is the same character in other clothes, each made as she is in her coat, from a profile drawn with her
+  home clothes, the cardigan and the bathrobe are no longer worn (their art is kept). Undressed (`art/cast/hero-nude`),
+  which the shower leaves her in, is made from her underwear by `tools/pipeline/censor.mjs`, never generated: the
+  underwear becomes her skin, a smooth field of the skin's colour around it, and a small mosaic of her skin's tones
+  covers where her nipples and her vulva would be; nothing anatomical is drawn, under it or anywhere. Raw view's skin is
+  natural (`tools/pipeline/natural.mjs`, on the underwear's raw parts before the undressed ones are made from them): a
+  little unevenness of tone, faint ribs, fine hair on her forearms and shins, a few bruises, freckles and moles, knees
+  and elbows a little redder, and the nutrition port in her lower back. The Concierge's view keeps her flawless: the
+  contrast between its perfection and her natural self is what raw view is for. Each outfit is the same character in
+  other clothes, each made as she is in her coat, from a profile drawn with her
   model sheet as the reference. `parts.same` takes her head and ponytail from her own parts (`art/cast/hero`), so her
   face, hair and eyepiece stay exactly hers, and sizes the outfit by her torso, so every outfit is as tall as she is.
   `parts.gaits` lists the gaits besides standing the rig renders: `["walk"]` for what she wears only at home, half the
@@ -250,7 +257,9 @@ preset**. The main street's lights are all of a kind.
 
 A scene folder holds the sprite sets plus `scene.json` (sprite order back to front, lights, beacons,
 steam and smoke, light shafts, drips, the reflection line, traffic) and `zone.png`, a level-sized map of
-where it is inside (R), outside (G) and how much static shadow there is (B).
+where it is inside (R), outside (G) and how much static shadow there is (B). A scene with `private` is one the Concierge
+neither sees nor hears her in (her home): looking closely in raw view costs no attention there, and it answers only
+when she asks it.
 
 Characters walk in front of the set, so lights and characters need to know which is in front of which:
 
@@ -591,7 +600,11 @@ rectangles `[x, y, w, h]` cut out of every layer nearer than the furthest, which
 give the window to the nearer layer with a fix, frame and all, and its panes are holes in it, so the city through it
 slides with the city. All in level pixels. The street's is an example (`art/street/vista.json`).
 
-**Her flat** is a one-screen interior split the same way into two layers (`art/home/cutaway.json`): the city behind
+**Her flat** was redesigned on 21 October to the director's brief (`docs/art/LIDLESS_Flat_Redesign_Plan_2026-10-21.md`):
+a hotel room she has made her own, with no kitchen. The Concierge's view was repainted inside the flat with `touch`, and
+raw view redrawn from it with `touch --from concierge`, so the two line up: plain, institutional and clean, never
+squalid. Her things are the same in both, the plant small but alive in raw view. Split again, the layers keep where the
+scene placed them. It is a one-screen interior split the same way into two layers (`art/home/cutaway.json`): the city behind
 and around the building at 0.3, seen at both sides and through her window, and the building, the cutaway of its three
 floors. The camera leans 24 px each way as she crosses the flat, so the city slides about 34 px against the building
 from one end to the other. What moves out there: smoke from two smokestacks and red lights blinking on the towers in
