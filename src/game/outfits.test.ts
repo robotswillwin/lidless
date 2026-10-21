@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { outfitAfter, outfitIn, type Outfits } from './outfits';
+import { outfitAfter, outfitIn, shownOutfit, type Outfits } from './outfits';
 
 const outfits: Outfits = {
   coat: { sprite: 'cast/hero', name: 'Coat', out: true, home: 'clothes' },
@@ -25,6 +25,15 @@ describe('outfits', () => {
   it('changes nothing between two places outside, or two at home', () => {
     expect(outfitAfter(outfits, 'coat', false, false)).toBe('coat');
     expect(outfitAfter(outfits, 'robe', true, true)).toBe('robe');
+  });
+
+  it('shows a projection over what she wears in the Concierge\'s view, and in raw view what she really wears', () => {
+    const withProjection: Outfits = { ...outfits, gown: { sprite: 'cast/hero-gown', name: 'Gown', virtual: true } };
+    expect(shownOutfit(withProjection, 'clothes', 'gown', false)).toBe('gown');
+    expect(shownOutfit(withProjection, 'clothes', 'gown', true)).toBe('clothes');
+    expect(shownOutfit(withProjection, 'coat', null, false)).toBe('coat');
+    // only a virtual outfit can be projected
+    expect(shownOutfit(withProjection, 'clothes', 'robe', false)).toBe('clothes');
   });
 
   it('starts her in her first outfit, out of her coat if she starts at home; an outfit not listed is her first', () => {

@@ -26,21 +26,6 @@
         "name": "Outdoor clothes",
         "out": "coat"
       },
-      "home": {
-        "sprite": "cast/hero-lounge",
-        "name": "Home clothes",
-        "out": "coat"
-      },
-      "cardigan": {
-        "sprite": "cast/hero-home",
-        "name": "Cardigan",
-        "out": "coat"
-      },
-      "robe": {
-        "sprite": "cast/hero-robe",
-        "name": "Bathrobe",
-        "stay": "Not in my bathrobe."
-      },
       "underwear": {
         "sprite": "cast/hero-underwear",
         "name": "Underwear",
@@ -49,7 +34,7 @@
       "party": {
         "sprite": "cast/hero-party",
         "name": "Party dress",
-        "out": true
+        "virtual": true
       }
     },
     "outfit": "coat",

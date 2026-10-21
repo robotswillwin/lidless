@@ -240,6 +240,13 @@ The lungs come from the ending: turning the Concierge off switches off everyone'
 
 Properties are human and grow with practice. High Signal opens doors only guests can use, but the Concierge knows Luna's plans. Low Signal hides her, and leaves her poor and on her own; some places can only be reached with none. *(Decided.)*
 
+### Clothes
+
+What people own is little, and real: underwear, everyday clothes, a coat. Anything finer is a projection their AR
+system puts on them over what they wear: the Concierge's view shows a party dress, raw view the same plain clothes as
+always. *(Decided 21 October.)* Luna's real clothes are white cotton underwear (red satin to the Concierge), the black
+top and cargo trousers she wears at home, and her raincoat over them outside.
+
 ### Water and nutrition
 
 Nobody eats: there is no food and no cooking anywhere. *(Decided 21 October.)*

@@ -13,6 +13,8 @@ export interface SaveData {
   attention?: number;
   /** What she is wearing: one of the world's outfits. */
   outfit?: string;
+  /** A projection over it, a virtual outfit, if one is on. */
+  projection?: string;
 }
 
 const KEY = 'lidless.save.v1';

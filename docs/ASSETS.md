@@ -129,8 +129,13 @@ flickers:
   torso, coat, upper arm, forearm, thigh, shin) following a template; the parts are cut out with their joints, posed
   through the walk and baked into frames (`parts --bake`). The left-facing side is the right side mirrored, with
   touch-ups only where the two differ, so it stays the same person. Luna is made this way.
-- **Outfits** (`art/cast/hero-*.json`: the clothes under her coat, home clothes, a cardigan, a bathrobe, underwear, a
-  party dress): the same character in other clothes, each made as she is in her coat, from a profile drawn with her
+- **Outfits** (`art/cast/hero-*.json`). What she really owns is little: her underwear (plain white cotton in raw view,
+  red satin in the Concierge's), her clothes, which she wears at home, and her raincoat over them outside. Anything
+  finer is a projection her AR system puts on her over what she wears (`virtual` in world.json, see outfits.ts): the
+  Concierge's view shows it, raw view what is under it, and it stays on her indoors and out. The party dress is the one
+  projection so far; her wardrobe offers it in the Concierge's view. A projection needs only the Concierge's art. The
+  home clothes, the cardigan and the bathrobe are no longer worn (their art is kept); the shower leaves her in her
+  underwear. Each outfit is the same character in other clothes, each made as she is in her coat, from a profile drawn with her
   model sheet as the reference. `parts.same` takes her head and ponytail from her own parts (`art/cast/hero`), so her
   face, hair and eyepiece stay exactly hers, and sizes the outfit by her torso, so every outfit is as tall as she is.
   `parts.gaits` lists the gaits besides standing the rig renders: `["walk"]` for what she wears only at home, half the

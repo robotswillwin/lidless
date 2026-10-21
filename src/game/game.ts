@@ -103,6 +103,9 @@ export class Game {
   private partner: Hotspot | null = null;
   /** What she is wearing, one of the world's outfits, and her sprites in them, each loaded the first time she wears it. */
   private outfit: string;
+  /** A projection over what she wears (a virtual outfit), and its sprite, shown in the Concierge's view. */
+  private projection: string | null = null;
+  private projected: Sprite | null = null;
   private readonly heroes = new Map<string, Promise<Sprite>>();
   /** A choice that is not a conversation's, such as what to wear: picking an answer goes here. */
   private picker: ((i: number) => void) | null = null;
@@ -119,8 +122,10 @@ export class Game {
     this.hud.known = (v) => Boolean(this.dialogue.story.variablesState[v]);
     this.state = { view: s.rawView ? 0 : s.save && this.canSwitch() ? s.save.view : 1, sinceSwitch: 10 };
     this.attention = s.save?.attention ?? 0;
-    const outfits = s.world.hero.outfits ?? {};
-    this.outfit = s.save?.outfit && outfits[s.save.outfit] ? s.save.outfit : s.world.hero.outfit ?? Object.keys(outfits)[0] ?? '';
+    const outfits = s.world.hero.outfits ?? {}, saved = s.save?.outfit && outfits[s.save.outfit] ? s.save.outfit : undefined;
+    // a projection saved as what she wore (an older save) goes back on over her own clothes
+    this.projection = s.save?.projection && outfits[s.save.projection]?.virtual ? s.save.projection : saved && outfits[saved].virtual ? saved : null;
+    this.outfit = saved && !outfits[saved].virtual ? saved : s.world.hero.outfit ?? Object.keys(outfits).find((k) => !outfits[k].virtual) ?? '';
     this.heroes.set(s.world.hero.sprite, Promise.resolve(s.hero));
     // the look panel (L): from the game's saved look, with each scene's own settings over it; split settings follow the view
     this.look = createLookPanel(s.renderer, s.projectLook, s.stage, {
@@ -161,6 +166,7 @@ export class Game {
     if (asked) await g.enter(startId, { spawn: asked.spawn ?? Object.keys((await g.scenes.file(startId)).spawns)[0] });
     else if (save?.scene === startId) await g.enter(startId, { x: save.heroX, facing: save.facing });
     else await g.enter(startId, { spawn: w.start.spawn });
+    if (g.projection) await g.project(g.projection).catch(() => { g.projection = null; });
     g.syncView();
     g.hud.setAttention(g.attention);
     return g;
@@ -216,12 +222,32 @@ export class Game {
    * run longer strides at a quicker cadence. Only the gaits she has in what she wears.
    */
   private fitGaits(scene: Scene): void {
-    const gaits = heroGaits(this.s.hero.def, this.s.world.hero, scene.file.actorScale ?? 1);
+    const gaits = heroGaits(this.shown.def, this.s.world.hero, scene.file.actorScale ?? 1);
     scene.level.hero.gaits = gaits;
     if (gaits.walk) scene.level.hero.speed = gaits.walk.speed;
   }
 
   /* ---------- what she wears ---------- */
+
+  /** Her sprite as the view on screen shows her: a projection over her clothes in the Concierge's, her clothes in raw view. */
+  private get shown(): Sprite {
+    return !this.raw && this.projected ? this.projected : this.s.hero;
+  }
+
+  /** A projection put on her (a virtual outfit), or taken off (null): the Concierge's view shows it over what she wears. */
+  private async project(key: string | null): Promise<void> {
+    const outfits = this.s.world.hero.outfits, was = this.projection ? outfits?.[this.projection]?.sprite : undefined;
+    const o = key ? outfits?.[key] : undefined;
+    this.projected = o?.virtual ? await this.heroSprite(o.sprite) : null;
+    this.projection = this.projected ? key : null;
+    // the one she took off is let go, as clothes are
+    if (was && was !== o?.sprite && was !== outfits?.[this.outfit]?.sprite && was !== this.s.world.hero.sprite) {
+      const off = this.heroes.get(was);
+      this.heroes.delete(was);
+      void off?.then((s) => freeSprite(this.s.renderer.gl, s));
+    }
+    if (this.scene) this.fitGaits(this.scene);
+  }
 
   /** Her sprite in an outfit, loaded the first time she wears it. */
   private heroSprite(path: string): Promise<Sprite> {
@@ -254,17 +280,30 @@ export class Game {
   private openWardrobe(): void {
     const outfits = this.s.world.hero.outfits;
     if (!outfits) return;
-    const keys = Object.keys(outfits).filter((k) => !outfits[k].home);
-    this.picker = (i) => { if (keys[i] && keys[i] !== this.outfit) void this.change(keys[i]); };
-    this.talk.show([], [...keys.map((k) => `${outfits[k].name}${k === this.outfit ? ' (wearing)' : ''}`), 'Never mind']);
+    // her own clothes; in the Concierge's view also what her AR system can put on her, and taking it off
+    const own = Object.keys(outfits).filter((k) => !outfits[k].home && !outfits[k].virtual);
+    const projections = this.raw ? [] : Object.keys(outfits).filter((k) => outfits[k].virtual);
+    const choices: { label: string; pick: () => void }[] = [
+      ...own.map((k) => ({ label: `${outfits[k].name}${k === this.outfit ? ' (wearing)' : ''}`, pick: () => { if (k !== this.outfit) void this.change(k); } })),
+      ...projections.map((k) => ({ label: `${outfits[k].name}, projected${k === this.projection ? ' (on)' : ''}`, pick: () => { if (k !== this.projection) void this.change(k); } })),
+      ...(this.projection && !this.raw ? [{ label: 'Projection off', pick: () => void this.change(null) }] : []),
+    ];
+    this.picker = (i) => choices[i]?.pick();
+    this.talk.show([], [...choices.map((c) => c.label), 'Never mind']);
   }
 
-  /** She changes clothes where she stands, behind a moment's fade, held for `hold` ms more where a while passes. */
-  private async change(key: string, hold = 0): Promise<void> {
+  /**
+   * She changes clothes where she stands, behind a moment's fade, held for `hold` ms more where a while passes: into her
+   * own clothes, or a projection put on or (null) taken off over them. Where a while passes (the shower), the projection
+   * comes off with her clothes.
+   */
+  private async change(key: string | null, hold = 0): Promise<void> {
     this.s.fade.classList.add('on');
     await new Promise((r) => setTimeout(r, this.s.reduceMotion ? 0 : 260 + hold));
     try {
-      await this.wear(key);
+      const virtual = key ? this.s.world.hero.outfits?.[key]?.virtual : true;
+      if (virtual) await this.project(key);
+      else if (key) { await this.wear(key); if (hold) await this.project(null); }
       this.fitGaits(this.scene);
       this.persist();
     } catch (err) {
@@ -361,6 +400,8 @@ export class Game {
     this.world.raw = this.raw;
     this.switchedAt = this.clock();
     this.look.refresh();
+    // a projection shows in one view only: her gaits are the ones of the sprite now on screen
+    if (this.projected) this.fitGaits(this.scene);
     // a verb the other view does not have (the Concierge's bell) is put down
     if (this.verb && !verbsIn(this.raw).includes(this.verb)) this.setVerb(null);
     this.syncView();
@@ -425,7 +466,7 @@ export class Game {
    * off, and running if it is further than twice that. She speeds up into it and slows down out of it.
    */
   private goTo(x: number, then: Hotspot | null = null): void {
-    const tall = this.s.hero.def.h * (this.scene.file.actorScale ?? 1);
+    const tall = this.shown.def.h * (this.scene.file.actorScale ?? 1);
     this.world.walkTo(x, then, paceFor(Math.abs(x - this.world.heroX), this.s.world.hero, tall));
   }
 
@@ -449,7 +490,7 @@ export class Game {
   private speakerAt(speaker: string): [number, number] | null {
     if (speaker === 'luna') {
       const c = this.s.canvas.getBoundingClientRect(), hud = this.hud.root.getBoundingClientRect(), k = c.width / NW;
-      const head = this.scene.file.walk.y - this.s.hero.def.h * (this.scene.file.actorScale ?? 1);
+      const head = this.scene.file.walk.y - this.shown.def.h * (this.scene.file.actorScale ?? 1);
       return [(this.world.heroX - this.cam[0]) * k + c.left - hud.left, (head - this.cam[1]) * k + c.top - hud.top - 6];
     }
     if (speaker === 'narration' || !this.partner) return null;
@@ -549,7 +590,7 @@ export class Game {
    */
   private holdOn(t: number): void {
     if (!this.finger || this.verb || this.talk.open || this.travelling || this.scene.file.kind !== 'exterior' || t - this.downAt < HOLD) return;
-    const x = this.toLevel(this.finger[0], this.finger[1])[0], tall = this.s.hero.def.h * (this.scene.file.actorScale ?? 1);
+    const x = this.toLevel(this.finger[0], this.finger[1])[0], tall = this.shown.def.h * (this.scene.file.actorScale ?? 1);
     if (holdPace(Math.abs(x - this.world.heroX), this.s.world.hero, tall) === 'run') {
       this.holding = this.chasing = true;
       this.pending = null;
@@ -582,7 +623,7 @@ export class Game {
   /* ---------- saving ---------- */
 
   persist(): void {
-    writeSave({ v: 1, scene: this.scene.file.id, heroX: Math.round(this.world.heroX), facing: this.world.facing, view: this.state.view, ink: this.dialogue.save(), attention: this.attention, outfit: this.outfit || undefined });
+    writeSave({ v: 1, scene: this.scene.file.id, heroX: Math.round(this.world.heroX), facing: this.world.facing, view: this.state.view, ink: this.dialogue.save(), attention: this.attention, outfit: this.outfit || undefined, projection: this.projection ?? undefined });
   }
 
   /* ---------- each frame ---------- */
@@ -615,7 +656,7 @@ export class Game {
     this.state.sinceSwitch = this.s.reduceMotion ? 10 : t - this.switchedAt;
     // she is drawn at the scene's scale, bobbing a little if her sprite has no walk of its own; the scene's smoke
     // emitter follows her cigarette, or goes off screen when she has none
-    const hero = this.s.hero, sc = file.actorScale ?? 1, bob = (hero.def.anims?.walk ? 0 : world.bob) * sc, hs = this.s.world.hero.smoke;
+    const hero = this.shown, sc = file.actorScale ?? 1, bob = (hero.def.anims?.walk ? 0 : world.bob) * sc, hs = this.s.world.hero.smoke;
     const smoke: [number, number] = hs ? [world.heroX + hs[0] * sc * world.facing, file.walk.y + hs[1] * sc + bob] : [-1000, -1000];
     const her = heroDrawing(hero, { x: world.heroX, walkY: file.walk.y, cam: this.cam, scale: sc, facing: world.facing, bob, frame: frameFor(hero.def, world.moving, world.phase, t, world.facing, world.gait) });
     // what a verb lights up, and what she found, stay on the thing as the camera follows her
