@@ -1,0 +1,10 @@
+{
+  "assets": [
+    "cleaner-bot",
+    "delivery-bot",
+    "drone",
+    "guardian-bot",
+    "maintenance-bot"
+  ],
+  "backgrounds": []
+}

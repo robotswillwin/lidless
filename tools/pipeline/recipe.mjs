@@ -45,11 +45,12 @@ export const PRESENCE = ['both', 'concierge', 'raw'];
  * @property {number} [palette]           0 to 1: how strongly to pull colours toward the house palette
  * @property {string[]} [references]      images sent along as style references, relative to the project folder
  * @property {string[]} [conciergeReferences]  style references for the Concierge variant, the augmented view's look
- * @property {'character'} [referenceNote]  the references are the character's own model sheet: who to draw, not only how
+ * @property {'character'|'machine'} [referenceNote]  the references are the subject's own model or design sheet: what to draw, not only how
  * @property {{ colors?: number, cleanup?: boolean } | false} [pixel]  the colour finish (default by kind), or false for none
  * @property {'pixel'|'paint'|'vector'} [look]  ask for pixel art, a painting that the build pixelates, or flat vector art
  * @property {boolean} [interior]        a background that is a room rather than a street
  * @property {boolean} [relics]          old devices that stay retro in the Concierge's view, as they looked when new
+ * @property {boolean} [lit]             a thing in the set lit as a character is, by the scene's lights, not as painted (a machine in the street)
  * @property {string} [framing]          what to draw and how to frame it, instead of the kind's own note (a figure sitting or lying)
  * @property {object} [parts]           a character cut into parts: where they are on the sheet (`at`), joint fixes (`joints`),
  *   the left side (`left`), and `proportions`, each part's length as a fraction of her height, measured on her design

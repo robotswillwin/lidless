@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { LoadedScene, MoverDef, Sprite, SpriteDef } from '../engine/assets';
-import { SceneRunner } from './scene';
+import { SceneRunner, travelled } from './scene';
 
 const sprite = (name: string, def: Partial<SpriteDef> = {}, hasMeta = false): Sprite => ({
   def: { name, x: 0, y: 0, w: 960, h: 540, maps: ['albedo.raw'], depth: 3, parallax: 1, res: 2, ...def },
@@ -126,5 +126,19 @@ describe('each view', () => {
     const runner = new SceneRunner(sc), at = (v: typeof view) => { const g = runner.frame(0, v, [0, 0]).godrays; return [g[2], Math.round(g[6] * 100) / 100]; };
     expect(at(view)).toEqual([0, 0.4]);
     expect(at(raw)).toEqual([0.5, 0]);
+  });
+});
+
+describe('a mover on its way', () => {
+  it('goes at its speed, and stops a while where it stops', () => {
+    expect(travelled(2, 10, [])).toBe(20);
+    const stops = [{ at: 30, seconds: 4 }, { at: 50, seconds: 1 }];
+    expect(travelled(2, 10, stops)).toBe(20);
+    // reaches the first stop at 3 seconds, waits till 7, the second at 9, waits till 10
+    expect(travelled(3, 10, stops)).toBe(30);
+    expect(travelled(6.5, 10, stops)).toBe(30);
+    expect(travelled(8, 10, stops)).toBe(40);
+    expect(travelled(9.5, 10, stops)).toBe(50);
+    expect(travelled(11, 10, stops)).toBe(60);
   });
 });

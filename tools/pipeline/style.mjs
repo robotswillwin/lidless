@@ -148,6 +148,8 @@ const worldOf = (r, view) => (view === 'concierge' ? `It shows the city AI's aug
  * are who to draw, not only how.
  */
 export const CHARACTER_SHEET_NOTE = 'The attached images are the model sheet of the character to draw: keep her face, hair, body, proportions, eye device and clothing as they appear there, in their rendering, palette and level of detail. Where the description below differs from them, the description wins. Draw only the one figure described, not a sheet, and no text.';
+/** The same for a machine: its design sheet, the one machine to draw. */
+export const MACHINE_SHEET_NOTE = 'The attached image is the design of the machine to draw: keep its shape, proportions, parts, markings and lights as they appear there, in their rendering, palette and level of detail. Where the description below differs from it, the description wins. Draw only the one machine described, not a sheet, no people and no text.';
 export const CHARACTER_REDRESS_NOTE = 'The first attached image is the one to edit. The other attached images show this same character in the view to draw: match how she looks there, her face, hair, eye device, colours and rendering, but keep the pose, framing and outline of the first image.';
 
 /** Put in front of a re-dress's prompt when references go with it. */

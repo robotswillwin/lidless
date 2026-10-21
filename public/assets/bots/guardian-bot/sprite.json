@@ -1,0 +1,27 @@
+{
+  "name": "guardian-bot",
+  "x": 939,
+  "y": 289,
+  "w": 71.5,
+  "h": 163,
+  "maps": [
+    "albedo.concierge",
+    "albedo.raw",
+    "glow.concierge",
+    "glow.raw"
+  ],
+  "depth": 3,
+  "parallax": 1,
+  "occluder": 0,
+  "reflectivity": 0,
+  "object": 0,
+  "machine": 1,
+  "anchor": [
+    36,
+    163
+  ],
+  "exists": "both",
+  "kind": "prop",
+  "res": 2,
+  "lit": true
+}

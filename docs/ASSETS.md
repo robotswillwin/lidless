@@ -585,7 +585,19 @@ built going right and mirrored going left, and its `y` is where its sprite.json 
 `lights` are streaks of light the engine draws with it, soft where built art has hard edges: each from `at` (in its
 sprite's pixels as built going right), `length` long, behind it for a length over 0 (a thruster's trail) and ahead of
 it under 0 (a headlight's beam), in `colour`, `width` thick where it starts, thinning and fading; seen only where its
-layer is, so nearer layers cover them as they cover it.
+layer is, so nearer layers cover them as they cover it. `stops` are places on the way where it stops a while, its
+middle at `x` for so many `seconds` (the delivery bot at the radio repair's door), and `bob` is a hover, `[pixels,
+seconds]` (a drone).
+
+**The city's helper robots** (`art/bots/`, the director's design sheets in `art/reference/robots/`): a cleaner, a
+delivery bot, a civic guardian, a maintenance bot and a drone, each drawn by the image model from its picture on the
+sheet (`referenceNote: "machine"`: the design to draw, not only a style), raw view first and the Concierge's view from
+it so the outlines match: rusty cream with amber lamps in raw view, dulled into its smog with the lamps kept bright;
+white with cyan and violet light in the Concierge's. They are `lit`: part of the set at their own size, but lit as
+the people are, by the scene's lamps rather than as painted (they were drawn flat-lit), and mirrored in wet ground
+around their own feet. On the main street the cleaner and the delivery bot are movers along the back of the
+pavement (the set's ground line), two drones cross between the towers, and the guardian stands by the feeding
+station; in the backstreet the maintenance bot works at the wall utilities, facing the panel.
 The street's train runs along the viaduct after the middle layer, between the building at the viaduct's left end
 and the billboard's tower at its right, every 10 to 25 seconds, each way in turn. How it was made: `touch` painted
 the two trains out of both views of the street's picture, and the long one was cut out of the pictures from before,

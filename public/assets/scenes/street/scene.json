@@ -18,6 +18,11 @@
   },
   {
    "asset": "street/vista-street"
+  },
+  {
+   "asset": "bots/guardian-bot",
+   "x": 964,
+   "y": 289
   }
  ],
  "lights": [
@@ -467,6 +472,30 @@
     "raw": "Shutters, and behind them shelves of nothing."
    },
    "map": true
+  },
+  {
+   "id": "guardian",
+   "name": {
+    "concierge": "Civic guardian",
+    "raw": "Guard unit"
+   },
+   "rect": [
+    966,
+    292,
+    70,
+    160
+   ],
+   "stand": 940,
+   "face": 1,
+   "tag": {
+    "concierge": "Guardian · safety and assistance",
+    "raw": "its lamp follows you"
+   },
+   "look": {
+    "concierge": "A civic guardian: safety, guidance and a kind word for any guest who needs one.",
+    "raw": "A tall guard unit, rust at every joint. Its lamp follows you for a step or two, then loses interest."
+   },
+   "ask": "Our guardians keep every street safe, guest. If you are ever lost, ask one. It will ask me."
   }
  ],
  "beacons": [
@@ -653,6 +682,82 @@
    "wait": [
     10,
     25
+   ]
+  },
+  {
+   "asset": "bots/cleaner-bot",
+   "after": "street/vista-street",
+   "x0": 0,
+   "x1": 2400,
+   "y": 352,
+   "speed": 22,
+   "wait": [
+    4,
+    12
+   ],
+   "stops": [
+    {
+     "x": 760,
+     "seconds": 3
+    },
+    {
+     "x": 1560,
+     "seconds": 3
+    }
+   ]
+  },
+  {
+   "asset": "bots/delivery-bot",
+   "after": "street/vista-street",
+   "x0": 0,
+   "x1": 2400,
+   "y": 312,
+   "speed": 45,
+   "wait": [
+    14,
+    30
+   ],
+   "stops": [
+    {
+     "x": 304,
+     "seconds": 5
+    },
+    {
+     "x": 2155,
+     "seconds": 5
+    }
+   ]
+  },
+  {
+   "asset": "bots/drone",
+   "after": "street/vista-far",
+   "x0": 0,
+   "x1": 1400,
+   "y": 110,
+   "speed": 30,
+   "wait": [
+    6,
+    16
+   ],
+   "bob": [
+    2,
+    1.7
+   ]
+  },
+  {
+   "asset": "bots/drone",
+   "after": "street/vista-mid",
+   "x0": 0,
+   "x1": 1850,
+   "y": 175,
+   "speed": 48,
+   "wait": [
+    9,
+    22
+   ],
+   "bob": [
+    1.5,
+    1.3
    ]
   }
  ],

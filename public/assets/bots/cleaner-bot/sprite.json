@@ -1,0 +1,27 @@
+{
+  "name": "cleaner-bot",
+  "x": 531,
+  "y": 352,
+  "w": 138,
+  "h": 100,
+  "maps": [
+    "albedo.concierge",
+    "albedo.raw",
+    "glow.concierge",
+    "glow.raw"
+  ],
+  "depth": 3,
+  "parallax": 1,
+  "occluder": 0,
+  "reflectivity": 0,
+  "object": 0,
+  "machine": 1,
+  "anchor": [
+    69,
+    100
+  ],
+  "exists": "both",
+  "kind": "prop",
+  "res": 2,
+  "lit": true
+}

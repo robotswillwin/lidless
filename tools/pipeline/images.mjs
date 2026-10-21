@@ -11,7 +11,7 @@ import { readRGBA, writePNG } from './image.mjs';
 import { edit, generate } from './openai.mjs';
 import { KINDS, loadRecipe, recipeTemplate, ROOT } from './recipe.mjs';
 import { finishFor, nextName, palette, rel } from './shared.mjs';
-import { CHARACTER_REDRESS_NOTE, CHARACTER_SHEET_NOTE, conciergePrompt, extendPrompt, generationPrompt, LAYOUT_REFERENCES_NOTE, layoutNote, LOOKS, REDRESS_REFERENCES_NOTE, redressPrompt, REFERENCE_NOTE, REFERENCE_NOTE_VECTOR, reframePrompt, VARIANT_REFERENCES_NOTE } from './style.mjs';
+import { CHARACTER_REDRESS_NOTE, CHARACTER_SHEET_NOTE, MACHINE_SHEET_NOTE, conciergePrompt, extendPrompt, generationPrompt, LAYOUT_REFERENCES_NOTE, layoutNote, LOOKS, REDRESS_REFERENCES_NOTE, redressPrompt, REFERENCE_NOTE, REFERENCE_NOTE_VECTOR, reframePrompt, VARIANT_REFERENCES_NOTE } from './style.mjs';
 
 /** Style references shrunk to 1024 pixels on their long side: plenty to show a style, at a fraction of the input tokens. */
 export const loadReferences = (paths) => Promise.all(paths.map(async (p) => ({
@@ -52,7 +52,7 @@ export async function cmdGenerate([file], opt) {
   // references set the rendering themselves, unless a look is asked for, on the command line or in the recipe
   const look = typeof opt.look === 'string' ? opt.look : r.look ?? (refs.length ? null : 'pixel');
   if (look && !LOOKS[look]) throw new Error(`look must be one of ${Object.keys(LOOKS).join(', ')}`);
-  const refNote = r.referenceNote === 'character' ? CHARACTER_SHEET_NOTE : look === 'vector' ? REFERENCE_NOTE_VECTOR : REFERENCE_NOTE;
+  const refNote = r.referenceNote === 'character' ? CHARACTER_SHEET_NOTE : r.referenceNote === 'machine' ? MACHINE_SHEET_NOTE : look === 'vector' ? REFERENCE_NOTE_VECTOR : REFERENCE_NOTE;
   const notes = layout ? `${layoutNote(look)} ${refs.length ? `${LAYOUT_REFERENCES_NOTE} ` : ''}` : refs.length ? `${refNote} ` : '';
   const prompt = notes + generationPrompt(r, look, as);
   console.log(`${r.name}: ${n} × ${size}, ${quality} quality, ${look ?? 'reference'} look, ${as} view${layout ? `, laid out like ${rel(layout)}` : ''}${refs.length ? `, ${refs.length} reference${refs.length > 1 ? 's' : ''}` : ''}`);

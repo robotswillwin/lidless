@@ -30,6 +30,23 @@ interface Pass { from: number; dir: 1 | -1; n: number }
 
 const between = ([a, b]: [number, number]) => a + Math.random() * (b - a);
 
+/**
+ * How far a mover has gone, `elapsed` seconds into a pass at `speed`, stopping on the way: each stop `at` so far along
+ * the pass, for `seconds`, in the order it reaches them.
+ */
+export function travelled(elapsed: number, speed: number, stops: { at: number; seconds: number }[]): number {
+  let t = elapsed, d = 0;
+  for (const s of stops) {
+    const reach = (s.at - d) / speed;
+    if (t <= reach) return d + t * speed;
+    t -= reach;
+    d = s.at;
+    if (t <= s.seconds) return d;
+    t -= s.seconds;
+  }
+  return d + t * speed;
+}
+
 export class SceneRunner {
   private passes: Pass[] = [];
   private cars = new Float32Array(64);
@@ -86,16 +103,21 @@ export class SceneRunner {
    * where it can be seen to just outside the other; the next one starts a wait later, the other way unless it keeps one.
    */
   private mover(k: number, t: number, cam: [number, number], parallax: number, view: 'raw' | 'concierge'): DrawSprite | null {
-    const { def, sprite } = this.scene.movers![k], m: MoverDef = asIn(def, view), w = sprite.def.w;
-    const dur = (m.x1 - m.x0 + w) / Math.max(1, m.speed), dirOf = (n: number): 1 | -1 => (m.dir ? m.dir : n % 2 ? -1 : 1);
+    const { def, sprite } = this.scene.movers![k], m: MoverDef = asIn(def, view), w = sprite.def.w, span = m.x1 - m.x0 + w;
+    // its stops, as far along a pass each way as its middle reaches them
+    const stopsGoing = (dir: 1 | -1) => (m.stops ?? []).map((s) => ({ at: dir > 0 ? s.x - (m.x0 - w / 2) : m.x1 + w / 2 - s.x, seconds: s.seconds }))
+      .filter((s) => s.at > 0 && s.at < span).sort((a, b) => a.at - b.at);
+    const pause = (m.stops ?? []).reduce((sum, s) => sum + (s.x > m.x0 - w / 2 && s.x < m.x1 + w / 2 ? s.seconds : 0), 0);
+    const dur = span / Math.max(1, m.speed) + pause, dirOf = (n: number): 1 | -1 => (m.dir ? m.dir : n % 2 ? -1 : 1);
     let p = this.passes[k];
     // the first pass soon after arriving, and again if the clock jumped (a tab left in the background, a reload)
     if (!p || t < p.from - m.wait[1] - dur || t > p.from + dur + m.wait[1] + 60) p = this.passes[k] = { from: t + between(m.wait) * 0.25, dir: dirOf(p?.n ?? 0), n: p?.n ?? 0 };
     while (t > p.from + dur) { p.n++; p.dir = dirOf(p.n); p.from += dur + between(m.wait); }
     if (t < p.from) return null;
-    const run = (t - p.from) * m.speed, x = p.dir > 0 ? m.x0 - w + run : m.x1 - run;
+    const run = travelled(t - p.from, Math.max(1, m.speed), stopsGoing(p.dir)), x = p.dir > 0 ? m.x0 - w + run : m.x1 - run;
+    const bob = m.bob ? m.bob[0] * Math.sin((t * 2 * Math.PI) / Math.max(0.1, m.bob[1])) : 0;
     return {
-      sprite, x: x - cam[0] * parallax, y: (m.y ?? sprite.def.y) - cam[1] * parallax, flip: p.dir < 0,
+      sprite, x: x - cam[0] * parallax, y: (m.y ?? sprite.def.y) + bob - cam[1] * parallax, flip: p.dir < 0,
       clip: [m.x0 - cam[0] * parallax, m.x1 - cam[0] * parallax],
     };
   }

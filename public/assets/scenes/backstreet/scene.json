@@ -14,6 +14,12 @@
   },
   {
    "asset": "backstreet/lane-street"
+  },
+  {
+   "asset": "bots/maintenance-bot",
+   "x": 580,
+   "y": 293,
+   "facing": -1
   }
  ],
  "walk": {
@@ -92,7 +98,7 @@
    "stand": 575,
    "look": {
     "concierge": "A Brighter Tomorrow, Together.",
-    "raw": "Gauges and patched cables. Somebody keeps this running by hand."
+    "raw": "Gauges and patched cables. The repair bot keeps it running, just."
    },
    "tag": "City panel",
    "ask": "A Brighter Tomorrow, Together, guest."
@@ -110,6 +116,29 @@
    "go": {
     "scene": "street",
     "spawn": "from-backstreet"
+   }
+  },
+  {
+   "id": "repair-bot",
+   "name": {
+    "concierge": "Maintenance unit",
+    "raw": "Repair bot"
+   },
+   "rect": [
+    630,
+    300,
+    90,
+    140
+   ],
+   "stand": 700,
+   "face": -1,
+   "tag": {
+    "concierge": "Maintenance · in progress",
+    "raw": "older than the panel"
+   },
+   "look": {
+    "concierge": "A maintenance unit keeping the street's systems at their best. Please mind the work area.",
+    "raw": "An old repair bot with one arm in the fuse box, patching what was patched before."
    }
   }
  ],

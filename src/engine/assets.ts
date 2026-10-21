@@ -45,6 +45,12 @@ export interface SpriteDef {
    * glowing air stays mostly behind it. Default: true for characters.
    */
   actor?: boolean;
+  /**
+   * Part of the set, at its own size and in its order, but lit as a character is: by the scene's own lights, not as
+   * painted, and mirrored in wet ground around its own feet. A machine standing or moving in the street, drawn flat-lit
+   * like the people, in a scene whose set has its night painted in.
+   */
+  lit?: boolean;
   /** For an actor: how much of the set's glowing air shows over it, 0 to 1. Default: the look's "Glow showing over them". */
   haze?: number;
   /**
@@ -247,6 +253,10 @@ export interface MoverDef {
    * edges; seen only where the mover's layer is. At most four in a scene.
    */
   lights?: { at: [number, number]; length: number; colour: [number, number, number]; width?: number }[];
+  /** Where it stops on the way, a while: its middle at x (in the layer's pixels), for so many seconds. A delivery at a door. */
+  stops?: { x: number; seconds: number }[];
+  /** A hover: how far it rises and falls, in pixels, and how long one rise and fall takes, in seconds. A drone. */
+  bob?: [number, number];
   only?: Only;
   views?: Views<MoverDef>;
 }

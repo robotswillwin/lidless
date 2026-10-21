@@ -113,7 +113,7 @@ export async function buildOne(file) {
   const sprite = {
     name: r.name, x: Math.round(cx - lw / 2), y: Math.round(base - lh), w: lw, h: lh, maps: maps.sort(),
     depth: r.depth ?? spec.depth, parallax: r.parallax ?? 1, occluder: (r.occluder ?? spec.occluder) ? 1 : 0, reflectivity: r.reflectivity ?? 0, object: r.object ?? 0,
-    ...(flat ? flatFlags(r) : {}), anchor: [Math.round(lw / 2), lh], exists, kind: r.kind, ...(res !== 1 ? { res } : {}),
+    ...(flat ? flatFlags(r) : {}), anchor: [Math.round(lw / 2), lh], exists, kind: r.kind, ...(res !== 1 ? { res } : {}), ...(r.lit ? { lit: true } : {}),
   };
   await writeFile(join(out, 'sprite.json'), JSON.stringify(sprite, null, 2) + '\n');
   // maps an earlier build wrote that this one did not
@@ -251,7 +251,7 @@ export async function writeAnimated(r, raws, concs, { anchorX, anims }) {
   const sprite = {
     name: r.name, x: Math.round(cx - anchor[0]), y: Math.round(base - lh), w: lw, h: lh, maps: Object.keys(maps).sort(),
     depth: r.depth ?? spec.depth, parallax: r.parallax ?? 1, occluder: (r.occluder ?? spec.occluder) ? 1 : 0, reflectivity: r.reflectivity ?? 0, object: r.object ?? 0,
-    ...(flat ? flatFlags(r) : {}), anchor, exists, kind: r.kind, frames: { count: n, gutter: G, cols }, anims, ...(res !== 1 ? { res } : {}),
+    ...(flat ? flatFlags(r) : {}), anchor, exists, kind: r.kind, frames: { count: n, gutter: G, cols }, anims, ...(res !== 1 ? { res } : {}), ...(r.lit ? { lit: true } : {}),
   };
   await writeFile(join(out, 'sprite.json'), JSON.stringify(sprite, null, 2) + '\n');
   for (const f of await readdir(out)) if (f.endsWith('.png') && !sprite.maps.includes(f.slice(0, -4))) await rm(join(out, f));

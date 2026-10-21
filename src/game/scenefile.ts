@@ -239,6 +239,10 @@ export function checkSceneFile(data: unknown, id?: string): string[] {
       if (!layers?.some((l) => l?.asset === m?.after)) out.push(`movers[${i}] is drawn after ${String(m?.after)}, which is not one of the scene's layers`);
       if (!isNum(m?.x0) || !isNum(m?.x1) || m.x1 <= m.x0) out.push(`movers[${i}] needs x0 and x1, x1 right of x0`);
       if (!isNum(m?.speed) || m.speed <= 0) out.push(`movers[${i}] needs a speed over 0`);
+      const st = m?.stops as { x?: unknown; seconds?: unknown }[] | undefined;
+      if (st !== undefined && (!Array.isArray(st) || st.some((s) => !isNum(s?.x) || !isNum(s?.seconds) || (s.seconds as number) < 0))) out.push(`movers[${i}].stops: each needs x and seconds`);
+      const bob = m?.bob as unknown[] | undefined;
+      if (bob !== undefined && (!Array.isArray(bob) || bob.length !== 2 || !bob.every(isNum))) out.push(`movers[${i}].bob needs [pixels, seconds]`);
       const ls = m?.lights as Record<string, unknown>[] | undefined;
       if (ls !== undefined && (!Array.isArray(ls) || ls.some((l) => !Array.isArray(l?.at) || !isNum(l?.length) || !Array.isArray(l?.colour)))) out.push(`movers[${i}].lights: each needs at [x, y], a length and a colour [r, g, b]`);
       if (!nums(m?.wait, 2)) out.push(`movers[${i}].wait must be [shortest, longest] in seconds`);

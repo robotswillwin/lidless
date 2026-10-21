@@ -1,0 +1,33 @@
+{
+  "name": "maintenance-bot",
+  "scene": "bots",
+  "kind": "prop",
+  "exists": "both",
+  "look": "vector",
+  "res": 2,
+  "referenceNote": "machine",
+  "framing": "One robot alone, in pure side view facing right, the whole machine in frame with a little space around it, standing on nothing: no ground, no floor line, no shadow, no wall, no people, no text, no border, on a transparent background. Even, soft, frontal lighting with no cast shadows and no glow halos.",
+  "prompt": "A maintenance robot on a low wheeled base: a boxy upright body of old cream-grey metal, dented and rusted, a long jointed arm reaching up and forward with a small tool at its end, cables along the arm, an amber light strip on its front edge, the faded letter C on its side.",
+  "concierge": "The city AI's view of the same maintenance robot: smooth white panels, a cyan light strip on its front edge, violet glowing wheel rims, the arm clean and white with a cyan light at its tool, a crisp grey letter C on its side.",
+  "height": 147,
+  "position": [
+    650,
+    440
+  ],
+  "depth": 3,
+  "occluder": false,
+  "material": "metal",
+  "glow": {
+    "raw": "auto",
+    "concierge": "auto",
+    "machine": true
+  },
+  "palette": 0,
+  "references": [
+    "art/reference/robots/crops/maintenance-raw.png"
+  ],
+  "conciergeReferences": [
+    "art/reference/robots/crops/maintenance-concierge.png"
+  ],
+  "lit": true
+}
