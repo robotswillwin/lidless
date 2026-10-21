@@ -71,11 +71,13 @@ const HELP = `Asset pipeline: generate art with an image AI, clean it and turn i
   npm run asset -- paint <recipe> --file <image> --box x,y,w,h --like x,y,w,h [--skin]
       Paint the box in the colour of the --like area, keeping its light and shade: a robe's thighs in the robe's
       fabric; with --skin only the skin in it, such as an arm drawn onto a torso. Free; the old image is kept.
-  npm run asset -- touch <recipe> --box x,y,w,h --prompt "what to change" [--view raw|concierge] [--quality low|medium] [--frame idle/1] [--dry]
+  npm run asset -- touch <recipe> --box x,y,w,h --prompt "what to change" [--view raw|concierge] [--from concierge|raw] [--quality low|medium] [--frame idle/1] [--dry]
       Change one area of the picked image with GPT Image 2.5 Sunburst, then rebuild. The box is in the picked
       image's pixels. Only a window around it is sent, and only the box is pasted back; the old image is kept
       in candidates/. With --frame, the result becomes that animation frame instead (art/<scene>/<name>/anims/),
-      the picked image staying frame 0: everything outside the box is identical in every frame.
+      the picked image staying frame 0: everything outside the box is identical in every frame. With --from, the
+      area is redrawn from the other view's picture as this view, its outlines in place, after that view was
+      changed there: so the two views still line up.
   npm run asset -- ground <recipe> --from <y> [--smooth 20]
       Take the painted reflections out of a picture's wet ground, below the reflection line y (level pixels), in both
       views, so the engine's live ones (the look's "Mirror the set") are the only ones: painted reflections stay put

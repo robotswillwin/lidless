@@ -306,16 +306,24 @@ export async function cmdTouch([file], opt) {
   const weight = (x, y) => { const d = D[(y - oy) * OW + (x - ox)]; return d ? Math.min(1, d / feather) : 0; };
   const win = editWindow(img.w, img.h, bx, by, bw, bh), quality = opt.quality ?? 'medium';
   console.log(`${r.name}: touching ${areas.length > 1 ? `${areas.length} areas within ` : ''}${bw}×${bh} at ${bx},${by}${kept.length ? `, keeping ${kept.length}` : ''}, sending ${win.width}×${win.height} at ${quality} quality`);
-  const prompt = `Change only the transparent area of the mask: ${opt.prompt}. Everything else stays exactly as it is; match the style, colours, lighting and detail around it.${r.spec.transparent ? ' Keep the flat, plain background colour around the subject exactly as it is.' : ''}`;
+  // --from concierge|raw: the area redrawn from the other view's picture as this view, outlines in place, this view's
+  // picture the style to match, after the other view was changed there: so the two views still line up
+  const from = typeof opt.from === 'string' ? opt.from : null, fromFile = from ? join(r.dir, `${from}.png`) : null;
+  if (from && (from === view || !existsSync(fromFile))) throw new Error(`--from needs the other view's picture (${from})`);
+  const prompt = from
+    ? `${REDRESS_REFERENCES_NOTE} ${redressPrompt(r, view, `Repaint it as ${view} view, as simple and flat as it is now: ${opt.prompt}`)}`
+    : `Change only the transparent area of the mask: ${opt.prompt}. Everything else stays exactly as it is; match the style, colours, lighting and detail around it.${r.spec.transparent ? ' Keep the flat, plain background colour around the subject exactly as it is.' : ''}`;
   if (opt.dry) return console.log(`\n${prompt}`);
   // the window, and a mask that is transparent over the box. Cut-out art goes on a key colour (--key, default green):
   // the model keeps it as the background, and it is keyed out again afterwards
   const key = r.spec.transparent ? (typeof opt.key === 'string' ? opt.key : '#00ff00') : null;
-  const piece = await (key ? sharp(src).extract(win).flatten({ background: key }) : sharp(src).extract(win)).png().toBuffer();
+  const piece = await (key ? sharp(fromFile ?? src).extract(win).flatten({ background: key }) : sharp(fromFile ?? src).extract(win)).png().toBuffer();
   const m = Buffer.alloc(win.width * win.height * 4, 255);
   for (let y = by; y < by + bh; y++) for (let x = bx; x < bx + bw; x++) if (weight(x, y) > 0) m[((y - win.top) * win.width + (x - win.left)) * 4 + 3] = 0;
   const mask = await sharp(m, { raw: { width: win.width, height: win.height, channels: 4 } }).png().toBuffer();
-  const res = await edit({ prompt, images: [{ name: 'piece.png', data: piece }], mask, size: `${win.width}x${win.height}`, quality, n: 1, background: r.spec.transparent ? 'transparent' : 'opaque' });
+  // redrawn from the other view: the whole window, with this view's picture as the style
+  const refs = from ? [{ name: `${view}.png`, data: await sharp(src).resize(1024, 1024, { fit: 'inside' }).png().toBuffer() }] : [];
+  const res = await edit({ prompt, images: [{ name: 'piece.png', data: piece }, ...refs], mask: from ? undefined : mask, size: `${win.width}x${win.height}`, quality, n: 1, background: r.spec.transparent ? 'transparent' : 'opaque' });
   if (!res.images.length) throw new Error('the API returned no image');
   // keep what the model drew, before it is pasted back, to see what went wrong when a touch-up fails
   await mkdir(join(r.dir, 'candidates'), { recursive: true });

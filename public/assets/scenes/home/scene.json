@@ -1,7 +1,7 @@
 {
  "id": "home",
  "name": "Luna's home",
- "greeting": "Welcome home, guest.",
+ "greeting": "Welcome home, guest. I'll leave you to yourself.",
  "assist": "Your parcel is due at Radio Repair by 22:00, guest. The main street is to the right as you leave.",
  "kind": "interior",
  "size": [
@@ -22,22 +22,6 @@
   }
  ],
  "lights": [
-  {
-   "x": 369,
-   "y": 236,
-   "z": 24,
-   "r": 180,
-   "c": [
-    1,
-    0.78,
-    0.48
-   ],
-   "i": 1.3,
-   "zone": 0,
-   "haze": 0.3,
-   "layer": 1,
-   "shadow": 1
-  },
   {
    "x": 499,
    "y": 220,
@@ -68,55 +52,6 @@
    "zone": 0,
    "haze": 0.25,
    "layer": 1
-  },
-  {
-   "x": 288,
-   "y": 226,
-   "z": 14,
-   "r": 110,
-   "c": [
-    0.85,
-    0.92,
-    1
-   ],
-   "i": 0.7,
-   "zone": 0,
-   "layer": 1
-  },
-  {
-   "x": 630,
-   "y": 262,
-   "z": 12,
-   "r": 150,
-   "c": [
-    0.45,
-    0.6,
-    1
-   ],
-   "i": 0.9,
-   "zone": 0,
-   "ar": 1,
-   "layer": 1,
-   "g": 7,
-   "own": 1
-  },
-  {
-   "x": 625,
-   "y": 248,
-   "z": 10,
-   "r": 90,
-   "c": [
-    1,
-    0.6,
-    0.25
-   ],
-   "i": 0.7,
-   "zone": 0,
-   "raw": 1,
-   "machine": 1,
-   "layer": 1,
-   "g": 2,
-   "own": 1
   },
   {
    "x": 502,
@@ -216,6 +151,179 @@
    "preset": "monitor",
    "r": 70,
    "i": 0.6
+  },
+  {
+   "x": 280,
+   "y": 226,
+   "z": 14,
+   "r": 120,
+   "c": [
+    1,
+    0.82,
+    0.6
+   ],
+   "i": 0.8,
+   "zone": 0,
+   "layer": 1,
+   "ar": 1
+  },
+  {
+   "x": 280,
+   "y": 226,
+   "z": 14,
+   "r": 110,
+   "c": [
+    0.85,
+    0.92,
+    1
+   ],
+   "i": 0.6,
+   "zone": 0,
+   "layer": 1,
+   "raw": 1
+  },
+  {
+   "x": 383,
+   "y": 252,
+   "z": 12,
+   "r": 110,
+   "c": [
+    1,
+    0.8,
+    0.55
+   ],
+   "i": 0.9,
+   "zone": 0,
+   "layer": 1,
+   "ar": 1
+  },
+  {
+   "x": 383,
+   "y": 224,
+   "z": 16,
+   "r": 120,
+   "c": [
+    0.9,
+    0.95,
+    1
+   ],
+   "i": 0.7,
+   "zone": 0,
+   "layer": 1,
+   "raw": 1
+  },
+  {
+   "x": 425,
+   "y": 309,
+   "z": 12,
+   "r": 95,
+   "c": [
+    1,
+    0.78,
+    0.48
+   ],
+   "i": 0.95,
+   "zone": 0,
+   "layer": 1,
+   "haze": 0.2
+  },
+  {
+   "x": 618,
+   "y": 290,
+   "z": 10,
+   "r": 70,
+   "c": [
+    0.6,
+    0.8,
+    1
+   ],
+   "i": 0.55,
+   "zone": 0,
+   "layer": 1,
+   "g": 1,
+   "ar": 1
+  },
+  {
+   "x": 618,
+   "y": 290,
+   "z": 10,
+   "r": 65,
+   "c": [
+    0.6,
+    1,
+    0.7
+   ],
+   "i": 0.5,
+   "zone": 0,
+   "layer": 1,
+   "g": 1,
+   "raw": 1,
+   "machine": 1,
+   "own": 1
+  },
+  {
+   "x": 645,
+   "y": 295,
+   "z": 8,
+   "r": 50,
+   "c": [
+    1,
+    0.62,
+    0.3
+   ],
+   "i": 0.6,
+   "zone": 0,
+   "layer": 1,
+   "g": 2
+  },
+  {
+   "x": 635,
+   "y": 266,
+   "z": 6,
+   "r": 36,
+   "c": [
+    0.7,
+    0.85,
+    1
+   ],
+   "i": 0.35,
+   "zone": 0,
+   "layer": 1,
+   "ar": 1,
+   "g": 4,
+   "own": 1
+  },
+  {
+   "x": 635,
+   "y": 266,
+   "z": 6,
+   "r": 26,
+   "c": [
+    1,
+    0.6,
+    0.25
+   ],
+   "i": 0.3,
+   "zone": 0,
+   "layer": 1,
+   "raw": 1,
+   "machine": 1,
+   "own": 1
+  },
+  {
+   "x": 707,
+   "y": 256,
+   "z": 8,
+   "r": 55,
+   "c": [
+    0.6,
+    0.9,
+    1
+   ],
+   "i": 0.45,
+   "zone": 0,
+   "layer": 1,
+   "ar": 1
   }
  ],
  "walk": {
@@ -265,139 +373,239 @@
    "wardrobe": true
   },
   {
-   "id": "fridge",
-   "rect": [
-    670,
-    258,
-    44,
-    98
-   ],
-   "stand": 690,
-   "name": "Fridge",
-   "look": {
-    "concierge": "A white fridge that orders what you need before you know you need it.",
-    "raw": "A battered fridge, humming like it hurts. Two eggs and a jar of something."
-   }
-  },
-  {
-   "id": "screen",
-   "name": "Wall screen",
-   "rect": [
-    594,
-    233,
-    72,
-    58
-   ],
-   "stand": 630,
-   "look": {
-    "concierge": "GOOD EVENING, it says, with the time and the weather. It always knows when you're looking.",
-    "raw": "A grey box of valves and gauges, its screen dark. Nothing on it, in your opened eye."
-   },
-   "tag": "Your Concierge",
-   "ask": "Good evening, guest. Your parcel is due at Radio Repair by 22:00."
-  },
-  {
-   "id": "parcels",
+   "id": "shower",
    "name": {
-    "concierge": "Boxes",
-    "raw": "Parcels"
+    "concierge": "Bathroom",
+    "raw": "Wash unit"
    },
    "rect": [
-    550,
-    318,
-    44,
-    38
+    255,
+    214,
+    112,
+    138
    ],
-   "stand": 570,
+   "stand": 290,
    "look": {
-    "concierge": "Neat white boxes with the Concierge's mark. Every delivery on time.",
-    "raw": "Parcels in brown paper and string, from your errands. None has an address on the outside."
-   }
-  },
-  {
-   "id": "bed",
-   "name": {
-    "concierge": "Bed",
-    "raw": "Mattress"
+    "concierge": "A glass shower, a toilet, a basin, a mirror ringed with light. Exactly the right temperature, always.",
+    "raw": "A steel shower, a steel toilet, a basin. Four minutes of water a day. The screen sticks."
    },
-   "rect": [
-    424,
-    324,
-    124,
-    32
-   ],
-   "stand": 486,
-   "look": {
-    "concierge": "Crisp white linen, turned down for you. Rest is part of the service.",
-    "raw": "A thin mattress on the floor and a grey blanket. It smells of rain."
-   }
-  },
-  {
-   "id": "window",
-   "name": "Window",
-   "rect": [
-    430,
-    220,
-    144,
-    84
-   ],
-   "stand": 500,
-   "look": {
-    "concierge": "The skyline glitters, close enough to touch. BETTER HUMAN TOGETHER, in letters taller than a building.",
-    "raw": "Fog, and the panel block across the yard. A crack in the glass where something hit it."
+   "wear": "nude",
+   "use": {
+    "concierge": "Exactly the right temperature, as always.",
+    "raw": "Four minutes of lukewarm water. Enough."
    }
   },
   {
    "id": "mirror",
    "name": "Mirror",
    "rect": [
-    383,
-    241,
-    36,
+    369,
+    227,
+    28,
     52
    ],
-   "stand": 400,
+   "stand": 383,
    "look": {
-    "concierge": "Green and purple hair, sharp eyeliner, a white shell over your right eye. The Concierge's you looks rested.",
-    "raw": "A cracked mirror. Your own face, pale and tired, the grey visor bolted over your right eye."
+    "concierge": "Your face as the Concierge keeps it: rested, flawless, a white shell over your right eye.",
+    "raw": "Your own face. Tired, freckled, the old goggle strapped over your right eye."
    }
   },
   {
-   "id": "kitchen",
-   "name": {
-    "concierge": "Kitchen",
-    "raw": "Hot plate"
-   },
+   "id": "plant",
+   "name": "Plant",
    "rect": [
-    328,
-    250,
-    54,
-    106
+    411,
+    299,
+    13,
+    21
    ],
-   "stand": 355,
+   "stand": 418,
    "look": {
-    "concierge": "A spotless white kitchen. Nobody has ever cooked in it.",
-    "raw": "A hot plate with one working ring, and a kettle dented into a new shape."
-   }
-  },
-  {
-   "id": "shower",
-   "rect": [
-    262,
-    218,
-    52,
-    136
-   ],
-   "stand": 290,
-   "name": "Shower",
-   "look": {
-    "concierge": "A glass shower, always exactly the right temperature.",
-    "raw": "A shower cubicle with a mouldy curtain. The water is rationed to four minutes a day."
+    "concierge": "Lush and green. It always looks like this.",
+    "raw": "Small, a few leaves gone yellow. Alive. You keep it alive."
    },
-   "wear": "underwear",
    "use": {
-    "concierge": "Exactly the right temperature, as always.",
-    "raw": "Four minutes of lukewarm water. Enough."
+    "concierge": "You water it. Here, it doesn't need it.",
+    "raw": "You give it a little of your water. It needs it."
+   }
+  },
+  {
+   "id": "bed",
+   "name": "Bed",
+   "rect": [
+    432,
+    318,
+    148,
+    30
+   ],
+   "stand": 500,
+   "look": {
+    "concierge": "Soft linen, turned down for you. Rest is part of the service.",
+    "raw": "Standard issue. Clean. Thin."
+   }
+  },
+  {
+   "id": "window",
+   "name": "Window",
+   "rect": [
+    433,
+    228,
+    140,
+    80
+   ],
+   "stand": 500,
+   "look": {
+    "concierge": "The skyline glitters, close enough to touch. Flying cars thread between the towers.",
+    "raw": "Smog, and the panel blocks across the yard. A few windows lit."
+   }
+  },
+  {
+   "id": "book",
+   "name": {
+    "concierge": "Book",
+    "raw": "Book"
+   },
+   "rect": [
+    552,
+    300,
+    24,
+    18
+   ],
+   "stand": 562,
+   "look": {
+    "concierge": "A book. The Concierge would gladly read it to you.",
+    "raw": "Paper. Nothing in it can change while you're not looking."
+   }
+  },
+  {
+   "id": "photo",
+   "name": "Photograph",
+   "rect": [
+    580,
+    284,
+    17,
+    20
+   ],
+   "stand": 590,
+   "look": {
+    "concierge": "You, alone, smiling at something out of frame.",
+    "raw": "You, and the one you're looking for, an arm round your shoulders. The Concierge shows you alone."
+   }
+  },
+  {
+   "id": "screen",
+   "name": {
+    "concierge": "The Concierge's screen",
+    "raw": "Wall screen"
+   },
+   "rect": [
+    590,
+    218,
+    92,
+    48
+   ],
+   "stand": 630,
+   "tag": "Your Concierge",
+   "look": {
+    "concierge": "Asleep, a faint ring of light. In here it waits to be asked.",
+    "raw": "A grey panel, off. In here it neither sees nor hears you."
+   },
+   "ask": "Good evening, guest. You called? Your parcel is due at Radio Repair by 22:00."
+  },
+  {
+   "id": "terminal",
+   "name": "Terminal",
+   "rect": [
+    600,
+    278,
+    36,
+    30
+   ],
+   "stand": 618,
+   "look": {
+    "concierge": "Your terminal: credits, messages, the news, a game you never finish.",
+    "raw": "Your terminal. The letters are worn off its keys, under your fingers."
+   },
+   "use": {
+    "concierge": "Nothing new. Your credits are where you left them.",
+    "raw": "The screen hums. Nothing new."
+   }
+  },
+  {
+   "id": "valve",
+   "name": {
+    "concierge": "Curio",
+    "raw": "Radio valve"
+   },
+   "rect": [
+    640,
+    286,
+    11,
+    20
+   ],
+   "stand": 645,
+   "look": {
+    "concierge": "A vintage ornament, the Concierge calls it. It glows a little.",
+    "raw": "An old radio valve in a jar. You don't know why you bought it, or why you keep looking at it."
+   }
+  },
+  {
+   "id": "radio",
+   "name": {
+    "concierge": "Retro speaker",
+    "raw": "Transistor radio"
+   },
+   "rect": [
+    657,
+    289,
+    24,
+    18
+   ],
+   "stand": 668,
+   "look": {
+    "concierge": "A decorative retro speaker. It plays whatever the Concierge thinks you'd like.",
+    "raw": "A transistor radio with its back off, a screwdriver beside it. Weeks of work. It almost works."
+   },
+   "use": {
+    "concierge": "Soft music, chosen for you.",
+    "raw": "Static. Somewhere under it, almost, a voice."
+   }
+  },
+  {
+   "id": "parcel",
+   "name": "Parcel",
+   "rect": [
+    676,
+    298,
+    19,
+    11
+   ],
+   "stand": 685,
+   "look": {
+    "concierge": "A neat white box with the Concierge's mark. Due at Radio Repair by 22:00.",
+    "raw": "Brown paper and string, no address on the outside. Due at Radio Repair by 22:00."
+   }
+  },
+  {
+   "id": "water",
+   "name": {
+    "concierge": "Water",
+    "raw": "Water tap"
+   },
+   "rect": [
+    699,
+    244,
+    17,
+    70
+   ],
+   "stand": 707,
+   "look": {
+    "concierge": "Water, cool and exactly enough.",
+    "raw": "A metered tap. It counts every cup."
+   },
+   "use": {
+    "concierge": "Cool, and exactly enough.",
+    "raw": "You drink. The meter ticks."
    }
   }
  ],
@@ -440,13 +648,6 @@
  ],
  "steam": [
   {
-   "x": 352,
-   "y": 268,
-   "height": 26,
-   "width": 3,
-   "kind": "steam"
-  },
-  {
    "x": 170,
    "y": 179,
    "height": 90,
@@ -481,6 +682,7 @@
   }
  },
  "wardrobe": true,
+ "private": true,
  "variants": {
   "rain": {
    "name": "Heavy rain",

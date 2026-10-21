@@ -87,6 +87,11 @@ export interface SceneFile {
   /** Her home: she takes off her coat here as she comes in, and a hotspot that is her wardrobe lets her change clothes. */
   wardrobe?: boolean;
   /**
+   * The Concierge neither sees nor hears her here (her home): staring in raw view costs no attention. It answers when she
+   * asks it, with the bell.
+   */
+  private?: boolean;
+  /**
    * The scene's own look: the settings it sets its own way over the game's look (public/assets/look.json), shaped like
    * that file but with only those settings: rain, fog, depth of field, the light on its people, anything the look panel
    * has. Tuned in the look panel with "This scene", which saves here.

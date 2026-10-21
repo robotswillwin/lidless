@@ -77,7 +77,15 @@ The room's light stays warm in the Concierge's view and turns harsher, whiter in
 The dormant screen keeps a faint standby glow. The terminal's screen glows when she is near it. Everything outside stays
 as it is now: the city in layers, the smoke, the lights, the flying car.
 
-## Open questions for the director
+## The director's answers, 21 October
+
+1. **Privacy:** the Concierge neither sees nor hears her at home. That has changed in the world bible; the director's
+   updated bible is to come. The dormant screen wakes only when she asks.
+2. **Her workstation** is AR, as everything here is for now: in raw view, a plain desk and its keyboard.
+3. **"Dinner is served"** stays: the Concierge's word for the chair and the injection.
+4. **Her port** is drawn: a small ring of dull metal in her lower back, in raw view, where her underwear shows it.
+
+## Open questions for the director (answered above)
 
 1. **Privacy at home.** The world bible says the Concierge sees everything she sees, even at home: her visor feeds her
    eye to it all the time. The brief makes home one of the few places it does not watch. My proposal: a Courtesy, a
@@ -103,3 +111,15 @@ as it is now: the city in layers, the smoke, the lights, the flying car.
    plan in docs/PLAN.md).
 
 About 2 to 3 hours in all, my working time.
+
+## Done, 21 October
+
+Painted in both views, split, and placed: the bathroom behind its frosted sliding screen at the left (its shower
+leaves her undressed), the bed, the plant on the bedside table beside its lamp (lush to the Concierge, small but alive
+in raw view), the desk with her terminal, the photograph, the valve in its jar, the half-repaired radio and the parcel,
+a book by the bed, the Concierge's screen asleep above the desk, the water point, her coat and the door. Every object
+has its texts in both views, and its lights: the shower's, the mirror's ring (a tube in raw view), the bedside lamp,
+the terminal's screen, the valve's glow, the screen's standby light, the water point's. The flat is private: the
+Concierge greets her as she comes in ("Welcome home, guest. I'll leave you to yourself."), and staring in raw view
+costs no attention there. Image cost: about $0.08.
+

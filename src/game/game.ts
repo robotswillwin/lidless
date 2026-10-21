@@ -176,6 +176,11 @@ export class Game {
     return this.state.view < 0.5;
   }
 
+  /** The Concierge sees and hears her here: everywhere but a private scene, her home. */
+  get watched(): boolean {
+    return !this.scene?.file.private;
+  }
+
   /** Seconds since the session started, or the held time. */
   clock(): number {
     return this.s.fixedT ?? (performance.now() - this.t0) / 1000;
@@ -508,7 +513,7 @@ export class Game {
   /** With a verb chosen: what is under the pointer lights up if the verb does something to it. */
   private scan(clientX: number, clientY: number): void {
     const [x, y] = this.toLevel(clientX, clientY), h = this.verb ? this.world.hotspotAt(x, y, this.raw, this.cam[0]) : null;
-    const a = h && this.verb ? actionFor(h, this.verb, this.raw) : null;
+    const a = h && this.verb ? actionFor(h, this.verb, this.raw, this.watched) : null;
     this.marked = h && a ? { h, a, box: this.boxOf(h) } : null;
     this.hud.mark(this.marked);
   }
@@ -531,7 +536,7 @@ export class Game {
     this.hud.dismissNote();
     if (button === 2) {
       if (this.verb) return this.setVerb(null);
-      const [x, y] = this.toLevel(clientX, clientY), h = this.world.hotspotAt(x, y, this.raw, this.cam[0]), a = h && actionFor(h, 'eyes', this.raw);
+      const [x, y] = this.toLevel(clientX, clientY), h = this.world.hotspotAt(x, y, this.raw, this.cam[0]), a = h && actionFor(h, 'eyes', this.raw, this.watched);
       if (h && a) this.perform(h, a);
       return;
     }
@@ -636,7 +641,7 @@ export class Game {
     const arrived = this.talk.open || this.travelling ? null : world.update(dt);
     // the view may have changed on the way: a generated person is not there to talk to in raw view
     if (arrived && inView(arrived, this.raw)) {
-      const actions = actionsFor(arrived, this.raw), a = actions.find((x) => x.kind === this.pending?.kind) ?? defaultOf(actions);
+      const actions = actionsFor(arrived, this.raw, this.watched), a = actions.find((x) => x.kind === this.pending?.kind) ?? defaultOf(actions);
       this.pending = null;
       if (a) this.act(arrived, a);
     }

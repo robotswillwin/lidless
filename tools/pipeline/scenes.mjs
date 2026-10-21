@@ -349,8 +349,10 @@ export async function cmdSplit([file], opt) {
   if (typeof opt.scene === 'string') {
     const sceneFile = join(ROOT, 'public/assets/scenes', opt.scene, 'scene.json');
     const scene = JSON.parse(await readFile(sceneFile, 'utf8')), at = scene.layers.findIndex((l) => l.asset === `${r.scene}/${r.name}` || l.asset.startsWith(`${r.scene}/${r.name}-`));
+    // a layer split before keeps how the scene placed it (x, y, front, only...): only its parallax comes from the recipe
+    const before = new Map(scene.layers.map((l) => [l.asset, l]));
     scene.layers = scene.layers.filter((l) => !(l.asset === `${r.scene}/${r.name}` || l.asset.startsWith(`${r.scene}/${r.name}-`)));
-    scene.layers.splice(at < 0 ? 0 : at, 0, ...layers);
+    scene.layers.splice(at < 0 ? 0 : at, 0, ...layers.map((l) => { const { asset, parallax, ...own } = before.get(l.asset) ?? {}; return { ...l, ...own }; }));
     await writeFile(sceneFile, JSON.stringify(scene, null, 1) + '\n');
     console.log(`${rel(sceneFile)}: ${layers.map((l) => l.asset).join(', ')} in place of ${r.scene}/${r.name}`);
   } else console.log(`For the scene file's layers:\n${JSON.stringify(layers, null, 1)}`);
