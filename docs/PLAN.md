@@ -126,7 +126,10 @@ rigged character about an hour and $1: forty scenes is a question of production,
    slots; saved only where it is safe, never in the middle of a conversation.
 
 Along the way, game.ts (scenes, input, outfits, conversations, the HUD and saving in one file) is split into the
-scenes' loading, the story's hold on the world, and what the verbs do.
+scenes' loading, the story's hold on the world, and what the verbs do. Done in part, 21 October: scenes.ts (in and out
+of memory), dialogue.ts and conditions.ts (the story and what the world reads of it), direct.ts (a line's commands)
+and wardrobe.ts (what she wears) each stand alone and are tested on their own; the input and the verbs are still in
+game.ts, about 800 lines, which is the next to go when it grows.
 
 **Not built yet for a full game**: sound (none so far: music and ambience per scene and view, sound effects), a title,
 menu and settings screen, and translations, if other languages are wanted. That one is decided early: it decides
