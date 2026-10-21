@@ -2,14 +2,17 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { setPresets } from '../engine/presets';
+import { Dialogue } from '../game/dialogue';
 import type { SceneFile } from '../game/scenefile';
 import { CORNER, lintScene, PHONE_LIGHTS, type LintContext } from './lint';
 
 const dir = resolve(__dirname, '../../public/assets');
 const read = (id: string) => JSON.parse(readFileSync(`${dir}/scenes/${id}/scene.json`, 'utf8')) as SceneFile;
 const ids = readdirSync(`${dir}/scenes`);
+/** The story's knots, as the game's story has them. */
+const knots = new Set([...new Dialogue(null).story.mainContentContainer.namedContent.keys()]);
 const ctx = (over: Partial<LintContext> = {}): LintContext => ({
-  scenes: ids, others: Object.fromEntries(ids.map((id) => [id, read(id)])), knots: new Set(['fixer', 'kiosk']), start: { scene: 'home', spawn: 'door' }, ...over,
+  scenes: ids, others: Object.fromEntries(ids.map((id) => [id, read(id)])), knots, start: { scene: 'home', spawn: 'door' }, ...over,
 });
 
 afterEach(() => setPresets({ lights: {} }));
@@ -18,6 +21,14 @@ describe('lintScene', () => {
   it('finds no errors in the game’s scenes', () => {
     setPresets(JSON.parse(readFileSync(`${dir}/presets.json`, 'utf8')));
     for (const id of ids) expect(lintScene(read(id), ctx()).filter((p) => p.level === 'error'), id).toEqual([]);
+  });
+
+  it('does not flag hotspots that take turns in one place (one variable, other values)', () => {
+    const f = read('street'), at: [number, number, number, number] = [400, 300, 40, 60];
+    f.hotspots.push({ id: 'a', name: 'A', rect: at, look: 'A.', when: 'station_seat == "woman"' }, { id: 'b', name: 'B', rect: at, look: 'B.', when: 'station_seat == "man"' }, { id: 'c', name: 'C', rect: at, look: 'C.' });
+    const under = lintScene(f, ctx()).filter((p) => p.text.includes('mostly under')).map((p) => p.text);
+    expect(under.some((t) => t.startsWith('A is mostly under B'))).toBe(false);
+    expect(under.some((t) => t.startsWith('A is mostly under C'))).toBe(true);
   });
 
   it('flags a hotspot with nothing to do, and a conversation the story does not have', () => {

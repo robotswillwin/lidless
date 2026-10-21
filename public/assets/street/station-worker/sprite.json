@@ -1,0 +1,25 @@
+{
+  "name": "station-worker",
+  "x": 793,
+  "y": 286,
+  "w": 196,
+  "h": 172.5,
+  "maps": [
+    "albedo.concierge",
+    "albedo.raw",
+    "glow.concierge",
+    "glow.raw"
+  ],
+  "depth": 3,
+  "parallax": 1,
+  "occluder": 0,
+  "reflectivity": 0,
+  "object": 0,
+  "anchor": [
+    98,
+    172.5
+  ],
+  "exists": "both",
+  "kind": "prop",
+  "res": 2
+}

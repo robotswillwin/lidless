@@ -53,13 +53,16 @@ Then open the address Vite prints.
   only in a privacy zone, where the law it keeps forbids it to watch: her home (public restrooms and approved meeting
   rooms to come). Anywhere else it stays shut. What she has not read yet has a red dot.
 - **The city's helper robots** are few, more of them later in the game: drones cross between the towers and under
-  the viaduct every half minute or so; a civic guardian walks its own beat past the info screen on the main street, resting at each end with a
-  direction sign in the Concierge's view (look at it, or ask it there); and a repair bot welds the backstreet's wall
+  the viaduct every half minute or so; a civic guardian walks its own beat past the info screen on the main street
+  (talk to it: it stops, turns to her, and speaks of keeping the street safe; tell it if anything odd happens); and a repair bot welds the backstreet's wall
   panel, sparks and all. White and lit in the Concierge's view, rusty in raw view.
 - **Her wrist devices**, one on each wrist, go with her eyepiece: sleek white bands with a cyan light in the Concierge's
   view, brass on leather with an amber lens in raw view.
 - **The nutrition station** on the main street: a column with two seats built into it, a cuff for the right wrist on
-  each armrest. Nobody eats; the station feeds and treats. Real food and drink are rare and dear, but the bars are open,
+  each armrest. Nobody eats; the station feeds and treats. **Use** it (or talk to it and take a seat): a close-up of her
+  wrist in the cuff, the scan in the Concierge's view, the clamp and the cartridge in raw view, and she is on her way.
+  Fed, she does not need it again for a while. Who sits in its other seat changes each time she comes back, once she
+  has raw view: the woman, an old man, a courier, or nobody. Real food and drink are rare and dear, but the bars are open,
   and so is Store 24, all night: drinks, tobacco, umbrellas, care for her devices, and new looks in its window.
 - **Saves**, from the menu: the game saves as she goes (never in the middle of a conversation), and three slots she
   saves into and goes back to. A save made with an older version of the story keeps what she knew and carried.

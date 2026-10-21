@@ -59,12 +59,52 @@ He plugs an old diagnostic box into your eyepiece and talks to it in numbers. A 
 "Tell them it came." #fixer
 -> END
 
-=== kiosk ===
-{ raw_view: In raw view the screen is dark, but the voice still comes, from everywhere at once. }
+=== station ===
+// the main street's nutrition and health station: its voice, and taking a seat
+= talk
+{ raw_view: In raw view its panel is a grille, and the voice comes from behind it. }
 "Good evening, guest. Dinner is served." #concierge
-* [Ask what's for dinner.]
-    "Everything you need, and nothing you don't. Please take a seat and rest your wrist on the armrest." #concierge
+* [Take a seat.]
+    -> use
+* [What is for dinner?]
+    "Everything you need, and nothing you don't. A seat, a moment, and you are on your way." #concierge
     -> END
 * [Walk on.]
     "Of course. Enjoy your evening, guest." #concierge
+    -> END
+= use
+// she does not need it often: once in a while, by the story's count of her comings and goings
+{ arrivals - fed_at < 6:
+    I don't need it right now. #luna
+    -> END
+}
+~ fed_at = arrivals
+# closeup: station
+{ raw_view:
+    The cuff closes round your wrist. Cold metal, then a slow warmth up the arm.
+- else:
+    "Please rest your wrist, guest. This will only take a moment." #concierge
+}
+# wait: 0.8
+{ raw_view:
+    A pump ticks. A finger's width of the cartridge goes. The cuff lets go.
+- else:
+    "Your levels are excellent. Enjoy your evening, guest." #concierge
+}
+# closeup: off
+-> END
+
+=== guardian ===
+// the civic guardian on its round: it stops for her
+{ raw_view: Its voice comes from a cracked grille in its chest. }
+"Good evening, guest. I keep this street safe, so everyone on it can enjoy the evening." #guardian
+- (ask)
+* [Safe from what?]
+    "Accidents, mostly. A loose stone, a step in the dark. Nothing on this street is left to chance." #guardian
+    -> ask
+* [And if something seems wrong?]
+    "Then tell me. Anything odd, anyone in trouble. I will see that the Concierge knows." #guardian
+    -> ask
++ [Thank you.]
+    "Have a pleasant evening, guest." #guardian
     -> END

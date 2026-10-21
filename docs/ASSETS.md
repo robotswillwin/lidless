@@ -609,8 +609,8 @@ the game:
 - drones cross the main street every half minute or so: two far off between the towers, and a nearer one, bigger,
   just under the viaduct (`bots/drone-near`, the same drone built at 24 px);
 - the guardian walks its own beat past the info screen, near the front of the pavement (a mover with `patrol`): it
-  walks (a stride, standing, the stride mirrored round its hip), stops halfway, rests at each end, turns; resting, it
-  shows a direction sign in the Concierge's view (in its idle frames). Its hotspot `follows` it;
+  walks (a stride, standing, the stride mirrored round its hip), stops halfway, rests at each end, turns, its visor a
+  little brighter while it stands. Its hotspot `follows` it; talked to, it stops and turns to her;
 - the maintenance bot welds the backstreet's wall panel, its tool on the panel: frames drawn by
   `tools/pipeline/weld.mjs` (the arc igniting, flashing, flickering, out; sparks spraying back and falling, cooling to
   embers), in bursts, with a light at the tip whose `pulse` follows the frames, and a stronger glow (`glow.strength`).
@@ -724,3 +724,18 @@ number in the story (`credits`), shown with the Concierge's greeting.
 
 A thing that also lies somewhere in a scene is a prop there (see STORY.md); the tray's picture is the same thing seen
 close up.
+
+## Close-ups and who sits at the station
+
+**Close-ups** (`art/closeups/`, `tools/pipeline/closeups.mjs`): a moment shown up close over the dimmed scene, such as
+her wrist in the station's cuff. The Concierge's view is drawn first from the description in `art/closeups/closeups.json`
+and its references (the design sheet, her forearm with its band); raw view is edited from the picked picture, so the two
+line up exactly. Picked, both go into `public/assets/closeups/<id>.<view>.webp` (1200 by 800, about 65 KB), and the
+story shows them with `# closeup: <id>`.
+
+**The station's people** (`street/station-woman`, `-man`, `-worker`): the station is a prop with both seats empty; each
+person is a prop of their own in the station's exact frame, placed over it while the street's rotation says it is their
+turn. The woman was cut from the station as it was painted; the others were painted into the empty station's left seat
+(`touch`, raw view from the Concierge's) and cut out by difference with the empty station, pixel for pixel, so each sits
+exactly in the seat. `touch` sends a picture smaller than the image model takes at a larger size and brings the answer
+back down.

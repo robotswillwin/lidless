@@ -23,6 +23,24 @@
    "asset": "street/station",
    "x": 572,
    "y": 286
+  },
+  {
+   "asset": "street/station-woman",
+   "x": 572,
+   "y": 286,
+   "when": "station_seat == \"woman\""
+  },
+  {
+   "asset": "street/station-man",
+   "x": 572,
+   "y": 286,
+   "when": "station_seat == \"man\""
+  },
+  {
+   "asset": "street/station-worker",
+   "x": 572,
+   "y": 286,
+   "when": "station_seat == \"worker\""
   }
  ],
  "lights": [
@@ -367,7 +385,58 @@
     "concierge": "Guest · dining",
     "raw": "her wrist is locked in"
    },
-   "ask": "She is a guest, dining. Shall I reserve a seat for you?"
+   "ask": "She is a guest, dining. Shall I reserve a seat for you?",
+   "when": "station_seat == \"woman\""
+  },
+  {
+   "id": "station-man",
+   "name": {
+    "concierge": "Gentleman",
+    "raw": "Old man"
+   },
+   "rect": [
+    602,
+    372,
+    52,
+    80
+   ],
+   "stand": 580,
+   "face": 1,
+   "when": "station_seat == \"man\"",
+   "tag": {
+    "concierge": "Guest · dining",
+    "raw": "his eyes closed"
+   },
+   "look": {
+    "concierge": "An elderly gentleman, reading the evening news over dinner. He looks content.",
+    "raw": "An old man, all bones under a threadbare coat, his wrist locked in the cuff. His eyes are closed."
+   },
+   "ask": "He is a guest, dining, as he does every evening at this hour."
+  },
+  {
+   "id": "station-worker",
+   "name": {
+    "concierge": "Courier",
+    "raw": "Young courier"
+   },
+   "rect": [
+    602,
+    372,
+    52,
+    80
+   ],
+   "stand": 580,
+   "face": 1,
+   "when": "station_seat == \"worker\"",
+   "tag": {
+    "concierge": "Guest · dining",
+    "raw": "asleep in the seat"
+   },
+   "look": {
+    "concierge": "A young courier on his break, laughing with a friend who isn't here.",
+    "raw": "A courier in a grimy uniform, asleep with his head back, his wrist in the cuff. The friend was never there."
+   },
+   "ask": "A courier, guest, on his break. Everyone deserves a pleasant dinner."
   },
   {
    "id": "kiosk",
@@ -383,13 +452,14 @@
    ],
    "stand": 754,
    "face": -1,
-   "talk": "kiosk",
    "tag": "Nutrition · health",
    "look": {
-    "concierge": "The city's nutrition and health station: a seat, a gentle scan, everything you need. Its right seat is free.",
+    "concierge": "The city's nutrition and health station: a seat, a gentle scan, everything you need.",
     "raw": "Two worn seats bolted to a column of pumps and gauges. Cuffs on the armrests, polished by wrists."
    },
-   "ask": "Dinner is served here every evening, guest. Everything you need, and nothing you don't."
+   "ask": "Dinner is served here every evening, guest. Everything you need, and nothing you don't.",
+   "story": "station",
+   "map": true
   },
   {
    "id": "cocktail-bar",
@@ -534,7 +604,9 @@
     "raw": "A tall guard unit, rust at every joint. Its lamp follows you for a step or two, then loses interest."
    },
    "ask": "Our guardians keep every street safe, guest. If you are ever lost, ask one. It will ask me.",
-   "follows": "bots/guardian-bot"
+   "follows": "bots/guardian-bot",
+   "talk": "guardian",
+   "map": false
   }
  ],
  "beacons": [
@@ -823,6 +895,19 @@
    "look": {
     "power": 0
    }
+  }
+ },
+ "rotate": {
+  "station_seat": {
+   "values": [
+    "woman",
+    "",
+    "man",
+    "",
+    "worker",
+    ""
+   ],
+   "from": "has_raw"
   }
  }
 }

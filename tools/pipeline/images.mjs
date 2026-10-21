@@ -324,13 +324,15 @@ export async function cmdTouch([file], opt) {
   // the window, and a mask that is transparent over the box. Cut-out art goes on a key colour (--key, default green):
   // the model keeps it as the background, and it is keyed out again afterwards
   const key = r.spec.transparent ? (typeof opt.key === 'string' ? opt.key : '#00ff00') : null;
-  const piece = await (key ? sharp(fromFile ?? src).extract(win).flatten({ background: key }) : sharp(fromFile ?? src).extract(win)).png().toBuffer();
+  // a picture smaller than the model takes (a small prop) goes up in size for it, and its answer comes back down
+  const up = Math.max(1, Math.ceil(Math.sqrt(655360 / (win.width * win.height)) * 4) / 4), sw = Math.round((win.width * up) / 16) * 16, sh = Math.round((win.height * up) / 16) * 16;
+  const piece = await (key ? sharp(fromFile ?? src).extract(win).flatten({ background: key }) : sharp(fromFile ?? src).extract(win)).resize(sw, sh, { fit: 'fill' }).png().toBuffer();
   const m = Buffer.alloc(win.width * win.height * 4, 255);
   for (let y = by; y < by + bh; y++) for (let x = bx; x < bx + bw; x++) if (weight(x, y) > 0) m[((y - win.top) * win.width + (x - win.left)) * 4 + 3] = 0;
-  const mask = await sharp(m, { raw: { width: win.width, height: win.height, channels: 4 } }).png().toBuffer();
+  const mask = await sharp(m, { raw: { width: win.width, height: win.height, channels: 4 } }).resize(sw, sh, { fit: 'fill', kernel: 'nearest' }).png().toBuffer();
   // redrawn from the other view: the whole window, with this view's picture as the style
   const refs = [...(from ? [{ name: `${view}.png`, data: await sharp(src).resize(1024, 1024, { fit: 'inside' }).png().toBuffer() }] : []), ...(await loadReferences(designs))];
-  const res = await edit({ prompt, images: [{ name: 'piece.png', data: piece }, ...refs], mask: from ? undefined : mask, size: `${win.width}x${win.height}`, quality, n: 1, background: r.spec.transparent ? 'transparent' : 'opaque' });
+  const res = await edit({ prompt, images: [{ name: 'piece.png', data: piece }, ...refs], mask: from ? undefined : mask, size: `${sw}x${sh}`, quality, n: 1, background: r.spec.transparent ? 'transparent' : 'opaque' });
   if (!res.images.length) throw new Error('the API returned no image');
   // keep what the model drew, before it is pasted back, to see what went wrong when a touch-up fails
   await mkdir(join(r.dir, 'candidates'), { recursive: true });

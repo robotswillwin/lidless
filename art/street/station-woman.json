@@ -1,0 +1,24 @@
+{
+  "name": "station-woman",
+  "scene": "street",
+  "kind": "prop",
+  "exists": "both",
+  "look": "vector",
+  "res": 2,
+  "frame": "keep",
+  "prompt": "the woman at the nutrition station, in its left seat: painted into the station by the image model (touch, raw view from the Concierge's) and cut out by difference with the empty station, in the station's own frame, so it sits exactly in the seat.",
+  "height": 172.5,
+  "position": [
+    890.5,
+    458.5
+  ],
+  "depth": 3,
+  "occluder": false,
+  "material": "cloth",
+  "glow": {
+    "raw": "auto",
+    "concierge": "auto"
+  },
+  "palette": 0,
+  "references": []
+}

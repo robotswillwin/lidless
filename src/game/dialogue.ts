@@ -19,7 +19,7 @@ const SPEAKER_TAG = /^[a-z][a-z0-9_]*$/;
  *   view: raw | concierge      the view switches
  *   wait: 1.5                  a pause, in seconds
  */
-export const COMMANDS = ['walk', 'face', 'wear', 'go', 'fade', 'view', 'wait'] as const;
+export const COMMANDS = ['walk', 'face', 'wear', 'go', 'fade', 'view', 'wait', 'closeup'] as const;
 export type CommandName = (typeof COMMANDS)[number];
 export interface Command { name: CommandName; arg: string }
 
@@ -87,6 +87,11 @@ export class Dialogue {
     this.setRaw(rawView);
     this.story.ChooseChoiceIndex(i);
     return this.lines();
+  }
+
+  /** Sets a variable the story declares (the game's own: `arrivals`, a scene's rotations); one it does not have is left be. */
+  set(name: string, value: string | number | boolean): void {
+    if (this.story.variablesState.GetVariableWithName(name) !== null) this.story.variablesState[name] = value;
   }
 
   /** Tells the story which view is on screen, if it asks (`raw_view`). */

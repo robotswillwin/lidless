@@ -26,6 +26,9 @@ export interface SaveData {
   seen?: Record<string, string[]>;
   /** What she has read in her notebook (see notebook.ts). */
   read?: string[];
+  /** How many times she has gone from one scene to another, and how far each scene's rotations have turned (rotate.ts). */
+  arrived?: number;
+  rotations?: Record<string, number>;
 }
 
 /** The autosave, or one of the slots she saves into. */

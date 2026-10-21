@@ -31,7 +31,7 @@ export interface MapLink { from: [number, number]; to: [number, number]; open: b
 export interface MapNow { places: MapPlace[]; spots: MapSpot[]; links: MapLink[]; you: [number, number] | null; bounds: [number, number, number, number] }
 
 /** A hotspot worth a place on the map: a way out, someone to talk to, or a thing marked for it. */
-export const onMap = (h: Hotspot): MapSpot['kind'] | null => (h.go ? 'door' : h.talk ? 'person' : h.map ? 'thing' : null);
+export const onMap = (h: Hotspot): MapSpot['kind'] | null => (h.map === false ? null : h.go ? 'door' : h.talk ? 'person' : h.map ? 'thing' : null);
 
 /**
  * The map as she knows it: `been` the scenes she has been in, `seen(scene, id)` whether she has seen a hotspot there,

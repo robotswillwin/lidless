@@ -14,6 +14,7 @@ import { heroDrawing, heroGaits, holdPace, paceFor } from './hero';
 import { Hud, type Action, type Item, type Mark, type Notebook } from './hud';
 import { inView, pick, placeIn, type Hotspot } from './level';
 import { mapNow, onMap, type MapNow, type MapScene, type Travel } from './map';
+import { rotateOnArrival } from './rotate';
 import { dressedFor, keepsProjection, outfitAfter } from './outfits';
 import { Wardrobe } from './wardrobe';
 import { listSaves, loadSave, writeSave, type SaveData, type Slot } from './save';
@@ -123,6 +124,11 @@ export class Game {
   private readonly seen: Map<string, Set<string>>;
   /** What she has read in her notebook: the rest is marked new. */
   private readonly notesRead: Set<string>;
+  /** How many times she has gone from one scene to another, and how far each scene's rotations have turned (rotate.ts). */
+  private arrived: number;
+  private rotations: Record<string, number>;
+  /** A mover she has gone up to (a guard on its round), stopped for her until she is done with it. */
+  private heldMover: string | null = null;
 
   private constructor(private readonly s: GameSetup) {
     this.scenes = new Scenes(s.renderer.gl, s.assets, s.world);
@@ -136,6 +142,9 @@ export class Game {
     this.been = new Set(s.save?.visited ?? []);
     this.seen = new Map(Object.entries(s.save?.seen ?? {}).map(([k, v]) => [k, new Set(v)]));
     this.notesRead = new Set(s.save?.read ?? []);
+    this.arrived = s.save?.arrived ?? 0;
+    this.rotations = { ...(s.save?.rotations ?? {}) };
+    this.dialogue.set('arrivals', this.arrived);
     this.state = { view: s.rawView ? 0 : s.save && this.canSwitch() ? s.save.view : 1, sinceSwitch: 10 };
     this.attention = s.save?.attention ?? 0;
     const gl = s.renderer.gl;
@@ -236,6 +245,7 @@ export class Game {
     if (outfits) await this.wear(outfitAfter(outfits, this.outfit, !!this.scene?.file.wardrobe, !!next.file.wardrobe) ?? this.outfit);
     this.scene = next;
     this.runner = new SceneRunner(next.loaded);
+    this.heldMover = null;
     this.fitGaits(next);
     this.world = new World(next.level, at.x ?? sp?.x, at.facing ?? sp?.facing);
     this.world.raw = this.raw;
@@ -377,6 +387,7 @@ export class Game {
     const waiting = setTimeout(() => this.s.fade.classList.add('wait'), 300);
     try {
       await this.enter(exit.scene, exit);
+      this.arrive();
       this.syncKeys();
       this.persist();
     } catch (err) {
@@ -385,6 +396,18 @@ export class Game {
     clearTimeout(waiting);
     this.s.fade.classList.remove('wait', 'on');
     this.travelling = false;
+  }
+
+  /**
+   * She has come to a scene from another: the story's count of arrivals goes up (`arrivals`, a clock it can count by),
+   * and the scene's rotations turn, before it is seen: who sits at the station now.
+   */
+  private arrive(): void {
+    this.arrived++;
+    this.dialogue.set('arrivals', this.arrived);
+    const { set, counts } = rotateOnArrival(this.scene.file.rotate ?? {}, this.rotations, (c) => this.dialogue.test(c));
+    this.rotations = counts;
+    for (const [name, value] of Object.entries(set)) this.dialogue.set(name, value);
   }
 
   /** Going somewhere on the map: a place (where one arrives there), or a door or a person in it (where she stands to use it). */
@@ -474,6 +497,8 @@ export class Game {
 
   private endTalk(): void {
     this.partner = null;
+    this.letMoverGo();
+    void this.hud.showCloseup(null);
     // a conversation can change the city's conditions: the rain starts, the power goes
     const v = this.variantOf(this.scene);
     if (v !== this.variant) { this.variant = v; this.look.setScene(this.scene.file, v); }
@@ -488,6 +513,12 @@ export class Game {
       this.ui.showCaption('Something behind your eye is new. Touch your temple, with your things at the bottom left, or press E, to see what is really there.');
       this.switchedAt = this.clock();
     }
+  }
+
+  /** A mover she went up to goes on again from where it stopped. */
+  private letMoverGo(): void {
+    if (this.heldMover) this.runner.release(this.heldMover, this.clock());
+    this.heldMover = null;
   }
 
   /** Whether a thing's knot in the story has this stitch. */
@@ -521,6 +552,7 @@ export class Game {
     },
     view: (raw) => { if (raw !== this.raw) this.toggleView(true); },
     sleep: (ms) => new Promise((r) => setTimeout(r, this.s.reduceMotion ? Math.min(ms, 50) : ms)),
+    closeup: (name) => this.hud.showCloseup(name),
   };
 
   /**
@@ -582,6 +614,15 @@ export class Game {
   /** Looking and asking happen from where she stands, turned towards it; talking, using and taking walk her there first. */
   private perform(h: Hotspot, a: Action): void {
     const { rect, stand } = placeIn(h, this.raw);
+    // something on its round (a guard) stops for her, turned to her, and she goes up to it
+    if (h.follows && a.kind !== 'eyes' && a.kind !== 'ask') {
+      const cx = rect[0] + rect[2] / 2, side: 1 | -1 = this.world.heroX < cx ? -1 : 1;
+      this.letMoverGo();
+      this.runner.hold(h.follows, this.clock(), side);
+      this.heldMover = h.follows;
+      this.pending = a;
+      return this.goTo(cx + side * (rect[2] / 2 + 12), h);
+    }
     if (a.kind === 'eyes' || a.kind === 'ask' || stand === undefined) {
       if (!this.world.moving) this.world.facing = rect[0] + rect[2] / 2 >= this.world.heroX ? 1 : -1;
       return this.act(h, a);
@@ -635,6 +676,8 @@ export class Game {
 
   /** Where a speaker's lines go: over her head, over whoever she is talking to, or (narration) at the top. */
   private speakerAt(speaker: string): [number, number] | null {
+    // over a close-up every line is said at the top, clear of the picture
+    if (this.hud.closeupOpen) return null;
     if (speaker === 'luna') {
       const c = this.s.canvas.getBoundingClientRect(), hud = this.hud.root.getBoundingClientRect(), k = c.width / NW;
       const head = this.scene.file.walk.y - this.shown.def.h * (this.scene.file.actorScale ?? 1);
@@ -677,6 +720,7 @@ export class Game {
     if (this.talk.open || this.travelling) return;
     if (this.hud.panelOpen) return this.hud.closePanel();
     this.hud.dismissNote();
+    this.letMoverGo();
     if (button === 2) {
       if (this.inHand) return this.hold(null);
       if (this.verb) return this.setVerb(null);
@@ -778,6 +822,7 @@ export class Game {
       v: 2, scene: this.scene.file.id, heroX: Math.round(this.world.heroX), facing: this.world.facing, view: this.state.view, ink: this.dialogue.save(),
       attention: this.attention, outfit: this.outfit || undefined, projection: this.projection ?? undefined, savedAt: Date.now(), where: this.scene.file.name,
       visited: [...this.been], seen: Object.fromEntries([...this.seen].map(([k, v]) => [k, [...v]])), read: [...this.notesRead],
+      arrived: this.arrived, rotations: this.rotations,
     };
   }
 

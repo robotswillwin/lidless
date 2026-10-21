@@ -1,0 +1,8 @@
+{
+ "station": {
+  "concierge": "A young woman's right forearm and hand rest on the white, softly lit armrest of the city's nutrition and health station, seen from the side, the hand relaxed, palm down. A slim glowing cyan cuff has closed around her wrist, just above her own sleek white wrist band with a small cyan light. At the left edge, the turned-back cuff of her red coat sleeve. Above her hand floats a small translucent cyan hologram panel with a heart, a drop and a few short bars: her vitals, all good. Behind, a soft blur of deep blue night and neon. Calm, clean, comforting. No face.",
+  "references": ["art/reference/nutrition/crops/station-concierge.png", "art/cast/hero/parts/concierge/forearm.png"],
+  "raw": "The armrest is worn, riveted metal with cracked dark padding. The cuff is a heavy steel clamp locked around her wrist, a thin rubber tube running from it to a small glass window where an orange liquid glows, a little pressure gauge beside it. Her own wrist band is a brass plate on a dark leather strap with a small amber lens. Her sleeve is a worn brown coat. Her hand is pale and thin, with a few fine hairs. No hologram. Behind, a smoggy amber-brown gloom.",
+  "rawReferences": ["art/reference/nutrition/crops/station-raw.png", "art/cast/hero/parts/raw/forearm.png"]
+ }
+}

@@ -106,9 +106,12 @@ export function lintScene(file: SceneFile, ctx: LintContext): Problem[] {
       }
     }
   });
-  // a hotspot mostly under a later one, in a view they share, where they are there: taps there go to the later one
+  // a hotspot mostly under a later one, in a view they share, where they are there: taps there go to the later one.
+  // Two that take turns (`seat == "woman"`, `seat == "man"`: the same variable, other values) are never there together
+  const turn = (h: Hotspot) => /^\s*(\w+)\s*==\s*("[^"]*"|-?\d+(?:\.\d+)?|true|false)\s*$/.exec(h.when ?? '');
+  const takeTurns = (a: Hotspot, b: Hotspot) => { const ta = turn(a), tb = turn(b); return !!ta && !!tb && ta[1] === tb[1] && ta[2] !== tb[2]; };
   file.hotspots.forEach((a, i) => file.hotspots.forEach((b, j) => {
-    if (j <= i) return;
+    if (j <= i || takeTurns(a, b)) return;
     for (const raw of views(a).filter((v) => views(b).includes(v))) {
       const ra = placeIn(a, raw).rect, o = overlap(ra, placeIn(b, raw).rect);
       if (o > 0 && o >= 0.5 * area(ra)) warn(`${nameOf(a.name) || a.id} is mostly under ${nameOf(b.name) || b.id}: taps there go to ${nameOf(b.name) || b.id}`, { kind: 'hotspot', i });

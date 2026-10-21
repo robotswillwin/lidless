@@ -15,6 +15,8 @@ export interface Stage {
   fade(seconds: number): Promise<void>;
   view(raw: boolean): void;
   sleep(ms: number): Promise<void>;
+  /** A close-up over the dimmed scene (a picture in closeups/, as the view on screen has it), or none. */
+  closeup(name: string | null): Promise<void>;
 }
 
 export async function direct(commands: Command[], stage: Stage): Promise<void> {
@@ -28,5 +30,6 @@ export async function direct(commands: Command[], stage: Stage): Promise<void> {
     } else if (c.name === 'fade') await stage.fade(Number(c.arg) || 0.6);
     else if (c.name === 'view') stage.view(c.arg === 'raw');
     else if (c.name === 'wait') await stage.sleep((Number(c.arg) || 1) * 1000);
+    else if (c.name === 'closeup') await stage.closeup(c.arg && c.arg !== 'off' ? c.arg : null);
   }
 }

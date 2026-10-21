@@ -74,6 +74,26 @@ export function travelled(elapsed: number, speed: number, stops: { at: number; s
 export class SceneRunner {
   /** Where each mover was drawn last, by its asset: its box in the level, for a hotspot that follows it. */
   readonly moverBoxes = new Map<string, [number, number, number, number]>();
+  /** Movers stopped where they are (a guard she talks to), turned to her: by asset, since when, facing which way. */
+  private readonly held = new Map<string, { at: number; facing: 1 | -1 }>();
+  /** How long each mover has been held, all told: its own clock runs that much behind, so it goes on where it stopped. */
+  private readonly lag = new Map<string, number>();
+
+  /** A mover stops where it is at time t, turned to face `facing`. */
+  hold(asset: string, t: number, facing: 1 | -1): void {
+    const h = this.held.get(asset);
+    if (h) h.facing = facing;
+    else this.held.set(asset, { at: t, facing });
+  }
+
+  /** It goes on again from where it stopped. */
+  release(asset: string, t: number): void {
+    const h = this.held.get(asset);
+    if (!h) return;
+    this.lag.set(asset, (this.lag.get(asset) ?? 0) + (t - h.at));
+    this.held.delete(asset);
+  }
+
   private passes: Pass[] = [];
   private cars = new Float32Array(64);
   private beacons = new Float32Array(128);
@@ -128,15 +148,18 @@ export class SceneRunner {
    * A mover where it is at time t, or nothing while it waits between passes. A pass takes it from just outside one end of
    * where it can be seen to just outside the other; the next one starts a wait later, the other way unless it keeps one.
    */
-  private mover(k: number, t: number, cam: [number, number], parallax: number, view: 'raw' | 'concierge'): DrawSprite | null {
+  private mover(k: number, now: number, cam: [number, number], parallax: number, view: 'raw' | 'concierge'): DrawSprite | null {
     const { def, sprite } = this.scene.movers![k], m: MoverDef = asIn(def, view), w = sprite.def.w, span = m.x1 - m.x0 + w;
+    // its own clock: stopped while it is held, behind by as long as it has been held
+    const held = this.held.get(def.asset), t = (held ? held.at : now) - (this.lag.get(def.asset) ?? 0);
     if (m.patrol) {
-      // on its round: its body where it is, turned the way it walks; walking or resting
-      const sd = sprite.def, p = patrolAt(t, m.x0, m.x1, m.speed, (m.wait[0] + m.wait[1]) / 2, m.stops), ax = sd.anchor?.[0] ?? w / 2, flip = p.dir < 0 && !hasLeft(sd);
-      const stride = sd.anims?.walk?.stride ?? sd.h * 0.6, bob = m.bob ? m.bob[0] * Math.sin((t * 2 * Math.PI) / Math.max(0.1, m.bob[1])) : 0;
+      // on its round: its body where it is, turned the way it walks; walking or resting. Held, it stands, turned to her
+      const sd = sprite.def, p0 = patrolAt(t, m.x0, m.x1, m.speed, (m.wait[0] + m.wait[1]) / 2, m.stops);
+      const p = held ? { ...p0, moving: false, dir: held.facing } : p0, ax = sd.anchor?.[0] ?? w / 2, flip = p.dir < 0 && !hasLeft(sd);
+      const stride = sd.anims?.walk?.stride ?? sd.h * 0.6, bob = m.bob ? m.bob[0] * Math.sin((now * 2 * Math.PI) / Math.max(0.1, m.bob[1])) : 0;
       return {
         sprite, x: p.x - (flip ? w - ax : ax) - cam[0] * parallax, y: (m.y ?? sd.y) + bob - cam[1] * parallax, flip,
-        frame: sd.frames ? frameFor(sd, p.moving, p.walked / stride, t, p.dir) : 0,
+        frame: sd.frames ? frameFor(sd, p.moving, p.walked / stride, now, p.dir) : 0,
       };
     }
     // its stops, as far along a pass each way as its middle reaches them

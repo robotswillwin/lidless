@@ -32,6 +32,26 @@ describe('the story', () => {
     expect(loaded.test('carried has valve && !(carried has parcel) && carried has map')).toBe(true);
   });
 
+  it('feeds her at the station now and then: once fed, she does not need it for a while', () => {
+    const d = new Dialogue(null), closeup = (lines: { commands?: { name: string; arg: string }[] }[]) => lines.flatMap((l) => l.commands ?? []).filter((c) => c.name === 'closeup').map((c) => c.arg);
+    d.set('arrivals', 3);
+    expect(closeup(d.start('station.use', false))).toEqual(['station', 'off']);
+    expect(d.read('fed_at')).toBe(3);
+    const again = d.start('station.use', false);
+    expect(again.map((l) => l.text).join(' ')).toMatch(/don't need it right now/);
+    expect(closeup(again)).toEqual([]);
+    d.set('arrivals', 9);
+    expect(closeup(d.start('station.use', true))).toEqual(['station', 'off']);
+  });
+
+  it('has the guardian speak of keeping the street safe, and ask to be told of anything odd', () => {
+    const d = new Dialogue(null), lines = d.start('guardian', false);
+    expect(lines.every((l) => l.speaker === 'guardian')).toBe(true);
+    expect(lines.map((l) => l.text).join(' ')).toMatch(/safe/);
+    const odd = d.choices.findIndex((c) => /wrong/.test(c));
+    expect(d.choose(odd, false).map((l) => l.text).join(' ')).toMatch(/tell me/i);
+  });
+
   it('reads conditions on its state', () => {
     const d = new Dialogue(null);
     expect(d.test('!has_raw && carried has map')).toBe(true);

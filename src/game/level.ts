@@ -50,7 +50,7 @@ export interface Hotspot {
   story?: string;
   /** A thing she can pick up (one of the story's Things): Take puts it in her pockets, and it is gone from here for good. */
   item?: string;
-  /** On the map once she has seen it, to go to: ways out and people are on it anyway. */
+  /** On the map once she has seen it, to go to: ways out and people are on it anyway, unless this is false. */
   map?: boolean;
   /** A mover it goes with (its asset): wherever the mover is now, there it is (a guard on its round). */
   follows?: string;

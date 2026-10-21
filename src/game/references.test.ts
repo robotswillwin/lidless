@@ -24,6 +24,7 @@ const variable = (name: string) => story.story.variablesState.GetVariableWithNam
 function conditions(): [string, string][] {
   const out: [string, string][] = [];
   for (const s of scenes) {
+    for (const [v, r] of Object.entries(s.rotate ?? {})) if (r.from) out.push([`${s.id}: rotate ${v}`, r.from]);
     for (const h of s.hotspots) if (h.when) out.push([`${s.id}: hotspot ${h.id}`, h.when]);
     s.layers.forEach((l, i) => { if (l.when) out.push([`${s.id}: layers[${i}]`, l.when]); });
     s.lights.forEach((l, i) => { if (l.when) out.push([`${s.id}: lights[${i}]`, l.when]); });
@@ -60,6 +61,11 @@ describe('what the scenes and the notebook name in the story', () => {
       if (h.item && !things.has(h.item)) bad.push(`${s.id}: hotspot ${h.id} is ${h.item}, which is none of the story's Things`);
       if (h.item && !items[h.item]) bad.push(`${s.id}: hotspot ${h.id} is ${h.item}, which items.json does not show`);
     }
+    expect(bad).toEqual([]);
+  });
+
+  it('turns only story variables, as she arrives in a scene', () => {
+    const bad = scenes.flatMap((s) => Object.keys(s.rotate ?? {}).filter((v) => !variable(v)).map((v) => `${s.id}: rotate ${v}, which the story does not have`));
     expect(bad).toEqual([]);
   });
 

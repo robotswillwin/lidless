@@ -15,6 +15,7 @@ how to write a deep plot, side errands and many objects without code.
 | `conditions` | What the city is like now: a variant the scenes have (`rain`, `fog`, `outage`), `""` as they are. |
 | `carried` | What is in her pockets: a list of `Things`. Her things (the left ball) show it. |
 | `taken` | Everything she has ever picked up from where it was: it is gone from there for good. |
+| `arrivals` | Set by the game: how many times she has gone from one scene to another, all told. A clock the story can count by: the station feeds her only if `arrivals - fed_at` is 6 or more. |
 
 `LIST Things = ...` names everything she can carry; `public/assets/items.json` says how each looks and what it is called
 in each view. Errands and anything else the plot needs are variables of their own (`parcel_delivered`,
@@ -44,6 +45,13 @@ condition in the game's data reads only variables the story has (`src/game/refer
 | `story` | a hotspot | Its knot in the story. Each verb runs the knot's stitch of its name where it has one, over the hotspot's own texts: Look runs `look`, Talk `talk`, Use `use`, Take `take`, Ask `ask`. Using a thing she carries on it runs `use_<thing>`. |
 | `item` | a hotspot | A thing to pick up, one of the story's `Things`: Take puts it in `carried` and `taken`, and the hotspot is gone for good. Its `take` text says it, or the game says she has it. |
 | `talk` | a hotspot | A conversation: the knot that Talk runs from its start (as before). |
+| `follows` | a hotspot | A mover it goes with (its asset): it is wherever the mover is (a guard on its round). Talked to or used, the mover stops, turns to her, and goes on when she is done. |
+| `map` | a hotspot | `true` puts it on her map once she has seen it; `false` keeps a way out or someone to talk to off it. |
+
+A scene can show things by turns: `"rotate": { "station_seat": { "values": ["woman", "", "man"], "from": "has_raw" } }`
+sets the story variable `station_seat` to the next value each time she arrives (from `has_raw` on; until then the story's
+own value stands), and its layers and hotspots say `"when": "station_seat == \"woman\""`. Who sits at the main street's
+station: the woman until Luna can see her as she is, then someone else each time she comes back, or nobody.
 
 Simple objects keep their plain texts (`look`, `use`, `take`, each `{ concierge, raw }`): they need no story. An object
 that matters gets a knot.
@@ -88,6 +96,7 @@ on a line of its own before a line belongs to that line.
 | `fade: 0.6` | The screen goes dark for so many seconds, and comes back. |
 | `view: raw`, `view: concierge` | The view switches. |
 | `wait: 1.5` | A pause, in seconds. |
+| `closeup: station`, `closeup: off` | A close-up over the dimmed scene (`public/assets/closeups/station.concierge.webp` and `.raw.webp`, as the view on screen has it) until `off` or the conversation's end; lines are said at the top meanwhile. Made with `npm run asset -- closeups`. |
 
 A short cutscene is a knot of such lines. Speaker tags (`#luna`, `#fixer`, `#concierge`) stay as they are.
 

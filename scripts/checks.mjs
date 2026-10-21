@@ -67,11 +67,16 @@ const holdThing = async (page, name) => {
   await page.evaluate((n) => document.querySelector(`.hud-tray .slot[data-item="${n}"]`)?.click(), name);
   await wait(300);
 };
-// a conversation through to its end, or its answers
+// a conversation through to its end, or its answers: through its pauses too, while the game does what a line says
 const talkThrough = async (page, timeout = 12000) => {
   await page.waitForFunction(() => !!document.querySelector('.talk-line:not([hidden]), .talk-choices:not([hidden])'), { timeout }).catch(() => {});
-  const said = [];
-  for (let k = 0; k < 30 && (await page.$('.talk-line:not([hidden])')); k++) { said.push(await page.$eval('.talk-line', (l) => l.textContent)); await page.keyboard.press(' '); await wait(250); }
+  const said = [], until = Date.now() + 30000;
+  while (Date.now() < until) {
+    const st = await page.evaluate(() => ({ talking: 'talking' in (document.querySelector('.hud')?.dataset ?? {}), line: document.querySelector('.talk-line:not([hidden])')?.textContent ?? null, choices: !!document.querySelector('.talk-choices:not([hidden])') }));
+    if ((!st.talking && st.line === null) || st.choices) break;
+    if (st.line !== null) { if (said.at(-1) !== st.line) said.push(st.line); await page.keyboard.press(' '); }
+    await wait(250);
+  }
   await wait(600);
   return said;
 };
@@ -84,6 +89,24 @@ const wardrobe = async (page, name) => {
   await page.evaluate((n) => [...document.querySelectorAll('.talk-choices:not([hidden]) .talk-choice')].find((b) => b.textContent.includes(n))?.click(), name);
   await wait(1500);
   return choices;
+};
+
+// an answer picked from the list, by its words
+const choose = async (page, words) => {
+  await page.waitForFunction(() => document.querySelectorAll('.talk-choices:not([hidden]) .talk-choice').length > 0, { timeout: 12000 }).catch(() => {});
+  await page.evaluate((w) => [...document.querySelectorAll('.talk-choices:not([hidden]) .talk-choice')].find((b) => b.textContent.includes(w))?.click(), words);
+  await wait(400);
+};
+// with a verb chosen, the pointer swept along a row of the screen until what it lights up is called `name`: where it is
+const findThing = async (page, name, y = 420) => {
+  for (let sx = 0.02; sx < 1; sx += 0.01) {
+    const [px, py] = await page.evaluate((sx, y) => { const c = document.querySelector('canvas').getBoundingClientRect(); return [c.left + sx * c.width, c.top + (y / 540) * c.height]; }, sx, y);
+    await page.mouse.move(px, py);
+    await wait(25);
+    const n = await page.$eval('.hud-mark .name', (e) => e.textContent).catch(() => '');
+    if (n.includes(name)) return [px, py];
+  }
+  return null;
 };
 
 const checks = {
@@ -207,6 +230,66 @@ const checks = {
     check('no blind spots: in the alley mouth it stays shut', !(await page.$('.hud-panel.notebook')));
     await panel(page, 'journal');
     check('her journal opens anywhere', !!(await page.$('.hud-panel.journal .entry')));
+    await page.close();
+  },
+
+  /** The nutrition station: used up close, then not needed again for a while; who sits at it takes turns once she sees. */
+  async station() {
+    const page = await fresh('scene=street&spawn=start');
+    await verb(page, 'hands');
+    await tap(page, 700, 380);
+    const shown = await page.waitForFunction(() => !!document.querySelector('.hud-closeup img'), { timeout: 15000 }).then(() => true).catch(() => false);
+    const src = await page.$eval('.hud-closeup img', (i) => i.getAttribute('src')).catch(() => '');
+    await talkThrough(page);
+    await wait(700);
+    check('the station: her wrist in the cuff, up close', shown && /closeups\/station\.concierge\.webp/.test(src), src);
+    check('the close-up goes with the conversation', !(await page.$('.hud-closeup:not(.out)')));
+    check('fed: the story keeps when', /"fed_at":\s*0\b/.test(await ink(page)));
+    // the camera has followed her along the street: the station found where it is on screen now
+    await verb(page, 'hands');
+    if (await findThing(page, 'Nutrition station', 380)) { await page.mouse.down(); await wait(60); await page.mouse.up(); }
+    await page.waitForFunction(() => !!document.querySelector('.hud-note'), { timeout: 8000 }).catch(() => {});
+    const note = await page.$eval('.hud-note', (n) => n.textContent).catch(() => '');
+    check('used again at once: she does not need it now', /don't need it/.test(note), note);
+    await page.close();
+    // raw view opened at the fixer's: out on the street the woman is there; back again, someone else's turn
+    const p2 = await fresh('scene=radio');
+    await verb(p2, 'heart');
+    await tap(p2, 690, 335);
+    await choose(p2, 'not here about a radio');
+    await talkThrough(p2, 4000);
+    await choose(p2, 'Do it');
+    await talkThrough(p2, 4000);
+    await tap(p2, 230, 330);
+    await wait(4000);
+    const first = await ink(p2);
+    await tap(p2, 304, 350);
+    await wait(4000);
+    await tap(p2, 230, 330);
+    await wait(4000);
+    const second = await ink(p2);
+    // the story's save leaves out what is as it began: the woman, if it says nobody else
+    const seat = (json) => (json.match(/"station_seat":"\^([^"]*)"/) ?? [null, 'woman'])[1];
+    check('with raw view, out on the street: the woman at the station', /"has_raw":\s*true/.test(first) && seat(first) === 'woman', `has_raw ${/"has_raw":\s*true/.test(first)}, seat ${seat(first)}`);
+    check('back again: her seat taken by someone else, or nobody', seat(second) !== 'woman', `seat ${seat(second) || 'nobody'}`);
+    await p2.close();
+  },
+
+  /** The guardian on its round: it stops for her and speaks of keeping the street safe. */
+  async guardian() {
+    const page = await browser.newPage();
+    page.on('pageerror', (e) => errors.push(String(e)));
+    await page.setViewport({ width: 1920, height: 1080 });
+    await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
+    await page.evaluateOnNewDocument(() => { if (sessionStorage.getItem('seeded')) return; sessionStorage.setItem('seeded', '1'); localStorage.setItem('lidless.save.v1', JSON.stringify({ v: 2, scene: 'street', heroX: 1480, facing: 1, view: 1, ink: null })); });
+    await page.goto(url);
+    await ready(page);
+    await verb(page, 'heart');
+    const at = await findThing(page, 'Civic guardian');
+    if (at) { await page.mouse.down(); await wait(60); await page.mouse.up(); }
+    await page.waitForFunction(() => !!document.querySelector('.talk-line:not([hidden])'), { timeout: 12000 }).catch(() => {});
+    const said = await page.$eval('.talk-line', (l) => `${l.dataset.voice}: ${l.textContent}`).catch(() => '');
+    check('the guardian: found on its round, it speaks of keeping the street safe', !!at && /^co: .*safe/.test(said), said);
     await page.close();
   },
 

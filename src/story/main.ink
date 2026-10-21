@@ -18,6 +18,13 @@ VAR conditions = ""
 // Her credits: digital, her allowance, on her account. The Concierge's greeting shows them in its view
 VAR credits = 312
 
+// set by the game: how many times she has gone from one scene to another, all told (a clock the story counts by)
+VAR arrivals = 0
+// when she last fed at a nutrition station (arrivals then): she does not need to again for a while
+VAR fed_at = -100
+// who sits at the main street's station: the street turns it each time she comes back (its scene file's `rotate`)
+VAR station_seat = "woman"
+
 // The things she can carry: public/assets/items.json says how each looks and what it is called. What she carries now,
 // and what she has picked up anywhere, which is gone from where it was (the game adds to both as she takes a thing)
 LIST Things = parcel, matches, cigarettes, map, valve

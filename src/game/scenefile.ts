@@ -9,6 +9,7 @@ import { conditionProblem } from './conditions';
 import { textureFromImage, type GL } from '../engine/gl';
 import type { Hotspot, LevelDef } from './level';
 import type { MapLayout } from './map';
+import type { Rotation } from './rotate';
 import type { Outfits } from './outfits';
 
 export type Rect = [number, number, number, number];
@@ -109,6 +110,11 @@ export interface SceneFile {
   variants?: Record<string, { name?: string; look?: Record<string, unknown> }>;
   /** Things that move through the scene on their own, such as a train along a viaduct. */
   movers?: MoverDef[];
+  /**
+   * What it shows by turns: story variables the game sets as she arrives, each to the next of its values (see
+   * rotate.ts). Who sits at the station: `{ "station_seat": { "values": ["woman", "", "man"], "from": "has_raw" } }`.
+   */
+  rotate?: Record<string, Rotation>;
   /**
    * In a scene no wider than the screen: how far the camera leans with the hero as she walks from one end to the other,
    * in pixels, 0 (the default) for none. The street she walks on stays put; the other layers slide against it by how
@@ -231,6 +237,13 @@ export function checkSceneFile(data: unknown, id?: string): string[] {
   // a layer or a light there only when a condition holds
   for (const [list, items] of [['layers', layers ?? []], ['lights', Array.isArray(f.lights) ? (f.lights as Record<string, unknown>[]) : []]] as const) {
     items.forEach((x, i) => { if (x?.when !== undefined) { const p = isStr(x.when) ? conditionProblem(x.when) : 'it must be text'; if (p) out.push(`${list}[${i}]: when: ${p}`); } });
+  }
+  if (f.rotate !== undefined) {
+    if (!f.rotate || typeof f.rotate !== 'object' || Array.isArray(f.rotate)) out.push('rotate must be an object of story variables');
+    else for (const [name, r] of Object.entries(f.rotate as Record<string, { values?: unknown; from?: unknown }>)) {
+      if (!Array.isArray(r?.values) || !r.values.length || r.values.some((v) => typeof v !== 'string')) out.push(`rotate.${name} needs values, a list of words`);
+      if (r?.from !== undefined && (typeof r.from !== 'string' || conditionProblem(r.from))) out.push(`rotate.${name}.from is no condition: ${String(r.from)}`);
+    }
   }
   if (f.movers !== undefined) {
     if (!Array.isArray(f.movers)) out.push('movers must be a list');

@@ -103,6 +103,9 @@ export class Hud {
   private noteTimer = 0;
   private panel: HTMLElement | null = null;
   private panelKind: PanelKind | null = null;
+  /** A close-up over the scene, and which: its picture follows the view. */
+  private closeupEl: HTMLElement | null = null;
+  private closeupName: string | null = null;
   private items: Record<string, Item> = {};
   private carried: string[] = [];
   private notebook: Notebook = { pages: [] };
@@ -194,6 +197,30 @@ export class Hud {
     if (this.trayEl) this.openTray();
     if (this.inspecting) this.inspect(this.inspecting);
     if (this.panelKind && this.panelKind !== 'notebook') this.openPanel(this.panelKind);
+    if (this.closeupName) this.showCloseup(this.closeupName);
+  }
+
+  /** Whether a close-up is over the scene: lines are said at the top then, clear of it. */
+  get closeupOpen(): boolean { return this.closeupName !== null; }
+
+  /**
+   * A close-up over the dimmed scene: a moment shown up close (her wrist in the station's cuff), as the view on screen
+   * has it (`closeups/<name>.concierge.webp`, `.raw.webp`); null takes it away. Resolves once its picture is there.
+   */
+  showCloseup(name: string | null): Promise<void> {
+    const was = this.closeupEl;
+    this.closeupName = name;
+    if (!name) {
+      if (was) { was.classList.add('out'); window.setTimeout(() => was.remove(), 260); }
+      this.closeupEl = null;
+      return Promise.resolve();
+    }
+    const box = el('div', 'hud-closeup', this.root), img = el('img', '', box);
+    img.alt = '';
+    img.src = `${this.assets}/closeups/${name}.${this.raw ? 'raw' : 'concierge'}.webp`;
+    if (was) { box.classList.add('still'); was.remove(); }
+    this.closeupEl = box;
+    return img.decode().catch(() => {});
   }
 
   /** Whether the Concierge can see her where she is: out of its sight, her notebook opens; in it, it shuts. */
