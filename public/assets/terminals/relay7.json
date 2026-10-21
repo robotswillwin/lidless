@@ -42,7 +42,7 @@
   "files": {
     "/etc/motd": {
       "date": "2030-10-14 10:20",
-      "text": "MRA/UX 3.2  -  Municipal Relay Authority\nRELAY 7  -  Eastern District\n\nAuthorised personnel only. Sessions are logged.\nFaults to the duty engineer, extension 4471."
+      "text": "MRA/UX 3.2  -  Municipal Relay Authority\nRELAY 7  -  Eastern District\n\nAuthorised personnel only. Sessions are logged.\nFaults to the duty engineer, extension 260."
     },
     "/etc/passwd": {
       "date": "2030-06-03 14:02",
