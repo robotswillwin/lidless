@@ -7,7 +7,7 @@ import { join, resolve } from 'node:path';
 import sharp from 'sharp';
 import { bleedEdges, contentBox, fillHoles, fitColours, fitToHeight, hardenAlpha, isOpaque, paletteFit, pixelate, removeFlatBackground, silhouetteMatch, unionBox } from './clean.mjs';
 import { glowAuto, heightMap, materialMap, metaMap, normalMap } from './derive.mjs';
-import { blank, readRGBA, writePNG } from './image.mjs';
+import { blank, readRGBA, resize, writePNG } from './image.mjs';
 import { plant } from './parts.mjs';
 import { loadRecipe, ROOT } from './recipe.mjs';
 import { finishFor, palette, rel } from './shared.mjs';
@@ -96,13 +96,16 @@ export async function buildOne(file) {
       groupRaw: glow.groupRaw ?? 0, groupConcierge: glow.groupConcierge ?? 0, machine: !!glow.machine,
     }), { rgb: true });
   }
+  // a background's glow at half its size: soft light loses nothing by it, and its two glow maps were half of what the
+  // background took on the GPU. The engine samples every map by where it is in the sprite, whatever its size
+  const halved = async (img) => (r.kind === 'background' && img.w > 64 && img.h > 64 ? resize(img, Math.ceil(img.w / 2), Math.ceil(img.h / 2)) : img);
   const glowRaw = glow.raw === 'auto' && glowRawSrc ? glowAuto(glowRawSrc) : null;
-  if (glowRaw) { await writePNG(join(out, 'glow.raw.png'), glowRaw, { rgb: true }); maps.push('glow.raw'); }
+  if (glowRaw) { await writePNG(join(out, 'glow.raw.png'), await halved(glowRaw), { rgb: true }); maps.push('glow.raw'); }
   if (conc) {
     await writePNG(join(out, 'albedo.concierge.png'), bled(conc));
     maps.push('albedo.concierge');
     const gc = exists === 'raw' ? null : (glow.concierge ?? 'auto') === 'auto' ? glowAuto(conc) : glowRaw;
-    if (gc) { await writePNG(join(out, 'glow.concierge.png'), gc, { rgb: true }); maps.push('glow.concierge'); }
+    if (gc) { await writePNG(join(out, 'glow.concierge.png'), await halved(gc), { rgb: true }); maps.push('glow.concierge'); }
   }
   const [cx, base] = r.position ?? [480, 464], lw = toLevel(w, res), lh = toLevel(h, res);
   const sprite = {

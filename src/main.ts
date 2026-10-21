@@ -74,6 +74,8 @@ async function boot(): Promise<void> {
   };
   draw();
   document.documentElement.dataset.ready = '1';
+  // the first scene drawn: the fade the page opened with, its name over it, lifts
+  document.getElementById('fade')?.classList.remove('on', 'boot');
   if (fixedT !== null) return;
 
   let visible = true, last = 0;

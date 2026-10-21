@@ -22,6 +22,10 @@ Then open the address Vite prints.
   from her runs her after it, on along the street as the camera follows her, until it comes up; brought in near her,
   it has her walk to it, and held past the end of the street it takes her on through. Arrow keys or A/D walk too, with
   Shift she runs.
+- **Between scenes** the screen fades to black for a quarter of a second. The scenes her ways out lead to are fetched
+  while she is near them, so that is all it takes; if one is still coming after a third of a second, a small sign from
+  the world shows that it is: the Concierge's ring turning in its view, her eyepiece's iris in raw view. The game opens
+  with its name over the same fade.
 - **The ball at the bottom right** slides out what she can do along the bottom: Look, Talk, Use, Take, and in
   Concierge view Ask (its bell). They stay out until the ball is tapped again, or the other one. Choose one, then press
   and slide over the scene: what that verb does something to lights up under your finger (framed by the Concierge in

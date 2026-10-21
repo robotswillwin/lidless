@@ -16,7 +16,8 @@ import { outfitAfter } from './outfits';
 import { writeSave, type SaveData } from './save';
 import { SceneRunner, type ViewState } from './scene';
 import { Talk } from './talk';
-import { buildScene, loadSceneFile, type Exit, type Scene, type WorldFile } from './scenefile';
+import { type Exit, type Scene, type WorldFile } from './scenefile';
+import { Scenes } from './scenes';
 import { UI } from './ui';
 import { World } from './world';
 
@@ -72,7 +73,8 @@ export class Game {
   private runner!: SceneRunner;
   private readonly camera = new Camera();
   /** Scenes are kept once loaded, so going back and forth is quick; `bust` makes changed art load again. */
-  private readonly scenes = new Map<string, Promise<Scene>>();
+  /** The scenes near her, on the GPU or fetched ahead (see scenes.ts). */
+  private readonly scenes: Scenes;
   private bust = '';
   private readonly t0 = performance.now();
   private lastT = 0;
@@ -108,6 +110,7 @@ export class Game {
   private variant: string | undefined;
 
   private constructor(private readonly s: GameSetup) {
+    this.scenes = new Scenes(s.renderer.gl, s.assets, s.world);
     this.dialogue = new Dialogue(s.save?.ink ?? null);
     this.ui = new UI(s.stage);
     this.hud = new Hud(s.canvas);
@@ -124,8 +127,8 @@ export class Game {
       view: () => (this.state.view < 0.5 ? 'raw' : 'concierge'),
       // a scene's own look, just saved into its file: the copy loaded here follows
       onSceneSaved: (id, json, variant) => {
-        void this.scenes.get(id)?.then((sc) => {
-          const t = variant ? ((sc.file.variants ??= {})[variant] ??= {}) : sc.file;
+        void this.scenes.file(id).then((file) => {
+          const t = variant ? ((file.variants ??= {})[variant] ??= {}) : file;
           if (json) t.look = json; else delete t.look;
         });
       },
@@ -155,7 +158,7 @@ export class Game {
   static async start(s: GameSetup, asked?: { scene: string; spawn?: string }): Promise<Game> {
     const g = new Game(s), save = s.save, w = s.world;
     const startId = asked?.scene ?? (save?.scene && w.scenes.includes(save.scene) ? save.scene : w.start.scene);
-    if (asked) await g.enter(startId, { spawn: asked.spawn ?? Object.keys((await g.sceneById(startId)).file.spawns)[0] });
+    if (asked) await g.enter(startId, { spawn: asked.spawn ?? Object.keys((await g.scenes.file(startId)).spawns)[0] });
     else if (save?.scene === startId) await g.enter(startId, { x: save.heroX, facing: save.facing });
     else await g.enter(startId, { spawn: w.start.spawn });
     g.syncView();
@@ -179,13 +182,8 @@ export class Game {
 
   /* ---------- scenes ---------- */
 
-  private sceneById(id: string): Promise<Scene> {
-    if (!this.scenes.has(id)) this.scenes.set(id, loadSceneFile(this.s.assets, id).then((file) => buildScene(this.s.renderer.gl, this.s.assets, file, this.s.world, this.bust)));
-    return this.scenes.get(id)!;
-  }
-
   private async enter(id: string, at: Arrival): Promise<void> {
-    const next = await this.sceneById(id), sp = at.spawn ? next.file.spawns[at.spawn] : undefined;
+    const next = await this.scenes.get(id), sp = at.spawn ? next.file.spawns[at.spawn] : undefined, from = this.scene?.file.id;
     // at home's door she changes: out of her coat coming in, into it going out
     const outfits = this.s.world.hero.outfits;
     if (outfits) await this.wear(outfitAfter(outfits, this.outfit, !!this.scene?.file.wardrobe, !!next.file.wardrobe) ?? this.outfit);
@@ -196,6 +194,8 @@ export class Game {
     this.world.raw = this.raw;
     this.camera.jump(this.cameraTarget());
     this.cam[0] = this.s.fixedCam ?? this.camera.x;
+    // the scene she left and this one stay on the GPU, where she can go next is fetched, the rest let go
+    this.scenes.settle(next, from);
     // each scene shows the game's look with its own settings over it, in the conditions the story has the city in
     this.variant = this.variantOf(next);
     this.look.setScene(next.file, this.variant);
@@ -288,8 +288,8 @@ export class Game {
     // dressed in what she does not go out in, she stays
     const outfits = this.s.world.hero.outfits;
     if (outfits && this.scene.file.wardrobe) {
-      const to = await this.sceneById(exit.scene).catch(() => null);
-      if (to && outfitAfter(outfits, this.outfit, true, !!to.file.wardrobe) === null) {
+      const to = await this.scenes.file(exit.scene).catch(() => null);
+      if (to && outfitAfter(outfits, this.outfit, true, !!to.wardrobe) === null) {
         this.travelling = false;
         return this.say(outfits[this.outfit]?.stay ?? 'Not dressed like this.');
       }
@@ -301,6 +301,10 @@ export class Game {
     if (this.talk.open) { this.talk.hide(); this.endTalk(); }
     this.s.fade.classList.add('on');
     await new Promise((r) => setTimeout(r, this.s.reduceMotion ? 0 : 260));
+    // a scene not ready once the fade is dark: after a moment a small sign from the world that it is coming, the
+    // Concierge's ring turning in its view, her eyepiece's iris in raw view. One fetched ahead never shows it
+    this.s.fade.dataset.view = this.raw ? 'raw' : 'concierge';
+    const waiting = setTimeout(() => this.s.fade.classList.add('wait'), 300);
     try {
       await this.enter(exit.scene, { spawn: exit.spawn });
       this.syncKeys();
@@ -308,7 +312,8 @@ export class Game {
     } catch (err) {
       this.ui.showCaption(`That way is not built yet (${err instanceof Error ? err.message : String(err)}).`);
     }
-    this.s.fade.classList.remove('on');
+    clearTimeout(waiting);
+    this.s.fade.classList.remove('wait', 'on');
     this.travelling = false;
   }
 
@@ -323,7 +328,7 @@ export class Game {
    */
   assetsChanged(files: string[]): void {
     this.bust = String(Date.now());
-    this.scenes.clear();
+    this.scenes.reset(this.bust, this.scene);
     const f = this.scene.file, own = files.some((p) => p === `scenes/${f.id}/scene.json` || f.layers.some((l) => p.startsWith(`${l.asset}/`)));
     if (!own || this.travelling) return;
     void this.enter(f.id, { x: this.world.heroX, facing: this.world.facing }).catch((err: unknown) => this.ui.showCaption(`The scene did not load: ${err instanceof Error ? err.message : String(err)}`));

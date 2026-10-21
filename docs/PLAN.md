@@ -84,7 +84,12 @@ rigged character about an hour and $1: forty scenes is a question of production,
 
 **What comes first**, before a full game's content goes in, about 10 hours in this order:
 
-1. **Scenes in and out of memory (about 3 hours).** Every scene she visits stays in GPU memory for the session: at
+1. **Scenes in and out of memory (about 3 hours). Done 21 October:** the scene she is in and the one she came from stay
+   on the GPU, the files of the scenes her ways out lead to are fetched while she is there, and the rest are let go
+   (src/game/scenes.ts): going back and forth between the backstreet and the main street held 62 textures, 332 MB at
+   desktop resolution, and going home let the main street go (255 MB back in the backstreet). A scene fetched ahead
+   takes the fade and under a quarter of a second more; one that is not ready after a third of a second shows the
+   small sign. Backgrounds' glow maps are half their size. What was planned: every scene she visits stays in GPU memory for the session: at
    desktop resolution the main street alone is 189 MB, the backstreet and her flat 66 MB each, the radio repair 33 MB,
    and Luna in her coat 112 MB (a phone takes about a quarter of that). Fine with four scenes; a phone runs out past
    twenty. And a scene's 8 to 19 MB is fetched only as she walks in, so on a phone the fade can stall for seconds.

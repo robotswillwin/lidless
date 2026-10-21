@@ -79,6 +79,9 @@ All maps share the sprite's canvas size. Pixels with alpha below 50% are not dra
 | `glow.raw.png` | RGB | Light the surface gives off in raw view, at half intensity (255 = 2× bright). |
 | `glow.concierge.png` | RGB | Light given off in Concierge view: the real glow plus the Concierge's neon. |
 
+A background's glow maps are built at half its size: soft light loses nothing by it, and they were half of what a
+background took on the GPU. The engine samples every map by where it is in the sprite, whatever its size.
+
 `meta.png`, packed so it survives PNG and browser decoding without an alpha channel:
 
 - **R**: 128 if the pixel casts shadows, +64 if its Concierge colour differs (information for tools; it does not change the lighting), + an object id 0–63 (a light can skip its own object).

@@ -3,7 +3,7 @@
 // (built assets, placed), lights, its inside and outside areas, the walk line, places to arrive and hotspots, some of
 // which lead to other scenes.
 
-import { loadSprite, spriteDefaults, type GodrayDef, type GroundDef, type LoadedScene, type Only, type Views, type MoverDef, type SceneDef, type Sprite, type SteamDef } from '../engine/assets';
+import { fetchSprite, imageFromBlob, loadBlob, makeSprite, spriteDefaults, type FetchedSprite, type GodrayDef, type GroundDef, type LoadedScene, type Only, type Views, type MoverDef, type SceneDef, type Sprite, type SteamDef } from '../engine/assets';
 import { presets, type PlacedLight } from '../engine/presets';
 import { textureFromImage, type GL } from '../engine/gl';
 import type { Hotspot, LevelDef } from './level';
@@ -136,6 +136,15 @@ export interface Scene {
   file: SceneFile;
   loaded: LoadedScene;
   level: LevelDef;
+  /** Everything it put on the GPU, to let go of when it is no longer near her (freeScene). */
+  textures: WebGLTexture[];
+}
+
+/** A scene's files fetched, none of it decoded or on the GPU yet: a scene she may go to next. */
+export interface FetchedScene {
+  file: SceneFile;
+  sprites: Map<string, Promise<FetchedSprite>>;
+  zone?: Promise<Blob>;
 }
 
 const getJSON = async <T>(url: string): Promise<T> => {
@@ -143,13 +152,6 @@ const getJSON = async <T>(url: string): Promise<T> => {
   if (!res.ok) throw new Error(`could not load ${url} (${res.status})`);
   return res.json() as Promise<T>;
 };
-
-const loadImage = (url: string) => new Promise<HTMLImageElement>((resolve, reject) => {
-  const img = new Image();
-  img.onload = () => resolve(img);
-  img.onerror = () => reject(new Error(`could not load ${url}`));
-  img.src = url;
-});
 
 export const loadWorld = (assets: string) => getJSON<WorldFile>(`${assets}/world.json`);
 /** A scene file, checked: a mistake in it is reported by name, with every other mistake found, before anything uses it. */
@@ -285,12 +287,28 @@ export function zoneTexture(gl: GL, file: SceneFile): WebGLTexture {
 
 /** A scene ready to play: its layers loaded and placed, its zone map, and its level data for the hero. */
 export async function buildScene(gl: GL, assets: string, file: SceneFile, world: WorldFile, bust = ''): Promise<Scene> {
-  const fallback = spriteDefaults(gl), cache = new Map<string, Promise<Sprite>>();
+  return makeScene(gl, fetchScene(assets, file, bust), world);
+}
+
+/**
+ * A scene's files fetched: every asset it places, each once, and its zone map. Nothing is decoded or put on the GPU, so
+ * a scene she may go to next costs only its files' bytes until she does. A failure shows when the scene is made.
+ */
+export function fetchScene(assets: string, file: SceneFile, bust = ''): FetchedScene {
+  const quiet = <T>(p: Promise<T>) => { p.catch(() => {}); return p; };
+  const sprites = new Map<string, Promise<FetchedSprite>>();
+  for (const path of [...file.layers.map((l) => l.asset), ...(file.movers ?? []).map((m) => m.asset)]) {
+    const i = path.lastIndexOf('/');
+    if (!sprites.has(path)) sprites.set(path, quiet(fetchSprite(`${assets}/${path.slice(0, i)}`, path.slice(i + 1), bust)));
+  }
+  return { file, sprites, zone: file.zoneMap ? quiet(loadBlob(`${assets}/${file.zoneMap}${bust ? `?v=${bust}` : ''}`)) : undefined };
+}
+
+/** A fetched scene decoded and put on the GPU. */
+export async function makeScene(gl: GL, fetched: FetchedScene, world: WorldFile): Promise<Scene> {
+  const { file } = fetched, fallback = spriteDefaults(gl), cache = new Map<string, Promise<Sprite>>();
   const sprite = (path: string) => {
-    if (!cache.has(path)) {
-      const i = path.lastIndexOf('/');
-      cache.set(path, loadSprite(gl, `${assets}/${path.slice(0, i)}`, path.slice(i + 1), fallback, bust));
-    }
+    if (!cache.has(path)) cache.set(path, (fetched.sprites.get(path) ?? Promise.reject(new Error(`${file.id}: ${path} was not fetched`))).then((f) => makeSprite(gl, f, fallback)));
     return cache.get(path)!;
   };
   const sprites = await Promise.all(file.layers.map(async (layer) => {
@@ -298,7 +316,7 @@ export async function buildScene(gl: GL, assets: string, file: SceneFile, world:
     // each layer has a definition of its own, so the same asset can be placed twice
     return { ...s, def: { ...d, x: layer.x ?? d.x, y: layer.y ?? d.y, parallax: layer.parallax ?? d.parallax, front: layer.front ?? d.front, depth: layer.depth ?? d.depth, facing: layer.facing ?? d.facing, footprint: layer.footprint ?? d.footprint, only: layer.only, views: layer.views } };
   }));
-  const zone = file.zoneMap ? textureFromImage(gl, await loadImage(`${assets}/${file.zoneMap}`), false) : zoneTexture(gl, file);
+  const zone = fetched.zone ? textureFromImage(gl, await imageFromBlob(await fetched.zone, file.zoneMap), false) : zoneTexture(gl, file);
   const def: SceneDef = {
     name: file.id, size: file.size, sprites: sprites.map((s) => s.def.name), zone: file.zoneMap ?? '',
     lights: file.lights, beacons: file.beacons ?? [], steam: file.steam ?? [], godrays: file.godrays ?? [],
@@ -314,5 +332,14 @@ export async function buildScene(gl: GL, assets: string, file: SceneFile, world:
     if (after < 0) throw new Error(`${file.id}: a mover is drawn after ${m.after}, which is not one of its layers`);
     return { def: m, sprite: await sprite(m.asset), after };
   }));
-  return { file, loaded: { def, sprites, zone, movers }, level };
+  // everything it put on the GPU, each once: its sprites' maps, the stand-ins they share, its zone map
+  const textures = new Set<WebGLTexture>([zone, ...Object.values(fallback)]);
+  for (const s of [...sprites, ...movers.map((m) => m.sprite)]) for (const t of Object.values(s.tex)) textures.add(t);
+  return { file, loaded: { def, sprites, zone, movers }, level, textures: [...textures] };
+}
+
+/** Let a scene's textures go: it is no longer near her. Not while it is on screen. */
+export function freeScene(gl: GL, scene: Scene): void {
+  for (const t of scene.textures) gl.deleteTexture(t);
+  scene.textures = [];
 }

@@ -257,14 +257,23 @@ export interface LoadedScene {
   movers?: { def: MoverDef; sprite: Sprite; after: number }[];
 }
 
-function loadImage(url: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.decoding = 'async';
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error(`could not load ${url}`));
-    img.src = url;
-  });
+/** A file fetched as it is, its bytes only: an image is decoded later, as its scene is put on the GPU. */
+export async function loadBlob(url: string): Promise<Blob> {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`could not load ${url} (${res.status})`);
+  return res.blob();
+}
+
+/** An image from fetched bytes, decoded before it is used (off the main thread, where the browser can). */
+export async function imageFromBlob(blob: Blob, what = 'an image'): Promise<HTMLImageElement> {
+  const url = URL.createObjectURL(blob), img = new Image();
+  img.src = url;
+  try {
+    await img.decode().catch(() => new Promise<void>((resolve, reject) => { if (img.complete && img.naturalWidth) resolve(); else { img.onload = () => resolve(); img.onerror = () => reject(new Error(`could not decode ${what}`)); } }));
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+  return img;
 }
 
 async function loadJSON<T>(url: string): Promise<T> {
@@ -294,11 +303,28 @@ export function spriteDefaults(gl: GL) {
  */
 export const smoothSampled = (def: SpriteDef): boolean => (def.actor ?? def.kind === 'character') || (def.res ?? 1) > 1;
 
+/** A sprite's files, fetched and not yet decoded or on the GPU: in a scene she may go to next. */
+export interface FetchedSprite {
+  name: string;
+  def: SpriteDef;
+  files: (readonly [MapName, Blob])[];
+}
+
 /** `bust` is added to every URL to skip the browser cache when an asset was just rebuilt. */
-export async function loadSprite(gl: GL, base: string, name: string, fallback: ReturnType<typeof spriteDefaults>, bust = ''): Promise<Sprite> {
+export async function fetchSprite(base: string, name: string, bust = ''): Promise<FetchedSprite> {
   const q = bust ? `?v=${bust}` : '';
   const def = await loadJSON<SpriteDef>(`${base}/${name}/sprite.json${q}`);
-  const imgs = await Promise.all(def.maps.map(async (m) => [m, await loadImage(`${base}/${name}/${m}.png${q}`)] as const));
+  return { name, def, files: await Promise.all(def.maps.map(async (m) => [m, await loadBlob(`${base}/${name}/${m}.png${q}`)] as const)) };
+}
+
+export async function loadSprite(gl: GL, base: string, name: string, fallback: ReturnType<typeof spriteDefaults>, bust = ''): Promise<Sprite> {
+  return makeSprite(gl, await fetchSprite(base, name, bust), fallback);
+}
+
+/** A fetched sprite decoded and put on the GPU, as detailed as the screen shows. */
+export async function makeSprite(gl: GL, fetched: FetchedSprite, fallback: ReturnType<typeof spriteDefaults>): Promise<Sprite> {
+  const { def, name } = fetched;
+  const imgs = await Promise.all(fetched.files.map(async ([m, blob]) => [m, await imageFromBlob(blob, `${name}/${m}.png`)] as const));
   // as much detail as the screen shows; packed flags, which cannot be averaged, as they are. And no bigger than the GPU
   // takes: a wide street's layer can be wider than an older GPU's 4096 texels
   const max = gl.getParameter(gl.MAX_TEXTURE_SIZE) as number, big = Math.max(...imgs.map(([, img]) => Math.max(img.width, img.height)));
