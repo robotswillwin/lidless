@@ -8,7 +8,8 @@
   "note": {
    "concierge": "Delivery 4471 · to Radio Repair, by 22:00",
    "raw": "for the radio man. don't open it."
-  }
+  },
+  "art": "items/parcel.webp"
  },
  "credits": {
   "icon": "credits",
@@ -32,7 +33,8 @@
   "note": {
    "concierge": "Open flame · not permitted indoors",
    "raw": "real fire. it hates that."
-  }
+  },
+  "art": "items/matches.webp"
  },
  "cigarettes": {
   "icon": "cigarettes",
@@ -44,7 +46,8 @@
   "note": {
    "concierge": "Combustion product · harmful to your wellbeing",
    "raw": "a week's credits, these."
-  }
+  },
+  "art": "items/cigarettes.webp"
  },
  "map": {
   "icon": "map",
@@ -54,9 +57,10 @@
    "raw": "my map"
   },
   "note": {
-   "concierge": "Printed paper · information out of date",
+   "concierge": "Paper · information out of date",
    "raw": "drawn by hand. no names on it."
-  }
+  },
+  "art": "items/map.webp"
  },
  "valve": {
   "icon": "valve",
@@ -67,6 +71,7 @@
   "note": {
    "concierge": "Decorative curio",
    "raw": "for the radio. the left one's dead."
-  }
+  },
+  "art": "items/valve.webp"
  }
 }

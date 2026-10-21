@@ -36,8 +36,8 @@ Then open the address Vite prints.
 - **The ball at the bottom left** slides out her things along the bottom (**I**). Tapping one takes it out: it sits on
   the right ball, and sliding over the scene uses it on what lights up (the radio needs a valve; the fixer is waiting
   for a parcel). The ball, right-click or **Esc** puts it back. Pressing and holding one (or right-clicking it) shows it
-  close up, with what is known about it; in the Concierge's view a pink dot marks what it did not make, and close up
-  it offers to dispose of it. What exists only in its eye (her credits) is its own graphic there, and in raw view an
+  close up, with what is known about it; in the Concierge's view, where it can see her, a pink dot marks what it did
+  not make, and close up it offers to dispose of it. What exists only in its eye (her credits) is its own graphic there, and in raw view an
   empty place in her pocket. **Take** puts what can be picked up in her pockets: the parcel and the valve on her desk.
 - **At the top right**: the view switch once she has it, with her sense of being watched under it; the **map** (**M**);
   her **notebook** (**N**); and the menu with her saves.

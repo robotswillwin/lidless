@@ -1,0 +1,10 @@
+{
+ "references": ["art/home/cutaway/raw.png", "art/radio/shop/raw.png"],
+ "things": {
+  "parcel": "a small parcel, a cardboard box sealed with brown tape, a handwritten label on it with the number 4471",
+  "matches": "a small worn cardboard matchbox slid half open, three wooden matches with red heads inside",
+  "cigarettes": "a crumpled soft pack of cigarettes with no brand on it, two cigarettes left, one sticking out",
+  "map": "a hand-drawn map on a sheet of paper folded in four, half unfolded: pencil lines of streets and a few crosses, no names on it",
+  "valve": "a radio valve: a small glass vacuum tube on a black base with metal pins, its filament glowing faintly warm orange inside"
+ }
+}

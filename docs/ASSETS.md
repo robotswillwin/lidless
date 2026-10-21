@@ -681,3 +681,21 @@ In a scene that scrolls, `split` cuts and fills its layers for long slides, not 
    that scene's file in place of the picture. A fill made from the same picture, mask and prompt is used again rather
    than paid for twice (`--reuse` keeps the ones there whatever they were made from). From then on the picture is only
    the source of its layers: `build` and `touch` leave it unbuilt, and after changing it, `split` it again.
+
+## Her things: pictures for the tray
+
+Each real thing she can carry has a picture of its own for her tray (the HUD's inventory): painted once, as it really
+is, in the game's look, square, 256 pixels, on a transparent ground (`public/assets/items/<id>.webp`, about 13 KB).
+`items.json` names it as the thing's `art`; a thing without one shows its line icon until it has. What exists only in
+the Concierge's eye (her credits) is never painted: the HUD draws it as the Concierge's own graphic, in its colour,
+and in raw view leaves an empty place in her pocket.
+
+1. Describe the thing in `art/items/items.json` (`things`): what it is, as it really is, worn and used. Its
+   `references` are the pictures whose style it matches (her flat and the radio repair, in raw view).
+2. `npm run asset -- items --only <id> [--n 2]` paints candidates into `art/items/<id>/candidates/` (about $0.05
+   each at medium quality).
+3. `npm run asset -- items --pick <id>=<n>` cuts the one picked out, square with a little room around it, into the
+   game, and names it in `items.json`.
+
+A thing that also lies somewhere in a scene is a prop there (see STORY.md); the tray's picture is the same thing seen
+close up.

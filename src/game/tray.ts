@@ -35,15 +35,15 @@ export interface Thing {
   unlicensed: boolean;
 }
 
-/** What she carries, as the view on screen has it. */
-export function thingsNow(items: Record<string, Item>, carried: string[], raw: boolean): Thing[] {
+/** What she carries, as the view on screen has it; where it cannot see her (`watched` false) it says nothing about it. */
+export function thingsNow(items: Record<string, Item>, carried: string[], raw: boolean, watched = true): Thing[] {
   return carried.flatMap((id) => {
     const it = items[id];
     if (!it || (!raw && it.only === 'raw')) return [];
     const projected = !raw && it.only === 'concierge', ghost = raw && it.only === 'concierge';
     return [{
       id, name: pick(it.name, raw), note: it.note ? pick(it.note, raw) : '', art: projected ? undefined : it.art, icon: it.icon,
-      projected, ghost, tag: !raw && it.unlicensed ? 'Unlicensed' : undefined, unlicensed: !!it.unlicensed,
+      projected, ghost, tag: !raw && watched && it.unlicensed ? 'Unlicensed' : undefined, unlicensed: watched && !!it.unlicensed,
     }];
   });
 }

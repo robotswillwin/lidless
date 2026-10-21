@@ -20,5 +20,7 @@ describe('her things', () => {
     // in raw view the credits are an empty place in her pocket, and nothing is labelled
     expect(raw.find((t) => t.id === 'credits')).toMatchObject({ ghost: true, projected: false });
     expect(raw.every((t) => !t.tag)).toBe(true);
+    // where it cannot see her, it says nothing about them
+    expect(thingsNow(items, ['matches'], false, false)[0]).toMatchObject({ tag: undefined, unlicensed: false });
   });
 });

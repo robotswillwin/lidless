@@ -103,6 +103,8 @@ export class Hud {
   private carried: string[] = [];
   private notebook: Notebook = { pages: [] };
   private notebookTab: string | null = null;
+  /** Her things' pictures, fetched once. */
+  private readonly fetched = new Set<string>();
 
   constructor(canvas: HTMLCanvasElement) {
     const root = (this.root = el('div', 'hud'));
@@ -138,6 +140,8 @@ export class Hud {
   setThings(items: Record<string, Item>, carried: string[]): void {
     this.items = items;
     this.carried = carried;
+    // their pictures fetched now, so the tray opens with them there
+    for (const id of carried) { const art = items[id]?.art; if (art && !this.fetched.has(art)) { this.fetched.add(art); new Image().src = `${this.assets}/${art}`; } }
     this.drawBalls();
     if (this.trayEl) this.openTray();
     if (this.inspecting && !carried.includes(this.inspecting)) this.closeInspect();
@@ -172,6 +176,9 @@ export class Hud {
     if (unseen === this.unseen) return;
     this.unseen = unseen;
     this.drawNotebookButton();
+    // what it says about her things comes and goes with its sight of her
+    if (this.trayEl) this.openTray();
+    if (this.inspecting) this.inspect(this.inspecting);
     if (!unseen && this.panelKind === 'notebook') this.closePanel();
   }
 
@@ -348,7 +355,7 @@ export class Hud {
     this.trayEl?.remove();
     if (!wasOpen) { this.closeVerbs(); this.closePanel(); this.onPanel(); }
     const root = this.root.getBoundingClientRect(), b = this.thingsBall.getBoundingClientRect();
-    this.trayEl = drawTray(this.root, thingsNow(this.items, this.carried, this.raw), { x: b.left + b.width / 2 - root.left, y: b.top + b.height / 2 - root.top, r: b.width / 2 }, this.held?.id ?? null, this.assets, {
+    this.trayEl = drawTray(this.root, thingsNow(this.items, this.carried, this.raw, !this.unseen), { x: b.left + b.width / 2 - root.left, y: b.top + b.height / 2 - root.top, r: b.width / 2 }, this.held?.id ?? null, this.assets, {
       hold: (id) => { this.closeInspect(); this.onHold(id); },
       inspect: (id) => this.inspect(id),
     });
@@ -366,7 +373,7 @@ export class Hud {
 
   /** A thing close up, over the tray. */
   private inspect(id: string): void {
-    const t = thingsNow(this.items, this.carried, this.raw).find((x) => x.id === id);
+    const t = thingsNow(this.items, this.carried, this.raw, !this.unseen).find((x) => x.id === id);
     this.inspectEl?.remove();
     this.inspectEl = null;
     this.inspecting = null;

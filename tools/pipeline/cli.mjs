@@ -3,6 +3,7 @@
 // (pictures with the image model), build.mjs (game sprites), characters.mjs (parts, rigs) and scenes.mjs (rooms,
 // layers); shared.mjs has what they share.
 
+import { cmdItems } from './items.mjs';
 import { cmdLift } from './lift.mjs';
 import { resolve } from 'node:path';
 import { ROOT } from './recipe.mjs';
@@ -87,6 +88,11 @@ const HELP = `Asset pipeline: generate art with an image AI, clean it and turn i
       --before, the pictures are already without it: it is cut from the ones in <dir> (concierge.png, raw.png). --hull:
       it is convex (a box, a jar), everything between its edges is it. The box is in the picture's pixels: keep it
       tight, what changed in it besides the thing is cut with it.
+  npm run asset -- items [--only parcel,valve] [--n 2] [--quality medium] [--dry]
+      Paint her things for the tray, each real thing she can carry on its own in the game's look, as described in
+      art/items/items.json, with its pictures as the style to match: candidates in art/items/<id>/candidates/.
+  npm run asset -- items --pick parcel=2,valve=1
+      Cut those candidates out square into public/assets/items/<id>.webp, and name them in items.json as the art.
   npm run asset -- ground <recipe> --from <y> [--smooth 20]
       Take the painted reflections out of a picture's wet ground, below the reflection line y (level pixels), in both
       views, so the engine's live ones (the look's "Mirror the set") are the only ones: painted reflections stay put
@@ -128,6 +134,6 @@ function parse(argv) {
 }
 
 const [cmd, ...rest] = process.argv.slice(2), { pos, opt } = parse(rest);
-const run = { lift: cmdLift, new: cmdNew, rig: cmdRig, zoom: cmdZoom, extend: cmdExtend, generate: cmdGenerate, variant: cmdVariant, redress: cmdRedress, reframe: cmdReframe, blockout: cmdBlockout, pick: cmdPick, import: cmdImport, sheet: cmdSheet, touch: cmdTouch, split: cmdSplit, ground: cmdGround, erase: cmdErase, paint: cmdPaint, parts: cmdParts, widen: cmdWiden, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
+const run = { items: cmdItems, lift: cmdLift, new: cmdNew, rig: cmdRig, zoom: cmdZoom, extend: cmdExtend, generate: cmdGenerate, variant: cmdVariant, redress: cmdRedress, reframe: cmdReframe, blockout: cmdBlockout, pick: cmdPick, import: cmdImport, sheet: cmdSheet, touch: cmdTouch, split: cmdSplit, ground: cmdGround, erase: cmdErase, paint: cmdPaint, parts: cmdParts, widen: cmdWiden, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
 if (!run) console.log(HELP);
 else run(pos, opt).catch((e) => { console.error(`error: ${e.message}`); process.exit(1); });

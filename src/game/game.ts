@@ -127,10 +127,10 @@ export class Game {
     this.dialogue = new Dialogue(s.save?.ink ?? null);
     this.ui = new UI(s.stage);
     this.hud = new Hud(s.canvas);
+    this.hud.assets = s.assets;
     this.syncThings();
     this.hud.setNotebook(s.notebook);
     this.hud.known = (cond) => this.dialogue.test(cond);
-    this.hud.assets = s.assets;
     this.been = new Set(s.save?.visited ?? []);
     this.seen = new Map(Object.entries(s.save?.seen ?? {}).map(([k, v]) => [k, new Set(v)]));
     this.notesRead = new Set(s.save?.read ?? []);
