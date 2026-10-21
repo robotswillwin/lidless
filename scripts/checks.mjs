@@ -293,6 +293,36 @@ const checks = {
     await page.close();
   },
 
+  /** The public restroom: a privacy room, her notebook opens there; coming back too often, the Concierge notices. */
+  async restroom() {
+    const page = await fresh('scene=street&spawn=from-restroom');
+    // its door, where it is on screen: found with Look, then walked through with the verb put down
+    const through = async () => {
+      await verb(page, 'eyes');
+      const at = await findThing(page, 'Rest rooms', 360);
+      // the verb put down: its slot tapped again
+      await page.evaluate(() => document.querySelector('[data-verb="eyes"]')?.click());
+      await wait(150);
+      if (at) { await page.mouse.move(at[0], at[1]); await page.mouse.down(); await wait(60); await page.mouse.up(); }
+      await wait(3500);
+    };
+    await through();
+    check('through the restroom door', (await save(page))?.scene === 'restroom', (await save(page))?.scene);
+    await panel(page, 'notebook');
+    check('a privacy room: her notebook opens there', !!(await page.$('.hud-panel.notebook')));
+    await page.keyboard.press('Escape');
+    const out = async () => { await tap(page, 844, 300); await wait(3500); };
+    await out();
+    await through();
+    await out();
+    check('twice in a while: not noticed yet', !(await page.$('.hud-toast')));
+    await through();
+    await out();
+    const toast = await page.$eval('.hud-toast', (t) => t.textContent).catch(() => '');
+    check('a third time: the Concierge notices, and says so', /Back again so soon/.test(toast) && (await save(page))?.attention === 1, `${toast} | attention ${(await save(page))?.attention}`);
+    await page.close();
+  },
+
   /** Held far from her outdoors, a finger runs her after it until it comes up; a tap walks her there. */
   async run() {
     const page = await fresh('scene=street&spawn=from-backstreet');

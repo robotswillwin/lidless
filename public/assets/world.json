@@ -49,7 +49,8 @@
     "street",
     "backstreet",
     "home",
-    "radio"
+    "radio",
+    "restroom"
   ],
   "map": {
     "places": {
@@ -81,6 +82,17 @@
       "radio": {
         "at": [
           112,
+          40
+        ],
+        "size": [
+          56,
+          36
+        ],
+        "spawn": "door"
+      },
+      "restroom": {
+        "at": [
+          262,
           40
         ],
         "size": [

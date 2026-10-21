@@ -29,6 +29,8 @@ export interface SaveData {
   /** How many times she has gone from one scene to another, and how far each scene's rotations have turned (rotate.ts). */
   arrived?: number;
   rotations?: Record<string, number>;
+  /** Her visits to privacy rooms whose doors the Concierge sees, by scene: her arrival counts then (privacy.ts). */
+  visits?: Record<string, number[]>;
 }
 
 /** The autosave, or one of the slots she saves into. */

@@ -128,9 +128,9 @@ of memory), dialogue.ts and conditions.ts (the story and what the world reads of
 and wardrobe.ts (what she wears) each stand alone and are tested on their own; the input and the verbs are still in
 game.ts, about 800 lines, which is the next to go when it grows.
 
-**Not built yet for a full game**: sound (none so far: music and ambience per scene and view, sound effects), a title,
-menu and settings screen, and translations, if other languages are wanted. That one is decided early: it decides
-where the objects' texts live, in the story or in tables of their own.
+**Not built yet for a full game**: sound (none so far: the director is making the music, the same composition in a
+digital and an analogue arrangement to blend between the views; no effects yet), a title, menu and settings screen
+(next), and translations: English only for now, decided 21 October.
 
 **Loading between screens.** No logo between scenes: with the neighbours loaded beforehand, the quarter-second fade is
 the whole way from one scene to the next. If a scene is not ready when the fade ends (a slow network, a jump across the
@@ -150,5 +150,5 @@ memory and download. Half a day, and the flat style has to survive the compressi
 | M1 Vertical slice: tap to walk, hotspots, view switch unlocked by the fixer, Ink conversations, saving | Done, on one screen; the scrolling camera comes with a wider street |
 | M2 Pipeline v1: clean, derive maps, pack, preview, one image AI connected | Done. The live API is untested until there is a key in `.env.local` |
 | M3 First real art through the pipeline | In progress. Luna (the hero) walks both ways from AI-drawn parts. Scenes connect through doors and street ends, a camera scrolls wide scenes, and a scene editor places lights, hotspots and exits. All four opening places are built at one scale, the street's people are generated characters, and the game starts at home. The art review's first pass has begun: the radio repair is rebuilt from a blockout at true scale, its tools within reach, and the woman at the street machine holds one pose in both views. The HUD is in, in both skins. The look is set: flat, simple shapes and dramatic light, like a modern Another World (see ASSETS.md, Painted scenes). All four opening places, Luna and the fixer are done in it, the camera pulled back: the main street, the backstreet, and Luna's home and the radio repair as cutaways of their buildings. The main street is two and a half screens wide, the camera scrolling and its far city and viaduct sliding behind it (ASSETS.md, Wide scenes). Every scene has variants for heavy rain, dense fog and a power cut (see README, Conditions), chosen by the story's `conditions`; next dawn and the Concierge's hologram flooding the street, which need painted layers of their own |
-| M4 Turn-based encounters | |
+| M4 Turn-based encounters | Dropped: the v0.4 bible makes the game a detective adventure, with no combat |
 | M5 Mobile builds and touch controls | |

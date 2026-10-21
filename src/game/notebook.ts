@@ -1,6 +1,6 @@
 // What she writes down, in two places. Her journal is on her device: objectives, people, places and what anyone may
 // see, readable anywhere, and the Concierge can read it too. Her notebook is paper and pencil, in her hand: what she
-// keeps from it (what she saw, what she thinks, what to ask it), read only in a privacy zone (her home), shut anywhere
+// keeps from it (what she saw, what she thinks, what to ask it), read only in a privacy zone (her home, the restroom), shut anywhere
 // else. Both follow the story the same way: an entry is written once its condition holds, a line is added to it as she
 // learns more, an errand is crossed out once it is run; pages are tabs, and what she has not read yet has a dot.
 

@@ -106,7 +106,7 @@ What she writes down is in two places, the same shape. `public/assets/journal.js
 she reads it anywhere and the Concierge can read it too, so it holds what she does not mind it knowing (objectives,
 people, evidence anyone may see; its places are the map). `public/assets/notebook.json` is her notebook, on paper:
 what she keeps from it (what she saw, what she thinks, what to ask it), read only in a privacy zone, a scene that is
-`private` (her home; public restrooms and approved meeting rooms to come). Each is pages, each a tab:
+`private` (her home and the public restroom; approved meeting rooms to come). Each is pages, each a tab:
 
 ```json
 { "id": "errands", "title": "errands", "empty": "nothing to do. good.", "entries": [

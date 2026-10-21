@@ -265,8 +265,10 @@ preset**. The main street's lights are all of a kind.
 A scene folder holds the sprite sets plus `scene.json` (sprite order back to front, lights, beacons,
 steam and smoke, light shafts, drips, the reflection line, traffic) and `zone.png`, a level-sized map of
 where it is inside (R), outside (G) and how much static shadow there is (B). A scene with `private` is a privacy zone
-(her home; public restrooms and approved meeting rooms): the Concierge neither sees nor hears her there, and it answers
-only when she asks it.
+(her home, the public restroom; approved meeting rooms): the Concierge neither sees nor hears her there, and it
+answers only when she asks it. A privacy room whose door it sees (the restroom) has `noticed`: a stay longer than
+`after` seconds, or `often` visits within her last `within` arrivals, raises its attention a step, and in its view it
+says so (`long`, `again`) as she comes out.
 
 Characters walk in front of the set, so lights and characters need to know which is in front of which:
 
@@ -739,3 +741,16 @@ turn. The woman was cut from the station as it was painted; the others were pain
 (`touch`, raw view from the Concierge's) and cut out by difference with the empty station, pixel for pixel, so each sits
 exactly in the seat. `touch` sends a picture smaller than the image model takes at a larger size and brings the answer
 back down.
+
+## The main street's tower and the restroom; the restroom inside
+
+Painted into the street's picture with `touch` (the Concierge's view, then raw view `--from` it): above the bar in the
+middle, a restaurant floor with diners and a tower rising out of the frame; at the far right, the old second bar's front
+turned into the public restroom's entrance (frosted glass, pictograms and the closed eye, no words; in raw view a
+concrete front with steel doors and faded stencils). Both layer maps (`layers.png`, `layers-raw.png`) mark the new
+building as the near layer, so the far city and the viaduct slide behind it; the street split again with its fills
+(`--reuse`).
+
+The restroom (`art/restroom/room`) is a cutaway like the radio repair, one layer: raw view generated with the radio
+repair and her flat as style references, the Concierge's view painted from it (`variant`), every object in its place.
+Its door is 2.05 m, 158 px, so people are drawn at 0.55 there.

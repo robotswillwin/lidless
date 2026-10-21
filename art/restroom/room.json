@@ -1,0 +1,34 @@
+{
+  "name": "room",
+  "scene": "restroom",
+  "kind": "background",
+  "interior": true,
+  "exists": "both",
+  "look": "vector",
+  "res": 2,
+  "size": "1936x1088",
+  "framing": "A wide cinematic cutaway seen straight on from the side, like a doll's house with its front wall removed, filling the whole frame. A standing adult would be about a fifth of the image height and a doorway a little taller. Lit at night by its own lamps. No text, no captions, no border.",
+  "prompt": "A cross-section of a public restroom at street level at night, a plain municipal privacy room. The restroom fills the image from about a third of the way down to a thick concrete floor slab a little above the bottom, and across the whole width. Lit by long fluorescent tubes, cold and a little green, one of them flickering. From right to left: at the right end, the entrance from the street, a heavy steel door with wired frosted glass; a small foyer with a worn wooden bench against the wall and a little metal table beside it, a quiet corner; on the wall above the bench, a closed eye in a circle, stencilled; a long row of three steel washbasins under one long scratched mirror, a paper towel box and a hand dryer; then three toilet stalls with grey metal doors, one door ajar; a mop and a bucket in the far corner; a small frosted window high in the left wall with smog behind it. White tiles, cracked here and there, grey grout, a drain in the floor, old pipes along the ceiling. Clean enough, plain, working. Above it, a dark concrete upper floor; below, the floor slab. The floor is flat and clear to walk along from end to end. No people, no words, no letters.",
+  "concierge": "The city AI's version of the same restroom, every object in the same place and the same size: a calm, beautiful privacy room like the restroom of a fine hotel. Warm white marble, soft indirect white and teal light, the basins of white stone under a long mirror ringed with light, the bench upholstered in soft grey with a small round side table, the stall doors of pale wood, two plants, the closed eye in a circle glowing gently on the wall, the window frosted and glowing softly. Serene and quiet. No people, no words, no letters.",
+  "references": [
+    "art/radio/shop/raw.png",
+    "art/home/cutaway/raw.png"
+  ],
+  "conciergeReferences": [
+    "art/radio/shop/concierge.png",
+    "art/home/cutaway/concierge.png"
+  ],
+  "height": 540,
+  "position": [
+    480,
+    540
+  ],
+  "depth": 1,
+  "occluder": false,
+  "material": "stone",
+  "glow": {
+    "raw": "auto",
+    "concierge": "auto"
+  },
+  "palette": 0
+}

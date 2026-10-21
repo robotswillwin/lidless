@@ -9,6 +9,7 @@ import { conditionProblem } from './conditions';
 import { textureFromImage, type GL } from '../engine/gl';
 import type { Hotspot, LevelDef } from './level';
 import type { MapLayout } from './map';
+import type { Noticed } from './privacy';
 import type { Rotation } from './rotate';
 import type { Outfits } from './outfits';
 
@@ -92,11 +93,16 @@ export interface SceneFile {
   /** Her home: she takes off her coat here as she comes in, and a hotspot that is her wardrobe lets her change clothes. */
   wardrobe?: boolean;
   /**
-   * A privacy zone: her home, and later public restrooms and approved meeting rooms. The law the Concierge keeps forbids
+   * A privacy zone: her home, the public restroom, and later approved meeting rooms. The law the Concierge keeps forbids
    * it to see or hear anyone there (it may still see who goes in and out). Her paper notebook opens only here. It answers
    * when she asks it, with the bell.
    */
   private?: boolean;
+  /**
+   * A privacy room whose door the Concierge sees (a public restroom): it notices a long stay, or coming too often, and
+   * says so as she comes out (see privacy.ts).
+   */
+  noticed?: Noticed;
   /**
    * The scene's own look: the settings it sets its own way over the game's look (public/assets/look.json), shaped like
    * that file but with only those settings: rain, fog, depth of field, the light on its people, anything the look panel
@@ -237,6 +243,10 @@ export function checkSceneFile(data: unknown, id?: string): string[] {
   // a layer or a light there only when a condition holds
   for (const [list, items] of [['layers', layers ?? []], ['lights', Array.isArray(f.lights) ? (f.lights as Record<string, unknown>[]) : []]] as const) {
     items.forEach((x, i) => { if (x?.when !== undefined) { const p = isStr(x.when) ? conditionProblem(x.when) : 'it must be text'; if (p) out.push(`${list}[${i}]: when: ${p}`); } });
+  }
+  if (f.noticed !== undefined) {
+    const n = f.noticed as Record<string, unknown>;
+    if (!n || !isNum(n.after) || !isNum(n.often) || !isNum(n.within) || typeof n.long !== 'string' || typeof n.again !== 'string') out.push('noticed needs after, often and within (numbers), long and again (what it says)');
   }
   if (f.rotate !== undefined) {
     if (!f.rotate || typeof f.rotate !== 'object' || Array.isArray(f.rotate)) out.push('rotate must be an object of story variables');

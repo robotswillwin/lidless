@@ -50,8 +50,11 @@ Then open the address Vite prints.
   until she has been through it. A pin shows where she is. Tapping a place she has been takes her there, behind a fade;
   a door or a person to them; a place sketched in to its door.
 - **Her notebook** is paper, what she keeps from the Concierge: what she saw, what she thinks, what to ask it. It opens
-  only in a privacy zone, where the law it keeps forbids it to watch: her home (public restrooms and approved meeting
-  rooms to come). Anywhere else it stays shut. What she has not read yet has a red dot.
+  only in a privacy zone, where the law it keeps forbids it to watch: her home, and the public restroom on the main
+  street (approved meeting rooms to come). Anywhere else it stays shut. What she has not read yet has a red dot.
+- **The public restroom** is a privacy room: inside, by law, the Concierge neither sees nor hears her; it only knows
+  she went in. A long stay, or coming back too often, it notices (legal, but noticed): its attention rises a step and,
+  in its view, it asks if all is well as she comes out. Its bench by the door is the quiet corner for future meetings.
 - **The city's helper robots** are few, more of them later in the game: drones cross between the towers and under
   the viaduct every half minute or so; a civic guardian walks its own beat past the info screen on the main street
   (talk to it: it stops, turns to her, and speaks of keeping the street safe; tell it if anything odd happens); and a repair bot welds the backstreet's wall
@@ -140,8 +143,10 @@ variant or makes a new one, and while one is shown the look panel's **This scene
 into the variant; the light panel has **Power of its own**.
 
 The scenes so far: Luna's home (`home`), the backstreet, the main street (two and a half screens wide: the camera
-scrolls and its layers slide at their own speeds) and the radio repair (`radio`). Entrance 3 on the
-backstreet leads home, and the radio repair's door on the main street leads into the shop, where the fixer works.
+scrolls and its layers slide at their own speeds), the radio repair (`radio`) and the public restroom (`restroom`).
+Entrance 3 on the backstreet leads home; on the main street, the radio repair's door leads into the shop, where the
+fixer works, and at its far right the restroom's door leads into a privacy room. Above the bar in the middle of the
+street, a restaurant for the few who can pay, its building rising out of the frame.
 
 **The scene editor**, `/editor.html` on the dev server, shows a scene rendered as in the game, and Luna to judge the
 light on.

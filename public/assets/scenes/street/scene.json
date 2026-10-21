@@ -126,22 +126,23 @@
    "y": 380,
    "preset": "shop-window",
    "c": [
-    1,
-    0.45,
-    0.4
+    0.95,
+    0.97,
+    1
    ],
    "ar": 1
   },
   {
-   "x": 1885,
+   "x": 1935,
    "y": 200,
    "preset": "neon",
    "c": [
-    1,
-    0.2,
-    0.75
+    0.75,
+    0.95,
+    1
    ],
-   "ar": 1
+   "ar": 1,
+   "i": 0.6
   },
   {
    "x": 2160,
@@ -232,6 +233,20 @@
     0.42
    ],
    "i": 0.7
+  },
+  {
+   "x": 1100,
+   "y": 140,
+   "z": 20,
+   "r": 160,
+   "c": [
+    1,
+    0.78,
+    0.48
+   ],
+   "i": 0.8,
+   "zone": 0,
+   "layer": 1
   }
  ],
  "walk": {
@@ -260,6 +275,10 @@
   "from-radio": {
    "x": 304,
    "facing": 1
+  },
+  "from-restroom": {
+   "x": 1935,
+   "facing": -1
   }
  },
  "hotspots": [
@@ -485,6 +504,29 @@
    "map": true
   },
   {
+   "id": "restaurant",
+   "name": {
+    "concierge": "Restaurant",
+    "raw": "Restaurant"
+   },
+   "rect": [
+    990,
+    95,
+    220,
+    92
+   ],
+   "tag": {
+    "concierge": "Fine dining · by reservation",
+    "raw": "real food, real prices"
+   },
+   "look": {
+    "concierge": "A restaurant above the bar: candlelight, white cloths, the city at your feet. Reservations recommended, guest.",
+    "raw": "Real food on real plates, for the few who can pay. Somebody up there is eating meat."
+   },
+   "ask": "The restaurant is fully booked this evening, guest. Shall I put you on the list?",
+   "map": true
+  },
+  {
    "id": "tree",
    "name": {
     "concierge": "Tree",
@@ -542,27 +584,31 @@
    "ask": "Tonight there is a festival of light in the old harbour, guest. Shall I reserve you a place?"
   },
   {
-   "id": "bar",
+   "id": "restroom-door",
    "name": {
-    "concierge": "Bar",
-    "raw": "Bar"
+    "concierge": "Rest rooms",
+    "raw": "Public toilets"
    },
    "rect": [
-    1820,
-    240,
-    230,
-    210
+    1880,
+    288,
+    110,
+    140
    ],
    "stand": 1935,
-   "look": {
-    "concierge": "Velvet seats, a long mirror, music low enough to talk over.",
-    "raw": "Open late and worn soft: real bottles, real smoke, the same faces every night."
+   "face": 1,
+   "go": {
+    "scene": "restroom",
+    "spawn": "door"
    },
    "tag": {
-    "concierge": "Bar · open",
-    "raw": "open late"
+    "concierge": "Privacy room · not observed inside",
+    "raw": "the one door it can't see through"
    },
-   "map": true
+   "look": {
+    "concierge": "A public privacy room: frosted glass, soft light. By law, nothing inside is seen or heard.",
+    "raw": "Public toilets: a concrete front, a steel door, a closed eye stencilled by it. Inside, it can't see you."
+   }
   },
   {
    "id": "corner-shop",

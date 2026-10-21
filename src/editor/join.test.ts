@@ -13,7 +13,7 @@ const corridor = (): SceneFile => ({ ...read('home'), id: 'corridor', name: 'Cor
 
 describe('exits both ways', () => {
   it('finds the game’s exits joined up', () => {
-    for (const [a, id, b] of [['street', 'to-backstreet', 'backstreet'], ['backstreet', 'to-street', 'street'], ['street', 'radio-door', 'radio'], ['radio', 'door', 'street'], ['backstreet', 'entrance', 'home'], ['home', 'door', 'backstreet']]) {
+    for (const [a, id, b] of [['street', 'to-backstreet', 'backstreet'], ['backstreet', 'to-street', 'street'], ['street', 'radio-door', 'radio'], ['radio', 'door', 'street'], ['backstreet', 'entrance', 'home'], ['home', 'door', 'backstreet'], ['street', 'restroom-door', 'restroom'], ['restroom', 'door', 'street']]) {
       const here = read(a), j = joinOf(exit(here, id), here, read(b));
       expect(joinedUp(j), `${a}'s ${id}`).toBe(true);
     }
@@ -41,7 +41,7 @@ describe('exits both ways', () => {
     expect(there.spawns['from-street']).toEqual({ x: 40 + IN, facing: 1 });
     expect(joinedUp(joinOf(h, here, there))).toBe(true);
     // and neither scene has a problem with exits any more
-    const ctx = { scenes: ['street', 'corridor', 'backstreet', 'radio', 'home'], others: { street: here, corridor: there, backstreet: read('backstreet'), radio: read('radio'), home: read('home') } };
+    const ctx = { scenes: ['street', 'corridor', 'backstreet', 'radio', 'home', 'restroom'], others: { street: here, corridor: there, backstreet: read('backstreet'), radio: read('radio'), home: read('home'), restroom: read('restroom') } };
     for (const f of [here, there]) expect(lintScene(f, ctx).filter((p) => p.level === 'error' && /leads to|arrives at/.test(p.text)), f.id).toEqual([]);
   });
 

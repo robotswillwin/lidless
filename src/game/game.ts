@@ -14,6 +14,7 @@ import { heroDrawing, heroGaits, holdPace, paceFor } from './hero';
 import { Hud, type Action, type Item, type Mark, type Notebook } from './hud';
 import { inView, pick, placeIn, type Hotspot } from './level';
 import { mapNow, onMap, type MapNow, type MapScene, type Travel } from './map';
+import { noticedOnLeaving } from './privacy';
 import { rotateOnArrival } from './rotate';
 import { dressedFor, keepsProjection, outfitAfter } from './outfits';
 import { Wardrobe } from './wardrobe';
@@ -129,6 +130,9 @@ export class Game {
   private rotations: Record<string, number>;
   /** A mover she has gone up to (a guard on its round), stopped for her until she is done with it. */
   private heldMover: string | null = null;
+  /** When she came into the scene she is in, and her visits to privacy rooms whose doors the Concierge sees. */
+  private enteredAt = 0;
+  private visits: Record<string, number[]>;
 
   private constructor(private readonly s: GameSetup) {
     this.scenes = new Scenes(s.renderer.gl, s.assets, s.world);
@@ -144,6 +148,7 @@ export class Game {
     this.notesRead = new Set(s.save?.read ?? []);
     this.arrived = s.save?.arrived ?? 0;
     this.rotations = { ...(s.save?.rotations ?? {}) };
+    this.visits = Object.fromEntries(Object.entries(s.save?.visits ?? {}).map(([k, v]) => [k, [...v]]));
     this.dialogue.set('arrivals', this.arrived);
     this.state = { view: s.rawView ? 0 : s.save && this.canSwitch() ? s.save.view : 1, sinceSwitch: 10 };
     this.attention = s.save?.attention ?? 0;
@@ -219,7 +224,7 @@ export class Game {
   }
 
   /**
-   * The Concierge sees and hears her here: everywhere but a privacy zone (her home; later public restrooms and approved
+   * The Concierge sees and hears her here: everywhere but a privacy zone (her home, the public restroom; later approved
    * meeting rooms), which the law it keeps forbids it to watch.
    */
   get watched(): boolean {
@@ -246,6 +251,7 @@ export class Game {
     this.scene = next;
     this.runner = new SceneRunner(next.loaded);
     this.heldMover = null;
+    this.enteredAt = this.clock();
     this.fitGaits(next);
     this.world = new World(next.level, at.x ?? sp?.x, at.facing ?? sp?.facing);
     this.world.raw = this.raw;
@@ -376,6 +382,8 @@ export class Game {
     }
     this.setVerb(null);
     this.hud.closeAll();
+    // coming out of a privacy room with its door in sight: a long stay, or coming too often, is noticed
+    const left = this.scene.file, seen = left.noticed ? noticedOnLeaving(left.noticed, this.clock() - this.enteredAt, this.visits[left.id] ?? [], this.arrived) : null;
     // what she was looking at, and who she was talking to, stay behind
     this.ui.hideCaption();
     if (this.talk.open && !story) { this.talk.hide(); this.endTalk(); }
@@ -389,6 +397,10 @@ export class Game {
       await this.enter(exit.scene, exit);
       this.arrive();
       this.syncKeys();
+      if (seen && left.noticed) {
+        this.raiseAttention(1);
+        this.hud.toast(seen === 'long' ? left.noticed.long : left.noticed.again);
+      }
       this.persist();
     } catch (err) {
       this.ui.showCaption(`That way is not built yet (${err instanceof Error ? err.message : String(err)}).`);
@@ -408,6 +420,9 @@ export class Game {
     const { set, counts } = rotateOnArrival(this.scene.file.rotate ?? {}, this.rotations, (c) => this.dialogue.test(c));
     this.rotations = counts;
     for (const [name, value] of Object.entries(set)) this.dialogue.set(name, value);
+    // a privacy room with its door in sight: the visit is known, if nothing in it
+    const id = this.scene.file.id;
+    if (this.scene.file.noticed) this.visits[id] = [...(this.visits[id] ?? []), this.arrived].slice(-12);
   }
 
   /** Going somewhere on the map: a place (where one arrives there), or a door or a person in it (where she stands to use it). */
@@ -822,7 +837,7 @@ export class Game {
       v: 2, scene: this.scene.file.id, heroX: Math.round(this.world.heroX), facing: this.world.facing, view: this.state.view, ink: this.dialogue.save(),
       attention: this.attention, outfit: this.outfit || undefined, projection: this.projection ?? undefined, savedAt: Date.now(), where: this.scene.file.name,
       visited: [...this.been], seen: Object.fromEntries([...this.seen].map(([k, v]) => [k, [...v]])), read: [...this.notesRead],
-      arrived: this.arrived, rotations: this.rotations,
+      arrived: this.arrived, rotations: this.rotations, visits: this.visits,
     };
   }
 
