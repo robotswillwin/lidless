@@ -8,11 +8,13 @@ import { createLookPanel, type LookPanel } from '../look-panel';
 import { actionFor, actionsFor, defaultOf, itemActionFor, verbsIn, type Verb } from './actions';
 import { frameFor } from './anim';
 import { Camera, cameraTarget } from './camera';
-import { Dialogue, STITCH, type Command } from './dialogue';
+import { Dialogue, STITCH } from './dialogue';
+import { direct, type Stage } from './direct';
 import { heroDrawing, heroGaits, holdPace, paceFor } from './hero';
 import { Hud, type Action, type Item, type Mark, type NotebookPages } from './hud';
 import { inView, pick, placeIn, type Hotspot } from './level';
 import { dressedFor, keepsProjection, outfitAfter } from './outfits';
+import { Wardrobe } from './wardrobe';
 import { listSaves, loadSave, writeSave, type SaveData, type Slot } from './save';
 import { SceneRunner, type ViewState } from './scene';
 import { Talk } from './talk';
@@ -105,12 +107,10 @@ export class Game {
   private inHand: string | null = null;
   /** A story's line is having the game do something (walk, change): she moves though a conversation is open. */
   private directing = false;
-  /** What she is wearing, one of the world's outfits, and her sprites in them, each loaded the first time she wears it. */
-  private outfit: string;
-  /** A projection over what she wears (a virtual outfit), and its sprite, shown in the Concierge's view. */
-  private projection: string | null = null;
-  private projected: Sprite | null = null;
-  private readonly heroes = new Map<string, Promise<Sprite>>();
+  /** What she wears: her clothes, a projection over them, and her sprites in them (see wardrobe.ts). */
+  private readonly wardrobe: Wardrobe;
+  private get outfit(): string { return this.wardrobe.outfit; }
+  private get projection(): string | null { return this.wardrobe.projection; }
   /** A choice that is not a conversation's, such as what to wear: picking an answer goes here. */
   private picker: ((i: number) => void) | null = null;
   /** The variant the scene on screen is shown in. */
@@ -126,12 +126,10 @@ export class Game {
     this.hud.known = (cond) => this.dialogue.test(cond);
     this.state = { view: s.rawView ? 0 : s.save && this.canSwitch() ? s.save.view : 1, sinceSwitch: 10 };
     this.attention = s.save?.attention ?? 0;
-    const outfits = s.world.hero.outfits ?? {}, saved = s.save?.outfit && outfits[s.save.outfit] ? s.save.outfit : undefined;
-    // a projection saved as what she wore (an older save) goes back on over her own clothes
-    this.projection = s.save?.projection && outfits[s.save.projection]?.virtual ? s.save.projection : saved && outfits[saved].virtual ? saved : null;
-    this.outfit = saved && !outfits[saved].virtual ? saved : s.world.hero.outfit ?? Object.keys(outfits).find((k) => !outfits[k].virtual) ?? '';
-    if (this.projection && !keepsProjection(outfits, this.projection, this.outfit)) this.outfit = dressedFor(outfits, this.projection) ?? this.outfit;
-    this.heroes.set(s.world.hero.sprite, Promise.resolve(s.hero));
+    const gl = s.renderer.gl;
+    this.wardrobe = new Wardrobe(s.world.hero.outfits ?? {}, s.world.hero.sprite, s.hero, { outfit: s.save?.outfit, projection: s.save?.projection, start: s.world.hero.outfit },
+      (path) => { const cut = path.lastIndexOf('/'); return loadSprite(gl, `${s.assets}/${path.slice(0, cut)}`, path.slice(cut + 1), spriteDefaults(gl), this.bust); },
+      (sprite) => freeSprite(gl, sprite));
     // the look panel (L): from the game's saved look, with each scene's own settings over it; split settings follow the view
     this.look = createLookPanel(s.renderer, s.projectLook, s.stage, {
       view: () => (this.state.view < 0.5 ? 'raw' : 'concierge'),
@@ -163,7 +161,7 @@ export class Game {
     this.hud.onSave = (slot) => this.saveTo(slot);
     this.hud.onLoad = (slot) => this.loadFrom(slot);
     // what a story's line has the game do before it is said: the conversation waits for it
-    this.talk.run = (commands) => this.direct(commands);
+    this.talk.run = (commands) => direct(commands, this.stage);
     this.hud.onTemple = () => this.toggleView();
     this.hud.onBell = () => this.hud.toast(this.scene.file.assist ?? 'Is there anything I can do for you, guest?');
     this.hud.onPanel = () => this.ui.hideCaption();
@@ -177,7 +175,8 @@ export class Game {
     if (asked) await g.enter(startId, { spawn: asked.spawn ?? Object.keys((await g.scenes.file(startId)).spawns)[0] });
     else if (save?.scene === startId) await g.enter(startId, { x: save.heroX, facing: save.facing });
     else await g.enter(startId, { spawn: w.start.spawn });
-    if (g.projection) await g.project(g.projection).catch(() => { g.projection = null; });
+    // the projection she had on, put back on (its sprite loaded); if it cannot be, she is in her clothes
+    if (g.projection) await g.project(g.projection).catch(() => g.project(null));
     g.syncView();
     g.hud.setAttention(g.attention);
     return g;
@@ -250,46 +249,17 @@ export class Game {
 
   /** Her sprite as the view on screen shows her: a projection over her clothes in the Concierge's, her clothes in raw view. */
   private get shown(): Sprite {
-    return !this.raw && this.projected ? this.projected : this.s.hero;
+    return this.wardrobe.shown(this.raw);
   }
 
-  /** A projection put on her (a virtual outfit), or taken off (null): the Concierge's view shows it over what she wears. */
+  /** A projection put on her, or taken off; her gaits are its sprite's in the Concierge's view. */
   private async project(key: string | null): Promise<void> {
-    const outfits = this.s.world.hero.outfits, was = this.projection ? outfits?.[this.projection]?.sprite : undefined;
-    const o = key ? outfits?.[key] : undefined;
-    this.projected = o?.virtual ? await this.heroSprite(o.sprite) : null;
-    this.projection = this.projected ? key : null;
-    // the one she took off is let go, as clothes are
-    if (was && was !== o?.sprite && was !== outfits?.[this.outfit]?.sprite && was !== this.s.world.hero.sprite) {
-      const off = this.heroes.get(was);
-      this.heroes.delete(was);
-      void off?.then((s) => freeSprite(this.s.renderer.gl, s));
-    }
+    await this.wardrobe.project(key);
     if (this.scene) this.fitGaits(this.scene);
   }
 
-  /** Her sprite in an outfit, loaded the first time she wears it. */
-  private heroSprite(path: string): Promise<Sprite> {
-    if (!this.heroes.has(path)) {
-      const cut = path.lastIndexOf('/'), gl = this.s.renderer.gl;
-      this.heroes.set(path, loadSprite(gl, `${this.s.assets}/${path.slice(0, cut)}`, path.slice(cut + 1), spriteDefaults(gl), this.bust));
-    }
-    return this.heroes.get(path)!;
-  }
-
-  private async wear(key: string): Promise<void> {
-    const outfits = this.s.world.hero.outfits, o = outfits?.[key];
-    if (!o) return;
-    const was = outfits?.[this.outfit]?.sprite;
-    this.s.hero = await this.heroSprite(o.sprite);
-    this.outfit = key;
-    // what she took off is let go, loaded again if she wears it again; not her coat, which she wears whenever she goes
-    // out: a phone holds two of her at most
-    if (was && was !== o.sprite && was !== this.s.world.hero.sprite) {
-      const off = this.heroes.get(was);
-      this.heroes.delete(was);
-      void off?.then((s) => freeSprite(this.s.renderer.gl, s));
-    }
+  private wear(key: string): Promise<void> {
+    return this.wardrobe.wear(key);
   }
 
   /**
@@ -431,7 +401,7 @@ export class Game {
     this.switchedAt = this.clock();
     this.look.refresh();
     // a projection shows in one view only: her gaits are the ones of the sprite now on screen
-    if (this.projected) this.fitGaits(this.scene);
+    if (this.wardrobe.projected) this.fitGaits(this.scene);
     // a verb the other view does not have (the Concierge's bell) is put down
     if (this.verb && !verbsIn(this.raw).includes(this.verb)) this.setVerb(null);
     this.syncView();
@@ -467,38 +437,32 @@ export class Game {
   }
   private readonly stitches = (h: Hotspot, name: string): boolean => this.stitch(h, name);
 
-  /**
-   * What a story's line has the game do before it is said, one command after another (see dialogue.ts): she walks to a
-   * place or a thing, turns, changes, goes to another scene, the screen fades, the view switches, a pause.
-   */
-  private async direct(commands: Command[]): Promise<void> {
-    const sleep = (ms: number) => new Promise((r) => setTimeout(r, this.s.reduceMotion ? Math.min(ms, 50) : ms));
-    for (const c of commands) {
-      if (c.name === 'walk') {
-        const h = this.scene.file.hotspots.find((x) => x.id === c.arg), place = h ? placeIn(h, this.raw) : null;
-        const x = place ? place.stand ?? place.rect[0] + place.rect[2] / 2 : Number(c.arg);
-        if (!Number.isFinite(x)) continue;
-        this.directing = true;
-        this.goTo(x);
-        // until she is there (or gives up, at the end of the walk line)
-        const until = performance.now() + 15000;
-        while (this.world.moving && performance.now() < until) await sleep(50);
-        this.directing = false;
-        if (place) this.world.facing = place.face ?? (place.rect[0] + place.rect[2] / 2 >= this.world.heroX ? 1 : -1);
-      } else if (c.name === 'face') this.world.facing = c.arg === 'left' ? -1 : 1;
-      else if (c.name === 'wear') await this.change(c.arg);
-      else if (c.name === 'go') {
-        const [scene, spawn] = c.arg.split('/').map((v) => v.trim());
-        await this.travel({ scene, spawn: spawn || Object.keys((await this.scenes.file(scene)).spawns)[0] }, true);
-      } else if (c.name === 'fade') {
-        this.s.fade.classList.add('on');
-        await sleep(260 + (Number(c.arg) || 0.6) * 1000);
-        this.s.fade.classList.remove('on');
-        await sleep(260);
-      } else if (c.name === 'view') { if ((c.arg === 'raw') !== this.raw) this.toggleView(true); }
-      else if (c.name === 'wait') await sleep((Number(c.arg) || 1) * 1000);
-    }
-  }
+  /** How the story's commands are done here (see direct.ts). */
+  private readonly stage: Stage = {
+    walk: async (to) => {
+      const h = this.scene.file.hotspots.find((x) => x.id === to), place = h ? placeIn(h, this.raw) : null;
+      const x = place ? place.stand ?? place.rect[0] + place.rect[2] / 2 : Number(to);
+      if (!Number.isFinite(x)) return;
+      this.directing = true;
+      this.goTo(x);
+      // until she is there (or gives up, at the end of the walk line)
+      const until = performance.now() + 15000;
+      while (this.world.moving && performance.now() < until) await this.stage.sleep(50);
+      this.directing = false;
+      if (place) this.world.facing = place.face ?? (place.rect[0] + place.rect[2] / 2 >= this.world.heroX ? 1 : -1);
+    },
+    face: (dir) => { this.world.facing = dir; },
+    wear: (outfit) => this.change(outfit),
+    go: async (scene, spawn) => this.travel({ scene, spawn: spawn ?? Object.keys((await this.scenes.file(scene)).spawns)[0] }, true),
+    fade: async (seconds) => {
+      this.s.fade.classList.add('on');
+      await this.stage.sleep(260 + seconds * 1000);
+      this.s.fade.classList.remove('on');
+      await this.stage.sleep(260);
+    },
+    view: (raw) => { if (raw !== this.raw) this.toggleView(true); },
+    sleep: (ms) => new Promise((r) => setTimeout(r, this.s.reduceMotion ? Math.min(ms, 50) : ms)),
+  };
 
   /**
    * A thing's knot in the story, at a stitch: one plain line with nothing to answer is written at the thing, as a look
