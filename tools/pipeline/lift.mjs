@@ -9,6 +9,7 @@
 //                          [--scene home] [--when "!(taken has parcel)"] [--quality medium] [--hull]
 //   ... --before <dir>   the pictures are already without it: cut it from the ones in <dir> (concierge.png, raw.png)
 //   ... --hull           it is convex (a box, a jar): everything between its edges is it
+//   ... --reuse          split the picture again with the fills it has (no new ones painted)
 
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
@@ -153,7 +154,7 @@ export async function cmdLift([file], opt) {
   await writeFile(recipeFile, JSON.stringify(recipe, null, 2) + '\n');
   await buildOne(recipeFile);
   // the picture without it, split again; then the thing over it, where it was
-  if (r.split?.layers?.length && p) await cmdSplit([file], { scene: sceneId, reuse: false });
+  if (r.split?.layers?.length && p) await cmdSplit([file], { scene: sceneId, reuse: opt.reuse === true });
   if (p) {
     const scene = JSON.parse(await readFile(sceneFile, 'utf8')), asset = `${r.scene}/${name}`, entry = { asset, x: round(lx), y: round(ly), ...(typeof opt.when === 'string' ? { when: opt.when } : {}) };
     const had = scene.layers.findIndex((l) => l.asset === asset);

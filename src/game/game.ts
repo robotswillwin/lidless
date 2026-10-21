@@ -836,6 +836,8 @@ export class Game {
       if (exit?.go) void this.travel(exit.go);
     }
     this.cam[0] = this.s.fixedCam ?? this.camera.follow(this.cameraTarget(), dt, file.size[0] > NW);
+    // a hotspot that goes with a mover is where the mover is now; off the scene while it is out of sight
+    for (const h of file.hotspots) if (h.follows) h.rect = this.runner.moverBoxes.get(h.follows) ?? [-1000, -1000, 0, 0];
     // what she sees goes on the map; out of its sight her notebook opens
     this.noticeSpots();
     this.hud.setUnseen(!this.watched);

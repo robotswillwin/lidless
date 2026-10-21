@@ -1,8 +1,8 @@
 {
   "name": "guardian-bot",
-  "x": 959,
+  "x": 958,
   "y": 378,
-  "w": 32.5,
+  "w": 46,
   "h": 74,
   "maps": [
     "albedo.concierge",
@@ -17,11 +17,40 @@
   "object": 0,
   "machine": 1,
   "anchor": [
-    16,
+    17,
     74
   ],
   "exists": "both",
   "kind": "prop",
+  "frames": {
+    "count": 6,
+    "gutter": 2,
+    "cols": 6
+  },
+  "anims": {
+    "idle": {
+      "from": 0,
+      "count": 2,
+      "fps": 1,
+      "seq": [
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        0
+      ]
+    },
+    "walk": {
+      "from": 2,
+      "count": 4,
+      "stride": 32
+    }
+  },
   "res": 2,
   "lit": true
 }

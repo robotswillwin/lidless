@@ -115,6 +115,11 @@ export interface LightDef {
   layer?: number;
   /** Object id this light does not light (its own housing). */
   ex?: number;
+  /**
+   * Its strength by turns, `fps` steps a second through `seq` (each a factor on its strength): on the same clock as a
+   * sprite's idle loop with the same fps and as many steps, so a welder's flash lights up as its frames flash.
+   */
+  pulse?: { fps: number; seq: number[] };
 }
 
 import type { PlacedLight } from './presets';
@@ -261,6 +266,12 @@ export interface MoverDef {
   stops?: { x: number; seconds: number }[];
   /** A hover: how far it rises and falls, in pixels, and how long one rise and fall takes, in seconds. A drone. */
   bob?: [number, number];
+  /**
+   * It paces a beat of its own instead of passing through: its body (its sprite's anchor) walks from x0 to x1 and back,
+   * stopping on the way where it stops, resting at each end for the average of `wait`, turning round. Walking it plays
+   * its walk, at its walk's stride; resting, its idle loop. A guard on its round.
+   */
+  patrol?: boolean;
   only?: Only;
   views?: Views<MoverDef>;
 }

@@ -53,9 +53,9 @@ Then open the address Vite prints.
   only in a privacy zone, where the law it keeps forbids it to watch: her home (public restrooms and approved meeting
   rooms to come). Anywhere else it stays shut. What she has not read yet has a red dot.
 - **The city's helper robots** are small and few, more of them later in the game: now and then a drone crosses between
-  the towers; a civic guardian stands by the nutrition station on the main street, a hologram sign for directions
-  coming and going beside it in the Concierge's view (look at it, or ask it there); and a repair bot welds at the
-  backstreet's wall panel. White and lit in the Concierge's view, rusty in raw view.
+  the towers; a civic guardian walks its own beat past the info screen on the main street, resting at each end with a
+  direction sign in the Concierge's view (look at it, or ask it there); and a repair bot welds the backstreet's wall
+  panel, sparks and all. White and lit in the Concierge's view, rusty in raw view.
 - **Her wrist devices**, one on each wrist, go with her eyepiece: sleek white bands with a cyan light in the Concierge's
   view, brass on leather with an amber lens in raw view.
 - **The nutrition station** on the main street: a column with two seats built into it, a cuff for the right wrist on

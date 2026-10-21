@@ -241,6 +241,7 @@ export function checkSceneFile(data: unknown, id?: string): string[] {
       if (!isNum(m?.speed) || m.speed <= 0) out.push(`movers[${i}] needs a speed over 0`);
       const st = m?.stops as { x?: unknown; seconds?: unknown }[] | undefined;
       if (st !== undefined && (!Array.isArray(st) || st.some((s) => !isNum(s?.x) || !isNum(s?.seconds) || (s.seconds as number) < 0))) out.push(`movers[${i}].stops: each needs x and seconds`);
+      if (m?.patrol !== undefined && typeof m.patrol !== 'boolean') out.push(`movers[${i}].patrol must be true or false`);
       const bob = m?.bob as unknown[] | undefined;
       if (bob !== undefined && (!Array.isArray(bob) || bob.length !== 2 || !bob.every(isNum))) out.push(`movers[${i}].bob needs [pixels, seconds]`);
       const ls = m?.lights as Record<string, unknown>[] | undefined;

@@ -1,0 +1,24 @@
+{
+  "name": "station",
+  "scene": "street",
+  "kind": "prop",
+  "exists": "both",
+  "look": "vector",
+  "res": 2,
+  "frame": "keep",
+  "prompt": "the nutrition and health station with the woman seated in it: lifted out of street/vista (lift), cut from its pictures where they changed as it was painted out.",
+  "height": 172.5,
+  "position": [
+    890.5,
+    458.5
+  ],
+  "depth": 3,
+  "occluder": false,
+  "material": "stone",
+  "glow": {
+    "raw": "auto",
+    "concierge": "auto"
+  },
+  "palette": 0,
+  "references": []
+}

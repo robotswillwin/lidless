@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { LoadedScene, MoverDef, Sprite, SpriteDef } from '../engine/assets';
-import { SceneRunner, travelled } from './scene';
+import { patrolAt, pulseAt, SceneRunner, travelled } from './scene';
 
 const sprite = (name: string, def: Partial<SpriteDef> = {}, hasMeta = false): Sprite => ({
   def: { name, x: 0, y: 0, w: 960, h: 540, maps: ['albedo.raw'], depth: 3, parallax: 1, res: 2, ...def },
@@ -140,5 +140,33 @@ describe('a mover on its way', () => {
     expect(travelled(8, 10, stops)).toBe(40);
     expect(travelled(9.5, 10, stops)).toBe(50);
     expect(travelled(11, 10, stops)).toBe(60);
+  });
+});
+
+describe('a guard on its round', () => {
+  it('walks its beat, rests at each end, turns, and walks back', () => {
+    // 100 px at 10 px/s: 10 s a way, 4 s rest at each end, a round of 28 s
+    expect(patrolAt(0, 0, 100, 10, 4)).toMatchObject({ x: 0, dir: 1, moving: true });
+    expect(patrolAt(5, 0, 100, 10, 4)).toMatchObject({ x: 50, dir: 1, moving: true, walked: 50 });
+    expect(patrolAt(12, 0, 100, 10, 4)).toMatchObject({ x: 100, dir: 1, moving: false });
+    expect(patrolAt(19, 0, 100, 10, 4)).toMatchObject({ x: 50, dir: -1, moving: true, walked: 150 });
+    expect(patrolAt(26, 0, 100, 10, 4)).toMatchObject({ x: 0, dir: -1, moving: false });
+    expect(patrolAt(28 + 5, 0, 100, 10, 4).x).toBe(50);
+  });
+
+  it('stops on the way where it stops, and is not walking then', () => {
+    const p = patrolAt(6, 0, 100, 10, 4, [{ x: 50, seconds: 3 }]);
+    expect(p).toMatchObject({ x: 50, moving: false });
+    expect(patrolAt(9, 0, 100, 10, 4, [{ x: 50, seconds: 3 }])).toMatchObject({ x: 60, moving: true });
+  });
+});
+
+describe('a pulsing light', () => {
+  it('steps through its sequence on the clock', () => {
+    const p = { fps: 10, seq: [0, 1, 0.5] };
+    expect(pulseAt(p, 0)).toBe(0);
+    expect(pulseAt(p, 0.15)).toBe(1);
+    expect(pulseAt(p, 0.25)).toBe(0.5);
+    expect(pulseAt(p, 0.35)).toBe(0);
   });
 });

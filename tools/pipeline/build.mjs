@@ -222,10 +222,12 @@ export async function writeAnimated(r, raws, concs, { anchorX, anims }) {
       occluder: r.occluder ?? spec.occluder, object: r.object ?? 0, depth: r.depth ?? spec.depth, reflectivity: r.reflectivity ?? 0,
       groupRaw: glow.groupRaw ?? 0, groupConcierge: glow.groupConcierge ?? 0, machine: !!glow.machine,
     }));
-    if (glow.raw === 'auto' && glowRawSrc) add('glow.raw', glowAuto(glowRawSrc));
+    // glow.strength: how strongly its bright parts glow (a welder's arc more than a lamp)
+    const glowOpt = glow.strength ? { strength: glow.strength } : undefined;
+    if (glow.raw === 'auto' && glowRawSrc) add('glow.raw', glowAuto(glowRawSrc, glowOpt));
     if (conc) {
       add('albedo.concierge', conc);
-      if (exists !== 'raw' && (glow.concierge ?? 'auto') === 'auto') add('glow.concierge', glowAuto(conc));
+      if (exists !== 'raw' && (glow.concierge ?? 'auto') === 'auto') add('glow.concierge', glowAuto(conc, glowOpt));
     }
   }
   // frames in rows, at most 2048 pixels wide, or 4096 where 2048 would make the sheet taller than that, so every phone

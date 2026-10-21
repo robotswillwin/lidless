@@ -25,6 +25,30 @@ export function lightGroups(t: number): number[] {
 export const switchFade = (view: number, since: number): number => Math.max(0, 1 - since / (view < 0.5 ? 0.9 : 0.45));
 
 
+/**
+ * Where a patrolling mover is at time t: its body's x, walking from x0 to x1 and back at `speed`, stopping on the way
+ * where it stops, resting `rest` seconds at each end; which way it faces, whether it is walking, and how far it has
+ * walked in this round (for its walk's cycle).
+ */
+export function patrolAt(t: number, x0: number, x1: number, speed: number, rest: number, stops: { x: number; seconds: number }[] = []): { x: number; dir: 1 | -1; moving: boolean; walked: number } {
+  const span = Math.max(0, x1 - x0), v = Math.max(1e-6, speed), on = stops.filter((s) => s.x > x0 && s.x < x1);
+  const going = (dir: 1 | -1) => on.map((s) => ({ at: dir > 0 ? s.x - x0 : x1 - s.x, seconds: s.seconds })).sort((a, b) => a.at - b.at);
+  const leg = span / v + on.reduce((a, s) => a + s.seconds, 0), period = 2 * (leg + rest);
+  if (period <= 0) return { x: x0, dir: 1, moving: false, walked: 0 };
+  const tau = ((t % period) + period) % period;
+  const walk = (dir: 1 | -1, k: number) => {
+    const d = travelled(k, v, going(dir)), moving = k < leg && travelled(Math.min(leg, k + 1e-3), v, going(dir)) > d + 1e-9;
+    return { d: Math.min(span, d), moving };
+  };
+  if (tau < leg) { const w = walk(1, tau); return { x: x0 + w.d, dir: 1, moving: w.moving, walked: w.d }; }
+  if (tau < leg + rest) return { x: x1, dir: 1, moving: false, walked: span };
+  if (tau < 2 * leg + rest) { const w = walk(-1, tau - leg - rest); return { x: x1 - w.d, dir: -1, moving: w.moving, walked: span + w.d }; }
+  return { x: x0, dir: -1, moving: false, walked: 0 };
+}
+
+/** A light's strength factor now, by its pulse: its sequence stepped through on the clock. */
+export const pulseAt = (p: { fps: number; seq: number[] }, t: number): number => (p.seq.length ? p.seq[Math.floor(t * p.fps) % p.seq.length] : 1);
+
 /** A mover's current pass: when it starts (or started), which way it goes, how many passes came before it. */
 interface Pass { from: number; dir: 1 | -1; n: number }
 
@@ -48,6 +72,8 @@ export function travelled(elapsed: number, speed: number, stops: { at: number; s
 }
 
 export class SceneRunner {
+  /** Where each mover was drawn last, by its asset: its box in the level, for a hotspot that follows it. */
+  readonly moverBoxes = new Map<string, [number, number, number, number]>();
   private passes: Pass[] = [];
   private cars = new Float32Array(64);
   private beacons = new Float32Array(128);
@@ -104,6 +130,15 @@ export class SceneRunner {
    */
   private mover(k: number, t: number, cam: [number, number], parallax: number, view: 'raw' | 'concierge'): DrawSprite | null {
     const { def, sprite } = this.scene.movers![k], m: MoverDef = asIn(def, view), w = sprite.def.w, span = m.x1 - m.x0 + w;
+    if (m.patrol) {
+      // on its round: its body where it is, turned the way it walks; walking or resting
+      const sd = sprite.def, p = patrolAt(t, m.x0, m.x1, m.speed, (m.wait[0] + m.wait[1]) / 2, m.stops), ax = sd.anchor?.[0] ?? w / 2, flip = p.dir < 0 && !hasLeft(sd);
+      const stride = sd.anims?.walk?.stride ?? sd.h * 0.6, bob = m.bob ? m.bob[0] * Math.sin((t * 2 * Math.PI) / Math.max(0.1, m.bob[1])) : 0;
+      return {
+        sprite, x: p.x - (flip ? w - ax : ax) - cam[0] * parallax, y: (m.y ?? sd.y) + bob - cam[1] * parallax, flip,
+        frame: sd.frames ? frameFor(sd, p.moving, p.walked / stride, t, p.dir) : 0,
+      };
+    }
     // its stops, as far along a pass each way as its middle reaches them
     const stopsGoing = (dir: 1 | -1) => (m.stops ?? []).map((s) => ({ at: dir > 0 ? s.x - (m.x0 - w / 2) : m.x1 + w / 2 - s.x, seconds: s.seconds }))
       .filter((s) => s.at > 0 && s.at < span).sort((a, b) => a.at - b.at);
@@ -168,7 +203,8 @@ export class SceneRunner {
       this.scene.movers?.forEach((m, k) => {
         if (m.after !== i || !inViewOf(m.def.only, view)) return;
         const md = this.mover(k, t, cam, def.parallax, viewName);
-        if (md) { set.push(md); this.lightsOf(asIn(m.def, viewName), md, cam, def.depth); }
+        if (md) { set.push(md); this.lightsOf(asIn(m.def, viewName), md, cam, def.depth); this.moverBoxes.set(m.def.asset, [md.x + cam[0] * def.parallax, md.y + cam[1] * def.parallax, md.sprite.def.w, md.sprite.def.h]); }
+        else this.moverBoxes.delete(m.def.asset);
       });
     });
     // flat layers over the first one blend their edges, so a moving camera slides them smoothly; it has set the flags
@@ -211,7 +247,12 @@ export class SceneRunner {
       zone: this.scene.zone,
       sprites,
       // each light with its preset and as it is in this view, and on a far layer where that layer is
-      lights: d.lights.filter((placed) => !placed.when || this.shown(placed.when)).map((placed) => { const l = resolveLight(placed, viewName); return (l.parallax ?? 1) === 1 ? l : { ...l, x: l.x + along(l.parallax) }; }),
+      lights: d.lights.filter((placed) => !placed.when || this.shown(placed.when)).map((placed) => {
+        let l = resolveLight(placed, viewName);
+        // a pulse: its strength by turns, in step with a sprite's frames
+        if (l.pulse) l = { ...l, i: (l.i ?? 1) * pulseAt(l.pulse, t) };
+        return (l.parallax ?? 1) === 1 ? l : { ...l, x: l.x + along(l.parallax) };
+      }),
       gi: lightGroups(t),
       cars: this.cars,
       nCars,

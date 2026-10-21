@@ -52,6 +52,8 @@ export interface Hotspot {
   item?: string;
   /** On the map once she has seen it, to go to: ways out and people are on it anyway. */
   map?: boolean;
+  /** A mover it goes with (its asset): wherever the mover is now, there it is (a guard on its round). */
+  follows?: string;
 }
 
 /** Where a hotspot is: its area, where she stands to use it and which way she faces then. */

@@ -20,14 +20,9 @@
    "asset": "street/vista-street"
   },
   {
-   "asset": "bots/guardian-bot",
-   "x": 778,
-   "y": 378
-  },
-  {
-   "asset": "bots/guardian-sign",
-   "x": 740,
-   "y": 382
+   "asset": "street/station",
+   "x": 572,
+   "y": 286
   }
  ],
  "lights": [
@@ -75,7 +70,7 @@
    "preset": "neon"
   },
   {
-   "x": 912,
+   "x": 692,
    "y": 368,
    "preset": "screen",
    "own": 1
@@ -87,7 +82,7 @@
    "parallax": 0.3
   },
   {
-   "x": 912,
+   "x": 692,
    "y": 336,
    "preset": "machine-eye",
    "own": 1
@@ -219,38 +214,6 @@
     0.42
    ],
    "i": 0.7
-  },
-  {
-   "x": 794,
-   "y": 383,
-   "z": 10,
-   "r": 36,
-   "c": [
-    0.5,
-    0.9,
-    1
-   ],
-   "i": 0.5,
-   "zone": 0,
-   "layer": 1,
-   "g": 4,
-   "ar": 1
-  },
-  {
-   "x": 794,
-   "y": 383,
-   "z": 10,
-   "r": 36,
-   "c": [
-    1,
-    0.65,
-    0.3
-   ],
-   "i": 0.45,
-   "zone": 0,
-   "layer": 1,
-   "g": 4,
-   "raw": 1
   }
  ],
  "walk": {
@@ -389,12 +352,12 @@
     "raw": "Woman at the station"
    },
    "rect": [
-    822,
+    602,
     372,
     52,
     80
    ],
-   "stand": 800,
+   "stand": 580,
    "face": 1,
    "look": {
     "concierge": "A woman in red, dining at the station. She smiles at nothing in particular.",
@@ -413,12 +376,12 @@
     "raw": "Feeding station"
    },
    "rect": [
-    874,
+    654,
     300,
     92,
     152
    ],
-   "stand": 975,
+   "stand": 754,
    "face": -1,
    "talk": "kiosk",
    "tag": "Nutrition · health",
@@ -557,13 +520,11 @@
     "raw": "Guard unit"
    },
    "rect": [
-    778,
-    378,
-    33,
+    1540,
+    392,
+    46,
     74
    ],
-   "stand": 760,
-   "face": 1,
    "tag": {
     "concierge": "Guardian · safety and assistance",
     "raw": "its lamp follows you"
@@ -572,7 +533,8 @@
     "concierge": "A civic guardian: safety, guidance and a kind word for any guest who needs one.",
     "raw": "A tall guard unit, rust at every joint. Its lamp follows you for a step or two, then loses interest."
    },
-   "ask": "Our guardians keep every street safe, guest. If you are ever lost, ask one. It will ask me."
+   "ask": "Our guardians keep every street safe, guest. If you are ever lost, ask one. It will ask me.",
+   "follows": "bots/guardian-bot"
   }
  ],
  "beacons": [
@@ -791,6 +753,25 @@
    "bob": [
     1.5,
     1.3
+   ]
+  },
+  {
+   "asset": "bots/guardian-bot",
+   "after": "street/vista-street",
+   "x0": 1540,
+   "x1": 1770,
+   "y": 392,
+   "speed": 16,
+   "wait": [
+    9,
+    9
+   ],
+   "patrol": true,
+   "stops": [
+    {
+     "x": 1655,
+     "seconds": 6
+    }
    ]
   }
  ],

@@ -29,5 +29,25 @@
   "conciergeReferences": [
     "art/reference/robots/crops/guardian-concierge.png"
   ],
-  "lit": true
+  "lit": true,
+  "anims": {
+    "idle": {
+      "fps": 1,
+      "seq": [
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        0
+      ]
+    },
+    "walk": {
+      "stride": 32
+    }
+  }
 }
