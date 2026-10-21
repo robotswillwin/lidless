@@ -510,10 +510,10 @@
     "raw": "Restaurant"
    },
    "rect": [
-    990,
-    95,
-    220,
-    92
+    985,
+    6,
+    224,
+    172
    ],
    "tag": {
     "concierge": "Fine dining · by reservation",

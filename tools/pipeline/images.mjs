@@ -11,7 +11,7 @@ import { readRGBA, writePNG } from './image.mjs';
 import { edit, generate } from './openai.mjs';
 import { KINDS, loadRecipe, recipeTemplate, ROOT } from './recipe.mjs';
 import { finishFor, nextName, palette, rel } from './shared.mjs';
-import { CHARACTER_REDRESS_NOTE, CHARACTER_SHEET_NOTE, MACHINE_SHEET_NOTE, conciergePrompt, extendPrompt, generationPrompt, LAYOUT_REFERENCES_NOTE, layoutNote, LOOKS, REDRESS_REFERENCES_NOTE, redressPrompt, REFERENCE_NOTE, REFERENCE_NOTE_VECTOR, reframePrompt, VARIANT_REFERENCES_NOTE } from './style.mjs';
+import { CHARACTER_REDRESS_NOTE, CHARACTER_SHEET_NOTE, MACHINE_SHEET_NOTE, conciergePrompt, extendPrompt, generationPrompt, guidePrompt, LAYOUT_REFERENCES_NOTE, layoutNote, LOOKS, REDRESS_REFERENCES_NOTE, redressPrompt, REFERENCE_NOTE, REFERENCE_NOTE_VECTOR, reframePrompt, VARIANT_REFERENCES_NOTE } from './style.mjs';
 
 /** Style references shrunk to 1024 pixels on their long side: plenty to show a style, at a fraction of the input tokens. */
 export const loadReferences = (paths) => Promise.all(paths.map(async (p) => ({
@@ -300,7 +300,9 @@ export async function cmdTouch([file], opt) {
   const bx = ux0, by = uy0, bw = ux1 - ux0, bh = uy1 - uy0, ox = bx - 1, oy = by - 1, OW = bw + 2, OH = bh + 2;
   const within = (x, y) => areas.some(([ax, ay, aw, ah]) => x >= ax && x < ax + aw && y >= ay && y < ay + ah) && !kept.some(([kx, ky, kw, kh]) => x >= kx && x < kx + kw && y >= ky && y < ky + kh);
   const D = new Float32Array(OW * OH);
-  for (let y = 0; y < OH; y++) for (let x = 0; x < OW; x++) D[y * OW + x] = within(ox + x, oy + y) ? 1e9 : 0;
+  // past the picture's edge counts as the area where the area reaches the edge: nothing there to fade into
+  const clampX = (x) => Math.max(0, Math.min(img.w - 1, x)), clampY = (y) => Math.max(0, Math.min(img.h - 1, y));
+  for (let y = 0; y < OH; y++) for (let x = 0; x < OW; x++) D[y * OW + x] = within(clampX(ox + x), clampY(oy + y)) ? 1e9 : 0;
   for (let y = 1; y < OH; y++) for (let x = 1; x < OW - 1; x++) { const i = y * OW + x; if (D[i]) D[i] = Math.min(D[i], D[i - 1] + 1, D[i - OW] + 1, D[i - OW - 1] + 1.414, D[i - OW + 1] + 1.414); }
   for (let y = OH - 2; y >= 0; y--) for (let x = OW - 2; x >= 1; x--) { const i = y * OW + x; if (D[i]) D[i] = Math.min(D[i], D[i + 1] + 1, D[i + OW] + 1, D[i + OW + 1] + 1.414, D[i + OW - 1] + 1.414); }
   const weight = (x, y) => { const d = D[(y - oy) * OW + (x - ox)]; return d ? Math.min(1, d / feather) : 0; };
@@ -313,12 +315,17 @@ export async function cmdTouch([file], opt) {
   const otherFrame = from => (frameAnim ? join(r.dir, 'anims', frameAnim, `${from}-${String(Number(frameNum)).padStart(2, '0')}.png`) : null);
   const from = typeof opt.from === 'string' ? opt.from : null, fromFile = from ? (otherFrame(from) && existsSync(otherFrame(from)) ? otherFrame(from) : join(r.dir, `${from}.png`)) : null;
   if (from && (from === view || !existsSync(fromFile))) throw new Error(`--from needs the other view's picture (${from})`);
+  // --guide: a copy of the picture with rough flat shapes painted over the box, saying what goes there, where and how big
+  // (people at their true size against the doors): the window is redrawn from it, and the box comes back finished
+  const guide = typeof opt.guide === 'string' ? resolve(ROOT, opt.guide) : null;
+  if (guide && (from || !existsSync(guide))) throw new Error(from ? '--guide and --from do not go together' : `no guide at ${rel(guide)}`);
   // --ref: pictures of what to paint there, a design to follow (a station drawn on a sheet)
   const designs = typeof opt.ref === 'string' ? opt.ref.split(',').map((f) => resolve(ROOT, f.trim())) : [];
   for (const f of designs) if (!existsSync(f)) throw new Error(`no image at ${rel(f)}`);
   const designNote = designs.length ? ' The other attached images show the design of what to paint there: follow its shape, parts and lights, drawn in the style, scale and lighting of the picture.' : '';
   const prompt = from
     ? `${REDRESS_REFERENCES_NOTE} ${redressPrompt(r, view, `Repaint it as ${view} view, as simple and flat as it is now: ${opt.prompt}`)}${designNote}`
+    : guide ? `${REDRESS_REFERENCES_NOTE} ${guidePrompt(r, view, opt.prompt)}${designNote}`
     : `Change only the transparent area of the mask: ${opt.prompt}. Everything else stays exactly as it is; match the style, colours, lighting and detail around it.${r.spec.transparent ? ' Keep the flat, plain background colour around the subject exactly as it is.' : ''}${designNote}`;
   if (opt.dry) return console.log(`\n${prompt}`);
   // the window, and a mask that is transparent over the box. Cut-out art goes on a key colour (--key, default green):
@@ -326,13 +333,14 @@ export async function cmdTouch([file], opt) {
   const key = r.spec.transparent ? (typeof opt.key === 'string' ? opt.key : '#00ff00') : null;
   // a picture smaller than the model takes (a small prop) goes up in size for it, and its answer comes back down
   const up = Math.max(1, Math.ceil(Math.sqrt(655360 / (win.width * win.height)) * 4) / 4), sw = Math.round((win.width * up) / 16) * 16, sh = Math.round((win.height * up) / 16) * 16;
-  const piece = await (key ? sharp(fromFile ?? src).extract(win).flatten({ background: key }) : sharp(fromFile ?? src).extract(win)).resize(sw, sh, { fit: 'fill' }).png().toBuffer();
+  const input = fromFile ?? guide ?? src;
+  const piece = await (key ? sharp(input).extract(win).flatten({ background: key }) : sharp(input).extract(win)).resize(sw, sh, { fit: 'fill' }).png().toBuffer();
   const m = Buffer.alloc(win.width * win.height * 4, 255);
   for (let y = by; y < by + bh; y++) for (let x = bx; x < bx + bw; x++) if (weight(x, y) > 0) m[((y - win.top) * win.width + (x - win.left)) * 4 + 3] = 0;
   const mask = await sharp(m, { raw: { width: win.width, height: win.height, channels: 4 } }).resize(sw, sh, { fit: 'fill', kernel: 'nearest' }).png().toBuffer();
   // redrawn from the other view: the whole window, with this view's picture as the style
-  const refs = [...(from ? [{ name: `${view}.png`, data: await sharp(src).resize(1024, 1024, { fit: 'inside' }).png().toBuffer() }] : []), ...(await loadReferences(designs))];
-  const res = await edit({ prompt, images: [{ name: 'piece.png', data: piece }, ...refs], mask: from ? undefined : mask, size: `${sw}x${sh}`, quality, n: 1, background: r.spec.transparent ? 'transparent' : 'opaque' });
+  const refs = [...(from || guide ? [{ name: `${view}.png`, data: await sharp(src).resize(1024, 1024, { fit: 'inside' }).png().toBuffer() }] : []), ...(await loadReferences(designs))];
+  const res = await edit({ prompt, images: [{ name: 'piece.png', data: piece }, ...refs], mask: from || guide ? undefined : mask, size: `${sw}x${sh}`, quality, n: 1, background: r.spec.transparent ? 'transparent' : 'opaque' });
   if (!res.images.length) throw new Error('the API returned no image');
   // keep what the model drew, before it is pasted back, to see what went wrong when a touch-up fails
   await mkdir(join(r.dir, 'candidates'), { recursive: true });

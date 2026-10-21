@@ -164,6 +164,18 @@ export function redressPrompt(r, view, change) {
   ].join(' ') + keepLook(r);
 }
 
+/**
+ * Paint one area of a picture from a rough guide painted over it: flat shapes that say what goes there, where and how
+ * big, so what is painted there keeps its true size against the rest (people against the doors below them).
+ */
+export function guidePrompt(r, view, change) {
+  return [
+    'Edit this image. One area of it is a rough guide: flat shapes that show what goes there, where, and exactly how big. Paint that area finished, in exactly the style of the rest of the picture, each shape turned into the thing it stands for, in the same place and at the same size: the people in it are exactly as big as the guide draws them. Keep everything outside that area as it is.',
+    worldOf(r, view),
+    `In that area: ${change}`,
+  ].join(' ') + keepLook(r);
+}
+
 /** Paint the rest of the frame around a picture placed in it: more of the same place, in the picture's own style. */
 export function extendPrompt(r, view) {
   return [
