@@ -154,10 +154,11 @@ flickers:
     coat, and more where a garment has no collar to hide her neck (0.15 for a T-shirt); with her head made bigger, her
     neck had grown long. The head piece is cut with the base of the neck flaring into the shoulders and the chest, which
     the torso draws itself: the neck is cut where it is narrowest under the jaw and carried straight down from there,
-    behind the torso. `parts.bareNeck`, for a neck a garment leaves bare: the torso's top melds into that neck, its
-    outline sloping from the neck's down to its own at the shoulders and its own stump of a neck fading out, so her neck
-    flows into her shoulders. The sheets cut the torso flat across the shoulders, which showed above a bare neckline as
-    a stiff collar of skin. A shoe drawn too big (a fluffy slipper) is scaled with `parts.proportions.foot`, its length
+    behind the torso, so nothing of the head shows outside it. `parts.bareNeck`, for a neck a garment leaves bare: the
+    torso's own stump of a neck above the collar fades out, so the head's neck shows whole and the collar keeps its
+    crisp edge. `"shoulders"`, for bare shoulders too (her underwear): the torso's top, which the sheets cut flat across
+    the shoulders (a stiff collar of skin above them), melds into the neck behind it, its outline sloping from the
+    neck's down to its own at the shoulders. A shoe drawn too big (a fluffy slipper) is scaled with `parts.proportions.foot`, its length
     heel to toe as a share of her height: her boots are 0.13. The rig prints each outfit's foot length and flags one
     far from that.
   - **Her legs from another outfit** (`parts.legs`, `from` a recipe): the shape of her bare legs, in the colours this
