@@ -43,28 +43,55 @@ export const STITCH = { eyes: 'look', heart: 'talk', hands: 'use', take: 'take',
 export class Dialogue {
   readonly story: Story;
 
+  /** How the save was loaded: whole, what it knew kept over a changed story (`kept`), or not at all (`fresh`). */
+  readonly loaded: 'whole' | 'kept' | 'fresh' | 'none';
+
   constructor(saved: string | null, json: unknown = storyJson) {
     this.story = new Story(json as ConstructorParameters<typeof Story>[0]);
-    if (saved) {
-      try {
-        this.story.state.LoadJson(saved);
-      } catch {
-        // an old or broken save: start the story fresh
-      }
+    this.loaded = saved ? this.load(saved) : 'none';
+  }
+
+  /**
+   * A save loaded into the story. One made with this story loads whole. One the story has since changed under (a knot
+   * renamed where it was saved) keeps what it knew: every variable the story still has, and how often she has been
+   * where she has been; a variable the story added starts as the story says. Only a save that is not one starts afresh.
+   */
+  private load(saved: string): 'whole' | 'kept' | 'fresh' {
+    try {
+      this.story.state.LoadJson(saved);
+      return 'whole';
+    } catch {
+      // the story changed under it: start it fresh, then put back what it knew
+    }
+    try {
+      const old = JSON.parse(saved) as { variablesState?: Record<string, unknown>; visitCounts?: Record<string, number> };
+      this.story.ResetState();
+      if (old.variablesState) this.story.state.variablesState.SetJsonToken(old.variablesState);
+      const visits = (this.story.state as unknown as { _visitCounts?: Map<string, number> })._visitCounts;
+      if (visits && old.visitCounts) for (const [path, n] of Object.entries(old.visitCounts)) if (this.has(path.split('.')[0])) visits.set(path, n);
+      return 'kept';
+    } catch {
+      this.story.ResetState();
+      return 'fresh';
     }
   }
 
   start(knot: string, rawView: boolean): Line[] {
-    this.story.variablesState['raw_view'] = rawView;
+    this.setRaw(rawView);
     this.story.ChoosePathString(knot);
     return this.lines();
   }
 
   /** The view can switch during a conversation, so the lines after a choice see the view on screen now. */
   choose(i: number, rawView: boolean): Line[] {
-    this.story.variablesState['raw_view'] = rawView;
+    this.setRaw(rawView);
     this.story.ChooseChoiceIndex(i);
     return this.lines();
+  }
+
+  /** Tells the story which view is on screen, if it asks (`raw_view`). */
+  private setRaw(rawView: boolean): void {
+    if (this.story.variablesState.GetVariableWithName('raw_view') !== null) this.story.variablesState['raw_view'] = rawView;
   }
 
   lines(): Line[] {

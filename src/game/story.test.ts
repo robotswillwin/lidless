@@ -59,3 +59,24 @@ describe('the story', () => {
     expect(commandOf('mood: sad')).toBeNull();
   });
 });
+
+describe('a save over a story that changed', () => {
+  it('keeps what she knew and carried when the story changed under where it was saved', async () => {
+    const { Compiler } = await import('inkjs/full');
+    const compile = (src: string) => JSON.parse(new Compiler(src).Compile().ToJson() ?? '{}');
+    const before = compile(`LIST Things = valve, map\nVAR carried = (map)\nVAR met = false\n=== shop ===\n~ met = true\n~ carried += valve\nA line.\n* [Go on.] Next.\n-> END\n`);
+    const after = compile(`LIST Things = valve, map\nVAR carried = (map)\nVAR met = false\nVAR added = 3\n=== store ===\nRenamed.\n-> END\n`);
+    const d = new Dialogue(null, before);
+    d.start('shop', false);
+    // saved in the middle of the shop's knot, which the new story no longer has
+    const again = new Dialogue(d.save(), after);
+    expect(again.loaded).toBe('kept');
+    expect(again.test('met && carried has valve && added == 3')).toBe(true);
+    expect(again.start('store', false)[0].text).toBe('Renamed.');
+  });
+
+  it('starts afresh from something that is no save at all', () => {
+    expect(new Dialogue('not a save').loaded).toBe('fresh');
+    expect(new Dialogue(new Dialogue(null).save()).loaded).toBe('whole');
+  });
+});

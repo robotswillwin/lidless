@@ -110,6 +110,14 @@ it: a patch. Her flat's valve and parcel are made this way (`art/home/desk-valve
    scene x 0.32 + 0.4963 × x in her flat. `when: "taken has valve"` shows it once she has the thing; the thing's own
    light gets `when: "!(taken has valve)"`.
 
+## Saves
+
+The story's state is the heart of a save. A save made with an older version of the story loads whole if it can; if
+the story has changed under where it was saved (a knot renamed), it keeps every variable the story still has and how
+often she has been where she has been, and a variable the story added starts as the story declares it. So renaming,
+adding and moving knots is safe for players' saves; renaming a variable loses what it held, unless it is copied over.
+The game never saves in the middle of a conversation.
+
 ## Checks
 
 `npm test` runs the story headlessly (`src/game/story.test.ts`: her pockets, the radio, the parcel, saves) and checks

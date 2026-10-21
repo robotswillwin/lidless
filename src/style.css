@@ -227,6 +227,10 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .hud-panel.things .motto { flex: 1; font-size: clamp(14px, 1.25cqw, 18px); color: rgba(242, 248, 251, .85); }
 .hud-panel.things .hud-close { border: 1px solid var(--co-line); color: #dff8f6; }
 .hud-panel .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr)); gap: 16px; }
+/* her saves: four cards, the game in progress and her three slots, each with what it does */
+.hud-panel .cards.saves { grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr)); }
+.hud-panel .card.save .row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.hud-panel.pockets .card.save .row .use { margin-top: 0; }
 .hud-panel.things .card { display: flex; gap: 14px; padding: 14px; border: 1px solid rgba(143, 240, 234, .28); border-radius: 2px; background: rgba(143, 240, 234, .04); color: #dff8f6; }
 .hud-panel.things .card svg { flex: none; }
 .hud-panel.things .card .accent { stroke: var(--cyan); }

@@ -4,14 +4,14 @@
 { has_raw: -> after }
 { fixer > 1: He looks up this time. | The fixer doesn't look up from the soldering iron. }
 "Shop's closed. Unless you're here about a radio." #fixer
-- (talk)
+- (questions)
 * [I'm not here about a radio.]
     "No. Nobody is, anymore." #fixer
     He sets the iron down and turns on his stool, slowly, like his back has opinions.
     -> offer
 * [What's wrong with all these radios?]
     "Nothing. They work fine. It's the stations that went quiet." #fixer
-    -> talk
+    -> questions
 * [Leave him to it.]
     -> END
 

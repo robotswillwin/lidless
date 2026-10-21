@@ -13,7 +13,7 @@ import { heroDrawing, heroGaits, holdPace, paceFor } from './hero';
 import { Hud, type Action, type Item, type Mark, type NotebookPages } from './hud';
 import { inView, pick, placeIn, type Hotspot } from './level';
 import { dressedFor, keepsProjection, outfitAfter } from './outfits';
-import { writeSave, type SaveData } from './save';
+import { listSaves, loadSave, writeSave, type SaveData, type Slot } from './save';
 import { SceneRunner, type ViewState } from './scene';
 import { Talk } from './talk';
 import { type Exit, type Scene, type WorldFile } from './scenefile';
@@ -159,6 +159,9 @@ export class Game {
     this.talk.onEnd = () => this.endTalk();
     this.hud.onVerb = (v) => this.setVerb(v);
     this.hud.onHold = (id) => this.hold(id);
+    this.hud.saves = () => listSaves();
+    this.hud.onSave = (slot) => this.saveTo(slot);
+    this.hud.onLoad = (slot) => this.loadFrom(slot);
     // what a story's line has the game do before it is said: the conversation waits for it
     this.talk.run = (commands) => this.direct(commands);
     this.hud.onTemple = () => this.toggleView();
@@ -525,8 +528,9 @@ export class Game {
       if (id && this.stitch(h, `use_${id}`)) return this.runStory(h, `${h.story}.use_${id}`);
       return this.hud.note(h, raw ? 'nothing.' : 'Nothing happens.', this.boxOf(h));
     }
+    // a conversation of its own (`talk`) is what Talk does; any other verb, the thing's knot where it answers it
     const st = STITCH[a.kind as keyof typeof STITCH];
-    if (st && this.stitch(h, st)) return this.runStory(h, `${h.story}.${st}`);
+    if (st && !(a.kind === 'heart' && h.talk) && this.stitch(h, st)) return this.runStory(h, `${h.story}.${st}`);
     // a thing to pick up: into her pockets, gone from here for good
     if (a.kind === 'take' && h.item) {
       this.dialogue.take(h.item);
@@ -745,8 +749,32 @@ export class Game {
 
   /* ---------- saving ---------- */
 
+  /** Where she is and what has happened, as a save. */
+  private saveData(): SaveData {
+    return {
+      v: 2, scene: this.scene.file.id, heroX: Math.round(this.world.heroX), facing: this.world.facing, view: this.state.view, ink: this.dialogue.save(),
+      attention: this.attention, outfit: this.outfit || undefined, projection: this.projection ?? undefined, savedAt: Date.now(), where: this.scene.file.name,
+    };
+  }
+
+  /** The autosave, written as she plays: never in the middle of a conversation, which saves as it ends. */
   persist(): void {
-    writeSave({ v: 1, scene: this.scene.file.id, heroX: Math.round(this.world.heroX), facing: this.world.facing, view: this.state.view, ink: this.dialogue.save(), attention: this.attention, outfit: this.outfit || undefined, projection: this.projection ?? undefined });
+    if (this.talk.open || this.directing) return;
+    writeSave(this.saveData());
+  }
+
+  /** Saving into one of her slots. */
+  private saveTo(slot: Slot): void {
+    if (this.talk.open || this.directing) return;
+    writeSave(this.saveData(), slot);
+  }
+
+  /** Going back to a save: it becomes the game in progress, which starts again from it. */
+  private loadFrom(slot: Slot): void {
+    const d = loadSave(slot);
+    if (!d) return;
+    writeSave(d);
+    location.reload();
   }
 
   /* ---------- each frame ---------- */

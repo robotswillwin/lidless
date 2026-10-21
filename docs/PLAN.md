@@ -116,7 +116,10 @@ rigged character about an hour and $1: forty scenes is a question of production,
    that every knot, variable, item, scene and place to arrive at that a scene or the story names exists, in both
    views; quest playthroughs run in the tests without a browser; and the browser checks run during the work so far
    (outfits, walking, the editor) brought into the repository.
-4. **Saves (about an hour, before any public release).** Versioned, so a save survives changes to the story; a few
+4. **Saves (about an hour, before any public release). Done 21 October:** a save says its version and an older one is
+   brought up to date as it loads; one the story has changed under keeps every variable the story still has and where
+   she has been; three slots beside the autosave, from the left ball; never saved in the middle of a conversation.
+   What was planned: versioned, so a save survives changes to the story; a few
    slots; saved only where it is safe, never in the middle of a conversation.
 
 Along the way, game.ts (scenes, input, outfits, conversations, the HUD and saving in one file) is split into the

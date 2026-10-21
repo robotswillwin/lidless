@@ -37,6 +37,9 @@ Then open the address Vite prints.
   her things, **Esc** closes. **Use** on one of her things takes it out: it sits on the right ball, and sliding over the
   scene uses it on what lights up (the radio needs a valve; the fixer is waiting for a parcel). The ball, right-click
   or **Esc** puts it back. **Take** puts what can be picked up in her pockets: the parcel and the valve on her desk.
+- **Saves**, from the left ball: the game saves as she goes (never in the middle of a conversation), and three slots
+  she saves into and goes back to. A save made with an older version of the story keeps what she knew and carried.
+  `?new` starts a new game.
 - Talk to the fixer in the radio shop. Once he has opened your eye, **E** or her temple (with her things) switches
   between Concierge view and raw view, and many things read differently. On the dev server, E works from the start.
 - Conversations go as in Monkey Island: each line over the head of whoever says it, in their colour (hers, the

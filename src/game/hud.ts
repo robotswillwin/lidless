@@ -65,6 +65,8 @@ const ICONS: Record<string, string> = {
   temple: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.2"/>',
   ask: '<path d="M3 18h18M5 18a7 7 0 0 1 14 0M12 11V8.5M10.5 8h3M4 21h16"/>',
   notebook: '<rect x="5" y="3" width="14" height="18" rx="1.5"/><path d="M9 3v18M12 8h4M12 11.5h4"/>',
+  // a ribbon marking a page: her saves
+  saves: '<path d="M7 3h10v18l-5-4-5 4z"/>',
   satchel: '<path d="M4.5 9h15l-1.2 11.2a1 1 0 0 1-1 .8H6.7a1 1 0 0 1-1-.8L4.5 9z"/><path d="M9 9V7a3 3 0 0 1 6 0v2"/>',
   close: '<path d="M6 6l12 12M18 6L6 18"/>',
 };
@@ -125,6 +127,10 @@ export class Hud {
   known: (cond: string) => boolean = () => false;
   /** She takes a thing out of her pockets to use it on something (null: puts it back). */
   onHold: (id: string | null) => void = () => {};
+  /** Her saves: what there is (the autosave first), saving into a slot, and going back to one. */
+  saves: () => { slot: 'auto' | 1 | 2 | 3; savedAt?: number; where?: string }[] = () => [];
+  onSave: (slot: 1 | 2 | 3) => void = () => {};
+  onLoad: (slot: 'auto' | 1 | 2 | 3) => void = () => {};
 
   private raw = false;
   private ribbon: HTMLElement;
@@ -148,7 +154,7 @@ export class Hud {
   private noteOf: Hotspot | null = null;
   private noteTimer = 0;
   private panel: HTMLElement | null = null;
-  private panelKind: 'things' | 'notebook' | null = null;
+  private panelKind: 'things' | 'notebook' | 'saves' | null = null;
   private items: Record<string, Item> = {};
   private carried: string[] = [];
   private notebook: NotebookPages = {};
@@ -305,6 +311,7 @@ export class Hud {
       : [
           { id: 'things', icon: 'satchel', label: this.raw ? 'pockets' : 'Your things', badge: this.raw ? undefined : this.thingCount(), run: () => this.togglePanel('things') },
           { id: 'notebook', icon: 'notebook', label: this.raw ? 'notebook' : 'Notebook', run: () => this.togglePanel('notebook') },
+          { id: 'saves', icon: 'saves', label: this.raw ? 'saves' : 'Saves', run: () => this.togglePanel('saves') },
           ...(this.unlocked ? [{ id: 'view', icon: 'temple', label: this.raw ? 'back to its view' : 'see it as it is', run: () => this.onTemple() }] : []),
           ...(this.raw ? [] : [{ id: 'bell', icon: 'ask', label: 'Assistance', co: true, run: () => this.onBell() }]),
         ];
@@ -423,7 +430,7 @@ export class Hud {
     this.dismissNote();
   }
 
-  togglePanel(kind: 'things' | 'notebook'): void {
+  togglePanel(kind: 'things' | 'notebook' | 'saves'): void {
     if (this.panelKind === kind) this.closePanel();
     else this.openPanel(kind);
   }
@@ -472,13 +479,14 @@ export class Hud {
     }
   }
 
-  private openPanel(kind: 'things' | 'notebook'): void {
+  private openPanel(kind: 'things' | 'notebook' | 'saves'): void {
     this.panel?.remove();
     this.panelKind = kind;
     const p = (this.panel = el('section', `hud-panel ${kind === 'notebook' ? 'notebook' : this.raw ? 'pockets' : 'things'}`, this.root));
     p.addEventListener('pointerdown', (e) => e.stopPropagation());
     this.onPanel();
     if (kind === 'notebook') this.drawNotebook(p);
+    else if (kind === 'saves') this.drawSaves(p);
     else if (this.raw) this.drawPockets(p);
     else this.drawThings(p);
   }
@@ -525,6 +533,30 @@ export class Hud {
       el('div', 'name', card, pick(it.name, true));
       if (it.note) el('div', 'note', card, pick(it.note, true));
       if (!gone) button('use', `use ${pick(it.name, true)}`, card, () => this.onHold(id)).textContent = 'use';
+    }
+  }
+
+  /**
+   * Her saves: where she is now (saved as she goes), and three slots she saves into and goes back to. In the Concierge's
+   * view its own catalogue, in raw view her pencil.
+   */
+  private drawSaves(p: HTMLElement): void {
+    const raw = this.raw;
+    p.classList.add(raw ? 'pockets' : 'things');
+    p.setAttribute('aria-label', raw ? 'Her saves' : 'Your saves');
+    const head = el('div', 'head', p);
+    el('h2', raw ? '' : 'hud-caps', head, raw ? 'saves' : 'Your saves');
+    el('div', raw ? 'motto' : 'motto hud-serif', head, raw ? 'where I was' : 'Pick up exactly where you left off.');
+    button('hud-close', 'Close', head, () => this.closePanel()).innerHTML = icon('close', raw ? 18 : 16, raw);
+    const list = el('div', 'cards saves', p), all = this.saves();
+    const when = (t?: number) => (t ? new Date(t).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '');
+    for (const slot of ['auto', 1, 2, 3] as const) {
+      const s = all.find((x) => x.slot === slot), card = el('div', 'card save', list), words = el('div', 'words', card);
+      el('div', raw ? 'name' : 'name hud-serif', words, slot === 'auto' ? (raw ? 'now' : 'Now') : raw ? `slot ${slot}` : `Slot ${slot}`);
+      el('div', raw ? 'note' : 'note hud-caps', words, s ? [s.where, when(s.savedAt)].filter(Boolean).join(' · ') || (raw ? 'saved' : 'Saved') : raw ? 'empty' : 'Empty');
+      const row = el('div', 'row', words);
+      if (slot !== 'auto') button(raw ? 'use' : 'hud-caps', `Save in slot ${slot}`, row, () => { this.onSave(slot); this.openPanel('saves'); }).textContent = raw ? 'save here' : 'Save here';
+      if (s && slot !== 'auto') button(raw ? 'use' : 'hud-caps primary', `Go back to slot ${slot}`, row, () => this.onLoad(slot)).textContent = raw ? 'go back' : 'Load';
     }
   }
 

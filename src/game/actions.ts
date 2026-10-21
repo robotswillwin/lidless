@@ -33,7 +33,7 @@ export function actionFor(h: Hotspot, v: Verb, raw: boolean, watched = true, sti
     const stare = raw && !st && typeof h.look === 'object' && h.look.raw !== h.look.concierge;
     return { kind: 'eyes', label: raw ? (stare ? 'look closely' : 'look') : 'Look', cost: stare && watched ? 1 : 0 };
   }
-  if (v === 'heart') return h.talk || st ? { kind: 'heart', label: verbName(v, raw) } : null;
+  if (v === 'heart') return h.talk || st ? { kind: 'heart', label: verbName(v, raw) } : null; // a `talk` knot comes first
   if (v === 'hands') return h.use || h.wardrobe || h.wear || st ? { kind: 'hands', label: verbName(v, raw) } : null;
   if (v === 'take') return h.take || h.item || st ? { kind: 'take', label: verbName(v, raw) } : null;
   return !raw && (h.ask || st) ? { kind: 'ask', label: 'Ask' } : null;
