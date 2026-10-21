@@ -61,6 +61,9 @@ console.log('along the backstreet:', await where());
 await page.mouse.click(800, 470);
 await wait(700);
 await shot('running');
+// the street scrolls with her: back to its start, where the Concierge's face looks down and the shop's door is
+await wait(2500);
+await hold('ArrowLeft', 4000);
 
 // something far away: the Concierge's face on its billboard. Look, chosen at the ball, lights it up under the pointer,
 // and a click on it looks, from where she stands; Ask asks the Concierge about it
@@ -98,7 +101,7 @@ console.log('through the shop door:', await where());
 await shot('shop');
 // Talk, and a tap on him: she walks up to him and they talk
 await verb('heart');
-await page.mouse.click(620, 400);
+await page.mouse.click(690, 335);
 await page.waitForSelector('.talk-line:not([hidden])', { timeout: 10000 });
 await wait(200);
 console.log('over a head:', await text('.talk-line'), '| balls still there:', await page.$eval('.hud-ball.verbs', (b) => getComputedStyle(b).visibility));

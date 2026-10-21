@@ -12,6 +12,7 @@
     "preview": "vite preview",
     "shot": "node scripts/shot.mjs",
     "play": "node scripts/play.mjs",
+    "check:play": "node scripts/checks.mjs",
     "check:layers": "node scripts/layers.mjs",
     "perf": "vite build --logLevel warn && node scripts/perf.mjs",
     "asset": "node tools/pipeline/cli.mjs"

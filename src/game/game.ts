@@ -769,12 +769,18 @@ export class Game {
     writeSave(this.saveData(), slot);
   }
 
-  /** Going back to a save: it becomes the game in progress, which starts again from it. */
+  /**
+   * Going back to a save: it becomes the game in progress, which starts again from it. The address loses what would
+   * override it (a new game, a scene asked for).
+   */
   private loadFrom(slot: Slot): void {
     const d = loadSave(slot);
     if (!d) return;
     writeSave(d);
-    location.reload();
+    const p = new URLSearchParams(location.search);
+    for (const k of ['new', 'scene', 'spawn']) p.delete(k);
+    const q = p.toString();
+    location.replace(`${location.pathname}${q ? `?${q}` : ''}`);
   }
 
   /* ---------- each frame ---------- */

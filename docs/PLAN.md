@@ -112,7 +112,10 @@ rigged character about an hour and $1: forty scenes is a question of production,
      another goes to the story.
    - Tags on a story's lines as commands (walk there, change, go to a scene, fade, set the city's conditions), so a
      short cutscene needs no code.
-3. **Checks and playthroughs (about 2 hours).** With hundreds of branches, broken references are what breaks: a check
+3. **Checks and playthroughs (about 2 hours). Done 21 October:** the story runs headlessly in the tests, every
+   reference the scenes and the notebook make is checked against it (src/game/references.test.ts), and
+   `npm run check:play` plays the built game through, checking 20 things (scripts/checks.mjs). What was planned: with
+   hundreds of branches, broken references are what breaks: a check
    that every knot, variable, item, scene and place to arrive at that a scene or the story names exists, in both
    views; quest playthroughs run in the tests without a browser; and the browser checks run during the work so far
    (outfits, walking, the editor) brought into the repository.

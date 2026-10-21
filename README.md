@@ -66,6 +66,9 @@ Other commands:
 - `npm run build` type-checks and builds to `dist/`.
 - `npm run shot -- "t=3" "t=3&view=raw" "bench.html?asset=cast/hero"` builds and saves screenshots to `shots/` with headless Chrome. No server needed.
 - `npm run play` builds and plays a scripted run (look, talk to the fixer, switch view, reload) with a screenshot per step.
+- `npm run check:play` builds and plays the game through, checking what should happen: her outfits and projections,
+  the story (things taken and used, the notebook, the parcel delivered), saves, running, scenes in and out of memory.
+  `npm run check:play -- --no-build story saves` runs only those on the last build. No server needed.
 - `npm run perf` builds and reports the frame rate per quality tier, up to a 4K canvas.
 - `npm run asset -- rig art/cast/hero.json` rigs Luna in Blender and renders her walk (needs Blender: `brew install --cask blender`). See docs/ASSETS.md, "Characters".
 - `node tools/styleframe/export.mjs` regenerates the old hand-coded street layers in `public/assets/street` (sky, crowd, set), which the main street no longer uses.
