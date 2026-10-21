@@ -1,0 +1,24 @@
+{
+  "name": "valve",
+  "scene": "home",
+  "kind": "prop",
+  "exists": "both",
+  "look": "vector",
+  "res": 2,
+  "frame": "keep",
+  "prompt": "the bell jar with the glowing radio valve: lifted out of home/cutaway (lift), cut from its pictures where they changed as it was painted out.",
+  "height": 28.29,
+  "position": [
+    647.01,
+    309.21
+  ],
+  "depth": 3,
+  "occluder": false,
+  "material": "stone",
+  "glow": {
+    "raw": "auto",
+    "concierge": "auto"
+  },
+  "palette": 0,
+  "references": []
+}

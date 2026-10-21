@@ -57,7 +57,7 @@ He works fast, with tools older than you: no cable, no code. A needle at your te
     "You already brought it." #fixer
     -> END
 }
-"Delivery 4471." He weighs it in his hand, doesn't open it, and puts it under the counter. #fixer
+"Delivery 4471." He weighs it in his hand, doesn't open it, and sets it down on the bench beside him. #fixer
 ~ carried -= parcel
 ~ parcel_delivered = true
 "Tell them it came." #fixer

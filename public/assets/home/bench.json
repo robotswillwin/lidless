@@ -3,17 +3,15 @@
     "cutaway",
     "cutaway-building",
     "cutaway-far",
-    "desk-parcel-gone",
-    "desk-valve-gone",
     "flycar",
-    "room"
+    "parcel",
+    "room",
+    "valve"
   ],
   "backgrounds": [
     "cutaway",
     "cutaway-building",
     "cutaway-far",
-    "desk-parcel-gone",
-    "desk-valve-gone",
     "room"
   ]
 }

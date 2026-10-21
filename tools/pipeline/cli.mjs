@@ -3,6 +3,7 @@
 // (pictures with the image model), build.mjs (game sprites), characters.mjs (parts, rigs) and scenes.mjs (rooms,
 // layers); shared.mjs has what they share.
 
+import { cmdLift } from './lift.mjs';
 import { resolve } from 'node:path';
 import { ROOT } from './recipe.mjs';
 import { buildOne } from './build.mjs';
@@ -78,6 +79,14 @@ const HELP = `Asset pipeline: generate art with an image AI, clean it and turn i
       the picked image staying frame 0: everything outside the box is identical in every frame. With --from, the
       area is redrawn from the other view's picture as this view, its outlines in place, after that view was
       changed there: so the two views still line up.
+  npm run asset -- lift <picture recipe> --box x,y,w,h --name <thing> [--prompt "what it is"] [--scene <id>] [--when "<condition>"] [--before <dir>] [--hull]
+      A thing she can take or move, lifted out of a scene's picture into a prop of its own: painted out of both views
+      (touch, raw view redrawn from the Concierge's), cut from the pictures as they were where they changed (the thing
+      and its shadow, not the background drawn again around it), built as a prop that keeps the frame it was cut in,
+      and placed in the scene where it was (shown while --when holds). The picture is split again without it. With
+      --before, the pictures are already without it: it is cut from the ones in <dir> (concierge.png, raw.png). --hull:
+      it is convex (a box, a jar), everything between its edges is it. The box is in the picture's pixels: keep it
+      tight, what changed in it besides the thing is cut with it.
   npm run asset -- ground <recipe> --from <y> [--smooth 20]
       Take the painted reflections out of a picture's wet ground, below the reflection line y (level pixels), in both
       views, so the engine's live ones (the look's "Mirror the set") are the only ones: painted reflections stay put
@@ -119,6 +128,6 @@ function parse(argv) {
 }
 
 const [cmd, ...rest] = process.argv.slice(2), { pos, opt } = parse(rest);
-const run = { new: cmdNew, rig: cmdRig, zoom: cmdZoom, extend: cmdExtend, generate: cmdGenerate, variant: cmdVariant, redress: cmdRedress, reframe: cmdReframe, blockout: cmdBlockout, pick: cmdPick, import: cmdImport, sheet: cmdSheet, touch: cmdTouch, split: cmdSplit, ground: cmdGround, erase: cmdErase, paint: cmdPaint, parts: cmdParts, widen: cmdWiden, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
+const run = { lift: cmdLift, new: cmdNew, rig: cmdRig, zoom: cmdZoom, extend: cmdExtend, generate: cmdGenerate, variant: cmdVariant, redress: cmdRedress, reframe: cmdReframe, blockout: cmdBlockout, pick: cmdPick, import: cmdImport, sheet: cmdSheet, touch: cmdTouch, split: cmdSplit, ground: cmdGround, erase: cmdErase, paint: cmdPaint, parts: cmdParts, widen: cmdWiden, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
 if (!run) console.log(HELP);
 else run(pos, opt).catch((e) => { console.error(`error: ${e.message}`); process.exit(1); });

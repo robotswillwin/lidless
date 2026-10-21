@@ -1,0 +1,24 @@
+{
+  "name": "parcel",
+  "scene": "home",
+  "kind": "prop",
+  "exists": "both",
+  "look": "vector",
+  "res": 2,
+  "frame": "keep",
+  "prompt": "the small cardboard parcel: lifted out of home/cutaway (lift), cut from its pictures where they changed as it was painted out.",
+  "height": 12.41,
+  "position": [
+    682.25,
+    310.7
+  ],
+  "depth": 3,
+  "occluder": false,
+  "material": "stone",
+  "glow": {
+    "raw": "auto",
+    "concierge": "auto"
+  },
+  "palette": 0,
+  "references": []
+}

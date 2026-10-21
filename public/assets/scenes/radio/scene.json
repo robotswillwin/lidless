@@ -12,6 +12,12 @@
       "asset": "radio/shop"
     },
     {
+      "asset": "home/parcel",
+      "x": 643,
+      "y": 323,
+      "when": "parcel_delivered"
+    },
+    {
       "asset": "cast/fixer",
       "x": 672,
       "y": 279
@@ -226,6 +232,25 @@
       },
       "ask": "He repairs old radios, guest. A charming pastime.",
       "story": "fixer"
+    },
+    {
+      "id": "parcel",
+      "name": {
+        "concierge": "Delivery",
+        "raw": "Your parcel"
+      },
+      "rect": [
+        645,
+        320,
+        18,
+        14
+      ],
+      "stand": 640,
+      "when": "parcel_delivered",
+      "look": {
+        "concierge": "A delivery, received and logged.",
+        "raw": "Parcel 4471, on his bench where he set it down. He hasn't opened it. He hasn't needed to."
+      }
     }
   ],
   "lights": [

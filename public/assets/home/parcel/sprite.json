@@ -1,9 +1,9 @@
 {
-  "name": "desk-valve-gone",
-  "x": 643,
-  "y": 283,
-  "w": 17,
-  "h": 27,
+  "name": "parcel",
+  "x": 672,
+  "y": 298,
+  "w": 20,
+  "h": 12.5,
   "maps": [
     "albedo.concierge",
     "albedo.raw",
@@ -16,10 +16,10 @@
   "reflectivity": 0,
   "object": 0,
   "anchor": [
-    9,
-    27
+    10,
+    12.5
   ],
   "exists": "both",
-  "kind": "background",
+  "kind": "prop",
   "res": 2
 }

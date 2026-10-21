@@ -57,7 +57,9 @@ export async function buildOne(file) {
   }
   // res: texels per level pixel, so art can carry more detail than the level's 960 by 540 for a render scale of 2
   const res = r.res ?? 1, flat = isFlat(r), first = raw ?? conc, height = Math.round((r.height ?? spec.height) * res), strength = r.palette ?? 0.35;
-  const box = spec.transparent ? [raw, conc].filter(Boolean).map((img) => contentBox(img)).reduce(unionBox) : { x: 0, y: 0, w: first.w, h: first.h };
+  // a cut-out is cropped to what it shows; one lifted from a picture (`frame: "keep"`) keeps the frame it was cut in, so
+  // it lands exactly where it was
+  const box = spec.transparent && r.frame !== 'keep' ? [raw, conc].filter(Boolean).map((img) => contentBox(img)).reduce(unionBox) : { x: 0, y: 0, w: first.w, h: first.h };
   const hexes = await palette();
   const finish = finishFor(r);
   if (raw) raw = finish(paletteFit(hardenAlpha(await fitToHeight(raw, box, height)), hexes, strength));

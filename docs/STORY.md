@@ -96,19 +96,25 @@ A short cutscene is a knot of such lines. Speaker tags (`#luna`, `#fixer`, `#con
 `public/assets/notebook.json`: each errand and person has `when` (she has written it once this holds) and `done`
 (crossed out once this holds); the questions page has a `when`.
 
-## A thing painted into a background
+## Things she can take or move are props
 
-A thing she can take that is painted into a scene's picture needs the picture without it, shown once she has taken
-it: a patch. Her flat's valve and parcel are made this way (`art/home/desk-valve-gone`, `desk-parcel-gone`):
+A thing she can take, move or use belongs in no background: it is a sprite of its own (a prop), placed in the scene as
+a layer, there while the story says so, and placeable in any other scene (the same asset, any scene's layer). Paint a
+new scene's background without such things, and make each one as a prop, with the background as its reference so it
+matches. A thing already painted into a picture is lifted out of it:
 
-1. Back up both views of the picture, `touch` the Concierge's view with the thing gone, and redraw raw view from it
-   with `touch --from concierge` over the same box.
-2. Cut the box out of both touched pictures, put the pictures back as they were, and blend each patch into its picture
-   along its edge (the image model shifts colours a little: the difference along the edge is carried smoothly across).
-3. Build the patch as a `background` piece (a prop would have its flat background keyed out) and place it over the
-   layer, at the picture's own scale: a picture 1088 texels tall is drawn at 1080, so a texel x of the picture is at
-   scene x 0.32 + 0.4963 × x in her flat. `when: "taken has valve"` shows it once she has the thing; the thing's own
-   light gets `when: "!(taken has valve)"`.
+```
+npm run asset -- lift art/home/cutaway.json --box 1354,598,40,28 --name parcel --prompt "the small cardboard parcel" \
+  --scene home --when "!(taken has parcel)"
+```
+
+`lift` paints it out of the Concierge's view (`touch`) and redraws raw view from that, so the two line up; cuts it from
+the pictures as they were where they changed (a difference matte: its own pixels, its light on the wall around it, its
+soft edges; where it is the colour of what was behind it in one view, the other view's outline holds); builds it as a
+prop that keeps the frame it was cut in; splits the picture again without it; and places it in the scene exactly where
+it was, there while `--when` holds. With `--before <dir>`, the pictures are already without it, and it is cut from
+the ones in that folder. Her flat's parcel and valve were lifted this way. A light the thing gives (the valve's glow)
+gets the same condition.
 
 ## Saves
 

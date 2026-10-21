@@ -141,6 +141,12 @@ const checks = {
     await tap(page, 690, 335);
     const said = await talkThrough(page);
     check('the parcel delivered to the fixer', /"parcel_delivered":\s*true/.test(await ink(page)), said.join(' / ').slice(0, 100));
+    // the same thing, lifted off her desk, now on his bench: a prop placed in any scene the story wants it
+    await verb(page, 'eyes');
+    await tap(page, 652, 326);
+    await wait(600);
+    const note = await page.$eval('.hud-note', (n) => n.textContent).catch(() => '');
+    check('her parcel on his bench', /parcel|delivery/i.test(note), note.slice(0, 80));
     await page.close();
   },
 

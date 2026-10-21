@@ -21,16 +21,16 @@
    "y": 0
   },
   {
-   "asset": "home/desk-valve-gone",
-   "x": 638.56,
-   "y": 280.91,
-   "when": "taken has valve"
+   "asset": "home/parcel",
+   "x": 672.33,
+   "y": 298.29,
+   "when": "!(taken has parcel)"
   },
   {
-   "asset": "home/desk-parcel-gone",
-   "x": 672.31,
-   "y": 296.79,
-   "when": "taken has parcel"
+   "asset": "home/valve",
+   "x": 638.58,
+   "y": 280.92,
+   "when": "!(taken has valve)"
   }
  ],
  "lights": [
