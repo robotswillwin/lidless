@@ -619,8 +619,14 @@ the game:
 - drones cross the main street every half minute or so: two far off between the towers, and a nearer one, bigger,
   just under the viaduct (`bots/drone-near`, the same drone built at 24 px);
 - the guardian walks its own beat past the info screen, near the front of the pavement (a mover with `patrol`): it
-  walks (a stride, standing, the stride mirrored round its hip), stops halfway, rests at each end, turns, its visor a
-  little brighter while it stands. Its hotspot `follows` it; talked to, it stops and turns to her;
+  walks, stops halfway, rests at each end, turns, its visor a little brighter while it stands. Its hotspot `follows`
+  it; talked to, it stops and turns to her. Its walk is cut from its standing frame by `tools/pipeline/walker.mjs`
+  (the recipe's `walker`: polygons for the body, the near arm, the thigh, shin and foot; the joints; the step): the far
+  leg a darker copy of the near one, the legs moved by two-bone IK so each foot stands planted while the body passes
+  over it, for exactly the stride the game moves it, then swings forward; the body a little lower as it walks, rising
+  and falling with each step; twelve frames, free. Drawn facing left, it has frames of its own each way (`idleLeft`,
+  `walkLeft` as drawn; `idle`, `walk` mirrored with its C lettering put back the right way round), so it walks visor
+  first both ways;
 - the maintenance bot welds the backstreet's wall panel, its tool on the panel: frames drawn by
   `tools/pipeline/weld.mjs` (the arc igniting, flashing, flickering, out; sparks spraying back and falling, cooling to
   embers), in bursts, with a light at the tip whose `pulse` follows the frames, and a stronger glow (`glow.strength`).
