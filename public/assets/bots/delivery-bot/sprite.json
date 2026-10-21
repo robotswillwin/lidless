@@ -1,9 +1,9 @@
 {
   "name": "delivery-bot",
-  "x": 561,
-  "y": 312,
-  "w": 79,
-  "h": 140,
+  "x": 588,
+  "y": 408,
+  "w": 25,
+  "h": 44,
   "maps": [
     "albedo.concierge",
     "albedo.raw",
@@ -17,8 +17,8 @@
   "object": 0,
   "machine": 1,
   "anchor": [
-    40,
-    140
+    13,
+    44
   ],
   "exists": "both",
   "kind": "prop",

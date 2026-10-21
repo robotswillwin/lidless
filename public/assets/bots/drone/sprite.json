@@ -1,9 +1,9 @@
 {
   "name": "drone",
-  "x": 583,
-  "y": 134,
-  "w": 34,
-  "h": 16,
+  "x": 589,
+  "y": 139,
+  "w": 23,
+  "h": 11,
   "maps": [
     "albedo.concierge",
     "albedo.raw",
@@ -17,8 +17,8 @@
   "object": 0,
   "machine": 1,
   "anchor": [
-    17,
-    16
+    12,
+    11
   ],
   "exists": "both",
   "kind": "prop",

@@ -63,7 +63,7 @@ He plugs an old diagnostic box into your eyepiece and talks to it in numbers. A 
 { raw_view: In raw view the screen is dark, but the voice still comes, from everywhere at once. }
 "Good evening, guest. Dinner is served." #concierge
 * [Ask what's for dinner.]
-    "Everything you need, and nothing you don't. Please rest your wrist in the cradle." #concierge
+    "Everything you need, and nothing you don't. Please take a seat and rest your wrist on the armrest." #concierge
     -> END
 * [Walk on.]
     "Of course. Enjoy your evening, guest." #concierge

@@ -159,7 +159,9 @@ export async function assembleOne(r) {
   const [a, b] = [views.raw, views.concierge].filter(Boolean);
   if (b && RUNS.some((run) => a[run].length !== b[run].length)) throw new Error(`${r.name}: the raw and Concierge views have different frames; make both the same way`);
   const all = [views.raw, views.concierge].filter(Boolean).flatMap((v) => RUNS.flatMap((run) => v[run]));
-  const box = all.map((img) => contentBox(img)).reduce(unionBox), scale = height / box.h;
+  // an empty frame (a sign switched off) takes no part in the frames' size
+  const shows = (img) => { for (let i = 3; i < img.d.length; i += 4) if (img.d[i] >= 128) return true; return false; };
+  const box = all.filter(shows).map((img) => contentBox(img)).reduce(unionBox), scale = height / box.h;
   const gaitOf = async (name) => (existsSync(join(dir, name, 'stride.json')) ? JSON.parse(await readFile(join(dir, name, 'stride.json'), 'utf8')) : null);
   const G = { walk: await gaitOf('walk'), jog: await gaitOf('jog'), run: await gaitOf('run') };
   const gaitOfRun = (run) => G[run.replace(/Left$/, '')] ?? null;

@@ -308,11 +308,18 @@ export async function cmdTouch([file], opt) {
   console.log(`${r.name}: touching ${areas.length > 1 ? `${areas.length} areas within ` : ''}${bw}×${bh} at ${bx},${by}${kept.length ? `, keeping ${kept.length}` : ''}, sending ${win.width}×${win.height} at ${quality} quality`);
   // --from concierge|raw: the area redrawn from the other view's picture as this view, outlines in place, this view's
   // picture the style to match, after the other view was changed there: so the two views still line up
-  const from = typeof opt.from === 'string' ? opt.from : null, fromFile = from ? join(r.dir, `${from}.png`) : null;
+  // making an animation frame from the other view, it is that view's same frame that is redrawn
+  const [frameAnim, frameNum] = typeof opt.frame === 'string' ? opt.frame.split('/') : [];
+  const otherFrame = from => (frameAnim ? join(r.dir, 'anims', frameAnim, `${from}-${String(Number(frameNum)).padStart(2, '0')}.png`) : null);
+  const from = typeof opt.from === 'string' ? opt.from : null, fromFile = from ? (otherFrame(from) && existsSync(otherFrame(from)) ? otherFrame(from) : join(r.dir, `${from}.png`)) : null;
   if (from && (from === view || !existsSync(fromFile))) throw new Error(`--from needs the other view's picture (${from})`);
+  // --ref: pictures of what to paint there, a design to follow (a station drawn on a sheet)
+  const designs = typeof opt.ref === 'string' ? opt.ref.split(',').map((f) => resolve(ROOT, f.trim())) : [];
+  for (const f of designs) if (!existsSync(f)) throw new Error(`no image at ${rel(f)}`);
+  const designNote = designs.length ? ' The other attached images show the design of what to paint there: follow its shape, parts and lights, drawn in the style, scale and lighting of the picture.' : '';
   const prompt = from
-    ? `${REDRESS_REFERENCES_NOTE} ${redressPrompt(r, view, `Repaint it as ${view} view, as simple and flat as it is now: ${opt.prompt}`)}`
-    : `Change only the transparent area of the mask: ${opt.prompt}. Everything else stays exactly as it is; match the style, colours, lighting and detail around it.${r.spec.transparent ? ' Keep the flat, plain background colour around the subject exactly as it is.' : ''}`;
+    ? `${REDRESS_REFERENCES_NOTE} ${redressPrompt(r, view, `Repaint it as ${view} view, as simple and flat as it is now: ${opt.prompt}`)}${designNote}`
+    : `Change only the transparent area of the mask: ${opt.prompt}. Everything else stays exactly as it is; match the style, colours, lighting and detail around it.${r.spec.transparent ? ' Keep the flat, plain background colour around the subject exactly as it is.' : ''}${designNote}`;
   if (opt.dry) return console.log(`\n${prompt}`);
   // the window, and a mask that is transparent over the box. Cut-out art goes on a key colour (--key, default green):
   // the model keeps it as the background, and it is keyed out again afterwards
@@ -322,7 +329,7 @@ export async function cmdTouch([file], opt) {
   for (let y = by; y < by + bh; y++) for (let x = bx; x < bx + bw; x++) if (weight(x, y) > 0) m[((y - win.top) * win.width + (x - win.left)) * 4 + 3] = 0;
   const mask = await sharp(m, { raw: { width: win.width, height: win.height, channels: 4 } }).png().toBuffer();
   // redrawn from the other view: the whole window, with this view's picture as the style
-  const refs = from ? [{ name: `${view}.png`, data: await sharp(src).resize(1024, 1024, { fit: 'inside' }).png().toBuffer() }] : [];
+  const refs = [...(from ? [{ name: `${view}.png`, data: await sharp(src).resize(1024, 1024, { fit: 'inside' }).png().toBuffer() }] : []), ...(await loadReferences(designs))];
   const res = await edit({ prompt, images: [{ name: 'piece.png', data: piece }, ...refs], mask: from ? undefined : mask, size: `${win.width}x${win.height}`, quality, n: 1, background: r.spec.transparent ? 'transparent' : 'opaque' });
   if (!res.images.length) throw new Error('the API returned no image');
   // keep what the model drew, before it is pasted back, to see what went wrong when a touch-up fails

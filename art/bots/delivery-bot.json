@@ -9,7 +9,7 @@
   "framing": "One robot alone, in pure side view facing right, the whole machine in frame with a little space around it, standing on nothing: no ground, no floor line, no shadow, no wall, no people, no text, no border, on a transparent background. Even, soft, frontal lighting with no cast shadows and no glow halos.",
   "prompt": "A delivery robot: a tall upright box on four small wheels, its body of old cream-grey metal, dented and rusted, yellow-and-black hazard stripes low on its front, a vertical amber light strip on its front edge, a thin antenna with an amber lamp on top, the faded letter C on its side.",
   "concierge": "The city AI's view of the same delivery robot: a clean white cabinet with soft rounded corners, a violet light strip down its front edge and a violet light under its base, a violet antenna lamp, a crisp grey letter C on its side.",
-  "height": 140,
+  "height": 44,
   "position": [
     600,
     452

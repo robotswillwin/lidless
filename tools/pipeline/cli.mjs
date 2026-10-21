@@ -73,13 +73,14 @@ const HELP = `Asset pipeline: generate art with an image AI, clean it and turn i
   npm run asset -- paint <recipe> --file <image> --box x,y,w,h --like x,y,w,h [--skin]
       Paint the box in the colour of the --like area, keeping its light and shade: a robe's thighs in the robe's
       fabric; with --skin only the skin in it, such as an arm drawn onto a torso. Free; the old image is kept.
-  npm run asset -- touch <recipe> --box x,y,w,h --prompt "what to change" [--view raw|concierge] [--from concierge|raw] [--quality low|medium] [--frame idle/1] [--dry]
+  npm run asset -- touch <recipe> --box x,y,w,h --prompt "what to change" [--view raw|concierge] [--from concierge|raw] [--ref design.png] [--quality low|medium] [--frame idle/1] [--dry]
       Change one area of the picked image with GPT Image 2.5 Sunburst, then rebuild. The box is in the picked
       image's pixels. Only a window around it is sent, and only the box is pasted back; the old image is kept
       in candidates/. With --frame, the result becomes that animation frame instead (art/<scene>/<name>/anims/),
       the picked image staying frame 0: everything outside the box is identical in every frame. With --from, the
       area is redrawn from the other view's picture as this view, its outlines in place, after that view was
-      changed there: so the two views still line up.
+      changed there: so the two views still line up. --ref sends pictures of what to paint there (a design sheet) along. A frame made
+      --from the other view is redrawn from that view's same frame.
   npm run asset -- lift <picture recipe> --box x,y,w,h --name <thing> [--prompt "what it is"] [--scene <id>] [--when "<condition>"] [--before <dir>] [--hull]
       A thing she can take or move, lifted out of a scene's picture into a prop of its own: painted out of both views
       (touch, raw view redrawn from the Concierge's), cut from the pictures as they were where they changed (the thing

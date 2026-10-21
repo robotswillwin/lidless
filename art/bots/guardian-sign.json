@@ -1,0 +1,42 @@
+{
+  "name": "guardian-sign",
+  "scene": "bots",
+  "kind": "prop",
+  "exists": "concierge",
+  "look": "vector",
+  "res": 2,
+  "framing": "One small sign alone, seen straight from the front, filling most of the frame, floating in the air: no ground, no shadow, no wall, no people, no text, no border, on a transparent background.",
+  "prompt": "A small floating hologram sign that the city AI projects in the air to give a passer-by directions: a rounded translucent panel glowing soft cyan, with a thin glowing frame, a simple white arrow pointing to the right and a small bus symbol beside it. No letters, no words.",
+  "height": 18,
+  "position": [
+    1040,
+    400
+  ],
+  "depth": 3,
+  "occluder": false,
+  "material": "glass",
+  "glow": {
+    "concierge": "auto",
+    "machine": true
+  },
+  "palette": 0,
+  "references": [
+    "art/reference/robots/helper-robots-and-drones-v3-small.webp"
+  ],
+  "anims": {
+    "idle": {
+      "fps": 1,
+      "order": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1
+      ]
+    }
+  }
+}

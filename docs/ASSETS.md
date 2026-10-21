@@ -593,17 +593,14 @@ seconds]` (a drone).
 delivery bot, a civic guardian, a maintenance bot and a drone, each drawn by the image model from its picture on the
 sheet (`referenceNote: "machine"`: the design to draw, not only a style), raw view first and the Concierge's view from
 it so the outlines match: rusty cream with amber lamps in raw view, dulled into its smog with the lamps kept bright;
-white with cyan and violet light in the Concierge's. They are `lit`: part of the set at their own size, but lit as
-the people are, by the scene's lamps rather than as painted (they were drawn flat-lit), and mirrored in wet ground
-around their own feet. On the main street the cleaner and the delivery bot are movers along the back of the
-pavement (the set's ground line), two drones cross between the towers, and the guardian stands by the feeding
-station; in the backstreet the maintenance bot works at the wall utilities, facing the panel.
-The street's train runs along the viaduct after the middle layer, between the building at the viaduct's left end
-and the billboard's tower at its right, every 10 to 25 seconds, each way in turn. How it was made: `touch` painted
-the two trains out of both views of the street's picture, and the long one was cut out of the pictures from before,
-both views, by a traced outline of its back end, roof and nose (`art/street/train/`); built at the size it was
-painted (`art/street/train.json`, `height` 22 with the build's 2-texel border at `res` 2), it is the train in both
-directions.
+white with cyan and violet light in the Concierge's. They are small (the director's second sheet, Luna about 1.7 m):
+cleaner 0.5 m (37 px on the street), delivery bot 0.6 m (44), guardian 1.0 m (74), maintenance bot 0.7 m (51), drone
+0.3 m. They are `lit`: part of the set at their own size, but lit as the people are, by the scene's lamps rather than as
+painted, and mirrored in wet ground around their own feet. Few of them, more later in the game: now and then a drone
+crosses the main street; the guardian stands by the nutrition station with a hologram sign (`bots/guardian-sign`, the
+Concierge's view only) that comes and goes beside it; the maintenance bot welds at the backstreet's wall panel (three
+frames made with `touch --frame`, the flash and the sparks, in bursts, with a flickering light). The cleaner and the
+delivery bot wait in `public/assets/bots/` for a scene that wants them.
 
 **Splitting a picture into layers.** A background drawn as one picture is cut into layers with `split`, by the
 recipe's `split`: its `layers`, far to near, each with its `parallax` (and `depth`, and what to `fill` behind nearer

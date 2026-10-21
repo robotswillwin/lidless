@@ -9,7 +9,7 @@
   "framing": "One robot alone, in pure side view facing right, the whole machine in frame with a little space around it, standing on nothing: no ground, no floor line, no shadow, no wall, no people, no text, no border, on a transparent background. Even, soft, frontal lighting with no cast shadows and no glow halos.",
   "prompt": "A street cleaning robot, low and long like a small sweeper vehicle: a boxy body of old cream-grey metal plates, scratched and rusted at the edges, a wide brush of dark bristles at its front, two big black wheels, one tall thin antenna with a small amber lamp on top, small amber lamps at its front. Functional machinery with visible bolts, hatches and wear.",
   "concierge": "The city AI's view of the same cleaning robot: smooth glossy white panels with soft rounded edges, a cyan light strip on its antenna and along its side, cyan glowing wheel rims, a clean grey brush, the small grey letter C of the city on its side. Clean, friendly and softly lit.",
-  "height": 100,
+  "height": 37,
   "position": [
     600,
     452

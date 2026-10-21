@@ -1,9 +1,9 @@
 {
   "name": "maintenance-bot",
-  "x": 583,
-  "y": 293,
-  "w": 135,
-  "h": 147,
+  "x": 626,
+  "y": 389,
+  "w": 47.5,
+  "h": 51,
   "maps": [
     "albedo.concierge",
     "albedo.raw",
@@ -17,11 +17,57 @@
   "object": 0,
   "machine": 1,
   "anchor": [
-    68,
-    147
+    23.75,
+    51
   ],
   "exists": "both",
   "kind": "prop",
+  "frames": {
+    "count": 3,
+    "gutter": 2,
+    "cols": 3
+  },
+  "anims": {
+    "idle": {
+      "from": 0,
+      "count": 3,
+      "fps": 8,
+      "order": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        2,
+        1,
+        2,
+        2,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        2,
+        2,
+        1,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  },
   "res": 2,
   "lit": true
 }

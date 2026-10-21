@@ -21,8 +21,13 @@
   },
   {
    "asset": "bots/guardian-bot",
-   "x": 964,
-   "y": 289
+   "x": 778,
+   "y": 378
+  },
+  {
+   "asset": "bots/guardian-sign",
+   "x": 740,
+   "y": 382
   }
  ],
  "lights": [
@@ -70,8 +75,8 @@
    "preset": "neon"
   },
   {
-   "x": 930,
-   "y": 376,
+   "x": 912,
+   "y": 368,
    "preset": "screen",
    "own": 1
   },
@@ -82,8 +87,8 @@
    "parallax": 0.3
   },
   {
-   "x": 930,
-   "y": 376,
+   "x": 912,
+   "y": 336,
    "preset": "machine-eye",
    "own": 1
   },
@@ -122,7 +127,8 @@
     1,
     0.2,
     0.75
-   ]
+   ],
+   "ar": 1
   },
   {
    "x": 2160,
@@ -177,6 +183,74 @@
    "zone": 0,
    "layer": 1,
    "haze": 0.1
+  },
+  {
+   "x": 1100,
+   "y": 380,
+   "preset": "shop-window",
+   "raw": 1,
+   "c": [
+    1,
+    0.72,
+    0.42
+   ],
+   "i": 0.7
+  },
+  {
+   "x": 1935,
+   "y": 380,
+   "preset": "shop-window",
+   "raw": 1,
+   "c": [
+    1,
+    0.72,
+    0.42
+   ],
+   "i": 0.7
+  },
+  {
+   "x": 2160,
+   "y": 370,
+   "preset": "shop-window",
+   "raw": 1,
+   "c": [
+    1,
+    0.72,
+    0.42
+   ],
+   "i": 0.7
+  },
+  {
+   "x": 794,
+   "y": 383,
+   "z": 10,
+   "r": 36,
+   "c": [
+    0.5,
+    0.9,
+    1
+   ],
+   "i": 0.5,
+   "zone": 0,
+   "layer": 1,
+   "g": 4,
+   "ar": 1
+  },
+  {
+   "x": 794,
+   "y": 383,
+   "z": 10,
+   "r": 36,
+   "c": [
+    1,
+    0.65,
+    0.3
+   ],
+   "i": 0.45,
+   "zone": 0,
+   "layer": 1,
+   "g": 4,
+   "raw": 1
   }
  ],
  "walk": {
@@ -312,50 +386,53 @@
    "id": "dock",
    "name": {
     "concierge": "Woman in red",
-    "raw": "Someone at the dock"
+    "raw": "Woman at the station"
    },
    "rect": [
-    838,
-    380,
-    62,
-    72
+    822,
+    372,
+    52,
+    80
    ],
-   "stand": 816,
+   "stand": 800,
    "face": 1,
    "look": {
-    "concierge": "A woman in a red dress, dining at the machine. She smiles at nothing in particular.",
-    "raw": "She's wire-thin, her wrist locked in the cradle, head down. The red dress was never there."
+    "concierge": "A woman in red, dining at the station. She smiles at nothing in particular.",
+    "raw": "She's wire-thin, her wrist locked in the station's cuff, head down. The red was never there."
    },
    "tag": {
     "concierge": "Guest · dining",
     "raw": "her wrist is locked in"
    },
-   "ask": "She is a guest, dining. Shall I reserve a cradle for you?"
+   "ask": "She is a guest, dining. Shall I reserve a seat for you?"
   },
   {
    "id": "kiosk",
-   "name": "Street machine",
+   "name": {
+    "concierge": "Nutrition station",
+    "raw": "Feeding station"
+   },
    "rect": [
-    902,
-    347,
-    54,
-    105
+    874,
+    300,
+    92,
+    152
    ],
-   "stand": 816,
-   "face": 1,
+   "stand": 975,
+   "face": -1,
    "talk": "kiosk",
-   "tag": "Dining service",
+   "tag": "Nutrition · health",
    "look": {
-    "concierge": "A street machine with a soft blue eye and a cradle for the wrist.",
-    "raw": "A grey box bolted to the wall, its eye still lit. The cradle is worn bright."
+    "concierge": "The city's nutrition and health station: a seat, a gentle scan, everything you need. Its right seat is free.",
+    "raw": "Two worn seats bolted to a column of pumps and gauges. Cuffs on the armrests, polished by wrists."
    },
    "ask": "Dinner is served here every evening, guest. Everything you need, and nothing you don't."
   },
   {
-   "id": "bakery",
+   "id": "cocktail-bar",
    "name": {
-    "concierge": "Bakery",
-    "raw": "Shuttered bakery"
+    "concierge": "Cocktail bar",
+    "raw": "Bar"
    },
    "rect": [
     985,
@@ -365,12 +442,12 @@
    ],
    "stand": 1100,
    "look": {
-    "concierge": "Fresh bread, warm from the oven, every hour on the hour.",
-    "raw": "Shutters down, the awning in rags. It smells of nothing at all."
+    "concierge": "Low light, brass and glass, and a drink that remembers what you like.",
+    "raw": "A real bar, and open: real bottles, a few stools, real prices. Somebody is always drinking."
    },
    "tag": {
-    "concierge": "Bakery · open late",
-    "raw": "closed for good"
+    "concierge": "Bar · open",
+    "raw": "a week's credits a glass"
    },
    "map": true
   },
@@ -435,7 +512,7 @@
    "id": "bar",
    "name": {
     "concierge": "Bar",
-    "raw": "Boarded bar"
+    "raw": "Bar"
    },
    "rect": [
     1820,
@@ -445,12 +522,12 @@
    ],
    "stand": 1935,
    "look": {
-    "concierge": "Velvet, low light, and a drink that remembers what you like.",
-    "raw": "Boarded up. Through a gap, chairs stacked on the tables."
+    "concierge": "Velvet seats, a long mirror, music low enough to talk over.",
+    "raw": "Open late and worn soft: real bottles, real smoke, the same faces every night."
    },
    "tag": {
     "concierge": "Bar · open",
-    "raw": "closed. a real drink costs a week's credits"
+    "raw": "open late"
    },
    "map": true
   },
@@ -458,7 +535,7 @@
    "id": "corner-shop",
    "name": {
     "concierge": "Corner shop",
-    "raw": "Shuttered shop"
+    "raw": "Corner shop"
    },
    "rect": [
     2075,
@@ -469,7 +546,7 @@
    "stand": 2155,
    "look": {
     "concierge": "Everything a guest could need, gift-wrapped.",
-    "raw": "Shutters, and behind them shelves of nothing."
+    "raw": "Open late: a few real things on the shelves, umbrellas by the door, the clerk half asleep."
    },
    "map": true
   },
@@ -480,12 +557,12 @@
     "raw": "Guard unit"
    },
    "rect": [
-    966,
-    292,
-    70,
-    160
+    778,
+    378,
+    33,
+    74
    ],
-   "stand": 940,
+   "stand": 760,
    "face": 1,
    "tag": {
     "concierge": "Guardian · safety and assistance",
@@ -685,50 +762,6 @@
    ]
   },
   {
-   "asset": "bots/cleaner-bot",
-   "after": "street/vista-street",
-   "x0": 0,
-   "x1": 2400,
-   "y": 352,
-   "speed": 22,
-   "wait": [
-    4,
-    12
-   ],
-   "stops": [
-    {
-     "x": 760,
-     "seconds": 3
-    },
-    {
-     "x": 1560,
-     "seconds": 3
-    }
-   ]
-  },
-  {
-   "asset": "bots/delivery-bot",
-   "after": "street/vista-street",
-   "x0": 0,
-   "x1": 2400,
-   "y": 312,
-   "speed": 45,
-   "wait": [
-    14,
-    30
-   ],
-   "stops": [
-    {
-     "x": 304,
-     "seconds": 5
-    },
-    {
-     "x": 2155,
-     "seconds": 5
-    }
-   ]
-  },
-  {
    "asset": "bots/drone",
    "after": "street/vista-far",
    "x0": 0,
@@ -736,8 +769,8 @@
    "y": 110,
    "speed": 30,
    "wait": [
-    6,
-    16
+    40,
+    120
    ],
    "bob": [
     2,
@@ -752,8 +785,8 @@
    "y": 175,
    "speed": 48,
    "wait": [
-    9,
-    22
+    60,
+    150
    ],
    "bob": [
     1.5,

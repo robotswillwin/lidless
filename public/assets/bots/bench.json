@@ -4,6 +4,7 @@
     "delivery-bot",
     "drone",
     "guardian-bot",
+    "guardian-sign",
     "maintenance-bot"
   ],
   "backgrounds": []

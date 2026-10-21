@@ -1,9 +1,9 @@
 {
   "name": "cleaner-bot",
-  "x": 531,
-  "y": 352,
-  "w": 138,
-  "h": 100,
+  "x": 575,
+  "y": 415,
+  "w": 51,
+  "h": 37,
   "maps": [
     "albedo.concierge",
     "albedo.raw",
@@ -17,8 +17,8 @@
   "object": 0,
   "machine": 1,
   "anchor": [
-    69,
-    100
+    26,
+    37
   ],
   "exists": "both",
   "kind": "prop",

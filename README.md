@@ -52,9 +52,13 @@ Then open the address Vite prints.
 - **Her notebook** is paper, what she keeps from the Concierge: what she saw, what she thinks, what to ask it. It opens
   only in a privacy zone, where the law it keeps forbids it to watch: her home (public restrooms and approved meeting
   rooms to come). Anywhere else it stays shut. What she has not read yet has a red dot.
-- **The city's helper robots** go about their work: a cleaner sweeping the main street, a delivery bot stopping at
-  doors, drones between the towers, a civic guardian by the feeding station (look at it, or ask it in the Concierge's
-  view), and a repair bot at the backstreet's wall utilities. White and lit in the Concierge's view, rusty in raw view.
+- **The city's helper robots** are small and few, more of them later in the game: now and then a drone crosses between
+  the towers; a civic guardian stands by the nutrition station on the main street, a hologram sign for directions
+  coming and going beside it in the Concierge's view (look at it, or ask it there); and a repair bot welds at the
+  backstreet's wall panel. White and lit in the Concierge's view, rusty in raw view.
+- **The nutrition station** on the main street: a column with two seats built into it, a cuff for the right wrist on
+  each armrest. Nobody eats; the station feeds and treats. Real food and drink are rare and dear, but the bars are open,
+  and so is Store 24, all night: drinks, tobacco, umbrellas, care for her devices, and new looks in its window.
 - **Saves**, from the menu: the game saves as she goes (never in the middle of a conversation), and three slots she
   saves into and goes back to. A save made with an older version of the story keeps what she knew and carried.
   `?new` starts a new game.

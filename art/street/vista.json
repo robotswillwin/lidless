@@ -6,8 +6,8 @@
   "look": "vector",
   "res": 2,
   "rawAir": "amber-brown",
-  "prompt": "A night street seen from the side, in flat simple shapes. On the left, a two-storey concrete shop building: upstairs a dim room behind a long window with bare bulbs, a dead tree and hanging vines; downstairs a wide shop window glowing amber, full of old radios, speakers and an oscilloscope, a door on its right, an old gold-leaf sign reading РЕМОНТ РАДИО above it, and a faded vertical sign reading ОТЕЛЬ on the corner; a man asleep on the step under the window. In the middle, a street lamp throwing a cone of light through the smog, and a row of bollards along a flat pavement. Behind, an elevated industrial walkway with no train on it (the train is an asset of its own that drives along it), dark smokestacks and refinery towers in thick amber-brown smog, a huge faded poster of a stern man with the word ПОРЯДОК, a pale moon. On the right, a rusty street machine with pipes and one round orange eye, and a wire-thin woman kneeling at it with her wrist locked in its cradle. Along the bottom, a wet street with long vertical reflections of the lights. Rain.",
-  "concierge": "The Concierge's version of the same street, in the same flat simple shapes: upstairs a warm red-orange bar with globe lamps, lush plants and a pink neon ring; the shop window glowing gold with neat radios and speakers, the sign reading RADIO REPAIR in glowing gold leaf, the corner sign reading ホテル in red neon; the step empty. The lamp sleek, planters with lush plants. Behind, a glittering city of violet, blue, pink and cyan neon towers, the elevated viaduct empty (its train is an asset of its own that drives along it), and on a tall billboard the vast calm face of the Concierge in soft violet light. On the right, a sleek dark dining machine with a glowing blue ring and the words Good evening. Dinner is served., and a woman in a red evening dress kneeling at it, dining. Along the bottom, a glossy street mirroring the neon.",
+  "prompt": "A night street seen from the side, in flat simple shapes. On the left, a two-storey concrete shop building: upstairs a dim room behind a long window with bare bulbs, a dead tree and hanging vines; downstairs a wide shop window glowing amber, full of old radios, speakers and an oscilloscope, a door on its right, an old gold-leaf sign reading \u0420\u0415\u041c\u041e\u041d\u0422 \u0420\u0410\u0414\u0418\u041e above it, and a faded vertical sign reading \u041e\u0422\u0415\u041b\u042c on the corner; a man asleep on the step under the window. In the middle, a street lamp throwing a cone of light through the smog, and a row of bollards along a flat pavement. Behind, an elevated industrial walkway with no train on it (the train is an asset of its own that drives along it), dark smokestacks and refinery towers in thick amber-brown smog, a huge faded poster of a stern man with the word \u041f\u041e\u0420\u042f\u0414\u041e\u041a, a pale moon. On the right, a rusty street machine with pipes and one round orange eye, and a wire-thin woman kneeling at it with her wrist locked in its cradle. Along the bottom, a wet street with long vertical reflections of the lights. Rain.",
+  "concierge": "The Concierge's version of the same street, in the same flat simple shapes: upstairs a warm red-orange bar with globe lamps, lush plants and a pink neon ring; the shop window glowing gold with neat radios and speakers, the sign reading RADIO REPAIR in glowing gold leaf, the corner sign reading \u30db\u30c6\u30eb in red neon; the step empty. The lamp sleek, planters with lush plants. Behind, a glittering city of violet, blue, pink and cyan neon towers, the elevated viaduct empty (its train is an asset of its own that drives along it), and on a tall billboard the vast calm face of the Concierge in soft violet light. On the right, a sleek dark dining machine with a glowing blue ring and the words Good evening. Dinner is served., and a woman in a red evening dress kneeling at it, dining. Along the bottom, a glossy street mirroring the neon.",
   "height": 540,
   "position": [
     480,
@@ -328,6 +328,15 @@
             624.0,
             310.0
           ]
+        ]
+      },
+      {
+        "to": "street",
+        "rect": [
+          812,
+          290,
+          166,
+          166
         ]
       }
     ],

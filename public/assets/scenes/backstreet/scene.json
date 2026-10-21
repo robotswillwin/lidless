@@ -17,8 +17,8 @@
   },
   {
    "asset": "bots/maintenance-bot",
-   "x": 580,
-   "y": 293,
+   "x": 590,
+   "y": 389,
    "facing": -1
   }
  ],
@@ -51,7 +51,7 @@
    "id": "store",
    "name": {
     "concierge": "Concierge Store 24",
-    "raw": "Shuttered kiosk"
+    "raw": "Store 24"
    },
    "rect": [
     44,
@@ -61,11 +61,14 @@
    ],
    "stand": 180,
    "look": {
-    "concierge": "Coffee, drinks, snacks, essentials. A cleaner, brighter you, it promises.",
-    "raw": "Rusted shutters, a smiley sprayed across them. Whatever it sold, it stopped."
+    "concierge": "Drinks, tobacco, rain gear and care for your devices, any hour. And new looks to try on, in the window.",
+    "raw": "A cramped shop, open all night: bottles, cigarettes, umbrellas by the door, spare cells and lenses for eyepieces and wrist bands. The clerk doesn't look up."
    },
-   "tag": "Concierge Store 24 · open",
-   "ask": "Coffee, drinks, snacks and essentials, guest. Shall I place an order?",
+   "tag": {
+    "concierge": "Concierge Store 24 · open",
+    "raw": "open all night"
+   },
+   "ask": "Drinks, tobacco, umbrellas and care for your devices, guest, any hour. Shall I set something aside for you?",
    "map": true
   },
   {
@@ -125,12 +128,12 @@
     "raw": "Repair bot"
    },
    "rect": [
-    630,
-    300,
-    90,
-    140
+    592,
+    389,
+    46,
+    51
    ],
-   "stand": 700,
+   "stand": 630,
    "face": -1,
    "tag": {
     "concierge": "Maintenance · in progress",
@@ -170,7 +173,8 @@
    ],
    "r": 220,
    "i": 0.8,
-   "g": 0
+   "g": 0,
+   "ar": 1
   },
   {
    "x": 843,
@@ -364,6 +368,37 @@
    "x": 700,
    "y": 150,
    "preset": "smog-glow"
+  },
+  {
+   "x": 180,
+   "y": 352,
+   "z": 30,
+   "r": 300,
+   "c": [
+    0.92,
+    0.95,
+    0.8
+   ],
+   "i": 0.6,
+   "zone": 0,
+   "layer": 1,
+   "raw": 1,
+   "own": 1
+  },
+  {
+   "x": 592,
+   "y": 390,
+   "z": 12,
+   "r": 60,
+   "c": [
+    0.85,
+    0.9,
+    1
+   ],
+   "i": 0.9,
+   "zone": 0,
+   "layer": 1,
+   "g": 3
   }
  ],
  "zones": {

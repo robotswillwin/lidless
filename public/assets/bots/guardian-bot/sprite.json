@@ -1,9 +1,9 @@
 {
   "name": "guardian-bot",
-  "x": 939,
-  "y": 289,
-  "w": 71.5,
-  "h": 163,
+  "x": 959,
+  "y": 378,
+  "w": 32.5,
+  "h": 74,
   "maps": [
     "albedo.concierge",
     "albedo.raw",
@@ -17,8 +17,8 @@
   "object": 0,
   "machine": 1,
   "anchor": [
-    36,
-    163
+    16,
+    74
   ],
   "exists": "both",
   "kind": "prop",
