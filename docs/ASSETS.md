@@ -581,7 +581,7 @@ above. The flying car is a mover (`art/home/flycar`): cut from the Concierge's p
 street's train, then redrawn by the image model in pure side view, with a white headlight at its nose and a red tail
 light at its back and none along its side, since the picture drew it flying towards us at an angle and, moving straight
 sideways, it looked wrong. It crosses fast, 210 px a second, its colours smeared back along its body as by speed, its
-thruster trailing a streak of light and its headlight shining ahead (the mover's `lights`). `touch` painted the
+thruster leaving only a faint, short streak behind it (the mover's `lights`; a beam ahead was too much). `touch` painted the
 picture's two still cars out, and one of its two KAZE signs. A mover goes straight across at one size, so whatever
 moves this way is drawn in side view, its lights saying which way it goes. Her window is
 outside (`zones`), so rain falls past it. `split` places a layer 3.5 px right of and 4 px below where the picture was,
