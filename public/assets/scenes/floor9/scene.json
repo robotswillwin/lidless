@@ -1,0 +1,364 @@
+{
+  "id": "floor9",
+  "name": "Floor 9",
+  "greeting": "Good evening, Luna.",
+  "assist": "This is floor nine, Luna. Yours is fourteen.",
+  "kind": "interior",
+  "size": [
+    960,
+    540
+  ],
+  "layers": [
+    {
+      "asset": "tower/floor9"
+    }
+  ],
+  "walk": {
+    "y": 365,
+    "x0": 280,
+    "x1": 835
+  },
+  "mirror": 365,
+  "spawns": {
+    "lift": {
+      "x": 318,
+      "facing": 1
+    }
+  },
+  "hotspots": [
+    {
+      "id": "lift",
+      "name": "Lift",
+      "rect": [
+        278,
+        232,
+        82,
+        135
+      ],
+      "stand": 318,
+      "face": 1,
+      "kind": "way",
+      "story": "lift",
+      "look": {
+        "concierge": "Polished steel doors, and over them its floor number glowing softly.",
+        "raw": "Scratched steel doors. Over them the indicator's needle shivers between two floors."
+      },
+      "tag": {
+        "concierge": "Floors 1 to 20",
+        "raw": "it still runs"
+      },
+      "ask": "The lift serves every floor, Luna. Yours is fourteen."
+    },
+    {
+      "id": "door-1",
+      "name": {
+        "concierge": "Flat 9-05",
+        "raw": "9-05"
+      },
+      "rect": [
+        428,
+        230,
+        67,
+        140
+      ],
+      "stand": 462,
+      "look": {
+        "concierge": "Flat 9-05. Quiet.",
+        "raw": "A door with a dent at kicking height."
+      }
+    },
+    {
+      "id": "door-2",
+      "name": {
+        "concierge": "Flat 9-06",
+        "raw": "9-06"
+      },
+      "rect": [
+        550,
+        230,
+        67,
+        140
+      ],
+      "stand": 584,
+      "look": {
+        "concierge": "Ajar: warm light, and music. Someone is having a lovely evening.",
+        "raw": "Through the gap: a man in a reclining chair, wires from both wrists to a box on the wall, smiling at the ceiling. The music is in his head. Out here it's silent."
+      },
+      "tag": {
+        "concierge": "Guest · Integrated Care",
+        "raw": "ajar"
+      }
+    },
+    {
+      "id": "door-3",
+      "name": {
+        "concierge": "Flat 9-07",
+        "raw": "9-07"
+      },
+      "rect": [
+        675,
+        230,
+        67,
+        140
+      ],
+      "stand": 709,
+      "look": {
+        "concierge": "Flat 9-07, right under yours.",
+        "raw": "9-07. The same door as yours, five floors down."
+      }
+    },
+    {
+      "id": "plant",
+      "name": "Plant",
+      "rect": [
+        372,
+        270,
+        40,
+        90
+      ],
+      "stand": 392,
+      "look": {
+        "concierge": "A plant in a white pot, glowing faintly pink from beneath.",
+        "raw": "A plastic plant over a pink light nobody turns off."
+      }
+    },
+    {
+      "id": "box",
+      "name": {
+        "concierge": "Delivery",
+        "raw": "Box"
+      },
+      "rect": [
+        620,
+        337,
+        33,
+        26
+      ],
+      "stand": 636,
+      "look": {
+        "concierge": "A delivery for 9-06, sealed: Wellbeing supplement · weekly.",
+        "raw": "A box for 9-06. A pharmacy's seal on it, and a pharmacy's smell."
+      },
+      "tag": {
+        "concierge": "Wellbeing · weekly",
+        "raw": "for 9-06"
+      },
+      "ask": "A weekly delivery for a guest at Level 3, Luna. They are doing very well."
+    },
+    {
+      "id": "robot",
+      "name": {
+        "concierge": "Cleaning unit",
+        "raw": "Cleaning bot"
+      },
+      "rect": [
+        737,
+        320,
+        36,
+        46
+      ],
+      "stand": 720,
+      "kind": "machine",
+      "look": {
+        "concierge": "A small white cleaning unit, resting. Its eye glows a patient cyan.",
+        "raw": "A battered cleaning bot, docked and humming. Its brush is worn to a stub."
+      },
+      "reply": {
+        "concierge": "Bzzt. It turns its eye on you, and back to the floor.",
+        "raw": "Bzzt. Its brush twitches, and is still."
+      },
+      "ask": "A cleaning unit, Luna. It keeps the corridors spotless."
+    },
+    {
+      "id": "window",
+      "name": "Window",
+      "rect": [
+        780,
+        228,
+        65,
+        98
+      ],
+      "stand": 800,
+      "look": {
+        "concierge": "The city, nine floors down, glittering.",
+        "raw": "Smog, and the lights under it. The towers across the way are close enough to count windows."
+      }
+    },
+    {
+      "id": "floors",
+      "name": {
+        "concierge": "Other floors",
+        "raw": "Above and below"
+      },
+      "rect": [
+        258,
+        70,
+        592,
+        100
+      ],
+      "look": {
+        "concierge": "Quiet corridors, the same as this one.",
+        "raw": "The same corridor, again and again, up and down the tower."
+      }
+    }
+  ],
+  "lights": [
+    {
+      "x": 465,
+      "y": 222,
+      "z": 16,
+      "r": 160,
+      "c": [
+        1,
+        0.82,
+        0.55
+      ],
+      "i": 0.9,
+      "zone": 0,
+      "layer": 1,
+      "own": 1
+    },
+    {
+      "x": 585,
+      "y": 222,
+      "z": 16,
+      "r": 160,
+      "c": [
+        1,
+        0.82,
+        0.55
+      ],
+      "i": 0.9,
+      "zone": 0,
+      "layer": 1,
+      "own": 1
+    },
+    {
+      "x": 705,
+      "y": 222,
+      "z": 16,
+      "r": 160,
+      "c": [
+        1,
+        0.82,
+        0.55
+      ],
+      "i": 0.9,
+      "zone": 0,
+      "layer": 1,
+      "own": 1
+    },
+    {
+      "x": 318,
+      "y": 215,
+      "z": 16,
+      "r": 130,
+      "c": [
+        1,
+        0.86,
+        0.6
+      ],
+      "i": 0.6,
+      "zone": 0,
+      "layer": 1,
+      "own": 1
+    },
+    {
+      "x": 812,
+      "y": 276,
+      "z": 16,
+      "r": 140,
+      "c": [
+        0.7,
+        0.45,
+        1
+      ],
+      "i": 0.6,
+      "zone": 0,
+      "layer": 1,
+      "own": 1,
+      "ar": 1
+    },
+    {
+      "x": 812,
+      "y": 276,
+      "z": 16,
+      "r": 130,
+      "c": [
+        0.75,
+        0.8,
+        0.55
+      ],
+      "i": 0.4,
+      "zone": 0,
+      "layer": 1,
+      "own": 1,
+      "raw": 1
+    }
+  ],
+  "zones": {
+    "outside": [
+      [
+        0,
+        0,
+        250,
+        540
+      ],
+      [
+        855,
+        0,
+        105,
+        540
+      ]
+    ]
+  },
+  "actorScale": 0.44,
+  "ambient": {
+    "raw": 1.2,
+    "concierge": 1.3
+  },
+  "baked": 1,
+  "look": {
+    "depthOfField": 0,
+    "actorPaint": 1,
+    "raw": {
+      "actorRed": 0.9,
+      "actorGreen": 0.84,
+      "actorBlue": 0.7,
+      "rain": 0.5
+    },
+    "concierge": {
+      "actorRed": 1,
+      "actorGreen": 0.92,
+      "actorBlue": 0.9
+    }
+  },
+  "variants": {
+    "rain": {
+      "name": "Heavy rain",
+      "look": {
+        "raw": {
+          "rain": 1.6
+        },
+        "concierge": {
+          "rain": 1.6
+        }
+      }
+    },
+    "fog": {
+      "name": "Dense fog",
+      "look": {
+        "fog": 0.9,
+        "raw": {
+          "rawFog": 1.4
+        }
+      }
+    },
+    "outage": {
+      "name": "Power cut",
+      "look": {
+        "power": 0
+      }
+    }
+  }
+}

@@ -136,8 +136,8 @@ const checks = {
     await tap(page, 816, 294);
     await wait(4500);
     s = await save(page);
-    check('out of the door: her coat on, the projection still on', s?.scene === 'backstreet' && s?.outfit === 'coat' && s?.projection === 'party', `${s?.scene} ${s?.outfit} + ${s?.projection}`);
-    await tap(page, 453, 357);
+    check('out of the door: her coat on, the projection still on', s?.scene === 'floor14' && s?.outfit === 'coat' && s?.projection === 'party', `${s?.scene} ${s?.outfit} + ${s?.projection}`);
+    await tap(page, 708, 300);
     await wait(4500);
     s = await save(page);
     check('home again: her coat off', s?.scene === 'home' && s?.outfit === 'clothes', `${s?.scene} ${s?.outfit}`);
@@ -283,18 +283,18 @@ const checks = {
   /** The map: where she has been and what she has seen, and going there; her notebook, read only out of its sight. */
   async map() {
     const page = await fresh('scene=home&spawn=door');
-    // out through her door: the backstreet, and the way to the main street at its end
+    // out through her door: the corridor of floor 14
     await tap(page, 816, 290);
     await wait(4500);
     await panel(page, 'map');
     const places = await page.$$eval('.chart button.place', (bs) => bs.map((b) => b.getAttribute('aria-label')));
-    check('the map: her home and the backstreet, the main street sketched in', places.some((l) => /Luna's home/.test(l)) && places.some((l) => /Backstreet: you are here/.test(l)) && places.some((l) => /Main street: not been there yet/.test(l)), places.join(' / '));
+    check('the map: her home, and the corridor she is in', places.some((l) => /Luna's home/.test(l)) && places.some((l) => /Floor 14: you are here/.test(l)), places.join(' / '));
     const over = await page.evaluate(() => {
       const box = (re) => [...document.querySelectorAll('.chart button.place')].find((b) => re.test(b.getAttribute('aria-label') ?? ''))?.getBoundingClientRect();
-      const home = box(/Luna's home/), street = box(/Backstreet/), stem = document.querySelector('.chart line.link');
-      return home && street ? { above: home.bottom < street.top + 10, joined: !!stem } : null;
+      const home = box(/Luna's home/), floor = box(/Floor 14/), stem = document.querySelector('.chart line.link');
+      return home && floor ? { above: home.bottom < floor.top + 10, joined: !!stem } : null;
     });
-    check('her home above the backstreet, joined to its door', !!over?.above && over.joined, JSON.stringify(over));
+    check('her home above the corridor, joined to her door', !!over?.above && over.joined, JSON.stringify(over));
     // home again, from the map
     await page.evaluate(() => [...document.querySelectorAll('.chart button.place')].find((b) => /Luna's home/.test(b.getAttribute('aria-label') ?? ''))?.click());
     await wait(3500);
@@ -449,6 +449,35 @@ const checks = {
     await page.evaluate(() => [...document.querySelectorAll('.hud-way')].find((b) => b.textContent === 'Radio repair')?.click());
     await wait(4500);
     check('a marker tapped: she goes there, and in', (await save(page))?.scene === 'radio', (await save(page))?.scene);
+    await page.close();
+  },
+
+  /**
+   * Her tower: out of her flat into the corridor of floor 14, the lift down (it calls her "guest", and offers every
+   * floor but this one), the lobby, out to the backstreet; on the map, the floors over the lobby, joined by the lift.
+   */
+  async tower() {
+    const page = await fresh('scene=floor14&spawn=her-door');
+    await verb(page, 'hands');
+    await tap(page, 318, 300);
+    await page.waitForFunction(() => document.querySelectorAll('.talk-choices:not([hidden]) .talk-choice').length > 0, { timeout: 12000 }).catch(() => {});
+    const asked = await page.$eval('.talk-line', (l) => l.textContent).catch(() => '');
+    const floors = await page.$$eval('.talk-choices:not([hidden]) .talk-choice', (bs) => bs.map((b) => b.textContent));
+    check('the lift asks which floor, "guest", and offers every floor but this one', /guest/.test(asked ?? '') && floors.some((f) => /Ground floor/.test(f)) && floors.some((f) => /Floor 9/.test(f)) && !floors.some((f) => /Floor 14/.test(f)), `${asked} | ${floors.join(' / ')}`);
+    await choose(page, 'Ground floor');
+    await talkThrough(page);
+    check('down in the lift: the lobby', (await save(page))?.scene === 'lobby', (await save(page))?.scene);
+    await panel(page, 'map');
+    const stack = await page.evaluate(() => {
+      const box = (re) => [...document.querySelectorAll('.chart button.place')].find((b) => re.test(b.getAttribute('aria-label') ?? ''))?.getBoundingClientRect();
+      const lobby = box(/Entrance 3/), floor = box(/Floor 14/), home = box(/Luna's home/);
+      return lobby && floor && home ? { floorOverLobby: floor.bottom < lobby.top, homeOverFloor: home.bottom < floor.top } : null;
+    });
+    check('on the map, floor 14 over the lobby, her home over floor 14', !!stack?.floorOverLobby && stack.homeOverFloor, JSON.stringify(stack));
+    await page.keyboard.press('Escape');
+    await tap(page, 270, 300);
+    await wait(4500);
+    check('out of the lobby: the backstreet', (await save(page))?.scene === 'backstreet', (await save(page))?.scene);
     await page.close();
   },
 

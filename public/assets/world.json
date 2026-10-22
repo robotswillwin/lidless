@@ -51,7 +51,10 @@
     "home",
     "radio",
     "restroom",
-    "bar"
+    "bar",
+    "lobby",
+    "floor9",
+    "floor14"
   ],
   "map": {
     "places": {
@@ -80,6 +83,17 @@
       },
       "bar": {
         "spawn": "door"
+      },
+      "lobby": {
+        "spawn": "street-door"
+      },
+      "floor9": {
+        "spawn": "lift",
+        "over": "lobby"
+      },
+      "floor14": {
+        "spawn": "lift",
+        "over": "floor9"
       }
     }
   }

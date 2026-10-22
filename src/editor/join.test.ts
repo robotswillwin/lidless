@@ -13,7 +13,7 @@ const corridor = (): SceneFile => ({ ...read('home'), id: 'corridor', name: 'Cor
 
 describe('exits both ways', () => {
   it('finds the game’s exits joined up', () => {
-    for (const [a, id, b] of [['street', 'to-backstreet', 'backstreet'], ['backstreet', 'to-street', 'street'], ['street', 'radio-door', 'radio'], ['radio', 'door', 'street'], ['backstreet', 'entrance', 'home'], ['home', 'door', 'backstreet'], ['street', 'restroom-door', 'restroom'], ['restroom', 'door', 'street']]) {
+    for (const [a, id, b] of [['street', 'to-backstreet', 'backstreet'], ['backstreet', 'to-street', 'street'], ['street', 'radio-door', 'radio'], ['radio', 'door', 'street'], ['backstreet', 'entrance', 'lobby'], ['lobby', 'entrance', 'backstreet'], ['floor14', 'her-door', 'home'], ['home', 'door', 'floor14'], ['street', 'bar-door', 'bar'], ['bar', 'door', 'street'], ['street', 'restroom-door', 'restroom'], ['restroom', 'door', 'street']]) {
       const here = read(a), j = joinOf(exit(here, id), here, read(b));
       expect(joinedUp(j), `${a}'s ${id}`).toBe(true);
     }

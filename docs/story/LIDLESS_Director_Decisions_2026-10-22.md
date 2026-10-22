@@ -100,12 +100,15 @@ holds**. Each decision is the director's, in plain words; what is still open say
 25. **Most signs are the Concierge's**: shop names, neon, sign boards and screens are projections, not there at all in
     raw view, where the wall or the band they hang on is bare. Raw view keeps only physical remains: an old torn
     poster, a word faded on brick.
+26. **Luna's tower has rooms inside**: Entrance 3 from the backstreet leads to the lift hall; the lift goes to the
+    floors (9 and 14 so far), each a corridor of flat doors; her flat is off the corridor of floor 14. The lift is a
+    machine of the city and calls her "guest".
 
 ## Production
 
-26. **Music** is the director's: one composition in a digital and an analogue arrangement, blended as the view
+27. **Music** is the director's: one composition in a digital and an analogue arrangement, blended as the view
     switches. No sound effects yet.
-27. **English only**, for now.
+28. **English only**, for now.
 
 ## Open, for the director
 

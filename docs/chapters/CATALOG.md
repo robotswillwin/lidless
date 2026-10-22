@@ -13,7 +13,7 @@ exterior. Arrivals: `from-street`, `door`.
 | Spot | Name | Story | Notes |
 | --- | --- | --- | --- |
 | `store` | Concierge Store 24 / Store 24 |  |  |
-| `entrance` | Entrance 3 |  | to `home/door` |
+| `entrance` | Entrance 3 |  | to `lobby/street-door` |
 | `box` | Concierge City panel / Fuse box |  |  |
 | `to-street` | To the main street |  | to `street/from-backstreet` |
 | `repair-bot` | Maintenance unit / Repair bot |  |  |
@@ -37,13 +37,45 @@ interior. Arrivals: `door`.
 | `felix` | Man in light / Man in a helmet | `felix` (talk) | when `not met_felix` |
 | `felix-met` | Felix | `felix` (talk) | when `met_felix` |
 
+### floor14: Floor 14
+
+interior. Arrivals: `lift`, `her-door`.
+
+| Spot | Name | Story | Notes |
+| --- | --- | --- | --- |
+| `lift` | Lift | `lift` |  |
+| `door-1` | Flat 14-05 / 14-05 |  |  |
+| `door-2` | Flat 14-06 / 14-06 |  |  |
+| `her-door` | Your door / My door |  | to `home/door` |
+| `plant` | Plant |  |  |
+| `fire-box` | Fire box / Fire hose |  |  |
+| `hatch` | Recycling / Rubbish chute |  |  |
+| `window` | Window |  |  |
+| `floors` | Other floors / Above and below |  |  |
+
+### floor9: Floor 9
+
+interior. Arrivals: `lift`.
+
+| Spot | Name | Story | Notes |
+| --- | --- | --- | --- |
+| `lift` | Lift | `lift` |  |
+| `door-1` | Flat 9-05 / 9-05 |  |  |
+| `door-2` | Flat 9-06 / 9-06 |  |  |
+| `door-3` | Flat 9-07 / 9-07 |  |  |
+| `plant` | Plant |  |  |
+| `box` | Delivery / Box |  |  |
+| `robot` | Cleaning unit / Cleaning bot |  |  |
+| `window` | Window |  |  |
+| `floors` | Other floors / Above and below |  |  |
+
 ### home: Luna's home
 
 interior, a privacy zone. Arrivals: `door`.
 
 | Spot | Name | Story | Notes |
 | --- | --- | --- | --- |
-| `door` | Door |  | to `backstreet/door` |
+| `door` | To the corridor |  | to `floor14/her-door` |
 | `coat` | Red coat / Raincoat |  |  |
 | `shower` | Bathroom / Wash unit |  | wear `nude` |
 | `mirror` | Mirror |  |  |
@@ -58,6 +90,22 @@ interior, a privacy zone. Arrivals: `door`.
 | `radio` | Retro speaker / Transistor radio | `radio` |  |
 | `parcel` | Parcel |  | item `parcel` |
 | `water` | Water / Water tap |  |  |
+
+### lobby: Entrance 3
+
+interior. Arrivals: `street-door`, `lift`.
+
+| Spot | Name | Story | Notes |
+| --- | --- | --- | --- |
+| `entrance` | To the backstreet |  | to `backstreet/door` |
+| `letterboxes` | Letterboxes |  |  |
+| `bench` | Bench |  |  |
+| `plant` | Plant |  |  |
+| `lift` | Lift | `lift` |  |
+| `stairs` | Stairs / Fire door |  |  |
+| `plant-room` | Plant room / Boiler room |  |  |
+| `first-floor` | First floor |  |  |
+| `under-street` | Under the street |  |  |
 
 ### radio: Radio repair
 
@@ -121,7 +169,7 @@ exterior. Arrivals: `start`, `from-backstreet`, `from-radio`, `from-restroom`, `
 
 ## People who speak
 
-Speaker tags in the story so far: `#concierge`, `#felix`, `#fixer`, `#guardian`, `#luna`, `#station`, `#tap`. A line without a tag is narration.
+Speaker tags in the story so far: `#concierge`, `#felix`, `#fixer`, `#guardian`, `#lift`, `#luna`, `#station`, `#tap`. A line without a tag is narration.
 
 ## Things she can carry
 
@@ -144,6 +192,7 @@ Speaker tags in the story so far: `#concierge`, `#felix`, `#fixer`, `#guardian`,
 | `credits` | `312` | Her credits: digital, her allowance, on her account. The Concierge's greeting shows them in its view |
 | `care_level` | `1` | read by the game: her connection level, 0 to 5 (the director's decision 18): 1 is Basic Care. Its card shows it |
 | `arrivals` | `0` | set by the game: how many times she has gone from one scene to another, all told (a clock the story counts by) |
+| `scene_now` | `""` | set by the game: the scene she is in now (its id) |
 | `fed_at` | `-100` | when she last fed at a nutrition station (arrivals then): she does not need to again for a while |
 | `station_seat` | `"woman"` | who sits at the main street's station: the street turns it each time she comes back (its scene file's `rotate`) |
 | `carried` | `(matches, cigarettes, map)` | The things she can carry: public/assets/items.json says how each looks and what it is called. What she carries now, and what she has picked up anywhere, which is gone from where it was (the game adds to both as she takes a thing) |
@@ -160,7 +209,7 @@ Lists: `Things` (parcel, matches, cigarettes, map, valve).
 
 ## Knots
 
-`fixer`, `station`, `guardian`, `radio`, `photo`, `concierge`, `bar_prices`, `bar_counter`, `bar_order`, `felix`.
+`fixer`, `station`, `guardian`, `radio`, `photo`, `concierge`, `bar_prices`, `bar_counter`, `bar_order`, `felix`, `lift`.
 
 ## Outfits
 

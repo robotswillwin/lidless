@@ -274,6 +274,8 @@ export class Game {
     const outfits = this.s.world.hero.outfits;
     if (outfits) await this.wear(outfitAfter(outfits, this.outfit, !!this.scene?.file.wardrobe, !!next.file.wardrobe) ?? this.outfit);
     this.scene = next;
+    // where she is, for the story: a lift offers every floor but this one
+    this.dialogue.set('scene_now', next.file.id);
     this.runner = new SceneRunner(next.loaded);
     this.heldMover = null;
     this.enteredAt = this.clock();

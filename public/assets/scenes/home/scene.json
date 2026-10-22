@@ -2,7 +2,7 @@
  "id": "home",
  "name": "Luna's home",
  "greeting": "Welcome home, Luna. I'll leave you to yourself.",
- "assist": "Your parcel is due at Radio Repair by 22:00, Luna. The main street is to the right as you leave.",
+ "assist": "Your parcel is due at Radio Repair by 22:00, Luna. Take the lift down; the main street is to the right.",
  "kind": "interior",
  "size": [
   960,
@@ -353,7 +353,7 @@
  "hotspots": [
   {
    "id": "door",
-   "name": "Door",
+   "name": "To the corridor",
    "rect": [
     786,
     230,
@@ -362,8 +362,8 @@
    ],
    "stand": 812,
    "go": {
-    "scene": "backstreet",
-    "spawn": "door"
+    "scene": "floor14",
+    "spawn": "her-door"
    }
   },
   {

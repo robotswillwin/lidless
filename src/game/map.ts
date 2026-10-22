@@ -10,10 +10,11 @@ import { inView, pick, placeIn, type Hotspot, type ViewText } from './level';
 export interface MapLayout {
   /**
    * Each place on the map (a scene). A street is laid at `at`, in map units, a tenth of its width long; a room goes
-   * above the place whose door opens into it, its own door over that one, unless `at` puts it somewhere else. `size`
-   * is a room's, in map units; `spawn` is where she arrives, going there from the map.
+   * above the place whose door opens into it, its own door over that one, unless `at` puts it somewhere else. A floor
+   * a lift goes to has no door into it: `over` puts it above another (the floor below), the two lifts one over the
+   * other, joined. `size` is a room's, in map units; `spawn` is where she arrives, going there from the map.
    */
-  places: Record<string, { at?: [number, number]; size?: [number, number]; spawn?: string }>;
+  places: Record<string, { at?: [number, number]; size?: [number, number]; spawn?: string; over?: string }>;
 }
 
 /** What the map needs of a scene's file. */
@@ -68,6 +69,17 @@ export function placeBoxes(layout: MapLayout, scenes: Record<string, MapScene>):
     rooms = rooms.filter((id) => {
       const s = scenes[id], l = layout.places[id], [w, h] = l.size ?? ROOM;
       if (l.at) { out[id] = { box: [l.at[0], l.at[1], w, h], street: false }; return false; }
+      // a floor over another: its place to arrive at over the other's of the same name (the lift), else centred
+      if (l.over) {
+        const o = out[l.over], below = scenes[l.over];
+        if (!o || !below) return true;
+        const name = l.spawn, there = name ? below.spawns[name]?.x : undefined, here = name ? s.spawns[name]?.x : undefined;
+        const x = there !== undefined ? o.box[0] + clamp(there / below.size[0]) * o.box[2] : o.box[0] + o.box[2] / 2;
+        const box: Box = [x - ((here ?? s.size[0] / 2) / s.size[0]) * w, o.box[1] - STEM - h, w, h];
+        while (Object.values(out).some((p) => overlaps(p.box, box, 3))) box[1] -= h + STEM;
+        out[id] = { box, street: false };
+        return false;
+      }
       // the door into it from a place already drawn, streets first
       for (const [from, o] of Object.entries(out)) {
         const door = scenes[from].hotspots.find((d) => d.go?.scene === id);
@@ -127,6 +139,14 @@ export function mapNow(layout: MapLayout, scenes: Record<string, MapScene>, been
       const up = ty + th <= pb[1], down = ty >= pb[1] + pb[3];
       links.push({ from: [at[0], up ? pb[1] : down ? pb[1] + pb[3] : at[1]], to: [x, up ? ty + th : down ? ty : ty + th / 2], open: target.state === 'seen' });
     }
+  }
+  // a floor over another, both on the map: the lift between them
+  for (const p of places) {
+    const over = layout.places[p.id]?.over, q = over ? places.find((x) => x.id === over) : undefined, name = layout.places[p.id]?.spawn;
+    if (!q || !name) continue;
+    const at = scenes[p.id].spawns[name]?.x;
+    const x = at !== undefined ? pointIn(p.id, at)[0] : p.box[0] + p.box[2] / 2;
+    links.push({ from: [x, q.box[1]], to: [x, p.box[1] + p.box[3]], open: p.state === 'seen' || q.state === 'seen' });
   }
   const you = been.has(here.scene) && boxes[here.scene] ? pointIn(here.scene, here.x) : null;
   const xs = places.flatMap((p) => [p.box[0], p.box[0] + p.box[2]]), ys = places.flatMap((p) => [p.box[1], p.box[1] + p.box[3] + (p.street ? UNDER : 0)]);

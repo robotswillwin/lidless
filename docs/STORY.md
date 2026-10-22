@@ -135,6 +135,15 @@ Each line is said over whoever says it when they are in the scene: a hotspot who
 conversation (`talk`) is theirs. In the bar, Felix's offer to pay is said over Felix while she talks to the drinks
 machine. Anyone else's lines go over whoever she is talking to; narration at the top.
 
+## Luna's tower, and lifts
+
+Entrance 3 on the backstreet opens on the tower's lift hall (`lobby`); the lift goes to the floors (`floor9`,
+`floor14`), each a corridor of flat doors, and her door on floor 14 opens on her flat (`home`). A lift is a hotspot of
+kind `way` (it is marked like a door) whose knot, `lift` (`src/story/tower.ink`), asks which floor and goes there
+(`# go: floor9/lift`), offering every floor but the one she is on: `scene_now`, which the game sets to the scene she
+is in. On the map a floor has no door into it, so `world.json` puts it over the floor below (`"over": "lobby"`), the
+two lifts one above the other, joined. A new floor is a scene, a choice in the knot, and a place on the map.
+
 ## The journal and the notebook
 
 What she writes down is in two places, the same shape. `public/assets/journal.json` is her journal, on her device:

@@ -8,6 +8,7 @@ INCLUDE street.ink
 INCLUDE home.ink
 INCLUDE concierge.ink
 INCLUDE bar.ink
+INCLUDE tower.ink
 
 // set by the game when a conversation starts and at every choice: true while Luna sees raw view
 VAR raw_view = false
@@ -25,6 +26,8 @@ VAR care_level = 1
 
 // set by the game: how many times she has gone from one scene to another, all told (a clock the story counts by)
 VAR arrivals = 0
+// set by the game: the scene she is in now (its id)
+VAR scene_now = ""
 // when she last fed at a nutrition station (arrivals then): she does not need to again for a while
 VAR fed_at = -100
 // who sits at the main street's station: the street turns it each time she comes back (its scene file's `rotate`)

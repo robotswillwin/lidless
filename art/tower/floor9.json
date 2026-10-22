@@ -1,0 +1,33 @@
+{
+  "name": "floor9",
+  "scene": "tower",
+  "kind": "background",
+  "interior": true,
+  "exists": "both",
+  "look": "vector",
+  "res": 2,
+  "size": "1936x1088",
+  "framing": "A wide cinematic cutaway seen straight on from the side, like a doll's house with its front wall removed, filling the whole frame. Lit at night by its own lamps. No text, no captions, no border.",
+  "height": 540,
+  "position": [
+    480,
+    540
+  ],
+  "depth": 3,
+  "material": "stone",
+  "glow": {
+    "raw": "auto",
+    "concierge": "auto",
+    "machine": true
+  },
+  "palette": 0,
+  "rawAir": "yellow-green",
+  "prompt": "A cross-section of Luna's apartment tower at night, high up: the corridor of the ninth floor, between the corridors of the floors above and below, dim. The city in smog on both sides, far below. The corridor: at its left end the lift, two scratched steel doors under a floor indicator, its call buttons beside it; three flat doors along the back wall, the middle one ajar with warm light and music behind it, a delivery box outside it; a cleaning robot parked by the window; one tube light dead; a window at the right end onto the city. Bare tube lights. No people.",
+  "concierge": "A cross-section of an apartment tower at night, as the city AI shows it, high up: the corridor of the ninth floor, between the corridors of the floors above and below, dim. The neon city on both sides, far below. The corridor: at its left end the lift, two polished steel doors under a softly glowing floor indicator, its call buttons beside it; three flat doors along the back wall with small glowing number plates, the middle one ajar with warm light behind it, a neat white delivery box outside it; a small white cleaning robot parked by the window; a window at the right end onto the neon city. Warm ceiling lights, calm and clean. No people.",
+  "references": [
+    "art/home/cutaway/raw.png"
+  ],
+  "conciergeReferences": [
+    "art/home/cutaway/concierge.png"
+  ]
+}

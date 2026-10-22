@@ -82,8 +82,8 @@
    ],
    "stand": 453,
    "go": {
-    "scene": "home",
-    "spawn": "door"
+    "scene": "lobby",
+    "spawn": "street-door"
    }
   },
   {

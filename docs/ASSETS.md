@@ -480,6 +480,15 @@ his head was redrawn with `touch` in both views and copied into his idle frames)
 differ only around the soldering iron (`touch --frame`). The earlier shop and fixer are in git's history. The street's
 shop window shows this room as it is now (the shelf of radios, the sofa, the map, the pegboard, the desk).
 
+**Luna's tower** (`art/tower/`): the lift hall and two corridors, each drawn from a guide of flat shapes on a frame
+the game already has, so it is the same building at the same scale. The lift hall (`lobby`) is painted over the radio
+repair's ground-floor frame, at its scale (people at 0.6, 169 px a metre): a glass double door to the backstreet, the
+letterboxes, a bench, the lift, a fire door to the stairs, the plant room under the floor with the pit under the
+lift's shaft, the first floor above. The corridors (`floor14`, `floor9`) are painted over her flat's frame, at its
+scale (0.44, 124 px a metre), the middle floor a corridor and the floors above and below dim corridors too; the lift is
+at the same place on every floor, so its shaft runs through. Each Concierge's view was redressed from its guide and
+raw view from that (`redress --from`), with no signs, screens or number plates in raw view.
+
 **The ground is cut away beside a cutaway** (the director, 22 October): where a cutaway shows a basement, the street
 outside it is cut along the same plane, so under its pavement there are gravel, earth, a sewer, a water main and
 cables, down to the bottom of the frame, not a wet street running on below the floor. The radio repair's and the

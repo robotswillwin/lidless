@@ -1,0 +1,35 @@
+{
+  "name": "lobby",
+  "scene": "tower",
+  "kind": "background",
+  "interior": true,
+  "exists": "both",
+  "look": "vector",
+  "res": 2,
+  "size": "1936x1088",
+  "framing": "A wide cinematic cutaway seen straight on from the side, like a doll's house with its front wall removed, filling the whole frame. Lit at night by its own lamps. No text, no captions, no border.",
+  "height": 540,
+  "position": [
+    480,
+    540
+  ],
+  "depth": 3,
+  "material": "stone",
+  "glow": {
+    "raw": "auto",
+    "concierge": "auto",
+    "machine": true
+  },
+  "palette": 0,
+  "rawAir": "amber-brown",
+  "prompt": "A cross-section of the ground floor of an old concrete apartment tower at night: the lift hall of Entrance 3. On the left, outside, the narrow backstreet, wet, under a street lamp, the ground cut away under its pavement. The hall: a double glass entrance door in its left wall; a grid of dented metal letterboxes; a worn bench; a plant in a pot; the lift, two scratched steel doors under a floor indicator, its call buttons beside it; a fire door to the stairs. Above, the first floor's corridor, dim, the lift doors where they are below. Below the floor, the plant room: pumps, pipes, an old boiler, the pit under the lift's shaft. Flickering tube lights, cracked tiles. No people.",
+  "concierge": "A cross-section of the ground floor of an apartment tower at night, as the city AI shows it, like a doll's house with its front wall removed: the lift hall of Entrance 3, calm, clean and warm. On the left, outside, the glossy wet backstreet under a street lamp, the ground cut away under its pavement. The hall: a double glass entrance door in its left wall; a neat grid of brushed-steel letterboxes; a padded bench; a lush plant; the lift, two polished steel doors under a softly glowing floor indicator, its call buttons beside it; a door to the stairs. Above, the first floor's corridor, dim, the lift doors where they are below. Below the floor, the plant room: pumps, pipes, a boiler, the pit under the lift's shaft. Warm ceiling lights, polished stone floor. No people.",
+  "references": [
+    "art/radio/shop/raw.png",
+    "art/home/cutaway/raw.png"
+  ],
+  "conciergeReferences": [
+    "art/radio/shop/concierge.png",
+    "art/home/cutaway/concierge.png"
+  ]
+}

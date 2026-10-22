@@ -76,6 +76,12 @@ The design: https://claude.ai/artifact/X65FknT3sqWZBgJaHgHboZ. In code: `src/gam
   story's variables come true, and `world.json`'s `map` for where places are drawn.
 - **Not built yet.** The Concierge's offers (disposal) only answer for now; public restrooms and meeting rooms.
 
+## Luna's tower, 22 October
+
+Entrance 3 leads into the tower: its lift hall, the lift (a choice of floor), the corridors of floors 9 and 14, and
+her flat off floor 14. Every way in or out is marked. More floors are a scene each from the same frame (about 15
+minutes and $0.15), a choice in the lift's knot, and a place on the map.
+
 ## Art done on 22 October, with image credits again
 
 Felix drawn as the sheet's Deep Integration and moved into the cocktail bar, which can now be entered (a cutaway:

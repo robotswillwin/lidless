@@ -1,0 +1,357 @@
+{
+  "id": "floor14",
+  "name": "Floor 14",
+  "greeting": "Nearly home, Luna.",
+  "assist": "Your flat is the third door along, Luna.",
+  "kind": "interior",
+  "size": [
+    960,
+    540
+  ],
+  "layers": [
+    {
+      "asset": "tower/floor14"
+    }
+  ],
+  "walk": {
+    "y": 365,
+    "x0": 280,
+    "x1": 835
+  },
+  "mirror": 365,
+  "spawns": {
+    "lift": {
+      "x": 318,
+      "facing": 1
+    },
+    "her-door": {
+      "x": 709,
+      "facing": -1
+    }
+  },
+  "hotspots": [
+    {
+      "id": "lift",
+      "name": "Lift",
+      "rect": [
+        278,
+        232,
+        82,
+        135
+      ],
+      "stand": 318,
+      "face": 1,
+      "kind": "way",
+      "story": "lift",
+      "look": {
+        "concierge": "Polished steel doors, and over them its floor number glowing softly.",
+        "raw": "Scratched steel doors. Over them the indicator's needle shivers between two floors."
+      },
+      "tag": {
+        "concierge": "Floors 1 to 20",
+        "raw": "it still runs"
+      },
+      "ask": "The lift serves every floor, Luna. Yours is fourteen."
+    },
+    {
+      "id": "door-1",
+      "name": {
+        "concierge": "Flat 14-05",
+        "raw": "14-05"
+      },
+      "rect": [
+        427,
+        230,
+        67,
+        140
+      ],
+      "stand": 461,
+      "look": {
+        "concierge": "Flat 14-05. Its plate glows: Do not disturb.",
+        "raw": "A door, a spyhole, nothing else. Somebody's TV is on, very loud, inside."
+      }
+    },
+    {
+      "id": "door-2",
+      "name": {
+        "concierge": "Flat 14-06",
+        "raw": "14-06"
+      },
+      "rect": [
+        550,
+        230,
+        67,
+        140
+      ],
+      "stand": 584,
+      "look": {
+        "concierge": "Flat 14-06. A neighbour you have never met.",
+        "raw": "Scratches round the lock, old and new. Somebody comes home late a lot."
+      }
+    },
+    {
+      "id": "her-door",
+      "name": {
+        "concierge": "Your door",
+        "raw": "My door"
+      },
+      "rect": [
+        675,
+        230,
+        67,
+        140
+      ],
+      "stand": 709,
+      "go": {
+        "scene": "home",
+        "spawn": "door"
+      },
+      "tag": {
+        "concierge": "14-07 · home",
+        "raw": "home"
+      }
+    },
+    {
+      "id": "plant",
+      "name": "Plant",
+      "rect": [
+        628,
+        272,
+        37,
+        83
+      ],
+      "stand": 646,
+      "look": {
+        "concierge": "A plant in a white pot, glossy and well.",
+        "raw": "Plastic leaves on a plastic stem."
+      }
+    },
+    {
+      "id": "fire-box",
+      "name": {
+        "concierge": "Fire box",
+        "raw": "Fire hose"
+      },
+      "rect": [
+        752,
+        257,
+        20,
+        30
+      ],
+      "stand": 760,
+      "look": {
+        "concierge": "A red fire box, spotless.",
+        "raw": "A fire hose, its glass long gone. The hose too."
+      }
+    },
+    {
+      "id": "hatch",
+      "name": {
+        "concierge": "Recycling",
+        "raw": "Rubbish chute"
+      },
+      "rect": [
+        505,
+        278,
+        28,
+        30
+      ],
+      "stand": 518,
+      "look": {
+        "concierge": "A hatch for recycling. Everything here is recycled, Luna.",
+        "raw": "The rubbish chute. It smells of fourteen floors of rubbish."
+      }
+    },
+    {
+      "id": "window",
+      "name": "Window",
+      "rect": [
+        780,
+        228,
+        65,
+        98
+      ],
+      "stand": 800,
+      "look": {
+        "concierge": "The city, fourteen floors down, every light in it lit for you.",
+        "raw": "Smog, and the lights under it. The towers across the way are close enough to count windows."
+      }
+    },
+    {
+      "id": "floors",
+      "name": {
+        "concierge": "Other floors",
+        "raw": "Above and below"
+      },
+      "rect": [
+        258,
+        70,
+        592,
+        100
+      ],
+      "look": {
+        "concierge": "Quiet corridors, the same as this one.",
+        "raw": "The same corridor, again and again, up and down the tower."
+      }
+    }
+  ],
+  "lights": [
+    {
+      "x": 465,
+      "y": 222,
+      "z": 16,
+      "r": 160,
+      "c": [
+        1,
+        0.82,
+        0.55
+      ],
+      "i": 0.9,
+      "zone": 0,
+      "layer": 1,
+      "own": 1
+    },
+    {
+      "x": 585,
+      "y": 222,
+      "z": 16,
+      "r": 160,
+      "c": [
+        1,
+        0.82,
+        0.55
+      ],
+      "i": 0.9,
+      "zone": 0,
+      "layer": 1,
+      "own": 1
+    },
+    {
+      "x": 705,
+      "y": 222,
+      "z": 16,
+      "r": 160,
+      "c": [
+        1,
+        0.82,
+        0.55
+      ],
+      "i": 0.9,
+      "zone": 0,
+      "layer": 1,
+      "own": 1
+    },
+    {
+      "x": 318,
+      "y": 215,
+      "z": 16,
+      "r": 130,
+      "c": [
+        1,
+        0.86,
+        0.6
+      ],
+      "i": 0.6,
+      "zone": 0,
+      "layer": 1,
+      "own": 1
+    },
+    {
+      "x": 812,
+      "y": 276,
+      "z": 16,
+      "r": 140,
+      "c": [
+        0.7,
+        0.45,
+        1
+      ],
+      "i": 0.6,
+      "zone": 0,
+      "layer": 1,
+      "own": 1,
+      "ar": 1
+    },
+    {
+      "x": 812,
+      "y": 276,
+      "z": 16,
+      "r": 130,
+      "c": [
+        0.75,
+        0.8,
+        0.55
+      ],
+      "i": 0.4,
+      "zone": 0,
+      "layer": 1,
+      "own": 1,
+      "raw": 1
+    }
+  ],
+  "zones": {
+    "outside": [
+      [
+        0,
+        0,
+        250,
+        540
+      ],
+      [
+        855,
+        0,
+        105,
+        540
+      ]
+    ]
+  },
+  "actorScale": 0.44,
+  "ambient": {
+    "raw": 1.2,
+    "concierge": 1.3
+  },
+  "baked": 1,
+  "look": {
+    "depthOfField": 0,
+    "actorPaint": 1,
+    "raw": {
+      "actorRed": 0.9,
+      "actorGreen": 0.84,
+      "actorBlue": 0.7,
+      "rain": 0.5
+    },
+    "concierge": {
+      "actorRed": 1,
+      "actorGreen": 0.92,
+      "actorBlue": 0.9
+    }
+  },
+  "variants": {
+    "rain": {
+      "name": "Heavy rain",
+      "look": {
+        "raw": {
+          "rain": 1.6
+        },
+        "concierge": {
+          "rain": 1.6
+        }
+      }
+    },
+    "fog": {
+      "name": "Dense fog",
+      "look": {
+        "fog": 0.9,
+        "raw": {
+          "rawFog": 1.4
+        }
+      }
+    },
+    "outage": {
+      "name": "Power cut",
+      "look": {
+        "power": 0
+      }
+    }
+  }
+}

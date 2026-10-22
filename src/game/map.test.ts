@@ -45,6 +45,22 @@ describe('the map', () => {
     expect(placeBoxes({ places: { ...layout.places, shop: { at: [5, 60], size: [40, 20] } } }, scenes).shop.box).toEqual([5, 60, 40, 20]);
   });
 
+  it('stacks a floor a lift goes to over the floor below it, the two lifts one over the other, joined', () => {
+    const floor = (id: string, liftX: number): MapScene => ({ id, name: id, kind: 'interior', size: [960, 540], spawns: { lift: { x: liftX } }, hotspots: [] });
+    const tower: Record<string, MapScene> = { ...scenes, f1: floor('f1', 300), f2: floor('f2', 600) };
+    const stacked: MapLayout = { places: { ...layout.places, f1: { spawn: 'lift', over: 'shop' }, f2: { spawn: 'lift', over: 'f1' } } };
+    const boxes = placeBoxes(stacked, { ...tower, shop: { ...scenes.shop, spawns: { ...scenes.shop.spawns, lift: { x: 480 } } } });
+    const [sx, sy, sw] = boxes.shop.box, [x1, y1, w1, h1] = boxes.f1.box, [x2, y2, w2, h2] = boxes.f2.box;
+    // each above the one below, its lift over that one's
+    expect(y1 + h1).toBe(sy - STEM);
+    expect(x1 + (300 / 960) * w1).toBeCloseTo(sx + 0.5 * sw);
+    expect(y2 + h2).toBeLessThanOrEqual(y1 - STEM);
+    expect(x2 + (600 / 960) * w2).toBeCloseTo(x1 + (300 / 960) * w1);
+    // been on both, they are joined by the lift
+    const now = mapNow(stacked, { ...tower, shop: { ...scenes.shop, spawns: { ...scenes.shop.spawns, lift: { x: 480 } } } }, new Set(['street', 'shop', 'f1', 'f2']), all, { scene: 'f2', x: 600 }, false, all);
+    expect(now.links.filter((l) => l.from[0] === l.to[0] && l.to[1] < l.from[1]).length).toBeGreaterThanOrEqual(2);
+  });
+
   it('draws the places she has been, and sketches in where the doors she has seen lead', () => {
     const seen = (sc: string, id: string) => sc === 'street' && ['home-door', 'shop-door', 'kiosk', 'bar', 'bench'].includes(id);
     const now = mapNow(layout, scenes, new Set(['street']), seen, { scene: 'street', x: 1200 }, false, all);

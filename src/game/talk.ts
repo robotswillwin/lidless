@@ -8,7 +8,7 @@ import type { Command, Line } from './dialogue';
 export type SpeakerAt = (speaker: string) => [number, number] | null;
 
 /** Each voice's colour: hers, the fixer's warm one, the Concierge's cyan (and its machines'); anyone else's their own. */
-const VOICE: Record<string, string> = { luna: 'luna', fixer: 'warm', concierge: 'co', station: 'co', guardian: 'co', tap: 'co', narration: 'narration' };
+const VOICE: Record<string, string> = { luna: 'luna', fixer: 'warm', concierge: 'co', station: 'co', guardian: 'co', tap: 'co', lift: 'co', narration: 'narration' };
 
 /** How long a line stays: about 16 characters a second to read it, from 1.8 to 8 seconds. */
 export const readingTime = (text: string): number => Math.min(8000, Math.max(1800, 700 + text.length * 60));
