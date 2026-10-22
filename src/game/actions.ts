@@ -1,6 +1,6 @@
 // What she can do with things. A verb is chosen first, at the ball in the bottom right corner, and then done to whatever
-// lights up under her finger: Look (her Eyes), Talk (her Heart), Use and Take (her Hands), and in the Concierge's view
-// asking it about the thing (its ring). Every thing answers every verb: what it has of its own (a text, its knot in the
+// lights up under her finger: Look (her Eyes), Talk (her Heart), Use and Take (her Hands). Asking the Concierge about a
+// thing is its own, chosen at its greeting in the top left, in its view only. Every thing answers every verb: what it has of its own (a text, its knot in the
 // story), else a standard reply for what it is (replies.ts), so trying is never wrong and never silent. Going through a
 // door, or off the end of the street, needs no verb: tapping it walks her there and through, and so does using it. In
 // raw view, looking at something it shows differently is looking closely. Raw view is legal: the Concierge knows she
@@ -11,11 +11,18 @@ import type { Hotspot } from './level';
 
 export type Verb = 'eyes' | 'heart' | 'hands' | 'take' | 'ask';
 
-/** The verbs at the ball in the view on screen: the Concierge's bell is there only in its view. */
-export const verbsIn = (raw: boolean): Verb[] => (raw ? ['eyes', 'heart', 'hands', 'take'] : ['eyes', 'heart', 'hands', 'take', 'ask']);
+/** Her verbs, at the ball: the same in both views. */
+export const HERS: Verb[] = ['eyes', 'heart', 'hands', 'take'];
+/** Every verb in the view on screen: hers, and in its view asking the Concierge, at its greeting. */
+export const verbsIn = (raw: boolean): Verb[] => (raw ? HERS : [...HERS, 'ask']);
 
-// (asking is the Concierge's: its slot is named for it, so it is not taken for talking)
+// (asking is the Concierge's: named for it, so it is not taken for talking)
 const NAMES: Record<Verb, string> = { eyes: 'Look', heart: 'Talk', hands: 'Use', take: 'Take', ask: 'Concierge' };
+// what each asks, chosen: what to do it to
+const OBJECTS: Record<Verb, string> = { eyes: 'Look at what?', heart: 'Talk to whom?', hands: 'Use what?', take: 'Take what?', ask: 'About what, guest?' };
+
+/** What a verb chosen asks, beside the ball (or, asking, under its greeting): hers in lower case in raw view. */
+export const verbQuestion = (v: Verb, raw: boolean): string => (raw ? OBJECTS[v].toLowerCase() : OBJECTS[v]);
 
 /** A verb's name: the Concierge's, capitalised, in its view; hers, in lower case, in raw view. */
 export const verbName = (v: Verb, raw: boolean): string => (raw ? NAMES[v].toLowerCase() : NAMES[v]);

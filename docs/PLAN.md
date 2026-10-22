@@ -50,10 +50,12 @@ The design: https://claude.ai/artifact/X65FknT3sqWZBgJaHgHboZ. In code: `src/gam
   its labels and offers on her things. At the top right: the view switch with its attention, the map, her journal
   (on her device, anywhere), her notebook (paper, privacy zones only) and the menu with her saves.
 - **Two balls, for thumbs.** Tap to walk (further off she jogs, further still she runs, speeding up and slowing down through the gaits; a door or the street's end, she goes through). The right
-  ball slides the verbs out along the bottom, her properties: Eyes look, Heart talks, Hands use and take, and the
-  Concierge's bell asks it; they stay out until a ball is tapped. With a verb chosen, pressing and sliding over the
-  scene lights up what it does something to, and letting go does it: nothing depends on a mouse hovering. The left
-  ball slides out her things in a tray, each painted: tap one to use it on something, hold it to look at it close up.
+  ball slides the verbs out along the bottom, her properties: Eyes look, Heart talks, Hands use and take; they stay
+  out until a ball is tapped, and the one chosen asks beside the ball what to do it to ("Talk to whom?"). With a verb
+  chosen, tapping a thing, or pressing and sliding over the scene and letting go, does it: nothing depends on a mouse
+  hovering. The Concierge is its greeting at the top left: rung, it says what it would have her do here and offers
+  Ask about something, then listens ("About what, guest?") for her to tap a thing. The left ball slides out her
+  things in a tray, each painted as the view shows it, its one name under it: a tap shows it close up, with Use.
 - **What she finds is written at the thing**, where the eye already is, on a card. It stays for the time it takes to read (about 15 characters
   a second, 2.5 to 9 seconds) and goes when tapped or when she is given something else to do. Conversations go as in Monkey Island (src/game/talk.ts): each line over the speaker's head in their colour, one
   at a time, tap to move on; narration at the top; her answers as a list along the bottom, the chosen one said over

@@ -1,10 +1,24 @@
 {
- "references": ["art/home/cutaway/raw.png", "art/radio/shop/raw.png"],
+ "references": [
+  "art/home/cutaway/raw.png",
+  "art/radio/shop/raw.png"
+ ],
  "things": {
   "parcel": "a small parcel, a cardboard box sealed with brown tape, a handwritten label on it with the number 4471",
   "matches": "a small worn cardboard matchbox slid half open, three wooden matches with red heads inside",
   "cigarettes": "a crumpled soft pack of cigarettes with no brand on it, two cigarettes left, one sticking out",
   "map": "a hand-drawn map on a sheet of paper folded in four, half unfolded: pencil lines of streets and a few crosses, no names on it",
   "valve": "a radio valve: a small glass vacuum tube on a black base with metal pins, its filament glowing faintly warm orange inside"
+ },
+ "conciergeReferences": [
+  "art/home/cutaway/concierge.png",
+  "art/radio/shop/concierge.png"
+ ],
+ "concierge": {
+  "parcel": "the same small parcel made neat and new: a clean white box with a soft grey ribbon round it and a small glowing cyan C mark on its lid, a crisp printed label with the number 4471",
+  "matches": "the same matchbox made sleek and new: a matt black box slid half open, a small red warning triangle printed on it, three matches with red heads inside",
+  "cigarettes": "the same soft pack made clean and new: a slim pale pack with a plain grey health warning band, two cigarettes left, one sticking out",
+  "map": "the same hand-drawn map on clean, crisp white paper, folded in four and half unfolded, its pencil lines faint and tidy, as if it hardly mattered",
+  "valve": "the same radio valve made a collector's curio: polished glass on a glossy black base, its filament glowing a soft warm amber, spotless"
  }
 }

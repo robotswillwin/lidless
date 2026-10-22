@@ -1,65 +1,65 @@
 {
  "parcel": {
   "icon": "parcel",
-  "name": {
-   "concierge": "Parcel",
-   "raw": "the parcel"
-  },
+  "name": "Parcel",
   "note": {
    "concierge": "Delivery 4471 · to Radio Repair, by 22:00",
    "raw": "for the radio man. don't open it."
   },
-  "art": "items/parcel.webp"
+  "art": {
+   "concierge": "items/parcel.concierge.webp",
+   "raw": "items/parcel.webp"
+  }
  },
  "matches": {
   "icon": "matches",
   "unlicensed": true,
-  "name": {
-   "concierge": "Matches",
-   "raw": "matches (3)"
-  },
+  "name": "Matches",
   "note": {
    "concierge": "Open flame · not permitted indoors",
-   "raw": "real fire. it hates that."
+   "raw": "three left. real fire. it hates that."
   },
-  "art": "items/matches.webp"
+  "art": {
+   "concierge": "items/matches.concierge.webp",
+   "raw": "items/matches.webp"
+  }
  },
  "cigarettes": {
   "icon": "cigarettes",
   "unlicensed": true,
-  "name": {
-   "concierge": "Cigarettes",
-   "raw": "cigarettes (2)"
-  },
+  "name": "Cigarettes",
   "note": {
    "concierge": "Combustion product · harmful to your wellbeing",
-   "raw": "a week's credits, these."
+   "raw": "two left. a week's credits, these."
   },
-  "art": "items/cigarettes.webp"
+  "art": {
+   "concierge": "items/cigarettes.concierge.webp",
+   "raw": "items/cigarettes.webp"
+  }
  },
  "map": {
   "icon": "map",
   "unlicensed": true,
-  "name": {
-   "concierge": "Paper",
-   "raw": "my map"
-  },
+  "name": "Map",
   "note": {
-   "concierge": "Paper · information out of date",
+   "concierge": "Hand-drawn · information out of date",
    "raw": "drawn by hand. no names on it."
   },
-  "art": "items/map.webp"
+  "art": {
+   "concierge": "items/map.concierge.webp",
+   "raw": "items/map.webp"
+  }
  },
  "valve": {
   "icon": "valve",
-  "name": {
-   "concierge": "Vintage valve",
-   "raw": "a radio valve"
-  },
+  "name": "Valve",
   "note": {
-   "concierge": "Decorative curio",
+   "concierge": "Vintage · decorative curio",
    "raw": "for the radio. the left one's dead."
   },
-  "art": "items/valve.webp"
+  "art": {
+   "concierge": "items/valve.concierge.webp",
+   "raw": "items/valve.webp"
+  }
  }
 }

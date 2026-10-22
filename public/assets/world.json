@@ -55,14 +55,6 @@
   "map": {
     "places": {
       "home": {
-        "at": [
-          -2,
-          -58
-        ],
-        "size": [
-          56,
-          36
-        ],
         "spawn": "door"
       },
       "backstreet": {
@@ -80,25 +72,9 @@
         "spawn": "from-backstreet"
       },
       "radio": {
-        "at": [
-          112,
-          40
-        ],
-        "size": [
-          56,
-          36
-        ],
         "spawn": "door"
       },
       "restroom": {
-        "at": [
-          262,
-          40
-        ],
-        "size": [
-          56,
-          36
-        ],
         "spawn": "door"
       }
     }

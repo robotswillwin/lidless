@@ -107,11 +107,11 @@ Speaker tags in the story so far: `#concierge`, `#fixer`, `#guardian`, `#luna`. 
 
 | Thing | Name | Note |
 | --- | --- | --- |
-| `parcel` | Parcel / the parcel | Delivery 4471 · to Radio Repair, by 22:00 / for the radio man. don't open it. |
-| `matches` | Matches / matches (3) | Open flame · not permitted indoors / real fire. it hates that. |
-| `cigarettes` | Cigarettes / cigarettes (2) | Combustion product · harmful to your wellbeing / a week's credits, these. |
-| `map` | Paper / my map | Paper · information out of date / drawn by hand. no names on it. |
-| `valve` | Vintage valve / a radio valve | Decorative curio / for the radio. the left one's dead. |
+| `parcel` | Parcel | Delivery 4471 · to Radio Repair, by 22:00 / for the radio man. don't open it. |
+| `matches` | Matches | Open flame · not permitted indoors / three left. real fire. it hates that. |
+| `cigarettes` | Cigarettes | Combustion product · harmful to your wellbeing / two left. a week's credits, these. |
+| `map` | Map | Hand-drawn · information out of date / drawn by hand. no names on it. |
+| `valve` | Valve | Vintage · decorative curio / for the radio. the left one's dead. |
 
 ## The story's state
 

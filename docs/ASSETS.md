@@ -728,9 +728,11 @@ In a scene that scrolls, `split` cuts and fills its layers for long slides, not 
 
 ## Her things: pictures for the tray
 
-Each real thing she can carry has a picture of its own for her tray (the HUD's inventory): painted once, as it really
-is, in the game's look, square, 256 pixels, on a transparent ground (`public/assets/items/<id>.webp`, about 13 KB).
-`items.json` names it as the thing's `art`; a thing without one shows its line icon until it has. A thing that exists
+Each real thing she can carry has a picture of its own for her tray (the HUD's inventory), one for each view: painted
+as it really is, in the game's look, then made over as the Concierge shows it, the same thing in the same pose. Square,
+256 pixels, on a transparent ground (`public/assets/items/<id>.webp` and `<id>.concierge.webp`, about 15 KB each).
+`items.json` names them as the thing's `art`, `{ "concierge": ..., "raw": ... }` (one path is the same in both); a
+thing without one shows its line icon until it has. Its `name` is one, the same in both views. A thing that exists
 only in the Concierge's eye (a projection) is never painted: the HUD draws it as the Concierge's own graphic, in its
 colour, and in raw view leaves an empty place in her pocket. Her credits are no thing at all: they are digital, a
 number in the story (`credits`), shown with the Concierge's greeting.
@@ -741,6 +743,9 @@ number in the story (`credits`), shown with the Concierge's greeting.
    each at medium quality).
 3. `npm run asset -- items --pick <id>=<n>` cuts the one picked out, square with a little room around it, into the
    game, and names it in `items.json`.
+4. `npm run asset -- items --concierge --only <id>` edits that picture into the Concierge's view, as `concierge` in
+   `items.json` describes it, with its view of her flat and the radio repair as the style (about $0.03 each), and
+   `--pick-concierge <id>=<n>` puts it in the game.
 
 A thing that also lies somewhere in a scene is a prop there (see STORY.md); the tray's picture is the same thing seen
 close up.

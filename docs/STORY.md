@@ -50,8 +50,9 @@ condition in the game's data reads only variables the story has (`src/game/refer
 | `reply` | a hotspot | What it says back when she talks to it, with no conversation: the repair bot's "Bzzzzz, bzzzzt". |
 | `kind` | a hotspot | `person`, `machine` or `thing`: what it is, for the standard replies. By default a way out if it goes somewhere, a person if it has a conversation, else a thing. |
 
-**Every hotspot answers every verb**: Look, Talk, Use, Take, and asking the Concierge (its view only; its answer is
-the hotspot's `ask`). What it has nothing of its own for (no text, no stitch), the game answers with a standard reply
+**Every hotspot answers every verb**: Look, Talk, Use, Take, and asking the Concierge (its view only, chosen at its
+greeting: rung, it says the scene's `assist`, and Ask about something has it listen; its answer is the hotspot's
+`ask`). What it has nothing of its own for (no text, no stitch), the game answers with a standard reply
 for its kind, from `public/assets/replies.json`, a different one each time she tries the same thing: "It doesn't
 answer.", "Not yours to take."; asked inside a privacy zone, the Concierge says it cannot see in there. Using a door
 goes through it. Tapped with no verb, a thing does what it has of its own (talk, go, use, take, else look).
@@ -161,9 +162,12 @@ where in her flat it stands, is the story's to decide; nothing in the game opens
 
 ## The map
 
-`world.json` has where each place (a scene) is drawn on the map: `"map": { "places": { "street": { "at": [96, 0] } } }`,
-in map units, a street a tenth of its width long, a room a box (`size`, 56 by 36 by default), with `spawn`, where
-she arrives when she goes there from the map. Every scene of the world's is on it (the tests check). What she has
+The map is the city in profile, as she walks it (`src/game/map.ts`). `world.json` lays each street along its row:
+`"map": { "places": { "street": { "at": [96, 0] } } }`, in map units, a street a tenth of its width long, so where a
+thing is along it is where it is on the map. A room goes by itself above the door it opens from, where she arrives in
+it over that door, joined to it by a line, raised over any room already there; `at` (and `size`, 56 by 30 by default)
+puts one elsewhere. `spawn` is where she arrives when she goes there from the map. Every scene of the world's is on it
+(the tests check). What she has
 seen of what goes on the map is kept as she plays: ways out (`go`) and people (`talk`) are on it once they have been
 on screen, and any other hotspot marked `"map": true` (the bar, the corner shop). A way out she has seen leads to a
 place sketched in until she has been there.

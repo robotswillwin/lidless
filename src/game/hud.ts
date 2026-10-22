@@ -10,7 +10,7 @@
 // chosen, what her finger is over lights up if the verb does something to it, and letting go does it; what she finds is
 // written at the thing.
 
-import { verbName, verbsIn, type Verb } from './actions';
+import { HERS, verbName, verbQuestion, type Verb } from './actions';
 import { button, el } from './dom';
 import { icon } from './icons';
 import { note, pick, type Hotspot } from './level';
@@ -18,7 +18,7 @@ import { drawJournal, PLACES } from './journal';
 import { drawMap, type MapNow, type Travel } from './map';
 import { drawNotebook, notebookNow, type Notebook } from './notebook';
 import { drawSettings, type Settings } from './settings';
-import { drawInspect, drawTray, thingsNow, type Item } from './tray';
+import { drawInspect, drawTray, picturesOf, thingsNow, type Item } from './tray';
 
 export type { Item } from './tray';
 export type { Notebook } from './notebook';
@@ -52,9 +52,8 @@ export class Hud {
   onVerb: (v: Verb | null) => void = () => {};
   /** The view switch. */
   onView: () => void = () => {};
-  /** Its greeting tapped: she rings for its assistance. */
+  /** Its greeting tapped: she rings for its assistance, or (asking it about something) puts the question down. */
   onBell: () => void = () => {};
-  onDispose: (id: string, dispose: boolean) => void = () => {};
   /** A panel opened over the frame. */
   onPanel: () => void = () => {};
   /** Whether a condition on the story holds, for what her notebook holds. */
@@ -125,14 +124,17 @@ export class Hud {
   private menuTab: 'saves' | 'settings' | 'help' = 'saves';
   /** Her things' pictures, fetched once. */
   private readonly fetched = new Set<string>();
+  /** Its greeting and its line of the day, as the game last gave them. */
+  private said: [string, string] = ['', ''];
 
   constructor(canvas: HTMLCanvasElement) {
     const root = (this.root = el('div', 'hud'));
     root.dataset.view = 'concierge';
     canvas.after(root);
 
-    // the Concierge's greeting and its line of the day, in its view; tapped, she rings for it
-    this.co = button('hud-co', 'The Concierge: ring for assistance', root, () => this.onBell());
+    // the Concierge's greeting and its line of the day, in its view; tapped, she rings for it: it says what it would
+    // have her do here, and offers to be asked about something. Until she first rings, its bell now and then rings
+    this.co = button('hud-co beckon', 'The Concierge: ring for assistance', root, () => { this.co.classList.remove('beckon'); this.onBell(); });
     this.co.insertAdjacentHTML('beforeend', icon('ask', 22));
     const words = el('span', 'words', this.co);
     this.greet = el('span', 'greet', words);
@@ -165,7 +167,7 @@ export class Hud {
     this.items = items;
     this.carried = carried;
     // their pictures fetched now, so the tray opens with them there
-    for (const id of carried) { const art = items[id]?.art; if (art && !this.fetched.has(art)) { this.fetched.add(art); new Image().src = `${this.assets}/${art}`; } }
+    for (const art of carried.flatMap((id) => picturesOf(items[id]))) if (!this.fetched.has(art)) { this.fetched.add(art); new Image().src = `${this.assets}/${art}`; }
     this.drawBalls();
     if (this.trayEl) this.openTray();
     if (this.inspecting && !carried.includes(this.inspecting)) this.closeInspect();
@@ -260,11 +262,23 @@ export class Hud {
       b.classList.toggle('default', b.dataset.verb === v);
       b.setAttribute('aria-pressed', String(b.dataset.verb === v));
     });
+    // asking it: its greeting listens, and says what it asks
+    this.co.classList.toggle('listening', v === 'ask');
+    this.co.setAttribute('aria-pressed', String(v === 'ask'));
+    this.co.setAttribute('aria-label', v === 'ask' ? 'The Concierge is listening: tap what to ask about, or here to put the question down' : 'The Concierge: ring for assistance');
+    this.drawStatus();
     this.drawBalls();
   }
 
   /** The Concierge's greeting and its line of the day, time and weather. */
   setStatus(greeting: string, status: string): void {
+    this.said = [greeting, status];
+    this.drawStatus();
+  }
+
+  /** Its greeting, or, asked about something, its question. */
+  private drawStatus(): void {
+    const [greeting, status] = this.verb === 'ask' ? [verbQuestion('ask', false), 'Tap it, or slide to find it'] : this.said;
     if (this.greet.textContent !== greeting) this.greet.textContent = greeting;
     if (this.status.textContent !== status) this.status.textContent = status;
   }
@@ -338,21 +352,21 @@ export class Hud {
     const n = this.thingCount();
     this.thingsBall.innerHTML = `${icon('satchel', 26)}${n ? `<span class="badge">${n}</span>` : ''}`;
     this.thingsBall.setAttribute('aria-expanded', String(this.trayEl !== null));
-    const held = this.held ? thingsNow(this.items, [this.held.id], this.raw)[0] : undefined;
-    this.verbBall.innerHTML = held?.art ? `<img src="${this.assets}/${held.art}" alt="" width="40" height="40" draggable="false">` : icon(this.verb ?? (held ? 'hands' : 'verbs'), 26);
+    const held = this.held ? thingsNow(this.items, [this.held.id], this.raw)[0] : undefined, verb = this.verb === 'ask' ? null : this.verb;
+    this.verbBall.innerHTML = held?.art ? `<img src="${this.assets}/${held.art}" alt="" width="40" height="40" draggable="false">` : icon(verb ?? (held ? 'hands' : 'verbs'), 26);
     this.verbBall.classList.toggle('holding', !!held);
-    this.verbBall.setAttribute('aria-pressed', String(this.verb !== null || this.held !== null));
-    this.verbBall.setAttribute('aria-label', this.held ? `${this.held.name}: put it back` : this.verb ? `${verbName(this.verb, this.raw)}: choose another, or put it down` : 'What she can do: look, talk, use, take');
-    // with the verbs out, the lit slot names it; put away, the name sits beside the ball
-    this.verbLabel.hidden = (!this.verb && !this.held) || this.menu !== null;
+    this.verbBall.setAttribute('aria-pressed', String(verb !== null || this.held !== null));
+    this.verbBall.setAttribute('aria-label', this.held ? `${this.held.name}: put it back` : verb ? `${verbName(verb, this.raw)}: choose another, or put it down` : 'What she can do: look, talk, use, take');
+    // with the verbs out, the lit slot names it; put away, what it asks sits beside the ball
+    this.verbLabel.hidden = (!verb && !this.held) || this.menu !== null;
     if (this.held) {
       this.verbLabel.replaceChildren();
-      el('div', 'verb', this.verbLabel, `Use ${this.held.name}`);
-      el('div', 'hint', this.verbLabel, 'on what?');
-    } else if (this.verb) {
+      el('div', 'verb', this.verbLabel, this.raw ? `use ${this.held.name.toLowerCase()} on what?` : `Use ${this.held.name} on what?`);
+      el('div', 'hint', this.verbLabel, 'Tap it, or slide to find it');
+    } else if (verb) {
       this.verbLabel.replaceChildren();
-      el('div', 'verb', this.verbLabel, verbName(this.verb, this.raw));
-      el('div', 'hint', this.verbLabel, 'Slide over what you see');
+      el('div', 'verb', this.verbLabel, verbQuestion(verb, this.raw));
+      el('div', 'hint', this.verbLabel, 'Tap it, or slide to find it');
     }
   }
 
@@ -371,18 +385,18 @@ export class Hud {
     this.closeTray();
     this.closePanel();
     this.onPanel();
-    const ball = this.verbBall, choices = verbsIn(this.raw).map((v) => ({ id: v, label: verbName(v, this.raw), on: v === this.verb, co: v === 'ask' }));
+    const ball = this.verbBall, choices = HERS.map((v) => ({ id: v, label: verbName(v, this.raw), on: v === this.verb }));
     const root = this.root.getBoundingClientRect(), b = ball.getBoundingClientRect(), slot = b.width / 1.15;
     const menu = (this.menu = el('div', 'hud-menu verbs', this.root));
     ball.setAttribute('aria-expanded', 'true');
     menu.style.left = `${b.left + b.width / 2 - root.left}px`;
     menu.style.top = `${b.top + b.height / 2 - root.top}px`;
     const made = choices.map((c) => {
-      const s = button(`hud-slot${c.on ? ' default' : ''}${c.co ? ' co' : ''}`, c.label, menu, () => this.onVerb(c.id === this.verb ? null : c.id));
+      const s = button(`hud-slot${c.on ? ' default' : ''}`, c.label, menu, () => this.onVerb(c.id === this.verb ? null : c.id));
       s.dataset.verb = c.id;
       s.setAttribute('aria-pressed', String(c.on));
       s.innerHTML = icon(c.id, 24);
-      return { s, label: el('div', `hud-slot-label${c.co ? ' co' : ''}`, menu, c.label) };
+      return { s, label: el('div', 'hud-slot-label', menu, c.label) };
     });
     // out from the ball, each slot as wide as its label needs, sliding out from behind it one after another
     let x = b.width / 2 + 12;
@@ -448,9 +462,8 @@ export class Hud {
     this.inspecting = null;
     if (!t) return;
     this.inspecting = id;
-    this.inspectEl = drawInspect(this.root, t, this.raw, this.assets, this.held?.id === id, {
+    this.inspectEl = drawInspect(this.root, t, this.assets, this.held?.id === id, {
       hold: (thing) => { this.closeInspect(); this.onHold(thing); },
-      dispose: (thing, dispose) => { this.closeInspect(); this.onDispose(thing, dispose); },
       close: () => this.closeInspect(),
     });
     const slot = this.trayEl?.querySelector<HTMLElement>(`[data-item="${id}"]`), root = this.root.getBoundingClientRect();
@@ -660,8 +673,8 @@ export function drawHelp(p: HTMLElement): void {
   const box = el('div', 'help', p);
   const rows: [string, string][] = [
     ['Walk', 'Tap where she should go. A door, or the end of the street, takes her through. Outdoors, hold a finger far ahead of her to run.'],
-    ['Do', 'The ball at the bottom right: choose Look, Talk, Use or Take, then slide over the scene and let go on what lights up. Anything can be tried; not everything answers.'],
-    ['Concierge', 'In its view, the ring among the verbs asks the Concierge about a thing, and it answers. Talk is Luna speaking to it herself.'],
+    ['Do', 'The ball at the bottom right: choose Look, Talk, Use or Take, then tap what to do it to (or slide over the scene and let go on what lights up). Anything can be tried; not everything answers.'],
+    ['Concierge', 'Its greeting at the top left, in its view. Tap it and it says what it would have you do here; tap Ask about something, then a thing, and it tells you what it knows of it. Talk is Luna speaking herself.'],
     ['Her things', 'The ball at the bottom left. Tap a thing to see it close up; Use takes it out, then tap what to use it on.'],
     ['Top right', 'The view switch once she has it, the map, her journal (anywhere) and her notebook (only where it cannot see her), and this menu.'],
     ['Keys', 'Arrows or A and D walk, with Shift she runs. E switches view, I her things, M the map, J her journal, N her notebook, Esc closes. Numbers pick an answer.'],

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { actionFor, actionsFor, defaultOf, verbsIn } from './actions';
+import { actionFor, actionsFor, defaultOf, HERS, verbQuestion, verbsIn } from './actions';
 import type { Hotspot } from './level';
 
 const dock: Hotspot = {
@@ -8,9 +8,16 @@ const dock: Hotspot = {
 };
 
 describe('verbs', () => {
-  it('offers the Concierge’s bell only in its view', () => {
+  it('offers asking the Concierge only in its view, at its greeting: her own four at the ball', () => {
     expect(verbsIn(false)).toEqual(['eyes', 'heart', 'hands', 'take', 'ask']);
     expect(verbsIn(true)).toEqual(['eyes', 'heart', 'hands', 'take']);
+    expect(HERS).toEqual(['eyes', 'heart', 'hands', 'take']);
+  });
+
+  it('asks, chosen, what to do it to: in her own words in raw view', () => {
+    expect(verbQuestion('heart', false)).toBe('Talk to whom?');
+    expect(verbQuestion('eyes', true)).toBe('look at what?');
+    expect(verbQuestion('ask', false)).toBe('About what, guest?');
   });
 
   it('does every verb to everything, saying which it has something of its own for', () => {

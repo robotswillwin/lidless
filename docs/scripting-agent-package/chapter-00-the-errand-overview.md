@@ -78,7 +78,7 @@ summary: >
 ```yaml
 - id: parcel
   new: false
-  name: { concierge: Parcel, raw: the parcel }
+  name: Parcel
   note: { concierge: "Delivery 4471 · to Radio Repair, by 22:00", raw: "for the radio man. don't open it." }
   size: 20 × 14 × 9 cm
   look:
@@ -88,8 +88,8 @@ summary: >
 
 - id: valve
   new: false
-  name: { concierge: Vintage valve, raw: a radio valve }
-  note: { concierge: Decorative curio, raw: "for the radio. the left one's dead." }
+  name: Valve
+  note: { concierge: "Vintage · decorative curio", raw: "for the radio. the left one's dead." }
   size: 7 cm tall
   look:
     concierge: A vintage glass ornament with a faint warm glow, on a little stand.
@@ -98,8 +98,8 @@ summary: >
 
 - id: matches
   new: false
-  name: { concierge: Matches, raw: matches (3) }
-  note: { concierge: "Open flame · not permitted indoors", raw: "real fire. it hates that." }
+  name: Matches
+  note: { concierge: "Open flame · not permitted indoors", raw: "three left. real fire. it hates that." }
   size: 5 × 3.5 × 1.5 cm
   unlicensed: true
   starts: carried

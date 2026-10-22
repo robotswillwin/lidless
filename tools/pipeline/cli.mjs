@@ -101,6 +101,9 @@ const HELP = `Asset pipeline: generate art with an image AI, clean it and turn i
       art/items/items.json, with its pictures as the style to match: candidates in art/items/<id>/candidates/.
   npm run asset -- items --pick parcel=2,valve=1
       Cut those candidates out square into public/assets/items/<id>.webp, and name them in items.json as the art.
+  npm run asset -- items --concierge [--only parcel] [--n 1]
+      Edit each thing's picture in the game into the Concierge's view, as art/items/items.json's "concierge" describes
+      it: the same thing in the same pose, made over. --pick-concierge parcel=1 puts it in as <id>.concierge.webp.
   npm run asset -- ground <recipe> --from <y> [--smooth 20]
       Take the painted reflections out of a picture's wet ground, below the reflection line y (level pixels), in both
       views, so the engine's live ones (the look's "Mirror the set") are the only ones: painted reflections stay put

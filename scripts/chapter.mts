@@ -243,6 +243,9 @@ function main() {
     // a thing the game has: what is given is checked, nothing more is asked for
     const need = !exists;
     viewText(v.name, where, 'name', v.only, need);
+    if (isObj(v.name) && !v.only && typeof v.name.concierge === 'string' && typeof v.name.raw === 'string' && v.name.concierge.toLowerCase() !== v.name.raw.toLowerCase())
+      warn(where, 'one name in both views ("Map"), so a player always knows what they hold: let the note say how each view sees it');
+    for (const n of viewText(v.name, where, 'name', v.only, false)) if (n.length > 10) warn(where, `"${n}" is cut short under its picture in her things: 10 letters at most`);
     viewText(v.note, where, 'note (what her things say of it)', v.only, need);
     viewText(v.look, where, 'look (its picture, a prompt for each view)', v.only, need);
     if ((need || v.size !== undefined) && (typeof v.size !== 'string' || !SIZE.test(v.size))) warn(where, 'size, with its unit ("30 × 22 × 4 cm"), keeps its picture at its real size');

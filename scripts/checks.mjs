@@ -54,6 +54,13 @@ const verb = async (page, v) => {
   await page.evaluate((v) => document.querySelector(`[data-verb="${v}"]`)?.click(), v);
   await wait(150);
 };
+// asking the Concierge: its greeting rung, and Ask about something
+const ask = async (page) => {
+  await page.evaluate(() => document.querySelector('.hud-co')?.click());
+  await wait(300);
+  await page.evaluate(() => document.querySelector('.hud-toast .row .primary')?.click());
+  await wait(150);
+};
 // what the HUD opens: her things (the tray from the left ball), her journal, the map (in her journal), her notebook,
 // her saves (the menu)
 const panel = async (page, which) => {
@@ -162,7 +169,20 @@ const checks = {
     // (she walks to it from the door first)
     const first = await noteAfter('take', 506, 333, 6000), second = await noteAfter('take', 506, 333, 1200);
     check('taking the bed: a standard reply, and another the next time', !!first && !!second && first !== second, `${first.slice(0, 40)} | ${second.slice(0, 40)}`);
-    await verb(page, 'ask');
+    // (the verbs stay out once chosen from)
+    await page.evaluate(() => { if (!document.querySelector('.hud-menu.verbs')) document.querySelector('.hud-ball.verbs')?.click(); });
+    await wait(250);
+    const verbs = await page.$$eval('.hud-menu.verbs [data-verb]', (bs) => bs.map((b) => b.dataset.verb));
+    check('her four verbs at the ball, asking at the Concierge', verbs.join() === 'eyes,heart,hands,take', verbs.join());
+    await page.evaluate(() => document.querySelector('.hud-ball.verbs')?.click());
+    await page.evaluate(() => document.querySelector('.hud-co')?.click());
+    await wait(300);
+    const rung = await page.$eval('.hud-toast', (t) => ({ text: t.querySelector('p')?.textContent ?? '', ask: t.querySelector('.row .primary')?.textContent })).catch(() => null);
+    check('rung, the Concierge says what it would have her do, and offers to be asked', !!rung?.text && rung.ask === 'Ask about something', `${rung?.text.slice(0, 50)} · ${rung?.ask}`);
+    await page.evaluate(() => document.querySelector('.hud-toast .row .primary')?.click());
+    await wait(150);
+    const listening = await page.$eval('.hud-co', (c) => c.classList.contains('listening') && /About what/.test(c.textContent ?? ''));
+    check('asked about something, it listens: "About what, guest?"', listening);
     await tap(page, 503, 268);
     await wait(3500);
     const asked = await page.$eval('.hud-toast', (t) => t.textContent).catch(() => '');
@@ -249,6 +269,12 @@ const checks = {
     await panel(page, 'map');
     const places = await page.$$eval('.chart button.place', (bs) => bs.map((b) => b.getAttribute('aria-label')));
     check('the map: her home and the backstreet, the main street sketched in', places.some((l) => /Luna's home/.test(l)) && places.some((l) => /Backstreet: you are here/.test(l)) && places.some((l) => /Main street: not been there yet/.test(l)), places.join(' / '));
+    const over = await page.evaluate(() => {
+      const box = (re) => [...document.querySelectorAll('.chart button.place')].find((b) => re.test(b.getAttribute('aria-label') ?? ''))?.getBoundingClientRect();
+      const home = box(/Luna's home/), street = box(/Backstreet/), stem = document.querySelector('.chart line.link');
+      return home && street ? { above: home.bottom < street.top + 10, joined: !!stem } : null;
+    });
+    check('her home above the backstreet, joined to its door', !!over?.above && over.joined, JSON.stringify(over));
     // home again, from the map
     await page.evaluate(() => [...document.querySelectorAll('.chart button.place')].find((b) => /Luna's home/.test(b.getAttribute('aria-label') ?? ''))?.click());
     await wait(3500);

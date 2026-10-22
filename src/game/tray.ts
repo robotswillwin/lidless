@@ -1,20 +1,24 @@
-// Her things: a tray that slides out along the bottom from the left ball, each thing painted as it really is, its name
-// under it. Made for thumbs, nothing behind a hover: a tap on a thing (or holding a finger on it, or a right-click)
-// shows it close up, with what is known about it, and Use takes it out to use on something; on the one in her hand it
-// puts it back. In the Concierge's view its own words are on them ("Unlicensed item"), and a thing that exists only in
-// its eye (a projection) is its own graphic; in raw view that is an empty place in her pocket.
+// Her things: a tray that slides out along the bottom from the left ball, each thing painted as the view on screen shows
+// it, its name under it, the same name in both views. Made for thumbs, nothing behind a hover: a tap on a thing (or
+// holding a finger on it, or a right-click) shows it close up, with what is known about it, and Use takes it out to use
+// on something; on the one in her hand it puts it back. Nothing she carries can be thrown away: what the story needs
+// stays with her until the story takes it. In the Concierge's view its own words are on them ("Unlicensed"), and a
+// thing that exists only in its eye (a projection) is its own graphic; in raw view that is an empty place in her pocket.
 
 import { button, el } from './dom';
 import { arIcon, icon } from './icons';
 import { pick, type ViewText } from './level';
 
 export interface Item {
-  /** The thing painted, an image under the assets (items/parcel.webp); without one, its icon stands in. */
-  art?: string;
+  /**
+   * The thing painted, an image under the assets: the same in both views (items/parcel.webp), or as each shows it
+   * ({concierge: items/parcel.concierge.webp, raw: items/parcel.webp}); without one, its icon stands in.
+   */
+  art?: ViewText;
   icon: string;
   /** Only in one view: a projection exists only in the Concierge's eye. */
   only?: 'raw' | 'concierge';
-  /** Made by people, outside its catalogue: the Concierge offers to dispose of it. */
+  /** Made by people, outside its catalogue: the Concierge labels it. */
   unlicensed?: boolean;
   name: ViewText;
   note?: ViewText;
@@ -43,11 +47,14 @@ export function thingsNow(items: Record<string, Item>, carried: string[], raw: b
     if (!it || (!raw && it.only === 'raw')) return [];
     const projected = !raw && it.only === 'concierge', ghost = raw && it.only === 'concierge';
     return [{
-      id, name: pick(it.name, raw), note: it.note ? pick(it.note, raw) : '', art: projected ? undefined : it.art, icon: it.icon,
+      id, name: pick(it.name, raw), note: it.note ? pick(it.note, raw) : '', art: projected || !it.art ? undefined : pick(it.art, raw), icon: it.icon,
       projected, ghost, tag: !raw && watched && it.unlicensed ? 'Unlicensed' : undefined, unlicensed: watched && !!it.unlicensed,
     }];
   });
 }
+
+/** Every picture of a thing, in either view: to fetch before the tray opens, or the view switches. */
+export const picturesOf = (it: Item | undefined): string[] => (!it?.art ? [] : typeof it.art === 'string' ? [it.art] : [it.art.concierge, it.art.raw]);
 
 /** A thing's picture: painted, or its icon standing in; the Concierge's own graphic for a projection. */
 export function pictureOf(t: Thing, size: number, assets: string): string {
@@ -85,11 +92,10 @@ export function drawTray(root: HTMLElement, things: Thing[], from: { x: number; 
 
 /**
  * A thing close up, over the tray: its picture, its name, what is known about it, and taking it out to use (or, the
- * one in her hand, putting it back). In the Concierge's view, a thing outside its catalogue comes with its offer to
- * dispose of it.
+ * one in her hand, putting it back).
  */
-export function drawInspect(root: HTMLElement, t: Thing, raw: boolean, assets: string, held: boolean,
-  on: { hold: (id: string | null) => void; dispose: (id: string, dispose: boolean) => void; close: () => void }): HTMLElement {
+export function drawInspect(root: HTMLElement, t: Thing, assets: string, held: boolean,
+  on: { hold: (id: string | null) => void; close: () => void }): HTMLElement {
   const card = el('section', `hud-inspect${t.ghost ? ' ghost' : ''}${t.projected ? ' projected' : ''}`, root);
   card.setAttribute('aria-label', t.name);
   card.addEventListener('pointerdown', (e) => e.stopPropagation());
@@ -103,14 +109,5 @@ export function drawInspect(root: HTMLElement, t: Thing, raw: boolean, assets: s
   // Use takes it out to use on something; the one in her hand, Put back
   if (!t.ghost) button('primary', held ? `Put ${t.name} back` : `Use ${t.name}`, row, () => on.hold(held ? null : t.id)).textContent = held ? 'Put back' : 'Use';
   button('hud-close', 'Close', card, on.close).innerHTML = icon('close', 16);
-  // its offer, in its own voice
-  if (!raw && t.unlicensed) {
-    const offer = el('div', 'co-offer', words);
-    offer.insertAdjacentHTML('beforeend', icon('ask', 16));
-    el('span', '', offer, 'Shall I dispose of it for you?');
-    const choose = el('div', 'row', words);
-    button('', 'Dispose', choose, () => on.dispose(t.id, true)).textContent = 'Dispose';
-    button('', 'Keep', choose, () => on.dispose(t.id, false)).textContent = 'Keep';
-  }
   return card;
 }

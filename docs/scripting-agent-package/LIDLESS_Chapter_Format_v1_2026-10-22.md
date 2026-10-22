@@ -129,7 +129,7 @@ A place is a scene: a room (interior) or a stretch of street (exterior), drawn i
   size: 7 m wide, 3.2 m high       # its real size, for scale: required
   private: false                   # a privacy zone: the Concierge cannot see or hear inside; her notebook opens
   greeting: Good evening, guest.   # the Concierge's welcome here, in its view
-  assist: ...                      # what it says when she rings for help here (optional)
+  assist: ...                      # what it says when she rings for it here: what it would have her do (optional)
   look:                            # the picture, a prompt for each view: required
     concierge: >
       ...
@@ -180,7 +180,7 @@ A spot is anything in a place she can point at.
 Every new spot needs a `name`, a `where`, and something to see or do: a `look`, a `story`, a way out, or an `item`.
 
 **Every spot answers every verb**: Look, Talk, Use, Take, and, in the Concierge's view, asking the Concierge about it
-(its answer is the spot's `ask`). For a verb a spot has no text or knot for, the game gives a standard reply that
+(the player rings it at its greeting and taps the spot; its answer is the spot's `ask`). For a verb a spot has no text or knot for, the game gives a standard reply that
 suits what it is (a person, a machine, a thing or a way out), a different one each time she tries: "It doesn't
 answer.", "Not yours to take.", and from the Concierge, inside a privacy zone, "I can't see in here, guest." So write
 only what a spot really answers: its look, what it does, and a `reply` for a machine or a person with something to
@@ -221,19 +221,21 @@ What she can carry.
 
 ```yaml
 - id: old_laptop
-  name: { concierge: Retro laptop, raw: old laptop }
+  name: Laptop                     # one name, the same in both views, 10 letters at most (under its picture)
   note: { concierge: "Vintage device · not connected", raw: "it still boots. it doesn't phone home." }
   size: 32 × 24 × 4 cm             # real size: its picture is drawn to it
-  look:                            # its picture in her things, a prompt for each view
-    concierge: ...
+  look:                            # its picture in her things, a prompt for each view: raw view's is painted first,
+    concierge: ...                 # and the Concierge's is made from it, the same thing in the same pose, made over
     raw: ...
-  unlicensed: true                 # made by people, not the Concierge: it offers to dispose of it
+  unlicensed: true                 # made by people, not the Concierge: it labels it "Unlicensed"
   only: concierge                  # exists only in one view (her credits)
   starts: fixer-shop/back-shelf    # where it is as the chapter begins: a place/spot (that spot has item: old_laptop),
                                    # carried, or given (the Script gives it: ~ carried += old_laptop)
 ```
 
-Her things show raw view's name and note in her own voice, lowercase; the Concierge's view shows its own.
+A thing has **one name in both views**, so a player always knows what they hold. Each view shows its own picture of
+it, and its own note under the name: the Concierge's label in its view, her own words, lowercase, in raw view. Nothing
+she carries can be thrown away: a thing leaves her only when the Script takes it (`~ carried -= old_laptop`).
 
 ## Story state
 

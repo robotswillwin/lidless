@@ -213,9 +213,8 @@ export class Game {
       if (fresh.length) this.persist();
     };
     this.hud.setJournal(s.journal);
-    this.hud.onBell = () => this.hud.toast(this.scene.file.assist ?? 'Is there anything I can do for you, guest?');
+    this.hud.onBell = () => this.ring();
     this.hud.onPanel = () => this.ui.hideCaption();
-    this.hud.onDispose = (_id, dispose) => this.hud.toast(dispose ? 'Of course, guest. I will collect it at your convenience.' : 'As you wish, guest.');
   }
 
   /** A session, in the scene the address asks for, or the saved one, or where the world starts. */
@@ -707,7 +706,16 @@ export class Game {
 
   /* ---------- input: verbs, the pointer in level pixels, the walk keys ---------- */
 
-  /** A verb chosen at the ball, or put down. */
+  /**
+   * She rings for the Concierge at its greeting: it says what it would have her do here, and offers to be asked about
+   * something, which it then listens for. Rung while it listens, the question is put down.
+   */
+  private ring(): void {
+    if (this.verb === 'ask') { this.setVerb(null); return this.hud.dismissToast(); }
+    this.hud.toast(this.scene.file.assist ?? 'Is there anything I can do for you, guest?', [{ label: 'Ask about something', primary: true, run: () => this.setVerb('ask') }], 12000);
+  }
+
+  /** A verb chosen at the ball (or asking, at the Concierge's greeting), or put down. */
   private setVerb(v: Verb | null): void {
     this.verb = v;
     if (v && this.inHand) { this.inHand = null; this.hud.setHeld(null); }

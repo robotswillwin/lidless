@@ -1,10 +1,14 @@
 // Her things, painted for the tray: each real thing she can carry painted on its own in the game's look, as it really
-// is, with a picture of the game as the style to match. What exists only in the Concierge's eye (credits) is its own
-// graphic, not painted. The descriptions are in art/items/items.json; candidates go to art/items/<id>/candidates/, and
-// picking one cuts it out, square, into public/assets/items/<id>.webp, which items.json then names as the thing's art.
+// is, with a picture of the game as the style to match; then as the Concierge shows it, edited from that picture so
+// the two are the same thing in the same pose. What exists only in the Concierge's eye (credits) is its own graphic,
+// not painted. The descriptions are in art/items/items.json (`things`, and `concierge` for its view); candidates go to
+// art/items/<id>/candidates/, and picking one cuts it out, square, into public/assets/items/<id>.webp (raw view) or
+// <id>.concierge.webp, which items.json then names as the thing's art in that view.
 //
 //   npm run asset -- items [--only parcel,valve] [--n 2] [--quality medium] [--dry]
 //   npm run asset -- items --pick parcel=2,valve=1
+//   npm run asset -- items --concierge [--only parcel] [--n 1]     its view, edited from the raw picture in the game
+//   npm run asset -- items --pick-concierge parcel=1
 
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
@@ -55,12 +59,47 @@ async function paint(spec, ids, opt) {
   }
 }
 
-/** A candidate, cut out square with a little room around it, into the game; items.json names it as the thing's art. */
-async function pick(choices) {
+/** Its view of each thing: the raw picture in the game, edited, so it is the same thing in the same pose, made over. */
+async function paintConcierge(spec, ids, opt) {
+  const n = Number(opt.n ?? 1), quality = opt.quality ?? 'medium', refs = (spec.conciergeReferences ?? []).map((f) => join(ROOT, f));
+  for (const id of ids) {
+    const what = spec.concierge?.[id], from = join(OUT, `${id}.webp`);
+    if (!what) throw new Error(`art/items/items.json has no concierge description of ${id}`);
+    if (!existsSync(from)) throw new Error(`${id} has no raw picture in the game yet (${rel(from)}): pick one first`);
+    const text = [
+      'The first attached image is one object from the inventory of a cinematic 2D adventure game, as it really is. Edit it into the same',
+      `object as the city AI's augmented view shows it: ${what}.`,
+      'Keep its shape, size, angle and outline exactly, and its place in the frame; change only its surfaces, materials, colours and finish.',
+      'On a fully transparent background: no shadow under it, no surface, no frame, no text, no other objects.',
+      refs.length ? 'The other attached images are style references for the augmented view: match their rendering, palette and mood, not their objects.' : '',
+      LOOKS.vector,
+    ].join(' ');
+    console.log(`${id}: ${n} × the Concierge's view, ${quality} quality`);
+    if (opt.dry) { console.log(`\n${text}\n`); continue; }
+    const base = await sharp(from).resize(1024, 1024).png().toBuffer();
+    const res = await edit({ prompt: text, images: [{ name: `${id}.png`, data: base }, ...(await loadReferences(refs))], size: '1024x1024', quality, n, background: 'transparent' });
+    const dir = join(ROOT, 'art/items', id, 'candidates');
+    await mkdir(dir, { recursive: true });
+    const have = (await readdir(dir)).filter((f) => /^concierge-\d+\.png$/.test(f)).map((f) => Number(f.slice(10, -4)));
+    let next = Math.max(0, ...have) + 1;
+    for (const img of res.images) {
+      const file = join(dir, `concierge-${next++}.png`);
+      await writeFile(file, img);
+      console.log(`  ${rel(file)}`);
+    }
+    if (res.cost != null) console.log(`  $${res.cost.toFixed(3)}`);
+  }
+}
+
+/**
+ * A candidate, cut out square with a little room around it, into the game; items.json names it as the thing's art,
+ * in raw view (the art for both, until its view has its own) or, `view` concierge, in the Concierge's.
+ */
+async function pick(choices, view = 'raw') {
   const game = JSON.parse(await readFile(GAME, 'utf8'));
   await mkdir(OUT, { recursive: true });
   for (const [id, n] of choices) {
-    const src = join(ROOT, 'art/items', id, 'candidates', `${n}.png`);
+    const src = join(ROOT, 'art/items', id, 'candidates', view === 'concierge' ? `concierge-${n}.png` : `${n}.png`);
     if (!existsSync(src)) throw new Error(`no candidate ${rel(src)}`);
     if (!game[id]) throw new Error(`items.json has no ${id}`);
     const img = await readRGBA(src);
@@ -72,17 +111,20 @@ async function pick(choices) {
       .resize(SIZE, SIZE, { kernel: 'lanczos3' })
       .webp({ quality: 90, alphaQuality: 100 })
       .toBuffer();
-    const out = join(OUT, `${id}.webp`);
+    const out = join(OUT, view === 'concierge' ? `${id}.concierge.webp` : `${id}.webp`);
     await writeFile(out, cut);
-    game[id].art = `items/${id}.webp`;
+    const was = game[id].art, raw = typeof was === 'object' ? was.raw : `items/${id}.webp`;
+    game[id].art = view === 'concierge' ? { concierge: `items/${id}.concierge.webp`, raw } : typeof was === 'object' ? { ...was, raw: `items/${id}.webp` } : `items/${id}.webp`;
     console.log(`${id}: ${rel(src)} → ${rel(out)} (${(cut.length / 1024).toFixed(1)} KB)`);
   }
   await writeFile(GAME, JSON.stringify(game, null, 1) + '\n');
 }
 
 export async function cmdItems(_args, opt) {
-  if (typeof opt.pick === 'string') return pick(opt.pick.split(',').map((c) => { const [id, n] = c.split('='); return [id.trim(), Number(n)]; }));
+  const choices = (list) => list.split(',').map((c) => { const [id, n] = c.split('='); return [id.trim(), Number(n)]; });
+  if (typeof opt.pick === 'string') return pick(choices(opt.pick));
+  if (typeof opt['pick-concierge'] === 'string') return pick(choices(opt['pick-concierge']), 'concierge');
   const spec = JSON.parse(await readFile(SPEC, 'utf8'));
   const ids = typeof opt.only === 'string' ? opt.only.split(',').map((s) => s.trim()) : Object.keys(spec.things);
-  await paint(spec, ids, opt);
+  await (opt.concierge ? paintConcierge(spec, ids, opt) : paint(spec, ids, opt));
 }

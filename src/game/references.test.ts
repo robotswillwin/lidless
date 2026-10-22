@@ -1,12 +1,13 @@
 // Everything the scenes and the notebook name in the story is there: a broken reference is the bug a story with many
 // branches makes most, and it shows only when a player reaches it.
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { conditionProblem, variablesIn } from './conditions';
 import { Dialogue } from './dialogue';
 import type { Notebook } from './notebook';
 import type { SceneFile, WorldFile } from './scenefile';
+import { picturesOf, type Item } from './tray';
 
 const assets = join(__dirname, '../../public/assets');
 const scenes: SceneFile[] = readdirSync(join(assets, 'scenes')).map((id) => JSON.parse(readFileSync(join(assets, 'scenes', id, 'scene.json'), 'utf8')));
@@ -89,7 +90,9 @@ describe('what the scenes and the notebook name in the story', () => {
     expect(bad).toEqual([]);
   });
 
-  it('shows every thing she can carry', () => {
+  it('shows every thing she can carry, painted in each view it has a picture for', () => {
     expect([...things].filter((t) => !items[t])).toEqual([]);
+    const missing = Object.entries(items).flatMap(([id, it]) => picturesOf(it as Item).filter((f) => !existsSync(join(assets, f))).map((f) => `${id}: ${f}`));
+    expect(missing).toEqual([]);
   });
 });
