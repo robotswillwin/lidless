@@ -46,12 +46,15 @@ As it plays now. It ends with the voice under the static.
   she can only open the notebook in a privacy zone (her flat is one).
 - **She asks the fixer.** He knows the band: "Municipal. There was a relay in the Eastern District, before." And the
   favour she owes comes due.
-- **The old computer reaches her.** **Decide** how:
-  - **(a)** The fixer has kept a relay's machine in his back room for years and cannot get past its password. Its
-    price is the favour: "Take it home. Find out what it knows."
+- **The old computer reaches her.** The director's direction (22 October, not decided in the story yet): she comes by
+  it easily, as **a retro laptop**, and it may be where she learns about the raw-view mod, or something like it. Ways
+  it could reach her, still to choose:
+  - **(a)** The fixer has kept it in his back room for years and cannot get past its password. Its price is the
+    favour: "Take it home. Find out what it knows."
   - **(b)** She finds it in the backstreet, in a skip of electronics waiting to be collected.
   - **(c)** It comes from someone connected to the person in the photo.
-- **She carries it home.** It becomes a prop on her desk, and she switches it on there.
+- **She carries it home.** A laptop is easily carried. It becomes a prop on her desk, and she opens it there. Its
+  screen could then look like an old laptop's (a monochrome LCD) rather than the green-glass monitor it has now.
 
 ### 3. The machine and the map (to build, about 15 minutes)
 
@@ -84,7 +87,9 @@ As it plays now. It ends with the voice under the static.
 
 1. **Luna's motive.** The photo says she is looking for someone the Concierge removed. Is that her motive in the slice,
    and who are they to her?
-2. **The old computer.** How does it reach her: (a), (b), (c), or another way?
+2. **The old computer.** A retro laptop she comes by easily, perhaps where she learns about the raw-view mod
+   (direction, 22 October). How does it reach her: (a), (b), (c), or another way? And does the raw view then come
+   from what she finds on it rather than from the fixer?
 3. **The first mystery.** Relay 7, the three o'clock pattern and the closed registry entry follow the bible's proposed
    central mystery (a municipal signal or address that is not on today's maps). Keep that shape, or should the
    machine hold something else?
