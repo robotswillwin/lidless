@@ -379,6 +379,44 @@ const checks = {
     await page.close();
   },
 
+  /**
+   * Felix, outside the cocktail bar: a man in light, and once they have met, Felix; he tells her the levels, and her
+   * journal keeps them.
+   */
+  async felix() {
+    const page = await browser.newPage();
+    page.on('pageerror', (e) => errors.push(String(e)));
+    await page.setViewport({ width: 1920, height: 1080 });
+    await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
+    await page.evaluateOnNewDocument(() => { if (sessionStorage.getItem('seeded')) return; sessionStorage.setItem('seeded', '1'); localStorage.setItem('lidless.save.v1', JSON.stringify({ v: 2, scene: 'street', heroX: 1150, facing: 1, view: 1, ink: null })); });
+    await page.goto(`${url}?notitle&fast`);
+    await ready(page);
+    await verb(page, 'heart');
+    const at = await findThing(page, 'Man in light', 400);
+    if (at) { await page.mouse.down(); await wait(60); await page.mouse.up(); }
+    await page.waitForFunction(() => !!document.querySelector('.talk-line:not([hidden])'), { timeout: 12000 }).catch(() => {});
+    const first = await talkThrough(page);
+    check('the man in light: one eye, level one, he says', !!at && first.some((l) => /Level one/.test(l)), first.join(' / '));
+    await choose(page, 'What are the levels?');
+    const levels = await talkThrough(page);
+    check('he tells her the levels, one to four', ['One:', 'Two:', 'Three:', 'Four:'].every((w) => levels.some((l) => l.includes(w))), levels.map((l) => l.slice(0, 12)).join(' / '));
+    await choose(page, 'I see');
+    await talkThrough(page);
+    await choose(page, 'Enjoy your evening');
+    await talkThrough(page);
+    check('met, and the levels known', /"met_felix":\s*true/.test(await ink(page)) && /"knows_levels":\s*true/.test(await ink(page)));
+    await verb(page, 'eyes');
+    const named = await findThing(page, 'Felix', 400);
+    check('met, he is Felix', !!named);
+    await page.keyboard.press('Escape');
+    await panel(page, 'journal');
+    await page.evaluate(() => [...document.querySelectorAll('.hud-panel.journal .tab')].find((t) => /People/.test(t.textContent ?? ''))?.click());
+    await wait(300);
+    const people = await page.$eval('.hud-panel.journal', (p) => p.textContent ?? '').catch(() => '');
+    check('her journal: Felix, Level 4', /Felix/.test(people) && /Level 4/.test(people), people.slice(0, 120));
+    await page.close();
+  },
+
   /** The public restroom: a privacy room, her notebook opens there; coming back too often, the Concierge notices. */
   async restroom() {
     const page = await fresh('scene=street&spawn=from-restroom');

@@ -60,12 +60,16 @@ holds**. Each decision is the director's, in plain words; what is still open say
 16. **Her readouts** in the Concierge's card: her heart (it climbs as she hurries, and as the Concierge's attention
     grows), her credits, her nutrition. Nutrition is never something to plan for or keep track of: good, or
     optimal after a station, nothing else.
+17. **A deeply integrated guest** on the main street, much more integrated with the Concierge than Luna: more
+    devices (a helmet, goggles over both eyes), clothes made of light, from whom she learns about the levels. In the
+    game: **Felix**, outside the cocktail bar, a Level 4 guest and happy for it (his name, his look and the levels he
+    describes are proposals; see below).
 
 ## Production
 
-17. **Music** is the director's: one composition in a digital and an analogue arrangement, blended as the view
+18. **Music** is the director's: one composition in a digital and an analogue arrangement, blended as the view
     switches. No sound effects yet.
-18. **English only**, for now.
+19. **English only**, for now.
 
 ## Open, for the director
 
@@ -74,3 +78,8 @@ holds**. Each decision is the director's, in plain words; what is still open say
 - What the corner shop sells. Proposed: drinks, tobacco, umbrellas, care for devices, the Concierge's wardrobe on
   show.
 - How Luna comes by raw view (1) and the laptop (12).
+- The levels (17; the bible v0.4, 2.4, leaves the exchange open). Felix tells her, as a proposal: one, a roof, a
+  station, a doctor and a few credits, and it sees what any camera sees but not a thought; two, the body (heartbeat,
+  sleep, blood) for more credits and care before illness; three, feelings, calmed before she knows she is upset;
+  four, thoughts, known before she knows them, for privileges and never being alone; above four, nobody is seen out
+  at night.

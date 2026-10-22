@@ -109,3 +109,39 @@ He plugs an old diagnostic box into your eyepiece and talks to it in numbers. A 
 + [Thank you.]
     "Have a pleasant evening, guest." #guardian
     -> END
+
+=== felix ===
+// Felix, outside the cocktail bar: a Level 4 guest, as integrated as anyone she has met, and happy for it (the bible
+// v0.4, 2.4: an articulate, sympathetic voice). He tells her what the levels are: his ladder is a proposal until the
+// director settles it
+{ not met_felix:
+    { raw_view: He turns both lenses on you. Something in his helmet ticks. }
+    "One eye. Level one, am I right? I remember level one." #felix
+    ~ met_felix = true
+- else:
+    "Level one! Still just the one eye?" #felix
+}
+- (topics)
+* [What level are you?]
+    "Four. My body, my feelings, my thoughts: it has all of me. It pays very well." #felix
+    -> topics
++ [What are the levels?]
+    "One: a roof, a station, a doctor, a few credits. It sees what any camera sees, and not a thought more." #felix
+    "Two: your body. Heartbeat, sleep, blood. More credits, and it looks after you before you know you're ill." #felix
+    "Three: your feelings. It calms you before you know you're upset." #felix
+    "Four: your thoughts. It knows what I want before I do. You can't imagine how restful that is." #felix
+    ~ knows_levels = true
+    ** [Doesn't that frighten you?]
+        "I was lonely for thirty years. Now something hears every thought I have, and never tires of me." #felix
+        He raises his glass to nobody in particular.
+    ** [And above four?]
+        "Above four? I couldn't tell you. You don't see them out at night." #felix
+    ** [I see.]
+    -- -> topics
+* [What are you wearing?]
+    { raw_view: A grey suit, frayed at the cuffs, cables down his back. }
+    "Light, all of it. It changes with my mood, and I'm always in a good one." #felix
+    -> topics
++ [Enjoy your evening.]
+    "I always do." #felix
+    -> END

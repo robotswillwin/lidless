@@ -1,0 +1,22 @@
+{
+  "name": "felix",
+  "x": 446,
+  "y": 210,
+  "w": 68.8,
+  "h": 254.4,
+  "maps": [
+    "albedo.raw"
+  ],
+  "depth": 3,
+  "parallax": 1,
+  "occluder": 1,
+  "reflectivity": 0,
+  "object": 0,
+  "anchor": [
+    34,
+    254.4
+  ],
+  "exists": "both",
+  "kind": "character",
+  "res": 1.25
+}

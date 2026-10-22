@@ -226,7 +226,9 @@ flickers:
     such as a Concierge shirt drawn in one piece from the shoulders to the hem.
 - **Characters that stand** (`touch --frame idle/N`): each frame repaints one area, such as a hand or a face, and
   everything outside it is identical in every frame. The recipe's `anims.idle` sets `fps` and `seq`. The fixer's
-  soldering loop is made this way.
+  soldering loop is made this way. Felix (`art/cast/felix.json`), the Level 4 guest outside the cocktail bar, is a
+  character that stands with no loop yet: drawn in raw view first (`generate`), his Concierge's view to be edited from
+  it (`variant`), 254 tall for 1.78 m and his helmet, so 132 level px on the street against Luna's 124.
 
 ## Light language
 

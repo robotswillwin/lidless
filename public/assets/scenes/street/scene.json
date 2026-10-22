@@ -41,6 +41,11 @@
    "x": 572,
    "y": 286,
    "when": "station_seat == \"worker\""
+  },
+  {
+   "asset": "cast/felix",
+   "x": 1214,
+   "y": 326
   }
  ],
  "lights": [
@@ -658,6 +663,57 @@
    "talk": "guardian",
    "map": false,
    "kind": "machine"
+  },
+  {
+   "id": "felix",
+   "name": {
+    "concierge": "Man in light",
+    "raw": "Man in a helmet"
+   },
+   "tag": {
+    "concierge": "Guest · Level 4",
+    "raw": "both eyes covered"
+   },
+   "rect": [
+    1214,
+    326,
+    36,
+    132
+   ],
+   "stand": 1186,
+   "face": 1,
+   "look": {
+    "concierge": "A gentleman in a coat of living light, a halo turning over his head, a cocktail glowing in his hand. He seems delighted with the evening.",
+    "raw": "A grey suit like a sack, a helmet wired down his back, goggles over both eyes. He's smiling at something only he can see."
+   },
+   "talk": "felix",
+   "kind": "person",
+   "ask": "A guest, Level 4, Luna. He shares everything with me, and I take very good care of him. He is very happy.",
+   "when": "not met_felix"
+  },
+  {
+   "id": "felix-met",
+   "name": "Felix",
+   "tag": {
+    "concierge": "Guest · Level 4",
+    "raw": "both eyes covered"
+   },
+   "rect": [
+    1214,
+    326,
+    36,
+    132
+   ],
+   "stand": 1186,
+   "face": 1,
+   "look": {
+    "concierge": "A gentleman in a coat of living light, a halo turning over his head, a cocktail glowing in his hand. He seems delighted with the evening.",
+    "raw": "A grey suit like a sack, a helmet wired down his back, goggles over both eyes. He's smiling at something only he can see."
+   },
+   "talk": "felix",
+   "kind": "person",
+   "ask": "Felix is a Level 4 guest, Luna. He shares everything with me, and I take very good care of him.",
+   "when": "met_felix"
   }
  ],
  "beacons": [

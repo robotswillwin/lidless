@@ -43,6 +43,18 @@
      "lines": [
       "Radio Repair, Main Street. Repairs old electronics."
      ]
+    },
+    {
+     "id": "felix",
+     "name": "Felix",
+     "when": "met_felix",
+     "lines": [
+      "Outside the cocktail bar. Goggles over both eyes, a helmet wired down his back.",
+      {
+       "text": "Level 4: it has his body, his feelings and his thoughts. He says it's restful.",
+       "when": "knows_levels"
+      }
+     ]
     }
    ]
   },

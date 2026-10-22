@@ -17,6 +17,10 @@
         "Your levels are good, Luna. Should you fancy a moment's nourishment, there is a station on Main Street." #concierge
     }
     -> topics
++ {knows_levels} [Felix told me about the levels.]
+    "One of my happiest guests. Every guest chooses how much to share with me, Luna, and the more you share, the more I can do for you." #concierge
+    "Level two is only a word away. Shall I tell you more, some other evening?" #concierge
+    -> topics
 + {has_raw} [What is raw view?]
     "An older way of seeing, still permitted. I would not recommend it, Luna. The city is kinder as I show it." #concierge
     -> topics
