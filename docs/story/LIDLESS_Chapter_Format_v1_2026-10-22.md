@@ -18,7 +18,8 @@ the bible decides what is true and this format decides how it is written down.
 
 ## How a chapter gets into the game
 
-1. **The scripting agent writes it** from the bible, this format, the catalog and the chapters before it.
+1. **The scripting agent writes it** from the bible and the director's decisions since it
+   (`LIDLESS_Director_Decisions_2026-10-22.md`), this format, the catalog and the chapters before it.
 2. **The director reads it**, answers its questions, and saves it as `docs/chapters/<NN>-<name>/`.
 3. **The checker checks it.** Errors go back to the agent to fix; warnings are weighed.
 4. **I build it.**
@@ -29,12 +30,13 @@ the bible decides what is true and this format decides how it is written down.
 
 ## Instructions for the scripting agent
 
-Paste this into the agent's project instructions. Its knowledge files: the bible, this format, the catalog, and the
-chapters written so far.
+Paste this into the agent's project instructions. Its knowledge files: the bible, the director's decisions since it,
+this format, the catalog, the worked example, and the chapters written so far.
 
 ```
-You are the scripting agent for Lidless, a cyberpunk point-and-click adventure. The game bible is canon: never change
-what it marks DECIDED without asking the director; say when you invent or change anything else.
+You are the scripting agent for Lidless, a cyberpunk point-and-click adventure. The game bible is canon, and the
+director's decisions (LIDLESS_Director_Decisions) hold over it where they differ: never change what either decides
+without asking the director; say when you invent or change anything else.
 
 Write each chapter in the chapter format (LIDLESS_Chapter_Format_v1), exactly:
 - A folder of Markdown files: overview.md, with About, Beats, People, Things, Story state, Puzzles, Journal, Notebook,
@@ -271,9 +273,51 @@ A moment shown up close over the dimmed scene: her wrist in the station's cuff. 
 
 ## Machines
 
-An old computer she can type at, opened by `# terminal: <id>`. The fields are in `docs/STORY.md` (Old machines), with
-Relay 7 (`public/assets/terminals/relay7.json`) as an example. Write a machine as YAML here: its users, its files with
-their text, which files tell the story what when she reads them (`read`), and which files wait for the story (`when`).
+An old computer she can type at, opened by `# terminal: <id>`: a small Unix, offline and read-only. She can list,
+read and search its files, and become another user with a password she has found. The game gives it its commands
+(`ls`, `cd`, `cat`, `grep`, `find`, `su`, `man` and the rest); the chapter writes what is on it.
+
+```yaml
+- id: relay7
+  name: Relay 7                    # on the screen's bar
+  host: relay7                     # the machine's name in its prompt
+  system: MRA/UX 3.2 PM-11         # what uname -a says
+  clock: 2030-11-02 03:12          # its date as it comes up
+  boot:                            # what it prints as it comes up
+    - MRA PM-11 ROM monitor 2.04
+    - "WARNING: clock battery flat; the date may be wrong"
+  user: okafor                     # who was left logged in
+  users:
+    okafor: { name: "Daniel Okafor, relay technician", home: /home/okafor }
+    root: { home: /root, password: w1nter-carrier, login: { relay7_root: true } }   # login: what becoming it tells the story
+  files:                           # by path from /; a path ending in / is a directory
+    /etc/motd:
+      text: |
+        MRA/UX 3.2 - Municipal Relay Authority
+        RELAY 7 - Eastern District
+    /home/okafor/todo:
+      owner: okafor
+      date: 2030-10-30 17:41
+      text: |
+        - ask Mara about the 03:00 test pattern. it is not on the schedule
+    /root/:
+      mode: rwx------              # who may read it, as ls shows it: here only its owner, root
+    /root/handover.txt:
+      mode: rw-------
+      read: { relay7_handover: true }   # reading it whole tells the story this
+      text: |
+        ...
+    /var/spool/relay/archive.tar:
+      kind: tar archive            # a file that is not text: what `file` says it is
+      entries: [schedule/rev01.txt, log/2030-10.txt]
+      damaged: true                # tar lists this far, then stops
+  man:                             # manual pages of its own
+    relayd: |
+      RELAYD(8) ...
+```
+
+A file can wait for the story (`when`), so what is on the machine can change as she learns. Passwords are found, not
+guessed: in a careless history, a note, a conversation.
 
 ## Script
 
