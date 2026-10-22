@@ -28,6 +28,13 @@ export interface Hotspot {
   ask?: string;
   /** Ink knot to run. */
   talk?: string;
+  /** What it says back when she talks to it, with no conversation: a machine's "Bzzzzt". */
+  reply?: ViewText;
+  /**
+   * What it is, for the standard replies to a verb it has nothing of its own for (replies.ts): a person, a machine or
+   * a thing. By default a way out if it goes somewhere, a person if it has a conversation, else a thing.
+   */
+  kind?: 'person' | 'machine' | 'thing';
   /** A door or the end of the street: using it goes to this scene, arriving at this place there. */
   go?: { scene: string; spawn: string };
   /**

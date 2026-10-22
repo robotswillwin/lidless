@@ -137,7 +137,8 @@
         "concierge": "A row of radios restored to their old glory, dials glowing warm.",
         "raw": "Radios patched with rivets and tape, valves bare to the air. Every one of them works."
       },
-      "tag": "Restored radios"
+      "tag": "Restored radios",
+      "kind": "machine"
     },
     {
       "id": "pegboard",
@@ -170,7 +171,8 @@
       "look": {
         "concierge": "Green text scrolling on an old screen, soft as a lullaby.",
         "raw": "A green line rising and falling, like something breathing on the other end."
-      }
+      },
+      "kind": "machine"
     },
     {
       "id": "visor",

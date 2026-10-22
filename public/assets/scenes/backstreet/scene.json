@@ -104,7 +104,8 @@
     "raw": "Gauges and patched cables. The repair bot keeps it running, just."
    },
    "tag": "City panel",
-   "ask": "A Brighter Tomorrow, Together, guest."
+   "ask": "A Brighter Tomorrow, Together, guest.",
+   "kind": "machine"
   },
   {
    "id": "to-street",
@@ -142,6 +143,11 @@
    "look": {
     "concierge": "A maintenance unit keeping the street's systems at their best. Please mind the work area.",
     "raw": "An old repair bot with one arm in the fuse box, patching what was patched before."
+   },
+   "kind": "machine",
+   "reply": {
+    "concierge": "Bzzzzz, bzzzzt. It goes on welding.",
+    "raw": "Bzzzzz, bzzzzt. Sparks, and nothing else."
    }
   }
  ],

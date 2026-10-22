@@ -1,0 +1,30 @@
+{
+  "look": {
+    "any": ["Nothing special about it.", "You look. Nothing you didn't expect."]
+  },
+  "talk": {
+    "thing": ["It doesn't answer.", "You'd get more out of a wall.", "Nothing. Of course nothing.", "You say hello. It keeps its own counsel."],
+    "machine": ["It blinks at you, and goes back to work.", "A polite beep. That's all you get.", "It hums. Make of that what you will."],
+    "person": ["Not a word back.", "A glance, and nothing more.", "They don't seem to hear you."],
+    "way": ["You talk to the door. The door says nothing.", "It's a way out, not a friend."]
+  },
+  "use": {
+    "thing": ["Nothing happens.", "You can't think what to do with it.", "Not much use, that."],
+    "machine": ["It doesn't respond to you.", "You poke at it. Nothing.", "It needs someone who knows what they're doing."],
+    "person": ["That's not how people work.", "Use them? No."]
+  },
+  "take": {
+    "thing": ["It stays where it is.", "Not yours to take.", "You leave it be."],
+    "machine": ["It's bolted down. Probably for a reason.", "Too heavy, and not yours."],
+    "person": ["You can't take people with you.", "No."],
+    "way": ["You can't take a door with you."]
+  },
+  "ask": {
+    "any": ["{name}, guest. Is there anything else I can help you with?", "Nothing that need concern you, guest.", "Everything here is as it should be, guest."],
+    "person": ["A guest, like you. Shall I introduce you?", "They are enjoying their evening, guest. As should you."],
+    "private": ["I can't see in here, guest. Your privacy is protected.", "In here you are on your own, guest. As is your right."]
+  },
+  "item": {
+    "any": ["Nothing happens.", "That doesn't do anything.", "No. Not with that."]
+  }
+}

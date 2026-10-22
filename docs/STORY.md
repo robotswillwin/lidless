@@ -47,6 +47,14 @@ condition in the game's data reads only variables the story has (`src/game/refer
 | `talk` | a hotspot | A conversation: the knot that Talk runs from its start (as before). |
 | `follows` | a hotspot | A mover it goes with (its asset): it is wherever the mover is (a guard on its round). Talked to or used, the mover stops, turns to her, and goes on when she is done. |
 | `map` | a hotspot | `true` puts it on her map once she has seen it; `false` keeps a way out or someone to talk to off it. |
+| `reply` | a hotspot | What it says back when she talks to it, with no conversation: the repair bot's "Bzzzzz, bzzzzt". |
+| `kind` | a hotspot | `person`, `machine` or `thing`: what it is, for the standard replies. By default a way out if it goes somewhere, a person if it has a conversation, else a thing. |
+
+**Every hotspot answers every verb**: Look, Talk, Use, Take, and asking the Concierge (its view only; its answer is
+the hotspot's `ask`). What it has nothing of its own for (no text, no stitch), the game answers with a standard reply
+for its kind, from `public/assets/replies.json`, a different one each time she tries the same thing: "It doesn't
+answer.", "Not yours to take."; asked inside a privacy zone, the Concierge says it cannot see in there. Using a door
+goes through it. Tapped with no verb, a thing does what it has of its own (talk, go, use, take, else look).
 
 A scene can show things by turns: `"rotate": { "station_seat": { "values": ["woman", "", "man"], "from": "has_raw" } }`
 sets the story variable `station_seat` to the next value each time she arrives (from `has_raw` on; until then the story's

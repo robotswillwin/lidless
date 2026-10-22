@@ -520,7 +520,8 @@
     "concierge": "Asleep, a faint ring of light. In here it waits to be asked.",
     "raw": "A grey panel, off. In here it neither sees nor hears you."
    },
-   "ask": "Good evening, guest. You called? Your parcel is due at Radio Repair by 22:00."
+   "ask": "Good evening, guest. You called? Your parcel is due at Radio Repair by 22:00.",
+   "kind": "machine"
   },
   {
    "id": "terminal",
@@ -539,7 +540,8 @@
    "use": {
     "concierge": "Nothing new. Your credits are where you left them.",
     "raw": "The screen hums. Nothing new."
-   }
+   },
+   "kind": "machine"
   },
   {
    "id": "valve",
@@ -577,7 +579,8 @@
     17
    ],
    "stand": 669,
-   "story": "radio"
+   "story": "radio",
+   "kind": "machine"
   },
   {
    "id": "parcel",

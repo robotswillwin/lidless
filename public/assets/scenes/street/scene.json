@@ -405,7 +405,8 @@
     "raw": "her wrist is locked in"
    },
    "ask": "She is a guest, dining. Shall I reserve a seat for you?",
-   "when": "station_seat == \"woman\""
+   "when": "station_seat == \"woman\"",
+   "kind": "person"
   },
   {
    "id": "station-man",
@@ -430,7 +431,8 @@
     "concierge": "An elderly gentleman, reading the evening news over dinner. He looks content.",
     "raw": "An old man, all bones under a threadbare coat, his wrist locked in the cuff. His eyes are closed."
    },
-   "ask": "He is a guest, dining, as he does every evening at this hour."
+   "ask": "He is a guest, dining, as he does every evening at this hour.",
+   "kind": "person"
   },
   {
    "id": "station-worker",
@@ -455,7 +457,8 @@
     "concierge": "A young courier on his break, laughing with a friend who isn't here.",
     "raw": "A courier in a grimy uniform, asleep with his head back, his wrist in the cuff. The friend was never there."
    },
-   "ask": "A courier, guest, on his break. Everyone deserves a pleasant dinner."
+   "ask": "A courier, guest, on his break. Everyone deserves a pleasant dinner.",
+   "kind": "person"
   },
   {
    "id": "kiosk",
@@ -478,7 +481,8 @@
    },
    "ask": "Dinner is served here every evening, guest. Everything you need, and nothing you don't.",
    "story": "station",
-   "map": true
+   "map": true,
+   "kind": "machine"
   },
   {
    "id": "cocktail-bar",
@@ -652,7 +656,8 @@
    "ask": "Our guardians keep every street safe, guest. If you are ever lost, ask one. It will ask me.",
    "follows": "bots/guardian-bot",
    "talk": "guardian",
-   "map": false
+   "map": false,
+   "kind": "machine"
   }
  ],
  "beacons": [

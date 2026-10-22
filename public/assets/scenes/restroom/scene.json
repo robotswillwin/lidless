@@ -162,7 +162,8 @@
       "look": {
         "concierge": "Fresh towels and a quiet hand dryer.",
         "raw": "An empty paper towel box, and a dryer that roars."
-      }
+      },
+      "kind": "machine"
     },
     {
       "id": "corner",

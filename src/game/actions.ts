@@ -1,8 +1,10 @@
 // What she can do with things. A verb is chosen first, at the ball in the bottom right corner, and then done to whatever
 // lights up under her finger: Look (her Eyes), Talk (her Heart), Use and Take (her Hands), and in the Concierge's view
-// Ask (its bell). Going through a door, or off the end of the street, needs no verb: tapping it walks her there and
-// through. In raw view, looking at something it shows differently is looking closely. Raw view is legal: the Concierge
-// knows she uses it and does not hold it against her, so looking costs nothing.
+// asking it about the thing (its ring). Every thing answers every verb: what it has of its own (a text, its knot in the
+// story), else a standard reply for what it is (replies.ts), so trying is never wrong and never silent. Going through a
+// door, or off the end of the street, needs no verb: tapping it walks her there and through, and so does using it. In
+// raw view, looking at something it shows differently is looking closely. Raw view is legal: the Concierge knows she
+// uses it and does not hold it against her, so looking costs nothing.
 
 import type { Action } from './hud';
 import type { Hotspot } from './level';
@@ -12,7 +14,8 @@ export type Verb = 'eyes' | 'heart' | 'hands' | 'take' | 'ask';
 /** The verbs at the ball in the view on screen: the Concierge's bell is there only in its view. */
 export const verbsIn = (raw: boolean): Verb[] => (raw ? ['eyes', 'heart', 'hands', 'take'] : ['eyes', 'heart', 'hands', 'take', 'ask']);
 
-const NAMES: Record<Verb, string> = { eyes: 'Look', heart: 'Talk', hands: 'Use', take: 'Take', ask: 'Ask' };
+// (asking is the Concierge's: its slot is named for it, so it is not taken for talking)
+const NAMES: Record<Verb, string> = { eyes: 'Look', heart: 'Talk', hands: 'Use', take: 'Take', ask: 'Concierge' };
 
 /** A verb's name: the Concierge's, capitalised, in its view; hers, in lower case, in raw view. */
 export const verbName = (v: Verb, raw: boolean): string => (raw ? NAMES[v].toLowerCase() : NAMES[v]);
@@ -22,21 +25,21 @@ export type Stitches = (h: Hotspot, stitch: string) => boolean;
 const STITCHES: Record<Verb, string> = { eyes: 'look', heart: 'talk', hands: 'use', take: 'take', ask: 'ask' };
 
 /**
- * What the verb does to this thing in the view on screen, or null if it does nothing to it. `stitches`: whether the
- * thing's knot in the story answers a verb (over its texts).
+ * What the verb does to this thing in the view on screen. Every thing answers every verb (asking, in the Concierge's
+ * view only); `own` says it has something of its own for it, a text or a stitch of its knot, rather than a standard
+ * reply. `stitches`: whether the thing's knot in the story answers a verb (over its texts).
  */
 export function actionFor(h: Hotspot, v: Verb, raw: boolean, stitches: Stitches = () => false): Action | null {
   const st = stitches(h, STITCHES[v]);
   if (v === 'eyes') {
-    if (!h.look && !st) return null;
     // looking closely at what the Concierge shows otherwise: plain texts that differ (the story says itself)
     const closely = raw && !st && typeof h.look === 'object' && h.look.raw !== h.look.concierge;
-    return { kind: 'eyes', label: raw ? (closely ? 'look closely' : 'look') : 'Look' };
+    return { kind: 'eyes', label: raw ? (closely ? 'look closely' : 'look') : 'Look', own: !!h.look || st };
   }
-  if (v === 'heart') return h.talk || st ? { kind: 'heart', label: verbName(v, raw) } : null; // a `talk` knot comes first
-  if (v === 'hands') return h.use || h.wardrobe || h.wear || st ? { kind: 'hands', label: verbName(v, raw) } : null;
-  if (v === 'take') return h.take || h.item || st ? { kind: 'take', label: verbName(v, raw) } : null;
-  return !raw && (h.ask || st) ? { kind: 'ask', label: 'Ask' } : null;
+  if (v === 'heart') return { kind: 'heart', label: verbName(v, raw), own: !!h.talk || !!h.reply || st };
+  if (v === 'hands') return { kind: 'hands', label: verbName(v, raw), own: !!(h.use || h.wardrobe || h.wear || h.go) || st };
+  if (v === 'take') return { kind: 'take', label: verbName(v, raw), own: !!(h.take || h.item) || st };
+  return raw ? null : { kind: 'ask', label: 'Ask the Concierge', own: !!h.ask || st };
 }
 
 /** Using a thing she holds on this one: on anything, to try; what comes of it is the story's (use_<thing>), or nothing. */
@@ -52,8 +55,13 @@ export function actionsFor(h: Hotspot, raw: boolean, stitches: Stitches = () => 
   return out;
 }
 
-/** What a thing is mostly for: talking to someone, going through a door, else using, taking, looking. */
+/**
+ * What a thing is mostly for, tapped with no verb: talking to someone, going through a door, else using or taking it,
+ * of what it has of its own; looking, else.
+ */
 export function defaultOf(actions: Action[]): Action {
   const order = ['heart', 'feet', 'hands', 'take', 'eyes', 'ask'];
-  return [...actions].sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind))[0];
+  const own = actions.filter((a) => a.kind === 'feet' || a.own);
+  if (!own.length) return actions.find((a) => a.kind === 'eyes') ?? actions[0];
+  return [...own].sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind))[0];
 }

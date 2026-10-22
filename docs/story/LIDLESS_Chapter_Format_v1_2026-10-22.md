@@ -167,6 +167,8 @@ A spot is anything in a place she can point at.
   ask: ...                         # what the Concierge answers when she asks about it (its view)
   story: relay_terminal            # its knot in the Script: its stitches override the plain texts
   talk: mara                       # a conversation from a knot's start (Talk), for people
+  reply: { concierge: "Bzzzzz, bzzzzt.", raw: ... }   # what it says back when she talks to it, with no conversation
+  kind: machine                    # person, machine or thing: what it is, for the standard replies (below)
   item: old_laptop                 # a thing she can take: Take puts it in her pockets, for good
   prop: true                       # drawn as a picture of its own (she takes it, or it changes), not painted in
   only: raw                        # there in one view only: raw (edited out by the Concierge) or concierge (made up)
@@ -176,6 +178,14 @@ A spot is anything in a place she can point at.
 ```
 
 Every new spot needs a `name`, a `where`, and something to see or do: a `look`, a `story`, a way out, or an `item`.
+
+**Every spot answers every verb**: Look, Talk, Use, Take, and, in the Concierge's view, asking the Concierge about it
+(its answer is the spot's `ask`). For a verb a spot has no text or knot for, the game gives a standard reply that
+suits what it is (a person, a machine, a thing or a way out), a different one each time she tries: "It doesn't
+answer.", "Not yours to take.", and from the Concierge, inside a privacy zone, "I can't see in here, guest." So write
+only what a spot really answers: its look, what it does, and a `reply` for a machine or a person with something to
+say but no conversation. Using a door goes through it. The standard replies are the game's
+(`public/assets/replies.json`); ask the director to add one rather than writing it into every spot.
 
 ## People
 

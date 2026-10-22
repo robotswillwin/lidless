@@ -156,15 +156,16 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .hud-tray.still { animation: none; }
 .hud-tray .empty { padding: 0 14px; font: 400 13px/calc(var(--slot) * 1.2) var(--ui); color: var(--dim); }
 .hud-tray .slot {
-  position: relative; width: calc(var(--slot) * 1.2); height: calc(var(--slot) * 1.2); padding: 4px; border: 1px solid transparent; border-radius: 12px; background: rgba(255, 255, 255, .05);
-  display: grid; place-items: center; -webkit-touch-callout: none; user-select: none; animation: hud-slide .22s cubic-bezier(.2, .8, .3, 1) both; --from: -30px;
+  position: relative; width: calc(var(--slot) * 1.42); height: calc(var(--slot) * 1.25 + 15px); padding: 4px 3px 3px; border: 1px solid transparent; border-radius: 12px; background: rgba(255, 255, 255, .05);
+  display: grid; grid-template-rows: minmax(0, 1fr) auto; justify-items: center; gap: 2px; -webkit-touch-callout: none; user-select: none; animation: hud-slide .22s cubic-bezier(.2, .8, .3, 1) both; --from: -30px;
 }
-.hud-tray .slot:hover { background: rgba(255, 255, 255, .12); }
-.hud-tray .slot :is(img, svg) { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .55)); pointer-events: none; }
+/* its picture, and its name under it, always: nothing here waits for a hover */
+.hud-tray .slot .picture { display: grid; place-items: center; width: 100%; height: 100%; min-height: 0; pointer-events: none; }
+.hud-tray .slot .picture :is(img, svg) { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .55)); }
 .hud-tray .slot .stand-in { display: contents; color: var(--text); }
 .hud-tray .slot.held { border-color: var(--edge-strong); background: rgba(255, 255, 255, .18); box-shadow: 0 0 16px rgba(255, 255, 255, .3); }
-.hud-tray .slot .label { position: absolute; left: 50%; bottom: calc(100% + 10px); transform: translateX(-50%); padding: 4px 9px; border-radius: 10px; background: var(--glass-strong); white-space: nowrap; font: 500 12px/1.1 var(--ui); opacity: 0; transition: opacity .12s; pointer-events: none; }
-.hud-tray .slot:is(:hover, :focus-visible, .held) .label { opacity: 1; }
+.hud-tray .slot.open { border-color: var(--edge-strong); background: rgba(255, 255, 255, .13); }
+.hud-tray .slot .label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 500 calc(10.5px * var(--ts, 1))/1.25 var(--ui); color: var(--text); opacity: .86; pointer-events: none; }
 .hud-tray .slot .flag { position: absolute; right: 5px; top: 5px; width: 7px; height: 7px; border-radius: 50%; background: var(--co-warn); box-shadow: 0 0 6px var(--co-warn); }
 /* what exists only in its eye: its own graphic in its view, an empty place in her pocket in raw view */
 .hud-tray .slot.projected svg.ar, .hud-inspect.projected svg.ar { color: var(--co); filter: drop-shadow(0 0 6px rgba(143, 240, 234, .7)); }

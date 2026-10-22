@@ -64,7 +64,10 @@ const panel = async (page, which) => {
 // a thing out of her pockets, in her hand: tapped in the tray
 const holdThing = async (page, name) => {
   await panel(page, 'things');
+  // a tap shows it close up; Use takes it out
   await page.evaluate((n) => document.querySelector(`.hud-tray .slot[data-item="${n}"]`)?.click(), name);
+  await wait(200);
+  await page.evaluate(() => document.querySelector('.hud-inspect .row .primary')?.click());
   await wait(300);
 };
 // a conversation through to its end, or its answers: through its pauses too, while the game does what a line says
@@ -136,6 +139,42 @@ const checks = {
     await wait(5000);
     s = await save(page);
     check('the shower: undressed, the projection off', s?.outfit === 'nude' && !s?.projection, `${s?.outfit} + ${s?.projection}`);
+    await page.close();
+  },
+
+  /**
+   * Every verb answers everything: a machine its own reply, a thing with nothing of its own a standard one (another the
+   * next time), the Concierge that it cannot see into a privacy zone; her things named under their pictures, a tap
+   * showing one close up.
+   */
+  async actions() {
+    const page = await fresh('scene=backstreet&spawn=from-street');
+    const noteAfter = async (v, x, y, ms = 3500) => {
+      await verb(page, v);
+      await tap(page, x, y);
+      await wait(ms);
+      return page.$eval('.hud-note', (n) => n.textContent).catch(() => '');
+    };
+    const bot = await noteAfter('heart', 610, 410);
+    check('talked to, the repair bot answers in its own way', /Bzzzzz, bzzzzt/.test(bot), bot.slice(0, 70));
+    await page.keyboard.press('Escape');
+    await again(page, 'scene=home&spawn=door');
+    // (she walks to it from the door first)
+    const first = await noteAfter('take', 506, 333, 6000), second = await noteAfter('take', 506, 333, 1200);
+    check('taking the bed: a standard reply, and another the next time', !!first && !!second && first !== second, `${first.slice(0, 40)} | ${second.slice(0, 40)}`);
+    await verb(page, 'ask');
+    await tap(page, 503, 268);
+    await wait(3500);
+    const asked = await page.$eval('.hud-toast', (t) => t.textContent).catch(() => '');
+    check('asked about her window at home, the Concierge cannot see in', /can't see in here|on your own/.test(asked), asked.slice(0, 70));
+    await page.keyboard.press('Escape');
+    await panel(page, 'things');
+    const names = await page.$$eval('.hud-tray .slot .label', (ls) => ls.map((l) => ({ text: l.textContent, shown: getComputedStyle(l).opacity !== '0' && l.getBoundingClientRect().height > 0 })));
+    check('her things named under their pictures, without a hover', names.length > 0 && names.every((n) => n.shown && n.text), names.map((n) => n.text).join(', '));
+    await page.evaluate(() => document.querySelector('.hud-tray .slot')?.click());
+    await wait(250);
+    const card = await page.$eval('.hud-inspect', (c) => ({ name: c.querySelector('h2')?.textContent, use: c.querySelector('.row .primary')?.textContent })).catch(() => null);
+    check('a tap on a thing shows it close up, Use on it', !!card?.name && card.use === 'Use', `${card?.name} · ${card?.use}`);
     await page.close();
   },
 

@@ -32,6 +32,8 @@ export interface Action {
   label: string;
   /** Steps of the Concierge's attention it costs. */
   cost?: number;
+  /** The thing has something of its own for it (a text, a stitch of its knot), not only a standard reply. */
+  own?: boolean;
 }
 
 /** What a chosen verb lights up under her finger: the thing, what the verb does to it, and where it is on screen. */
@@ -424,8 +426,7 @@ export class Hud {
     if (!wasOpen) { this.closeVerbs(); this.closePanel(); this.onPanel(); }
     const root = this.root.getBoundingClientRect(), b = this.thingsBall.getBoundingClientRect();
     this.trayEl = drawTray(this.root, thingsNow(this.items, this.carried, this.raw, !this.unseen), { x: b.left + b.width / 2 - root.left, y: b.top + b.height / 2 - root.top, r: b.width / 2 }, this.held?.id ?? null, this.assets, {
-      hold: (id) => { this.closeInspect(); this.onHold(id); },
-      inspect: (id) => this.inspect(id),
+      inspect: (id) => (this.inspecting === id ? this.closeInspect() : this.inspect(id)),
     });
     if (wasOpen) this.trayEl.classList.add('still');
     this.drawBalls();
@@ -447,12 +448,13 @@ export class Hud {
     this.inspecting = null;
     if (!t) return;
     this.inspecting = id;
-    this.inspectEl = drawInspect(this.root, t, this.raw, this.assets, {
+    this.inspectEl = drawInspect(this.root, t, this.raw, this.assets, this.held?.id === id, {
       hold: (thing) => { this.closeInspect(); this.onHold(thing); },
       dispose: (thing, dispose) => { this.closeInspect(); this.onDispose(thing, dispose); },
       close: () => this.closeInspect(),
     });
     const slot = this.trayEl?.querySelector<HTMLElement>(`[data-item="${id}"]`), root = this.root.getBoundingClientRect();
+    this.trayEl?.querySelectorAll('.slot').forEach((x) => x.classList.toggle('open', x === slot));
     if (slot) {
       const r = slot.getBoundingClientRect(), w = this.inspectEl.offsetWidth;
       this.inspectEl.style.left = `${Math.max(8, Math.min(root.width - w - 8, r.left - root.left + r.width / 2 - w / 2))}px`;
@@ -464,6 +466,7 @@ export class Hud {
     this.inspectEl?.remove();
     this.inspectEl = null;
     this.inspecting = null;
+    this.trayEl?.querySelectorAll('.slot.open').forEach((x) => x.classList.remove('open'));
   }
 
   /* ---------- what she found, and the Concierge's messages ---------- */
@@ -657,8 +660,9 @@ export function drawHelp(p: HTMLElement): void {
   const box = el('div', 'help', p);
   const rows: [string, string][] = [
     ['Walk', 'Tap where she should go. A door, or the end of the street, takes her through. Outdoors, hold a finger far ahead of her to run.'],
-    ['Do', 'The ball at the bottom right: choose Look, Talk, Use, Take (or Ask, in its view), then slide over the scene and let go on what lights up.'],
-    ['Her things', 'The ball at the bottom left. Tap a thing to use it on something; press and hold to look at it close up.'],
+    ['Do', 'The ball at the bottom right: choose Look, Talk, Use or Take, then slide over the scene and let go on what lights up. Anything can be tried; not everything answers.'],
+    ['Concierge', 'In its view, the ring among the verbs asks the Concierge about a thing, and it answers. Talk is Luna speaking to it herself.'],
+    ['Her things', 'The ball at the bottom left. Tap a thing to see it close up; Use takes it out, then tap what to use it on.'],
     ['Top right', 'The view switch once she has it, the map, her journal (anywhere) and her notebook (only where it cannot see her), and this menu.'],
     ['Keys', 'Arrows or A and D walk, with Shift she runs. E switches view, I her things, M the map, J her journal, N her notebook, Esc closes. Numbers pick an answer.'],
   ];

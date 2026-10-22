@@ -1,6 +1,7 @@
-// Her things: a tray that slides out along the bottom from the left ball, each thing painted as it really is. Tapping
-// one takes it out to use on something; pressing and holding it (or right-clicking it) shows it close up, with what is
-// known about it. In the Concierge's view its own words are on them ("Unlicensed item"), and a thing that exists only in
+// Her things: a tray that slides out along the bottom from the left ball, each thing painted as it really is, its name
+// under it. Made for thumbs, nothing behind a hover: a tap on a thing (or holding a finger on it, or a right-click)
+// shows it close up, with what is known about it, and Use takes it out to use on something; on the one in her hand it
+// puts it back. In the Concierge's view its own words are on them ("Unlicensed item"), and a thing that exists only in
 // its eye (a projection) is its own graphic; in raw view that is an empty place in her pocket.
 
 import { button, el } from './dom';
@@ -56,15 +57,12 @@ export function pictureOf(t: Thing, size: number, assets: string): string {
   return `<span class="stand-in">${arIcon(t.icon, size)}</span>`;
 }
 
-/** How long a finger stays on a thing to look at it close up rather than take it out. */
-const PRESS = 420;
-
 /**
- * The tray's slots, out from the ball at `from` (its centre, in the HUD's pixels), each labelled over it, the one in her
- * hand lit. `hold` takes a thing out (or a tap on the one in her hand puts it back); `inspect` looks at it close up.
+ * The tray's slots, out from the ball at `from` (its centre, in the HUD's pixels), each with its name under it, the one
+ * in her hand lit. A tap on one shows it close up (`inspect`), where Use takes it out.
  */
 export function drawTray(root: HTMLElement, things: Thing[], from: { x: number; y: number; r: number }, held: string | null, assets: string,
-  on: { hold: (id: string | null) => void; inspect: (id: string) => void }): HTMLElement {
+  on: { inspect: (id: string) => void }): HTMLElement {
   const tray = el('div', 'hud-tray', root);
   tray.setAttribute('role', 'toolbar');
   tray.setAttribute('aria-label', 'Her things');
@@ -73,41 +71,25 @@ export function drawTray(root: HTMLElement, things: Thing[], from: { x: number; 
   if (!things.length) el('div', 'empty', tray, 'Nothing on her.');
   things.forEach((t, i) => {
     const slot = button(`slot${t.ghost ? ' ghost' : ''}${t.projected ? ' projected' : ''}${t.unlicensed && !t.ghost && t.tag ? ' unlicensed' : ''}${held === t.id ? ' held' : ''}`,
-      t.ghost ? `${t.name}: not really there` : held === t.id ? `${t.name}: put it back` : `${t.name}: take it out to use (hold to look at it)`, tray, () => {});
+      t.ghost ? `${t.name}: not really there` : held === t.id ? `${t.name}, in her hand` : t.name, tray, () => on.inspect(t.id));
     slot.dataset.item = t.id;
     slot.style.animationDelay = `${i * 28}ms`;
-    slot.innerHTML = pictureOf(t, 52, assets);
+    el('span', 'picture', slot).innerHTML = pictureOf(t, 52, assets);
     el('span', 'label', slot, t.name);
-    if (t.tag) el('span', 'flag', slot).title = t.tag;
-    // a tap takes it out (or puts it back); held down, it is looked at; right-click looks too
-    let timer = 0, pressed = false;
-    slot.addEventListener('pointerdown', (e) => {
-      e.stopPropagation();
-      pressed = false;
-      window.clearTimeout(timer);
-      timer = window.setTimeout(() => { pressed = true; on.inspect(t.id); }, PRESS);
-    });
-    const cancel = () => window.clearTimeout(timer);
-    slot.addEventListener('pointerleave', cancel);
-    slot.addEventListener('pointercancel', cancel);
-    slot.addEventListener('contextmenu', (e) => { e.preventDefault(); cancel(); pressed = true; on.inspect(t.id); });
-    slot.addEventListener('click', (e) => {
-      e.stopPropagation();
-      cancel();
-      if (pressed) return;
-      if (t.ghost) on.inspect(t.id);
-      else on.hold(held === t.id ? null : t.id);
-    });
+    if (t.tag) el('span', 'flag', slot);
+    slot.addEventListener('pointerdown', (e) => e.stopPropagation());
+    slot.addEventListener('contextmenu', (e) => { e.preventDefault(); on.inspect(t.id); });
   });
   return tray;
 }
 
 /**
- * A thing close up, over the tray: its picture, its name, what is known about it, and taking it out to use. In the
- * Concierge's view, a thing outside its catalogue comes with its offer to dispose of it.
+ * A thing close up, over the tray: its picture, its name, what is known about it, and taking it out to use (or, the
+ * one in her hand, putting it back). In the Concierge's view, a thing outside its catalogue comes with its offer to
+ * dispose of it.
  */
-export function drawInspect(root: HTMLElement, t: Thing, raw: boolean, assets: string,
-  on: { hold: (id: string) => void; dispose: (id: string, dispose: boolean) => void; close: () => void }): HTMLElement {
+export function drawInspect(root: HTMLElement, t: Thing, raw: boolean, assets: string, held: boolean,
+  on: { hold: (id: string | null) => void; dispose: (id: string, dispose: boolean) => void; close: () => void }): HTMLElement {
   const card = el('section', `hud-inspect${t.ghost ? ' ghost' : ''}${t.projected ? ' projected' : ''}`, root);
   card.setAttribute('aria-label', t.name);
   card.addEventListener('pointerdown', (e) => e.stopPropagation());
@@ -118,7 +100,8 @@ export function drawInspect(root: HTMLElement, t: Thing, raw: boolean, assets: s
   if (t.tag) el('div', 'tag', words, t.tag);
   if (t.note) el('p', 'note', words, t.note);
   const row = el('div', 'row', words);
-  if (!t.ghost) button('primary', `Use ${t.name}`, row, () => on.hold(t.id)).textContent = 'Use';
+  // Use takes it out to use on something; the one in her hand, Put back
+  if (!t.ghost) button('primary', held ? `Put ${t.name} back` : `Use ${t.name}`, row, () => on.hold(held ? null : t.id)).textContent = held ? 'Put back' : 'Use';
   button('hud-close', 'Close', card, on.close).innerHTML = icon('close', 16);
   // its offer, in its own voice
   if (!raw && t.unlicensed) {

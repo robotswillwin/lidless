@@ -21,6 +21,7 @@ import { reloadIntoGame } from './title';
 import { dressedFor, keepsProjection, outfitAfter } from './outfits';
 import { Wardrobe } from './wardrobe';
 import { listSaves, loadSave, writeSave, type SaveData, type Slot } from './save';
+import { kindOf, replyFor, type Replies, type ReplyVerb } from './replies';
 import { SceneRunner, type ViewState } from './scene';
 import type { Machine } from './shell';
 import { Talk } from './talk';
@@ -49,6 +50,8 @@ export interface GameSetup {
   notebook: Notebook;
   /** Her journal, on her device (see journal.ts): the same shape as the notebook. */
   journal: Notebook;
+  /** The standard replies to a verb a thing has nothing of its own for (replies.ts). */
+  replies?: Replies;
   save: SaveData | null;
   /** Players who asked for less motion: no camera drift, no switch glitch, no fade. */
   reduceMotion: boolean;
@@ -84,6 +87,8 @@ export class Game {
   travelling = false;
   /** The title screen is up: the keyboard leaves the game alone. */
   inputLocked = false;
+  /** How often she has tried a verb on a thing with nothing of its own for it, by scene, thing and verb: the next reply. */
+  private readonly tries = new Map<string, number>();
 
   private runner!: SceneRunner;
   private readonly camera = new Camera();
@@ -606,7 +611,7 @@ export class Game {
       const id = this.inHand;
       this.hold(null);
       if (id && this.stitch(h, `use_${id}`)) return this.runStory(h, `${h.story}.use_${id}`);
-      return this.hud.note(h, raw ? 'nothing.' : 'Nothing happens.', this.boxOf(h));
+      return this.standard(h, 'item');
     }
     // a conversation of its own (`talk`) is what Talk does; any other verb, the thing's knot where it answers it
     const st = STITCH[a.kind as keyof typeof STITCH];
@@ -624,7 +629,8 @@ export class Game {
       this.partner = h;
       this.hud.setTalking(true);
       this.talk.show(this.dialogue.start(h.talk, raw), this.dialogue.choices);
-    } else if (a.kind === 'eyes' && h.look) {
+    } else if (a.kind === 'heart' && h.reply) this.hud.note(h, pick(h.reply, raw), this.boxOf(h));
+    else if (a.kind === 'eyes' && h.look) {
       // what she finds is written at the thing, where her eye already is
       this.hud.note(h, pick(h.look, raw), this.boxOf(h));
       if (a.cost) this.raiseAttention(a.cost);
@@ -632,8 +638,25 @@ export class Game {
     // the shower: a while passes behind the fade, and she comes out of it in her bathrobe; what she finds, after
     else if (a.kind === 'hands' && h.wear) void this.change(h.wear, 900).then(() => { if (h.use) this.hud.note(h, pick(h.use, raw), this.boxOf(h)); });
     else if (a.kind === 'hands' && h.use) this.hud.note(h, pick(h.use, raw), this.boxOf(h));
+    // using a door is going through it
+    else if (a.kind === 'hands' && h.go) void this.travel(h.go);
     else if (a.kind === 'take' && h.take) this.hud.note(h, pick(h.take, raw), this.boxOf(h));
     else if (a.kind === 'ask' && h.ask) this.hud.toast(h.ask);
+    // nothing of its own for this verb: a standard reply for what it is
+    else if (a.kind !== 'feet') this.standard(h, ({ eyes: 'look', heart: 'talk', hands: 'use', take: 'take', ask: 'ask' } as const)[a.kind]);
+  }
+
+  /**
+   * A standard reply to a verb (replies.ts): written at the thing, or, asking, said by the Concierge in its voice (in a
+   * privacy zone, that it cannot see in there). Tried again on the same thing, the next one.
+   */
+  private standard(h: Hotspot, verb: ReplyVerb): void {
+    const key = `${this.scene.file.id}/${h.id}/${verb}`, tries = this.tries.get(key) ?? 0;
+    this.tries.set(key, tries + 1);
+    const text = replyFor(this.s.replies ?? {}, verb, kindOf(h), this.raw, tries, pick(h.name, this.raw), !this.watched);
+    if (!text) return;
+    if (verb === 'ask') this.hud.toast(text);
+    else this.hud.note(h, text, this.boxOf(h));
   }
 
   /** Looking and asking happen from where she stands, turned towards it; talking, using and taking walk her there first. */

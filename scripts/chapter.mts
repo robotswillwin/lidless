@@ -311,9 +311,10 @@ function main() {
       const need = !gameSpots.has(s.id);
       viewText(s.name, sw, 'name', s.only, need);
       if (need && typeof s.where !== 'string') error(sw, 'where: where it is in the place, in words ("on the desk, left of the window")');
-      if (need && !s.story && !s.look && !s.to && !s.item) warn(sw, 'nothing to see or do: give it a look, or a story knot');
+      if (need && !s.story && !s.look && !s.to && !s.item && !s.reply) warn(sw, 'nothing to see or do: give it a look, or a story knot');
       if (s.only !== undefined && s.only !== 'raw' && s.only !== 'concierge') error(sw, 'only: raw or concierge');
-      for (const f of ['look', 'use', 'take', 'tag'] as const) if (s[f] !== undefined) viewText(s[f], sw, f, s.only);
+      for (const f of ['look', 'use', 'take', 'tag', 'reply'] as const) if (s[f] !== undefined) viewText(s[f], sw, f, s.only);
+      if (s.kind !== undefined && !['person', 'machine', 'thing'].includes(String(s.kind))) error(sw, 'kind: person, machine or thing');
       if (s.ask !== undefined && typeof s.ask !== 'string') error(sw, 'ask: the Concierge\'s answer, one text (its view only)');
       condition(s.when, sw, 'when');
       if (s.item !== undefined && (typeof s.item !== 'string' || !allThings.has(s.item))) error(sw, `item: ${String(s.item)} is not a thing (add it under Things)`);
