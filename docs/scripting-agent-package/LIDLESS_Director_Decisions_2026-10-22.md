@@ -61,15 +61,34 @@ holds**. Each decision is the director's, in plain words; what is still open say
     grows), her credits, her nutrition. Nutrition is never something to plan for or keep track of: good, or
     optimal after a station, nothing else.
 17. **A deeply integrated guest** on the main street, much more integrated with the Concierge than Luna: more
-    devices (a helmet, goggles over both eyes), clothes made of light, from whom she learns about the levels. In the
-    game: **Felix**, outside the cocktail bar, a Level 4 guest and happy for it (his name, his look and the levels he
-    describes are proposals; see below).
+    devices, goggles over both eyes, clothes made of light, from whom she learns about the levels. In the game:
+    **Felix**, outside the cocktail bar, a Level 4 guest and happy for it (his name and his words are proposals).
+18. **The connection levels**, from the director's concept sheet
+    (`docs/art/LIDLESS_Connection_Levels_Concept_2026-10-22.webp`): the same person at each level, in both views.
+    Every piece of equipment has the same shape, size and place in both views; only its look changes, idealised,
+    clean and calm in the Concierge's, real materials, wear and technology in raw view. The more connected someone
+    is, the more of it shows. Less connection is more personal agency; more integration, more mediation.
+    - **0 Unregistered.** Disconnected from Care, no access to services; visible, and marked in the Concierge's view
+      (a red "Unregistered"). Biological, no implants. On the sheet, a patch over the right eye: no lids since
+      childhood. (The bible: earlier lore counts unregistered humans as weather.)
+    - **1 Basic Care** (Luna). Minimum legal integration; access to services. A simple eyepiece over the left eye,
+      a minimal temple and neck connector, a wrist interface.
+    - **2 Enhanced Care.** More comfort, more features. Dual optics over the left eye, neck and ear connectors,
+      subtle fluid lines, a wrist interface.
+    - **3 Integrated Care.** Clear integration. A headband module, neck integration, visible fluid lines, a
+      shoulder interface.
+    - **4 Deep Integration.** Mostly mediated. Dual glasses, neck and spine integration, prominent fluid lines, arm
+      and torso connectors.
+    - **5 Full Integration.** Almost entirely mediated. Advanced dual glasses, integrated fluid systems, a small
+      integrated back unit, robotic hands and legs.
+
+    Up to Deep Integration there is no external hardware, and nobody wears a helmet.
 
 ## Production
 
-18. **Music** is the director's: one composition in a digital and an analogue arrangement, blended as the view
+19. **Music** is the director's: one composition in a digital and an analogue arrangement, blended as the view
     switches. No sound effects yet.
-19. **English only**, for now.
+20. **English only**, for now.
 
 ## Open, for the director
 
@@ -78,8 +97,8 @@ holds**. Each decision is the director's, in plain words; what is still open say
 - What the corner shop sells. Proposed: drinks, tobacco, umbrellas, care for devices, the Concierge's wardrobe on
   show.
 - How Luna comes by raw view (1) and the laptop (12).
-- The levels (17; the bible v0.4, 2.4, leaves the exchange open). Felix tells her, as a proposal: one, a roof, a
-  station, a doctor and a few credits, and it sees what any camera sees but not a thought; two, the body (heartbeat,
-  sleep, blood) for more credits and care before illness; three, feelings, calmed before she knows she is upset;
-  four, thoughts, known before she knows them, for privileges and never being alone; above four, nobody is seen out
-  at night.
+- What each level trades (18; the bible v0.4, 2.4: biometric, emotional and potentially cognitive data, for
+  credits, personalisation, privileges, pleasure and wellbeing). Felix proposes: Enhanced Care your body (heartbeat,
+  sleep, blood), Integrated Care your feelings, Deep Integration your thoughts, Full Integration nearly all of you.
+- "No lids since childhood" (18): a mark of the unregistered, one person's story, or the world's (the title)?
+- Luna's art has her eyepiece and wrist devices, not yet the temple and neck connector of Basic Care (18).

@@ -227,8 +227,30 @@ flickers:
 - **Characters that stand** (`touch --frame idle/N`): each frame repaints one area, such as a hand or a face, and
   everything outside it is identical in every frame. The recipe's `anims.idle` sets `fps` and `seq`. The fixer's
   soldering loop is made this way. Felix (`art/cast/felix.json`), the Level 4 guest outside the cocktail bar, is a
-  character that stands with no loop yet: drawn in raw view first (`generate`), his Concierge's view to be edited from
-  it (`variant`), 254 tall for 1.78 m and his helmet, so 132 level px on the street against Luna's 124.
+  character that stands with no loop yet: drawn in raw view first (`generate`), his Concierge's view edited from it
+  (`variant`), 254 tall for 1.78 m, so 132 level px on the street against Luna's 124. His recipe follows the sheet's
+  Deep Integration (below); the picture in the game is still the first one, with a helmet, until it is drawn again.
+
+### People by connection level
+
+Everyone in the city is at one of six connection levels, and shows it
+([the director's concept sheet](art/LIDLESS_Connection_Levels_Concept_2026-10-22.webp), decision 18). Draw a person
+with what their level has, no more:
+
+| Level | What shows |
+| --- | --- |
+| 0 Unregistered | nothing: no implants; marked in red in the Concierge's view |
+| 1 Basic Care (Luna) | a simple eyepiece over the left eye, a minimal temple and neck connector, a wrist interface |
+| 2 Enhanced Care | dual optics over the left eye, neck and ear connectors, subtle fluid lines, a wrist interface |
+| 3 Integrated Care | a headband module, neck integration, visible fluid lines, a shoulder interface |
+| 4 Deep Integration | dual glasses, neck and spine integration, prominent fluid lines, arm and torso connectors |
+| 5 Full Integration | advanced dual glasses, integrated fluid systems, a small integrated back unit, robotic hands and legs |
+
+Up to Deep Integration nothing is worn outside the body, and nobody wears a helmet. In both views every piece of it
+has the same shape, size and place; only its look changes: clean, polished and glowing in the Concierge's view (its
+fluid lines violet and cyan), real materials and wear in raw view (amber fluid in clear tubes, scratched lenses). What
+they wear can be projection in the Concierge's view (a sheer coat of light), but sheer enough that what they have
+shows through: the more connected someone is, the more of it shows.
 
 ## Light language
 

@@ -278,6 +278,8 @@ function main() {
     if ((need || v.height !== undefined) && (typeof v.height !== 'string' || !SIZE.test(v.height))) error(where, 'height, with its unit ("1.62 m"): people are drawn at their real height against Luna (1.7 m)');
     if (need && typeof v.pose !== 'string') warn(where, 'pose: standing, sitting, at work: how they are drawn');
     if (need && typeof v.voice !== 'string') warn(where, 'voice: how they talk');
+    if (v.level !== undefined && !(Number.isInteger(v.level) && (v.level as number) >= 0 && (v.level as number) <= 5)) error(where, 'level: their connection level, a whole number from 0 (Unregistered) to 5 (Full Integration)');
+    else if (need && v.level === undefined && v.only !== 'concierge') warn(where, 'level: their connection level, 0 to 5 (decision 18), which their look shows');
   }
 
   // ----- Places

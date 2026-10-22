@@ -19,6 +19,8 @@ VAR conditions = ""
 
 // Her credits: digital, her allowance, on her account. The Concierge's greeting shows them in its view
 VAR credits = 312
+// read by the game: her connection level, 0 to 5 (the director's decision 18): 1 is Basic Care. Its card shows it
+VAR care_level = 1
 
 // set by the game: how many times she has gone from one scene to another, all told (a clock the story counts by)
 VAR arrivals = 0

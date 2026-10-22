@@ -196,6 +196,8 @@ say but no conversation. Using a door goes through it. The standard replies are 
     ...
   age: 91
   height: 1.58 m                   # real height: required. Luna is 1.7 m
+  level: 2                         # connection level, 0 to 5 (decision 18): 0 Unregistered, 1 Basic Care (Luna), 2
+                                   # Enhanced Care, 3 Integrated Care, 4 Deep Integration, 5 Full Integration
   voice: slow, exact, dry          # how they talk
   pose: sitting on the bench, both hands on her stick   # how they are drawn
   moves: still                     # still, walks (comes and goes), or patrols (a beat, like the guardian)
@@ -213,7 +215,10 @@ say but no conversation. Using a door goes through it. The standard replies are 
 ```
 
 People are drawn as characters of their own, never painted into a place: only far-off figures and people sitting
-still behind a window can be part of the picture.
+still behind a window can be part of the picture. Everyone shows their connection level, as the director's decisions
+(18) list it: write the look for each view with what their level has, the same pieces in the same places in both
+views, clean and glowing in the Concierge's, worn and real in raw view. The Concierge's label on a person says it
+("Guest · Deep Integration"); an unregistered person it marks in red.
 
 ## Things
 

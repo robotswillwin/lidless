@@ -124,6 +124,7 @@ Speaker tags in the story so far: `#concierge`, `#felix`, `#fixer`, `#guardian`,
 | `favours_owed` | `0` | favours she owes the fixer, for raw view among them: he names each when he needs it |
 | `conditions` | `""` | read by the game: what the city is like now, a variant the scenes have ("rain", "fog", "outage"); "" as they are |
 | `credits` | `312` | Her credits: digital, her allowance, on her account. The Concierge's greeting shows them in its view |
+| `care_level` | `1` | read by the game: her connection level, 0 to 5 (the director's decision 18): 1 is Basic Care. Its card shows it |
 | `arrivals` | `0` | set by the game: how many times she has gone from one scene to another, all told (a clock the story counts by) |
 | `fed_at` | `-100` | when she last fed at a nutrition station (arrivals then): she does not need to again for a while |
 | `station_seat` | `"woman"` | who sits at the main street's station: the street turns it each time she comes back (its scene file's `rotate`) |

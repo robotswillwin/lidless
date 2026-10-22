@@ -184,7 +184,7 @@ const checks = {
     await again(page, 'scene=backstreet&spawn=from-street');
     await coCard(page);
     const opened = await page.$eval('.co-card', (c) => ({ words: c.querySelector('.co-words')?.textContent ?? '', reminders: c.querySelectorAll('.co-reminders li').length, readouts: c.querySelector('.co-readouts')?.textContent ?? '', buttons: [...c.querySelectorAll('.co-foot > button')].map((b) => b.textContent) })).catch(() => null);
-    check('its card: what it would have her do, her errands, how she is, Talk and Ask', !!opened?.words && opened.reminders > 0 && /bpm/.test(opened.readouts) && /credits/.test(opened.readouts) && opened.buttons.join() === 'Talk,Ask about something', JSON.stringify(opened)?.slice(0, 150));
+    check('its card: what it would have her do, her errands, how she is, her level, Talk and Ask', !!opened?.words && opened.reminders > 0 && /bpm/.test(opened.readouts) && /credits/.test(opened.readouts) && /Level 1 Basic Care/.test(opened.readouts) && opened.buttons.join() === 'Talk,Ask about something', JSON.stringify(opened)?.slice(0, 170));
     await coCard(page, 'Ask about something');
     const listening = await page.$eval('.co', (c) => c.dataset.state === 'listening' && /About what/.test(c.textContent ?? ''));
     check('asked about something, it listens: "About what, Luna?"', listening);
@@ -399,7 +399,7 @@ const checks = {
     check('the man in light: one eye, level one, he says', !!at && first.some((l) => /Level one/.test(l)), first.join(' / '));
     await choose(page, 'What are the levels?');
     const levels = await talkThrough(page);
-    check('he tells her the levels, one to four', ['One:', 'Two:', 'Three:', 'Four:'].every((w) => levels.some((l) => l.includes(w))), levels.map((l) => l.slice(0, 12)).join(' / '));
+    check('he tells her the levels, nought to five', ['Unregistered', 'Basic Care', 'Enhanced Care', 'Integrated Care', 'Deep Integration', 'Full Integration'].every((w) => levels.some((l) => l.toLowerCase().includes(w.toLowerCase()))), levels.map((l) => l.slice(0, 18)).join(' / '));
     await choose(page, 'I see');
     await talkThrough(page);
     await choose(page, 'Enjoy your evening');

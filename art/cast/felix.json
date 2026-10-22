@@ -6,11 +6,21 @@
   "look": "vector",
   "res": 1.25,
   "framing": "One full-length figure standing, seen from the side in a three-quarter view facing left, upright and at ease: a short glass held at chest height in his left hand, the one nearer to us, his other hand in his pocket. Feet at the bottom of the frame. Even, soft, frontal lighting with no cast shadows and no rim light. Transparent background, the whole figure in frame with a little space around it, no ground, no text, no border.",
-  "prompt": "Felix: a slender man in his mid-thirties, a guest of the city AI who has given it everything, his body, his feelings and his thoughts, and is serenely happy for it. Pale, smooth, well-rested skin, a neat short dark beard, a calm small smile. On his head a full helmet of matte grey composite shaped close to the skull, a ring of small sensor studs around it and a bundle of thin grey cables running from its back down to a flat pack between his shoulder blades. Over both eyes, heavy goggles: two round dark lenses in one grey frame fixed to the helmet, so neither eye shows; everyone else wears a device over one eye only. A slim grey sensor collar round his throat and a plain grey band on each wrist. Under all that he wears only what the city gives everyone: a plain, slightly baggy grey one-piece thermal suit with a zip down the front, and soft grey slip-on shoes. In his left hand a short tumbler with a finger of amber drink. Drawn in the same flat-shaded style as the reference: two or three flat tones per surface, crisp edges, no texture.",
-  "concierge": "The city AI's version of the same man, in exactly the same pose: glamorous, his clothes pure projection, couture made of light. A long, fitted coat of shimmering iridescent fabric whose pattern flows in violet, cyan and soft gold, a high collar, cuffs and hem trailing tiny motes of light; under it a crisp dark suit and shirt; polished dark shoes. His helmet is shown as a slender crown of light, a thin glowing ring floating just above his head, no cables; his goggles as elegant mirrored glasses with a prismatic sheen over both eyes; his collar a fine glowing chain. The drink is a luminous cocktail in a coupe glass. Same pose, same face and beard.",
+  "prompt": "Felix: a slender man in his mid-thirties, a Level 4 guest of the city AI, Deep Integration: mostly mediated, and serenely happy for it. Pale, smooth skin, a neat short dark beard, a calm small smile. No helmet and no hardware worn on the head: everything is on and in his body. Over both eyes, dual glasses: two round dark lenses in one slim frame, scratched; everyone else wears a device over one eye only. Neck and spine integration: a ridge of small metal connectors down the back of his neck, running on down his spine. Prominent fluid lines: clear tubes of amber fluid running from the connectors at his neck over his shoulders, down his arms and into his chest. Arm and torso connectors: round ports at his elbows, forearms and chest where the lines go in. A wrist interface on each wrist. His clothes are what the city gives everyone, cut to leave the lines and ports free: a plain grey sleeveless one-piece suit with a zip down the front, worn and baggy, and soft grey slip-on shoes. In his left hand a short tumbler with a finger of amber drink. Drawn in the same flat-shaded style as the reference: two or three flat tones per surface, crisp edges, no texture.",
+  "concierge": "The city AI's view of the same man, in exactly the same pose: every piece of his equipment in exactly the same shape, size and place, only its look changed, idealised, clean and calm: the dual glasses sleek and mirrored with a prismatic sheen, the connectors polished white and chrome, the fluid lines glowing clean violet and cyan. Over him, clothes of pure projection, couture made of light: a long, sheer coat of iridescent fabric whose pattern flows in violet, cyan and soft gold, translucent so every line and connector shows through it, over a fitted dark outfit; polished dark shoes. The drink glows softly in the same glass. Same pose, same face and beard.",
   "height": 254,
   "material": "cloth",
-  "glow": { "raw": "none", "concierge": "auto", "machine": false },
-  "references": ["art/cast/hero/raw.png", "art/cast/fixer/raw.png"],
-  "conciergeReferences": ["art/cast/hero/concierge.png", "art/cast/fixer/concierge.png"]
+  "glow": {
+    "raw": "none",
+    "concierge": "auto",
+    "machine": false
+  },
+  "references": [
+    "art/cast/hero/raw.png",
+    "art/cast/fixer/raw.png"
+  ],
+  "conciergeReferences": [
+    "art/cast/hero/concierge.png",
+    "art/cast/fixer/concierge.png"
+  ]
 }

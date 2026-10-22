@@ -13,10 +13,14 @@ import { icon } from './icons';
 /** Something she has to do, from her journal: its name and its first line. */
 export interface Reminder { name: string; text: string }
 /**
- * What it keeps of her: her credits, her heart (beats a minute), whether she has fed lately; null where it has none.
- * Her nutrition is only ever good or, after a station, optimal: nothing she has to plan for or keep track of.
+ * What it keeps of her: her credits, her heart (beats a minute), whether she has fed lately, her connection level; null
+ * where it has none. Her nutrition is only ever good or, after a station, optimal: nothing she has to plan for or keep
+ * track of.
  */
-export interface Readouts { credits: number | null; heart: number | null; nourished: boolean | null }
+export interface Readouts { credits: number | null; heart: number | null; nourished: boolean | null; level: number | null }
+
+/** The connection levels, 0 to 5, as the director's concept sheet names them (decision 18). */
+export const LEVELS = ['Unregistered', 'Basic Care', 'Enhanced Care', 'Integrated Care', 'Deep Integration', 'Full Integration'];
 
 type Say = { label: string; primary?: boolean; run?: () => void };
 
@@ -35,6 +39,7 @@ const MARK = {
   heart: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 8.5h3l1.5-3.5 2.5 7 2-5 1 1.5h3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   credits: '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.6" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M9.8 6.2a2.4 2.4 0 1 0 0 3.6" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>',
   nourished: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.2c2.3 3 3.8 5 3.8 7a3.8 3.8 0 0 1-7.6 0c0-2 1.5-4 3.8-7z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>',
+  level: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M12.6 5A5.4 5.4 0 1 0 12.6 11" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="8" cy="8" r="1.6" fill="currentColor"/></svg>',
 };
 
 /** How long it takes to say a line, its mark turning: quick, as a thing that thinks faster than she reads. */
@@ -70,7 +75,7 @@ export class Concierge {
   private sayTimer = 0;
   private said: [string, string] = ['', ''];
   private listening = false;
-  private readouts: Readouts = { credits: null, heart: null, nourished: null };
+  private readouts: Readouts = { credits: null, heart: null, nourished: null, level: null };
   private shown = '';
   /** In a conversation with it: lines still to say, and her answers after them. */
   private queue: Line[] = [];
@@ -102,7 +107,7 @@ export class Concierge {
 
   /** What it keeps of her, shown on its presence (her heart, her credits) and in its card. */
   setReadouts(r: Readouts): void {
-    const key = `${r.credits}|${r.heart}|${r.nourished}`;
+    const key = `${r.credits}|${r.heart}|${r.nourished}|${r.level}`;
     this.readouts = r;
     if (key === this.shown) return;
     this.shown = key;
@@ -246,6 +251,7 @@ export class Concierge {
     if (r.heart !== null) parts.push(`<span>${MARK.heart}<b>${r.heart}</b> bpm</span>`);
     if (r.credits !== null) parts.push(`<span>${MARK.credits}<b>${r.credits.toLocaleString('en-GB')}</b> credits</span>`);
     if (r.nourished !== null) parts.push(`<span>${MARK.nourished}Nutrition ${r.nourished ? 'optimal' : 'good'}</span>`);
+    if (r.level !== null && LEVELS[r.level]) parts.push(`<span>${MARK.level}<b>Level ${r.level}</b> ${LEVELS[r.level]}</span>`);
     box.innerHTML = parts.join('');
   }
 

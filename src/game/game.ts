@@ -978,11 +978,12 @@ export class Game {
     // on her grows, and settles slowly), and whether she has fed lately (by the story's count of her comings and goings)
     const pace = (world.moving ? (world.gait === 'run' ? 128 : world.gait === 'jog' ? 104 : 84) : 66) + this.attention * 7;
     this.heart += (pace - this.heart) * Math.min(1, dt / (pace > this.heart ? 5 : 12));
-    const credits = this.dialogue.read('credits'), arrivals = this.dialogue.read('arrivals'), fed = this.dialogue.read('fed_at');
+    const credits = this.dialogue.read('credits'), arrivals = this.dialogue.read('arrivals'), fed = this.dialogue.read('fed_at'), level = this.dialogue.read('care_level');
     this.hud.setReadouts({
       credits: typeof credits === 'number' ? credits : null,
       heart: Math.round(this.heart + Math.sin(t * 0.9) * 1.4),
       nourished: typeof arrivals === 'number' && typeof fed === 'number' ? arrivals - fed < 8 : null,
+      level: typeof level === 'number' ? level : null,
     });
     // walking into an end of the walk line that leads somewhere: with the keys, or with a finger running her past it
     const push = world.keyDir || (this.chasing && this.finger ? Math.sign(this.toLevel(this.finger[0], this.finger[1])[0] - world.heroX) : 0);
