@@ -18,11 +18,16 @@ the bible decides what is true and this format decides how it is written down.
 
 ## How a chapter gets into the game
 
-1. **The scripting agent writes it** from the bible and the director's decisions since it
-   (`LIDLESS_Director_Decisions_2026-10-22.md`), this format, the catalog and the chapters before it.
-2. **The director reads it**, answers its questions, and saves it as `docs/chapters/<NN>-<name>/`.
-3. **The checker checks it.** Errors go back to the agent to fix; warnings are weighed.
-4. **I build it.**
+1. **The director gives the agent a brief**: what the chapter is for, what must happen in it, where, and anything
+   decided for it. The format says how to write a chapter; the brief says what it is about.
+2. **The scripting agent writes the overview first**, from the brief, the bible and the director's decisions since it
+   (`LIDLESS_Director_Decisions_2026-10-22.md`), this format, the catalog and the chapters before it. The director
+   reads it (its beats, people, things and puzzles show whether the chapter is right before any dialogue is written)
+   and says go, or what to change.
+3. **Then the agent writes each place's file**, with its script.
+4. **The director reads it**, answers its questions, and saves it as `docs/chapters/<NN>-<name>/`.
+5. **The checker checks it.** Errors go back to the agent to fix; warnings are weighed.
+6. **I build it.**
    - The places, people, things and close-ups are drawn from their prompts, in both views, each measured against
      Luna before anyone sees it.
    - The spots are placed in the scene editor.
@@ -38,9 +43,11 @@ You are the scripting agent for Lidless, a cyberpunk point-and-click adventure. 
 director's decisions (LIDLESS_Director_Decisions) hold over it where they differ: never change what either decides
 without asking the director; say when you invent or change anything else.
 
-Write each chapter in the chapter format (LIDLESS_Chapter_Format_v1), exactly:
+Write each chapter from the director's brief, in the chapter format (LIDLESS_Chapter_Format_v1), exactly:
 - A folder of Markdown files: overview.md, with About, Beats, People, Things, Story state, Puzzles, Journal, Notebook,
-  Close-ups, Machines and Questions; and one file per place, with its Places entry and its Script.
+  Close-ups, Machines and Questions; and one file per place, with its Places entry and its Script. A person met in
+  several places may have a file of their own.
+- Deliver overview.md first, and wait for the director's go before writing the places' files.
 - Data in ```yaml blocks and the story in ```ink blocks, under the format's ## headings. Prose anywhere else is for
   people and is not read.
 - Use the catalog's ids for anything the game has. Give everything new an id, text for both views, and its real size.
@@ -57,8 +64,16 @@ When the director pastes errors from the checker, fix exactly those, and send ba
 
 ## The files
 
-- **A chapter is a folder**, `docs/chapters/<NN>-<name>/`: `01-the-voice-at-three`. Any number of `.md` files; the
-  usual split is `overview.md` and one file per place (`relay-lobby.md`).
+- **A chapter is a folder**, `docs/chapters/<NN>-<name>/`: `01-the-voice-at-three`. Its files:
+  - **`overview.md`**: About, Beats, People, Things, Story state, Puzzles, Journal, Notebook, Close-ups, Machines and
+    Questions.
+  - **One file per place** the chapter uses, named after it (`relay-lobby.md`): each new place, and each place of the
+    game's where something new happens. It holds the place's entry under Places and its knots under Script.
+  - **A person met in several places** can have a file of their own (`mara.md`), with their People entry and their
+    knot.
+  - The vertical slice comes to about 5 to 7 files; a full chapter of 10 to 12 places to about 12 to 15.
+- **In what order:** `overview.md` first, for the director to approve; then the places' files, one per reply if need
+  be.
 - **Only these headings are read**, at the level `##`, each any number of times, in any file: About, Beats, Places,
   People, Things, Story state, Puzzles, Journal, Notebook, Close-ups, Machines, Script, Questions, Notes. A heading the
   format does not have is a warning.
