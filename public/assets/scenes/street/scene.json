@@ -394,13 +394,13 @@
     "raw": "Woman at the station"
    },
    "rect": [
-    602,
+    696,
     372,
     52,
     80
    ],
-   "stand": 580,
-   "face": 1,
+   "stand": 772,
+   "face": -1,
    "look": {
     "concierge": "A woman in red, dining at the station. She smiles at nothing in particular.",
     "raw": "She's wire-thin, her wrist locked in the station's cuff, head down. The red was never there."
@@ -420,13 +420,13 @@
     "raw": "Old man"
    },
    "rect": [
-    602,
+    696,
     372,
     52,
     80
    ],
-   "stand": 580,
-   "face": 1,
+   "stand": 772,
+   "face": -1,
    "when": "station_seat == \"man\"",
    "tag": {
     "concierge": "Guest · dining",
@@ -446,13 +446,13 @@
     "raw": "Young courier"
    },
    "rect": [
-    602,
+    696,
     372,
     52,
     80
    ],
-   "stand": 580,
-   "face": 1,
+   "stand": 772,
+   "face": -1,
    "when": "station_seat == \"worker\"",
    "tag": {
     "concierge": "Guest · dining",
@@ -472,13 +472,13 @@
     "raw": "Feeding station"
    },
    "rect": [
-    654,
+    602,
     300,
-    92,
+    94,
     152
    ],
-   "stand": 754,
-   "face": -1,
+   "stand": 590,
+   "face": 1,
    "tag": "Nutrition · health",
    "look": {
     "concierge": "The city's nutrition and health station: a seat, a gentle scan, everything you need.",
@@ -684,7 +684,7 @@
    "face": 1,
    "look": {
     "concierge": "A gentleman in a sheer coat of living light, every line in him glowing through it, a drink shining in his hand. He seems delighted with the evening.",
-    "raw": "A grey suit like a sack, tubes of amber fluid from his neck into his arms and chest, glasses over both eyes. He's smiling at something only he can see."
+    "raw": "A grey suit like a sack, tubes of amber fluid from his wrists up into his neck, glasses over both eyes. He's smiling at something only he can see."
    },
    "talk": "felix",
    "kind": "person",
@@ -708,7 +708,7 @@
    "face": 1,
    "look": {
     "concierge": "A gentleman in a sheer coat of living light, every line in him glowing through it, a drink shining in his hand. He seems delighted with the evening.",
-    "raw": "A grey suit like a sack, tubes of amber fluid from his neck into his arms and chest, glasses over both eyes. He's smiling at something only he can see."
+    "raw": "A grey suit like a sack, tubes of amber fluid from his wrists up into his neck, glasses over both eyes. He's smiling at something only he can see."
    },
    "talk": "felix",
    "kind": "person",

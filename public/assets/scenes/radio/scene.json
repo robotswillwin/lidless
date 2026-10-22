@@ -19,8 +19,8 @@
     },
     {
       "asset": "cast/fixer",
-      "x": 672,
-      "y": 279
+      "x": 667,
+      "y": 248
     }
   ],
   "walk": {
@@ -216,10 +216,10 @@
       "id": "fixer",
       "name": "The fixer",
       "rect": [
-        672,
-        279,
-        36,
-        113
+        667,
+        248,
+        46,
+        144
       ],
       "stand": 640,
       "face": 1,
@@ -486,7 +486,7 @@
       "zone": 1
     }
   ],
-  "actorScale": 0.47,
+  "actorScale": 0.6,
   "ambient": {
     "raw": 1.2,
     "concierge": 1.3

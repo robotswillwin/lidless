@@ -7,8 +7,8 @@
   "res": 1.25,
   "relics": true,
   "framing": "One full-length figure standing, seen from the side in a three-quarter view facing left, a little hunched over his work: an old radio held at chest height in his left hand, a soldering iron in his right. Feet at the bottom of the frame. Even, soft, frontal lighting with no cast shadows and no rim light. Transparent background, the whole figure in frame with a little space around it, no ground, no text, no border.",
-  "prompt": "The fixer: a wiry man in his late fifties who repairs old radios in a cramped back-street shop and secretly installs illegal biohacks. Hollow cheeks, grey stubble, sallow skin, short untidy grey hair, tired, watchful eyes. Like everyone, he wears a partial helmet over one eye only, his left, the one nearer to us in this view: a heavy, scratched grey visor of riveted metal plates with a round lens, bolted over that eye and temple; his other eye is uncovered. A pilled grey cardigan over a stained work shirt with rolled sleeves, worn trousers, scuffed boots. In his hands a grey old radio of dull metal with valves and a dial, patched together, and a soldering iron. Drawn in the same flat-shaded style as the reference: two or three flat tones per surface, crisp edges, no texture.",
-  "concierge": "The city AI's version of the same man, in exactly the same pose and silhouette: healthy and handsome for his age, neat silver hair and a trimmed silver beard, a tailored charcoal knit sweater, dark trousers, polished boots. The partial helmet over his left eye only is a smooth, seamless white shell with a soft blue light; his other eye is uncovered. The radio is a lovingly restored relic in polished walnut and cream bakelite with a warm glowing dial, the soldering iron a slim tool. Same pose.",
+  "prompt": "The fixer: a wiry man in his late fifties who repairs old radios in a cramped back-street shop and secretly installs illegal biohacks. Hollow cheeks, grey stubble, sallow skin, short untidy grey hair, tired, watchful eyes. Like everyone, he wears a device over his right eye only, the far one in this view: a heavy, scratched grey visor of riveted metal plates with a round lens, bolted over that eye and temple, its edge showing past the bridge of his nose; his left eye, the near one, is uncovered. A pilled grey cardigan over a stained work shirt with rolled sleeves, worn trousers, scuffed boots. In his hands a grey old radio of dull metal with valves and a dial, patched together, and a soldering iron. Drawn in the same flat-shaded style as the reference: two or three flat tones per surface, crisp edges, no texture.",
+  "concierge": "The city AI's version of the same man, in exactly the same pose and silhouette: healthy and handsome for his age, neat silver hair and a trimmed silver beard, a tailored charcoal knit sweater, dark trousers, polished boots. The device over his right eye only, the far one, is a smooth, seamless white shell with a soft blue light, its edge showing past the bridge of his nose; his left eye, the near one, is uncovered. The radio is a lovingly restored relic in polished walnut and cream bakelite with a warm glowing dial, the soldering iron a slim tool. Same pose.",
   "height": 240,
   "position": [
     480,
@@ -29,7 +29,16 @@
   "anims": {
     "idle": {
       "fps": 3,
-      "seq": [0, 0, 0, 1, 1, 2, 2, 0]
+      "seq": [
+        0,
+        0,
+        0,
+        1,
+        1,
+        2,
+        2,
+        0
+      ]
     }
   }
 }

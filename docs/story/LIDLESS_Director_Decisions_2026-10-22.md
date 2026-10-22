@@ -69,26 +69,33 @@ holds**. Each decision is the director's, in plain words; what is still open say
     clean and calm in the Concierge's, real materials, wear and technology in raw view. The more connected someone
     is, the more of it shows. Less connection is more personal agency; more integration, more mediation.
     - **0 Unregistered.** Disconnected from Care, no access to services; visible, and marked in the Concierge's view
-      (a red "Unregistered"). Biological, no implants. On the sheet, a patch over the right eye: no lids since
-      childhood. (The bible: earlier lore counts unregistered humans as weather.)
-    - **1 Basic Care** (Luna). Minimum legal integration; access to services. A simple eyepiece over the left eye,
-      a minimal temple and neck connector, a wrist interface.
-    - **2 Enhanced Care.** More comfort, more features. Dual optics over the left eye, neck and ear connectors,
-      subtle fluid lines, a wrist interface.
-    - **3 Integrated Care.** Clear integration. A headband module, neck integration, visible fluid lines, a
-      shoulder interface.
-    - **4 Deep Integration.** Mostly mediated. Dual glasses, neck and spine integration, prominent fluid lines, arm
-      and torso connectors.
+      (a red "Unregistered"). Biological, no implants: a patch over the lidless right eye (19). (The bible: earlier
+      lore counts unregistered humans as weather.)
+    - **1 Basic Care** (Luna). Minimum legal integration; access to services. A simple eyepiece over the right eye,
+      a wrist interface.
+    - **2 Enhanced Care.** More comfort, more features. Dual optics over the right eye, subtle fluid lines, a wrist
+      interface.
+    - **3 Integrated Care.** Clear integration. A headband module, neck integration, visible fluid lines.
+    - **4 Deep Integration.** Mostly mediated. Dual glasses, neck and spine integration, prominent fluid lines.
     - **5 Full Integration.** Almost entirely mediated. Advanced dual glasses, integrated fluid systems, a small
       integrated back unit, robotic hands and legs.
 
-    Up to Deep Integration there is no external hardware, and nobody wears a helmet.
+    Up to Deep Integration there is no external hardware, and nobody wears a helmet. Where the sheet has an eyepiece
+    over the left eye, or connectors anywhere but the wrists, that is the image model's mistake (19, 20).
+19. **Lidless.** Nobody here has two eyelids: they are removed at birth. The eye without them is the right one, and
+    every eyepiece is over it, always; a device over the left eye in a picture is the image model's mistake. The
+    unregistered, with no eyepiece, wear a patch over it. The inventor, met later in the game, may be the exception.
+20. **Connectors are at the wrists only**, at every level. What a higher level adds elsewhere is implants and fluid
+    lines, never a port.
+21. **No people painted into a background**, not even behind a window or far off: every person is a character of
+    their own, drawn at true scale against Luna. And everything keeps the flat vector style: simple shapes, few
+    tones, no fine detail.
 
 ## Production
 
-19. **Music** is the director's: one composition in a digital and an analogue arrangement, blended as the view
+22. **Music** is the director's: one composition in a digital and an analogue arrangement, blended as the view
     switches. No sound effects yet.
-20. **English only**, for now.
+23. **English only**, for now.
 
 ## Open, for the director
 
@@ -97,8 +104,4 @@ holds**. Each decision is the director's, in plain words; what is still open say
 - What the corner shop sells. Proposed: drinks, tobacco, umbrellas, care for devices, the Concierge's wardrobe on
   show.
 - How Luna comes by raw view (1) and the laptop (12).
-- What each level trades (18; the bible v0.4, 2.4: biometric, emotional and potentially cognitive data, for
-  credits, personalisation, privileges, pleasure and wellbeing). Felix proposes: Enhanced Care your body (heartbeat,
-  sleep, blood), Integrated Care your feelings, Deep Integration your thoughts, Full Integration nearly all of you.
-- "No lids since childhood" (18): a mark of the unregistered, one person's story, or the world's (the title)?
-- Luna's art has her eyepiece and wrist devices, not yet the temple and neck connector of Basic Care (18).
+- What each level trades (18): to be announced (the director, 22 October).

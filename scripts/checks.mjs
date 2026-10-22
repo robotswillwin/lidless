@@ -322,7 +322,7 @@ const checks = {
   async station() {
     const page = await fresh('scene=street&spawn=start');
     await verb(page, 'hands');
-    await tap(page, 700, 380);
+    await tap(page, 660, 380);
     const shown = await page.waitForFunction(() => !!document.querySelector('.hud-closeup img'), { timeout: 15000 }).then(() => true).catch(() => false);
     const src = await page.$eval('.hud-closeup img', (i) => i.getAttribute('src')).catch(() => '');
     const fed = await talkThrough(page);

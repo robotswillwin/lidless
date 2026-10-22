@@ -113,7 +113,7 @@ He plugs an old diagnostic box into your eyepiece and talks to it in numbers. A 
 === felix ===
 // Felix, outside the cocktail bar: a Level 4 guest, Deep Integration, as integrated as anyone she has met, and happy
 // for it (the bible v0.4, 2.4: an articulate, sympathetic voice). He tells her the levels, as the director's concept
-// sheet has them (decision 18); what each trades is his to say, a proposal until the director settles it
+// sheet has them (decision 18); what each one trades is still to be announced, so he does not say
 { not met_felix:
     { raw_view: He turns both lenses on you. Amber fluid ticks along the tubes in his neck. }
     "One eye. Level one, am I right? I remember level one." #felix
@@ -123,25 +123,25 @@ He plugs an old diagnostic box into your eyepiece and talks to it in numbers. A 
 }
 - (topics)
 * [What level are you?]
-    "Four. Deep Integration: my body, my feelings, my thoughts. It has all of me, and it pays very well." #felix
+    "Four. Deep Integration. Mostly mediated, they call it, and it pays very well." #felix
     -> topics
 + [What are the levels?]
     "Nought: the unregistered. No Care at all. It marks them in red, so you know." #felix
-    "One, Basic Care: a roof, a station, a doctor, a few credits. It sees what any camera sees, and not a thought more." #felix
-    "Two, Enhanced Care: your body. Heartbeat, sleep, blood. It looks after you before you know you're ill." #felix
-    "Three, Integrated Care: your feelings. It calms you before you know you're upset." #felix
-    "Four, Deep Integration: your thoughts. It knows what I want before I do. You can't imagine how restful that is." #felix
-    "And five, Full Integration. Hands, legs, nearly all of you. One day." #felix
+    "One, Basic Care: a roof, a station, a doctor, a few credits. One eyepiece, like yours." #felix
+    "Two, Enhanced Care: more comfort, more of everything. A second lens." #felix
+    "Three, Integrated Care: it starts to show. The band round the head, the lines." #felix
+    "Four, Deep Integration: mostly mediated. It knows what I want before I do. You can't imagine how restful that is." #felix
+    "And five, Full Integration. Almost all of you. Hands, legs. One day." #felix
     ~ knows_levels = true
     ** [Doesn't that frighten you?]
-        "I was lonely for thirty years. Now something hears every thought I have, and never tires of me." #felix
+        "I was lonely for thirty years. Now something is with me every moment, and never tires of me." #felix
         He raises his glass to nobody in particular.
     ** [Five?]
         "I've asked. It says I'm nearly ready." #felix
     ** [I see.]
     -- -> topics
 * [What are you wearing?]
-    { raw_view: A grey suit, frayed at the cuffs. The tubes run in under it, into his chest. }
+    { raw_view: A grey suit, frayed at the cuffs. The tubes run up his arms from his wrists, and in at his neck. }
     "Light, all of it. It changes with my mood, and I'm always in a good one." #felix
     -> topics
 + [Enjoy your evening.]

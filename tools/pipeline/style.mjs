@@ -33,7 +33,8 @@ const RAW_COLOURS = 'Muted, faded colours that lean cold: concrete grey, slate b
 const rawColoursVector = (r) => `Sick, muted colours drowned in a poisonous ${r.rawAir ?? 'yellow-green'} smog that glows where the light falls; nothing bright except lamps and the small lights of machines.`;
 const RAW_MATERIALS = 'Concrete panel blocks, cheap plastic, corrugated metal, rust, peeling paint, stained tiles.';
 const RAW_ELECTRONICS = 'Electronics that people use are grey and steampunk-like: dull grey metal casings, exposed valves, tubes, gauges, cables and rivets, patched together. No brass.';
-const RAW_HELMET = 'Everyone wears a partial helmet that covers one whole eye: here a heavy, grey, steampunk-like device of riveted metal plates, a round lens and small tubes.';
+// the director, 22 October: always the right eye, never the left; the wrists are the only place anything plugs in
+const RAW_HELMET = 'Everyone wears a device over the right eye, never the left: here a heavy, grey, steampunk-like device of riveted metal plates, a round lens and small tubes. The wrists are the only place anything plugs into a body.';
 const RAW_WORLD = [
   'This is the raw, unedited world: poisonous, cheap and post-Soviet.',
   RAW_MATERIALS,
@@ -49,7 +50,7 @@ const rawWorld = (r, look = r.look) => (look === 'vector'
   ? RAW_WORLD
     .replace(RAW_MATERIALS, 'Concrete blocks, cheap plastic and corrugated metal, old and dirty: in this flat style that shows only as duller, darker colours and a few large simple shapes, never as texture, stains, rust spots or speckle.')
     .replace(RAW_ELECTRONICS, 'Electronics that people use are grey, old and patched together, drawn as a few simple grey shapes. No brass.')
-    .replace(RAW_HELMET, 'Everyone wears a partial helmet that covers one whole eye: here a heavy grey device with a round lens.')
+    .replace(RAW_HELMET, 'Everyone wears a device over the right eye, never the left: here a heavy grey device with a round lens. The wrists are the only place anything plugs into a body.')
     .replace(RAW_COLOURS, rawColoursVector(r))
   : RAW_WORLD);
 const CONCIERGE_ELECTRONICS = 'Electronics that people use look futuristic: smooth white shells and blue light.';
@@ -62,7 +63,7 @@ const CONCIERGE_WORLD = [
   'cool and glamorous: sleek, glossy, expensive and stylish, with cyan, violet and magenta neon accents.',
   'People are clean, healthy, fit and good-looking, in stylish, well-fitted clothes.',
   CONCIERGE_ELECTRONICS,
-  'Everyone wears a partial helmet that covers one whole eye: here a smooth, seamless white shell with a soft blue light.',
+  'Everyone wears a device over the right eye, never the left: here a smooth, seamless white shell with a soft blue light. The wrists are the only place anything plugs into a body.',
   'Signs and screens are in English, with some Chinese and Japanese, like an international city.',
   'It must look completely real and physical, never like a hologram or a projection.',
 ].join(' ');

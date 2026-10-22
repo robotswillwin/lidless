@@ -41,8 +41,8 @@ model re-composes and drifts back to its own scale.) `layout-check.png` shows Lu
 blockout, and the blockout also places hotspots and lights: `toScene` in tools/pipeline/blockout.mjs turns a point
 in metres into scene pixels. A set drawn too big can also be shrunk with `asset reframe`, which keeps what is in it and
 paints the new edges. People in a scene are characters built at
-this scale and placed as layers, never painted into a background; only far-off figures, like a crowd behind the
-street, and people sitting still behind a window (the restaurant's diners) may be part of the art.
+this scale and placed as layers, never painted into a background, not even far off or behind a window (the director,
+22 October: the restaurant's diners and waiter, painted in, are to be painted out).
 
 **Every new piece of art is measured against Luna before it is shown.** On the street she is 124 level px, 248
 picture px, for 1.7 m: a door is 1.15 to 1.25 times her height, a seated adult (head to floor) about 0.75, a storey at
@@ -239,14 +239,16 @@ with what their level has, no more:
 
 | Level | What shows |
 | --- | --- |
-| 0 Unregistered | nothing: no implants; marked in red in the Concierge's view |
-| 1 Basic Care (Luna) | a simple eyepiece over the left eye, a minimal temple and neck connector, a wrist interface |
-| 2 Enhanced Care | dual optics over the left eye, neck and ear connectors, subtle fluid lines, a wrist interface |
-| 3 Integrated Care | a headband module, neck integration, visible fluid lines, a shoulder interface |
-| 4 Deep Integration | dual glasses, neck and spine integration, prominent fluid lines, arm and torso connectors |
+| 0 Unregistered | nothing: no implants; a patch over the right eye; marked in red in the Concierge's view |
+| 1 Basic Care (Luna) | a simple eyepiece over the right eye, a wrist interface |
+| 2 Enhanced Care | dual optics over the right eye, subtle fluid lines, a wrist interface |
+| 3 Integrated Care | a headband module, neck integration, visible fluid lines |
+| 4 Deep Integration | dual glasses, neck and spine integration, prominent fluid lines |
 | 5 Full Integration | advanced dual glasses, integrated fluid systems, a small integrated back unit, robotic hands and legs |
 
-Up to Deep Integration nothing is worn outside the body, and nobody wears a helmet. In both views every piece of it
+Every eyepiece is over the right eye: nobody here has lids on it (decision 19), and a device over the left eye in a
+picture is the image model's mistake. Connectors are at the wrists only (20): fluid lines start there. Up to Deep
+Integration nothing is worn outside the body, and nobody wears a helmet. In both views every piece of it
 has the same shape, size and place; only its look changes: clean, polished and glowing in the Concierge's view (its
 fluid lines violet and cyan), real materials and wear in raw view (amber fluid in clear tubes, scratched lenses). What
 they wear can be projection in the Concierge's view (a sheer coat of light), but sheer enough that what they have

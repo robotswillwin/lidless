@@ -73,6 +73,22 @@ The design: https://claude.ai/artifact/X65FknT3sqWZBgJaHgHboZ. In code: `src/gam
   story's variables come true, and `world.json`'s `map` for where places are drawn.
 - **Not built yet.** The Concierge's offers (disposal) only answer for now; public restrooms and meeting rooms.
 
+## Art waiting for image credits
+
+The image account ran out of credits on 22 October. What is ready to be drawn, in my working time, about $1.20 in all:
+
+1. **Felix** (decision 17, 18): his recipe is the sheet's Deep Integration, no helmet; raw view, then the
+   Concierge's, the same equipment made clean. About 15 minutes, $0.10.
+2. **The fixer** (19): his eyepiece is over his left eye, the near one; his recipe now says right. The head redrawn in
+   both views (`touch`), and carried into his two idle frames. About 15 minutes, $0.15.
+3. **The cocktail bar and the restaurant above** (21): too narrow, too detailed, people painted into the window with
+   masks over both eyes. Wider (about 6 m, from 880 to 1260 on the street), flat vector, simple, the restaurant
+   empty; its diners, if any, characters of their own. Painted from a guide at true scale (`touch --guide`), both
+   views, the layers split again, its hotspots and lights moved. About 40 minutes, $0.50.
+4. **The radio repair's inside** (21): too detailed. Drawn again flat from its blockout, every object where it is.
+   Its scale is done: people were drawn a quarter too small (`actorScale` 0.47 to 0.6: the door now 0.96 of her
+   height, the sofa's back 0.9 m). About 40 minutes, $0.45.
+
 ## Next, when the director says go: ready for a full game
 
 Reviewed on 20 October, after the director's feedback of that day was done
