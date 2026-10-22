@@ -1,0 +1,514 @@
+{
+  "id": "bar",
+  "name": {
+    "concierge": "Cocktail bar",
+    "raw": "Bar"
+  },
+  "greeting": "Good evening, Luna.",
+  "assist": "A Level 4 guest is at the bar, Luna. He would be glad of the company.",
+  "kind": "interior",
+  "size": [
+    960,
+    540
+  ],
+  "layers": [
+    {
+      "asset": "bar/room"
+    },
+    {
+      "asset": "cast/felix",
+      "x": 678,
+      "y": 240
+    }
+  ],
+  "walk": {
+    "y": 395,
+    "x0": 230,
+    "x1": 850
+  },
+  "mirror": 395,
+  "spawns": {
+    "door": {
+      "x": 252,
+      "facing": 1
+    }
+  },
+  "hotspots": [
+    {
+      "id": "door",
+      "name": "To the main street",
+      "rect": [
+        212,
+        228,
+        50,
+        150
+      ],
+      "stand": 232,
+      "go": {
+        "scene": "street",
+        "spawn": "from-bar"
+      }
+    },
+    {
+      "id": "restaurant",
+      "name": "Restaurant",
+      "rect": [
+        228,
+        30,
+        595,
+        135
+      ],
+      "look": {
+        "concierge": "Upstairs, candlelight and white cloths. Every table reserved for later this evening.",
+        "raw": "Tables laid upstairs for a dinner nobody you know could pay for."
+      },
+      "ask": "The restaurant is reserved this evening, Luna. Shall I put you on the list?"
+    },
+    {
+      "id": "cellar",
+      "name": "Cellar",
+      "rect": [
+        210,
+        435,
+        680,
+        95
+      ],
+      "look": {
+        "concierge": "Kegs and fine wines, kept cool below the floor.",
+        "raw": "Dented kegs, and a rack of wine nobody down here will ever drink."
+      }
+    },
+    {
+      "id": "under-street",
+      "name": "Under the street",
+      "rect": [
+        0,
+        405,
+        165,
+        135
+      ],
+      "look": {
+        "concierge": "Clean water, quiet power, everything where it should be.",
+        "raw": "Old pipes and older cables. The city's guts, patched like everything else."
+      }
+    },
+    {
+      "id": "booth",
+      "name": "Booth",
+      "rect": [
+        272,
+        302,
+        165,
+        80
+      ],
+      "stand": 355,
+      "look": {
+        "concierge": "Red leather and a candle. A table for two, and nobody waiting.",
+        "raw": "Cracked red vinyl, taped at the seams. The candle is real, at least."
+      }
+    },
+    {
+      "id": "prices",
+      "name": {
+        "concierge": "Tonight's list",
+        "raw": "Price board"
+      },
+      "rect": [
+        286,
+        226,
+        98,
+        66
+      ],
+      "stand": 335,
+      "story": "bar_prices",
+      "tag": {
+        "concierge": "Drinks · real and rare",
+        "raw": "real prices"
+      }
+    },
+    {
+      "id": "bottles",
+      "name": "Bottles",
+      "rect": [
+        505,
+        216,
+        236,
+        78
+      ],
+      "stand": 600,
+      "look": {
+        "concierge": "Every bottle lit from below like a jewel. Real spirits, every one.",
+        "raw": "Real bottles, half of them nearly empty. Somebody tops them up with something cheaper."
+      }
+    },
+    {
+      "id": "counter",
+      "name": {
+        "concierge": "Cocktail bar",
+        "raw": "Bar"
+      },
+      "rect": [
+        495,
+        296,
+        250,
+        92
+      ],
+      "stand": 600,
+      "story": "bar_counter"
+    },
+    {
+      "id": "machine",
+      "name": {
+        "concierge": "Drinks machine",
+        "raw": "Tap machine"
+      },
+      "rect": [
+        748,
+        254,
+        42,
+        44
+      ],
+      "stand": 740,
+      "face": 1,
+      "talk": "bar_order",
+      "kind": "machine",
+      "look": {
+        "concierge": "A sleek drinks machine, its little screen smiling at you.",
+        "raw": "A tap machine of dull chrome, dripping into a tray."
+      },
+      "tag": {
+        "concierge": "Service · drinks",
+        "raw": "it pours"
+      }
+    },
+    {
+      "id": "back-door",
+      "name": {
+        "concierge": "Staff door",
+        "raw": "Back door"
+      },
+      "rect": [
+        815,
+        230,
+        66,
+        155
+      ],
+      "stand": 843,
+      "look": {
+        "concierge": "Staff only, in neat brass letters.",
+        "raw": "A door with a bolt on the other side."
+      }
+    },
+    {
+      "id": "felix",
+      "name": {
+        "concierge": "Man in light",
+        "raw": "Man in a helmet"
+      },
+      "tag": {
+        "concierge": "Guest · Deep Integration",
+        "raw": "both eyes covered"
+      },
+      "rect": [
+        678,
+        240,
+        54,
+        153
+      ],
+      "stand": 650,
+      "face": 1,
+      "look": {
+        "concierge": "A gentleman in a sheer coat of living light, every line in him glowing through it, a drink shining in his hand. He seems delighted with the evening.",
+        "raw": "A grey suit like a sack, tubes of amber fluid from his wrists up into his neck, glasses over both eyes. He's smiling at something only he can see."
+      },
+      "talk": "felix",
+      "kind": "person",
+      "ask": "A guest at Level 4, Luna: Deep Integration. He shares everything with me, and I take very good care of him. He is very happy.",
+      "when": "not met_felix"
+    },
+    {
+      "id": "felix-met",
+      "name": "Felix",
+      "tag": {
+        "concierge": "Guest · Deep Integration",
+        "raw": "both eyes covered"
+      },
+      "rect": [
+        678,
+        240,
+        54,
+        153
+      ],
+      "stand": 650,
+      "face": 1,
+      "look": {
+        "concierge": "A gentleman in a sheer coat of living light, every line in him glowing through it, a drink shining in his hand. He seems delighted with the evening.",
+        "raw": "A grey suit like a sack, tubes of amber fluid from his wrists up into his neck, glasses over both eyes. He's smiling at something only he can see."
+      },
+      "talk": "felix",
+      "kind": "person",
+      "ask": "Felix is at Level 4, Luna: Deep Integration. He shares everything with me, and I take very good care of him.",
+      "when": "met_felix"
+    }
+  ],
+  "lights": [
+    {
+      "x": 350,
+      "y": 325,
+      "z": 10,
+      "r": 120,
+      "c": [
+        1,
+        0.7,
+        0.4
+      ],
+      "i": 0.8,
+      "zone": 0,
+      "layer": 1,
+      "own": 1
+    },
+    {
+      "x": 565,
+      "y": 238,
+      "z": 16,
+      "r": 170,
+      "c": [
+        1,
+        0.78,
+        0.45
+      ],
+      "i": 1,
+      "zone": 0,
+      "layer": 1,
+      "own": 1
+    },
+    {
+      "x": 645,
+      "y": 238,
+      "z": 16,
+      "r": 170,
+      "c": [
+        1,
+        0.78,
+        0.45
+      ],
+      "i": 1,
+      "zone": 0,
+      "layer": 1,
+      "own": 1
+    },
+    {
+      "x": 725,
+      "y": 238,
+      "z": 16,
+      "r": 170,
+      "c": [
+        1,
+        0.78,
+        0.45
+      ],
+      "i": 1,
+      "zone": 0,
+      "layer": 1,
+      "views": {
+        "raw": {
+          "i": 0.6
+        }
+      },
+      "own": 1
+    },
+    {
+      "x": 640,
+      "y": 250,
+      "z": 8,
+      "r": 260,
+      "c": [
+        1,
+        0.62,
+        0.28
+      ],
+      "i": 0.7,
+      "zone": 0,
+      "layer": 1,
+      "ar": 1,
+      "own": 1
+    },
+    {
+      "x": 640,
+      "y": 250,
+      "z": 8,
+      "r": 240,
+      "c": [
+        1,
+        0.75,
+        0.45
+      ],
+      "i": 0.35,
+      "zone": 0,
+      "layer": 1,
+      "raw": 1,
+      "own": 1
+    },
+    {
+      "x": 335,
+      "y": 258,
+      "z": 12,
+      "r": 120,
+      "c": [
+        1,
+        0.75,
+        0.4
+      ],
+      "i": 0.5,
+      "zone": 0,
+      "layer": 1,
+      "ar": 1,
+      "own": 1
+    },
+    {
+      "x": 803,
+      "y": 266,
+      "z": 14,
+      "r": 130,
+      "c": [
+        1,
+        0.75,
+        0.45
+      ],
+      "i": 0.8,
+      "zone": 0,
+      "layer": 1,
+      "own": 1
+    },
+    {
+      "x": 770,
+      "y": 268,
+      "preset": "monitor",
+      "c": [
+        0.5,
+        0.9,
+        1
+      ],
+      "own": 1
+    },
+    {
+      "x": 237,
+      "y": 300,
+      "z": 20,
+      "r": 150,
+      "c": [
+        1,
+        0.72,
+        0.42
+      ],
+      "i": 0.6,
+      "zone": 0,
+      "layer": 1,
+      "own": 1
+    },
+    {
+      "x": 520,
+      "y": 206,
+      "z": 40,
+      "r": 340,
+      "c": [
+        1,
+        0.85,
+        0.7
+      ],
+      "i": 0.5,
+      "zone": 0,
+      "layer": 1,
+      "haze": 0.15,
+      "own": 1
+    },
+    {
+      "x": 92,
+      "y": 205,
+      "preset": "street-lamp"
+    },
+    {
+      "x": 60,
+      "y": 160,
+      "preset": "city-glow"
+    },
+    {
+      "x": 60,
+      "y": 150,
+      "preset": "smog-glow"
+    }
+  ],
+  "zones": {
+    "outside": [
+      [
+        0,
+        0,
+        165,
+        540
+      ],
+      [
+        895,
+        0,
+        65,
+        540
+      ]
+    ]
+  },
+  "godrays": [
+    {
+      "x": 92,
+      "y": 207,
+      "strength": 0.15,
+      "zone": 1
+    }
+  ],
+  "actorScale": 0.6,
+  "ambient": {
+    "raw": 1.2,
+    "concierge": 1.3
+  },
+  "baked": 1,
+  "look": {
+    "depthOfField": 0,
+    "actorPaint": 1,
+    "raw": {
+      "actorRed": 0.9,
+      "actorGreen": 0.84,
+      "actorBlue": 0.7,
+      "rain": 0.5
+    },
+    "concierge": {
+      "actorRed": 1,
+      "actorGreen": 0.92,
+      "actorBlue": 0.88
+    }
+  },
+  "variants": {
+    "rain": {
+      "name": "Heavy rain",
+      "look": {
+        "raw": {
+          "rain": 1.6
+        },
+        "concierge": {
+          "rain": 1.6
+        }
+      }
+    },
+    "fog": {
+      "name": "Dense fog",
+      "look": {
+        "fog": 0.9,
+        "raw": {
+          "rawFog": 1.4
+        }
+      }
+    },
+    "outage": {
+      "name": "Power cut",
+      "look": {
+        "power": 0
+      }
+    }
+  }
+}

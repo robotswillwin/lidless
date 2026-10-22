@@ -460,6 +460,9 @@ that look. A prompt says **what is there**, not how to draw it.
 - **Props.** Anything she takes, moves or uses up, or anything that changes, is a prop (`prop: true`): a picture of
   its own, not painted into the place.
 - **People** are characters: give their height, pose and both views. Not painted into places.
+- **A place and its outside match**: what the street shows through a window is the room she walks into, so describe
+  them alike. A room is drawn as a cutaway of its building; where it shows a basement, the ground beside it is cut
+  away too (gravel, earth, pipes under the street).
 - **No writing** in pictures except signs that say what they must; signs are in English, Chinese or Japanese in the
   Concierge's view, faded Cyrillic in raw view.
 

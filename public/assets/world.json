@@ -50,7 +50,8 @@
     "backstreet",
     "home",
     "radio",
-    "restroom"
+    "restroom",
+    "bar"
   ],
   "map": {
     "places": {
@@ -75,6 +76,9 @@
         "spawn": "door"
       },
       "restroom": {
+        "spawn": "door"
+      },
+      "bar": {
         "spawn": "door"
       }
     }

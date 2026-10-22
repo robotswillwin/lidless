@@ -62,7 +62,7 @@ holds**. Each decision is the director's, in plain words; what is still open say
     optimal after a station, nothing else.
 17. **A deeply integrated guest** on the main street, much more integrated with the Concierge than Luna: more
     devices, goggles over both eyes, clothes made of light, from whom she learns about the levels. In the game:
-    **Felix**, outside the cocktail bar, a Level 4 guest and happy for it (his name and his words are proposals).
+    **Felix**, a Level 4 guest and happy for it, inside the cocktail bar (his name and his words are proposals).
 18. **The connection levels**, from the director's concept sheet
     (`docs/art/LIDLESS_Connection_Levels_Concept_2026-10-22.webp`): the same person at each level, in both views.
     Every piece of equipment has the same shape, size and place in both views; only its look changes, idealised,
@@ -90,12 +90,19 @@ holds**. Each decision is the director's, in plain words; what is still open say
 21. **No people painted into a background**, not even behind a window or far off: every person is a character of
     their own, drawn at true scale against Luna. And everything keeps the flat vector style: simple shapes, few
     tones, no fine detail.
+22. **The cocktail bar can be entered.** Felix is inside, and Luna is shocked by the prices of real drinks: a beer
+    120 credits, a gin 190, a twelve-year whisky 280, against her allowance (312). The bar's machine pours; Felix,
+    once met, pays.
+23. **Where a cutaway shows a basement, the ground beside it is cut away too**: under the street outside, gravel,
+    earth, pipes and cables, not a street running on below the floor.
+24. **The outside of a place matches its inside**: what the street shows through a window is the room she walks
+    into.
 
 ## Production
 
-22. **Music** is the director's: one composition in a digital and an analogue arrangement, blended as the view
+25. **Music** is the director's: one composition in a digital and an analogue arrangement, blended as the view
     switches. No sound effects yet.
-23. **English only**, for now.
+26. **English only**, for now.
 
 ## Open, for the director
 

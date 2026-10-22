@@ -18,6 +18,25 @@ exterior. Arrivals: `from-street`, `door`.
 | `to-street` | To the main street |  | to `street/from-backstreet` |
 | `repair-bot` | Maintenance unit / Repair bot |  |  |
 
+### bar: Cocktail bar (raw view: Bar)
+
+interior. Arrivals: `door`.
+
+| Spot | Name | Story | Notes |
+| --- | --- | --- | --- |
+| `door` | To the main street |  | to `street/from-bar` |
+| `restaurant` | Restaurant |  |  |
+| `cellar` | Cellar |  |  |
+| `under-street` | Under the street |  |  |
+| `booth` | Booth |  |  |
+| `prices` | Tonight's list / Price board | `bar_prices` |  |
+| `bottles` | Bottles |  |  |
+| `counter` | Cocktail bar / Bar | `bar_counter` |  |
+| `machine` | Drinks machine / Tap machine | `bar_order` (talk) |  |
+| `back-door` | Staff door / Back door |  |  |
+| `felix` | Man in light / Man in a helmet | `felix` (talk) | when `not met_felix` |
+| `felix-met` | Felix | `felix` (talk) | when `met_felix` |
+
 ### home: Luna's home
 
 interior, a privacy zone. Arrivals: `door`.
@@ -76,7 +95,7 @@ interior, a privacy zone. Arrivals: `door`.
 
 ### street: Main street
 
-exterior. Arrivals: `start`, `from-backstreet`, `from-radio`, `from-restroom`.
+exterior. Arrivals: `start`, `from-backstreet`, `from-radio`, `from-restroom`, `from-bar`.
 
 | Spot | Name | Story | Notes |
 | --- | --- | --- | --- |
@@ -98,12 +117,11 @@ exterior. Arrivals: `start`, `from-backstreet`, `from-radio`, `from-restroom`.
 | `restroom-door` | Rest rooms / Public toilets |  | to `restroom/door` |
 | `corner-shop` | Corner shop |  |  |
 | `guardian` | Civic guardian / Guard unit | `guardian` (talk) | moves |
-| `felix` | Man in light / Man in a helmet | `felix` (talk) | when `not met_felix` |
-| `felix-met` | Felix | `felix` (talk) | when `met_felix` |
+| `bar-door` | Bar entrance / Bar door |  | to `bar/door` |
 
 ## People who speak
 
-Speaker tags in the story so far: `#concierge`, `#felix`, `#fixer`, `#guardian`, `#luna`, `#station`. A line without a tag is narration.
+Speaker tags in the story so far: `#concierge`, `#felix`, `#fixer`, `#guardian`, `#luna`, `#station`, `#tap`. A line without a tag is narration.
 
 ## Things she can carry
 
@@ -132,8 +150,8 @@ Speaker tags in the story so far: `#concierge`, `#felix`, `#fixer`, `#guardian`,
 | `taken` | `()` | The things she can carry: public/assets/items.json says how each looks and what it is called. What she carries now, and what she has picked up anywhere, which is gone from where it was (the game adds to both as she takes a thing) |
 | `parcel_delivered` | `false` | the errand the game begins with: the parcel on her desk, to the radio repair by ten |
 | `radio_heard` | `false` | her radio, mended: what she heard under the static |
-| `met_felix` | `false` | Felix, outside the cocktail bar (street.ink): met, and what he told her of the levels |
-| `knows_levels` | `false` | Felix, outside the cocktail bar (street.ink): met, and what he told her of the levels |
+| `met_felix` | `false` | Felix, at the cocktail bar (bar.ink): met, and what he told her of the levels |
+| `knows_levels` | `false` | Felix, at the cocktail bar (bar.ink): met, and what he told her of the levels |
 | `relay7_root` | `false` | what she found on the old machine, Relay 7 (public/assets/terminals/relay7.json, `# terminal: relay7`): placeholders, until the story has the machine. Root's password found, the handover read, the night operator's notes read |
 | `relay7_handover` | `false` | what she found on the old machine, Relay 7 (public/assets/terminals/relay7.json, `# terminal: relay7`): placeholders, until the story has the machine. Root's password found, the handover read, the night operator's notes read |
 | `relay7_pattern` | `false` | what she found on the old machine, Relay 7 (public/assets/terminals/relay7.json, `# terminal: relay7`): placeholders, until the story has the machine. Root's password found, the handover read, the night operator's notes read |
@@ -142,7 +160,7 @@ Lists: `Things` (parcel, matches, cigarettes, map, valve).
 
 ## Knots
 
-`fixer`, `station`, `guardian`, `felix`, `radio`, `photo`, `concierge`.
+`fixer`, `station`, `guardian`, `radio`, `photo`, `concierge`, `bar_prices`, `bar_counter`, `bar_order`, `felix`.
 
 ## Outfits
 

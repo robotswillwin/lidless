@@ -41,11 +41,6 @@
    "x": 572,
    "y": 286,
    "when": "station_seat == \"worker\""
-  },
-  {
-   "asset": "cast/felix",
-   "x": 1214,
-   "y": 326
   }
  ],
  "lights": [
@@ -289,6 +284,10 @@
   "from-restroom": {
    "x": 1935,
    "facing": -1
+  },
+  "from-bar": {
+   "x": 955,
+   "facing": 1
   }
  },
  "hotspots": [
@@ -514,8 +513,7 @@
    "tag": {
     "concierge": "Bar · open",
     "raw": "a week's credits a glass"
-   },
-   "map": true
+   }
   },
   {
    "id": "restaurant",
@@ -534,10 +532,10 @@
     "raw": "real food, real prices"
    },
    "look": {
-    "concierge": "A restaurant above the bar: candlelight, white cloths, the city at your feet. Reservations recommended, Luna.",
-    "raw": "Real food on real plates, for the few who can pay. Somebody up there is eating meat."
+    "concierge": "A restaurant above the bar: candlelight, white cloths, the city at your feet. Every table reserved for later this evening.",
+    "raw": "Tables laid upstairs for a dinner nobody you know could pay for."
    },
-   "ask": "The restaurant is fully booked this evening, Luna. Shall I put you on the list?",
+   "ask": "The restaurant is reserved this evening, Luna. Shall I put you on the list?",
    "map": true
   },
   {
@@ -670,55 +668,22 @@
    "kind": "machine"
   },
   {
-   "id": "felix",
+   "id": "bar-door",
    "name": {
-    "concierge": "Man in light",
-    "raw": "Man in a helmet"
-   },
-   "tag": {
-    "concierge": "Guest · Deep Integration",
-    "raw": "both eyes covered"
+    "concierge": "Bar entrance",
+    "raw": "Bar door"
    },
    "rect": [
-    1214,
-    326,
-    36,
-    132
+    926,
+    305,
+    58,
+    128
    ],
-   "stand": 1186,
-   "face": 1,
-   "look": {
-    "concierge": "A gentleman in a sheer coat of living light, every line in him glowing through it, a drink shining in his hand. He seems delighted with the evening.",
-    "raw": "A grey suit like a sack, tubes of amber fluid from his wrists up into his neck, glasses over both eyes. He's smiling at something only he can see."
-   },
-   "talk": "felix",
-   "kind": "person",
-   "ask": "A guest at Level 4, Luna: Deep Integration. He shares everything with me, and I take very good care of him. He is very happy.",
-   "when": "not met_felix"
-  },
-  {
-   "id": "felix-met",
-   "name": "Felix",
-   "tag": {
-    "concierge": "Guest · Deep Integration",
-    "raw": "both eyes covered"
-   },
-   "rect": [
-    1214,
-    326,
-    36,
-    132
-   ],
-   "stand": 1186,
-   "face": 1,
-   "look": {
-    "concierge": "A gentleman in a sheer coat of living light, every line in him glowing through it, a drink shining in his hand. He seems delighted with the evening.",
-    "raw": "A grey suit like a sack, tubes of amber fluid from his wrists up into his neck, glasses over both eyes. He's smiling at something only he can see."
-   },
-   "talk": "felix",
-   "kind": "person",
-   "ask": "Felix is at Level 4, Luna: Deep Integration. He shares everything with me, and I take very good care of him.",
-   "when": "met_felix"
+   "stand": 955,
+   "go": {
+    "scene": "bar",
+    "spawn": "door"
+   }
   }
  ],
  "beacons": [

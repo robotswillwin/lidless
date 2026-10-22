@@ -461,13 +461,13 @@ function perView(label: string, key: 'ambient' | 'exposure' | 'baked', plain: nu
 /** The scene's panel, with nothing selected: what is wrong, everything in it, its settings, its ground, and Luna. */
 function sceneSide(): void {
   const file = ed.file, luna = ed.luna;
-  side(heading(file.name || file.id, `Scene ${file.id}: ${file.size[0]}×${file.size[1]} px. Click anything on it, or in the outline, to edit it.`));
+  side(heading(named(file.name) || file.id, `Scene ${file.id}: ${file.size[0]}×${file.size[1]} px. Click anything on it, or in the outline, to edit it.`));
   const found = lintScene(file, { scenes: ed.world.scenes, others: ed.others, knots: ed.knots, start: ed.world.start, assets: ed.assets.length ? new Set(ed.assets) : undefined });
   const errors = found.filter((p) => p.level === 'error').length;
   side(section('problems', 'Problems', (body) => problems(body, found), { badge: found.length ? String(found.length) : 'none', tone: errors ? 'error' : found.length ? 'warning' : 'ok' }));
   side(section('outline', 'Outline', outline));
   const space = () => [
-    str('Name', file.name, (v) => { file.name = v; }),
+    ...viewText('Name', file.name, (v) => { file.name = v ?? ''; }),
     choice('Kind', file.kind, [['exterior', 'Exterior: outside, rain'], ['interior', 'Interior: inside']], (v) => { file.kind = v as 'exterior' | 'interior'; }, refresh),
     num('Width', file.size[0], (v) => { file.size[0] = Math.max(NW, v); syncScroll(); }, { min: NW, step: 16, after: refresh }),
     num('Walk line y', file.walk.y, (v) => { file.walk.y = v; }, { after: refresh }),

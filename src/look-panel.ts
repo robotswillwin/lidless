@@ -21,7 +21,7 @@ export interface LookPanel {
    * The scene on screen: its own settings go over the game's look, and "This scene" edits them. In one of its variants,
    * the variant's settings go over the scene's, and "This scene" edits the variant's.
    */
-  setScene(scene: { id: string; name: string; look?: unknown; variants?: Record<string, { name?: string; look?: unknown }> } | null, variant?: string): void;
+  setScene(scene: { id: string; name: string | { concierge: string; raw: string }; look?: unknown; variants?: Record<string, { name?: string; look?: unknown }> } | null, variant?: string): void;
   readonly open: boolean;
 }
 
@@ -276,7 +276,7 @@ export function createLookPanel(renderer: Renderer, project: LookSet, host: HTML
       else {
         const v = variant ? next.variants?.[variant] : undefined;
         const own = cleanSceneLook(next.look), savedLook = v ? cleanSceneLook(v.look) : own;
-        scene = { id: next.id, name: next.name, saved: savedLook, look: cloneSceneLook(savedLook), ...(v ? { variant, variantName: v.name || variant, under: loadLocalSceneLook(next.id, own) ?? own } : {}) };
+        scene = { id: next.id, name: typeof next.name === 'string' ? next.name : next.name.concierge, saved: savedLook, look: cloneSceneLook(savedLook), ...(v ? { variant, variantName: v.name || variant, under: loadLocalSceneLook(next.id, own) ?? own } : {}) };
         scene.look = loadLocalSceneLook(localId(scene), savedLook) ?? scene.look;
       }
       renderer.setLook(shown());

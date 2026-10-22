@@ -42,7 +42,7 @@ blockout, and the blockout also places hotspots and lights: `toScene` in tools/p
 in metres into scene pixels. A set drawn too big can also be shrunk with `asset reframe`, which keeps what is in it and
 paints the new edges. People in a scene are characters built at
 this scale and placed as layers, never painted into a background, not even far off or behind a window (the director,
-22 October: the restaurant's diners and waiter, painted in, are to be painted out).
+22 October: the restaurant's diners and waiter, painted in, were painted out when the bar was drawn again).
 
 **Every new piece of art is measured against Luna before it is shown.** On the street she is 124 level px, 248
 picture px, for 1.7 m: a door is 1.15 to 1.25 times her height, a seated adult (head to floor) about 0.75, a storey at
@@ -226,10 +226,9 @@ flickers:
     such as a Concierge shirt drawn in one piece from the shoulders to the hem.
 - **Characters that stand** (`touch --frame idle/N`): each frame repaints one area, such as a hand or a face, and
   everything outside it is identical in every frame. The recipe's `anims.idle` sets `fps` and `seq`. The fixer's
-  soldering loop is made this way. Felix (`art/cast/felix.json`), the Level 4 guest outside the cocktail bar, is a
-  character that stands with no loop yet: drawn in raw view first (`generate`), his Concierge's view edited from it
-  (`variant`), 254 tall for 1.78 m, so 132 level px on the street against Luna's 124. His recipe follows the sheet's
-  Deep Integration (below); the picture in the game is still the first one, with a helmet, until it is drawn again.
+  soldering loop is made this way. Felix (`art/cast/felix.json`), the Level 4 guest in the cocktail bar, is a
+  character that stands with no loop yet, drawn as the sheet's Deep Integration (below): raw view first
+  (`generate`), his Concierge's view edited from it (`variant`), 254 tall for about 1.75 m.
 
 ### People by connection level
 
@@ -473,11 +472,26 @@ The radio repair (`art/radio/shop.json`) is a cutaway like Luna's flat, of the s
 shows: the shop on the ground floor, upstairs the bar the street sees (a bare room under one bulb in raw view), a cellar
 below, the street outside on the left. A room that fills the frame would make Luna too big to stay sharp, or the shop
 too big to be cramped. Its Concierge view was drawn first, from the flat street and Luna's flat, and raw view from it
-as for the backstreet. Its hotspots keep their texts and moved to the new picture, and Luna is drawn at 0.47, as tall
-against its doors as in her flat. The fixer (`art/cast/fixer.json`) is drawn in Luna's flat style, at her resolution,
-facing left to the shop's door, so the visor over his left eye, the only one he has covered, is the near one. His idle
-loop is three frames that differ only around the soldering iron (`touch --frame`). The earlier shop and fixer are in
-git's history.
+as for the backstreet. Its hotspots keep their texts and moved to the new picture. On 22 October the director found it
+too detailed and its people too small: both views were redressed flat (far fewer small things), and people are drawn
+at 0.6 there (its door 0.96 of Luna's height). The fixer (`art/cast/fixer.json`) is drawn in Luna's flat style, at her
+resolution, facing left to the shop's door; his eyepiece is over his right eye, the far one in that pose (decision 19:
+his head was redrawn with `touch` in both views and copied into his idle frames). His idle loop is three frames that
+differ only around the soldering iron (`touch --frame`). The earlier shop and fixer are in git's history. The street's
+shop window shows this room as it is now (the shelf of radios, the sofa, the map, the pegboard, the desk).
+
+**The ground is cut away beside a cutaway** (the director, 22 October): where a cutaway shows a basement, the street
+outside it is cut along the same plane, so under its pavement there are gravel, earth, a sewer, a water main and
+cables, down to the bottom of the frame, not a wet street running on below the floor. The radio repair's and the
+restroom's were painted from a guide of flat shapes below the ground floor's front edge (`touch --guide`, the slab's
+overhang kept as it was), the Concierge's view first and raw view from it.
+
+The cocktail bar (`art/bar/room.json`, scene `bar`) is a cutaway of the building the street shows: the restaurant
+upstairs, empty with its tables laid; the bar on the ground floor (its street door, a price board, a red booth, a
+counter with three stools before shelves of bottles, a drinks machine, three black lamps, a door to the back), as
+the street sees through its window; a cellar of kegs; the ground cut away on the left. It was drawn from a guide: the
+radio repair's frame, its rooms painted over with flat shapes measured against Luna (288 px for 1.7 m at 0.6),
+redressed in the Concierge's view (`redress --from`, the radio repair as the style) and raw view from that.
 
 Later, for the moving camera: the painted reflections were taken out of the wet ground (`asset ground`, below) for
 the engine's live ones, and the woman at the dining machine and the machine itself were shrunk to Luna's scale. They

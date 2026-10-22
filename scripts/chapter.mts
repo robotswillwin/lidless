@@ -540,7 +540,7 @@ function catalogText(game: Game): string {
     '',
   ];
   for (const [id, s] of game.scenes) {
-    out.push(`### ${id}: ${s.name}`, '', `${s.kind}${s.private ? ', a privacy zone' : ''}. Arrivals: ${s.spawns.map((x) => `\`${x}\``).join(', ')}.`, '');
+    out.push(`### ${id}: ${typeof s.name === 'object' && s.name ? `${s.name.concierge} (raw view: ${s.name.raw})` : s.name}`, '', `${s.kind}${s.private ? ', a privacy zone' : ''}. Arrivals: ${s.spawns.map((x) => `\`${x}\``).join(', ')}.`, '');
     out.push('| Spot | Name | Story | Notes |', '| --- | --- | --- | --- |');
     for (const h of s.spots) {
       const notes = [h.item ? `item \`${String(h.item)}\`` : '', h.go ? `to \`${String((h.go as Obj).scene)}/${String((h.go as Obj).spawn)}\`` : '', h.only ? `${String(h.only)} view only` : '', h.when ? `when \`${String(h.when)}\`` : '', h.wear ? `wear \`${String(h.wear)}\`` : '', h.follows ? 'moves' : ''].filter(Boolean).join(', ');

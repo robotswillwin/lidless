@@ -5,7 +5,7 @@
 // she has been takes her there, a door or a person to them, and a place she has only seen the door of to that door.
 
 import { button, el } from './dom';
-import { inView, pick, placeIn, type Hotspot } from './level';
+import { inView, pick, placeIn, type Hotspot, type ViewText } from './level';
 
 export interface MapLayout {
   /**
@@ -19,7 +19,7 @@ export interface MapLayout {
 /** What the map needs of a scene's file. */
 export interface MapScene {
   id: string;
-  name: string;
+  name: ViewText;
   kind: 'exterior' | 'interior';
   size: [number, number];
   spawns: Record<string, { x: number }>;
@@ -100,7 +100,7 @@ export function mapNow(layout: MapLayout, scenes: Record<string, MapScene>, been
   const firstSpawn = (id: string) => layout.places[id]?.spawn ?? Object.keys(scenes[id]?.spawns ?? {})[0];
   for (const id of Object.keys(layout.places)) {
     const b = been.has(id) ? boxes[id] : undefined;
-    if (b) places.push({ id, name: scenes[id].name, box: b.box, state: 'been', here: id === here.scene, street: b.street, go: { scene: id, spawn: firstSpawn(id) } });
+    if (b) places.push({ id, name: pick(scenes[id].name, raw), box: b.box, state: 'been', here: id === here.scene, street: b.street, go: { scene: id, spawn: firstSpawn(id) } });
   }
   for (const p of [...places]) {
     const pb = boxes[p.id].box;
@@ -116,7 +116,7 @@ export function mapNow(layout: MapLayout, scenes: Record<string, MapScene>, been
       if (!to || !tb) continue;
       let target = places.find((q) => q.id === to);
       if (!target) {
-        target = { id: to, name: scenes[to].name, box: tb.box, state: 'seen', here: false, street: tb.street, go: { scene: p.id, at: h.id } };
+        target = { id: to, name: pick(scenes[to].name, raw), box: tb.box, state: 'seen', here: false, street: tb.street, go: { scene: p.id, at: h.id } };
         places.push(target);
       }
       const pair = [p.id, to].sort().join('|');

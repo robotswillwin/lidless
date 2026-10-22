@@ -129,6 +129,12 @@ anonymity, and speaks as itself (`#station`, `#guardian`). Tapped, it opens into
 In a privacy zone it cannot hear her: no Talk, no Ask. Its messages (a thing's `ask`, what it notices) come as words
 under its presence. Raw view has no Concierge.
 
+## Conversations with several people
+
+Each line is said over whoever says it when they are in the scene: a hotspot whose id is the speaker's tag, or whose
+conversation (`talk`) is theirs. In the bar, Felix's offer to pay is said over Felix while she talks to the drinks
+machine. Anyone else's lines go over whoever she is talking to; narration at the top.
+
 ## The journal and the notebook
 
 What she writes down is in two places, the same shape. `public/assets/journal.json` is her journal, on her device:
@@ -181,8 +187,10 @@ where in her flat it stands, is the story's to decide; nothing in the game opens
 
 ## The map
 
-The map is the city in profile, as she walks it (`src/game/map.ts`). `world.json` lays each street along its row:
-`"map": { "places": { "street": { "at": [96, 0] } } }`, in map units, a street a tenth of its width long, so where a
+The map is the city in profile, as she walks it (`src/game/map.ts`). A place's name, on the map and her saves, is the
+scene's `name`: one for both views, or each view's (`{ "concierge": "Cocktail bar", "raw": "Bar" }`). `world.json`
+lays each street along its row: `"map": { "places": { "street": { "at": [96, 0] } } }`, in map units, a street a
+tenth of its width long, so where a
 thing is along it is where it is on the map. A room goes by itself above the door it opens from, where she arrives in
 it over that door, joined to it by a line, raised over any room already there; `at` (and `size`, 56 by 30 by default)
 puts one elsewhere. `spawn` is where she arrives when she goes there from the map. Every scene of the world's is on it

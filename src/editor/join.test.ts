@@ -41,7 +41,7 @@ describe('exits both ways', () => {
     expect(there.spawns['from-street']).toEqual({ x: 40 + IN, facing: 1 });
     expect(joinedUp(joinOf(h, here, there))).toBe(true);
     // and neither scene has a problem with exits any more
-    const ctx = { scenes: ['street', 'corridor', 'backstreet', 'radio', 'home', 'restroom'], others: { street: here, corridor: there, backstreet: read('backstreet'), radio: read('radio'), home: read('home'), restroom: read('restroom') } };
+    const ctx = { scenes: ['street', 'corridor', 'backstreet', 'radio', 'home', 'restroom', 'bar'], others: { street: here, corridor: there, backstreet: read('backstreet'), radio: read('radio'), home: read('home'), restroom: read('restroom'), bar: read('bar') } };
     for (const f of [here, there]) expect(lintScene(f, ctx).filter((p) => p.level === 'error' && /leads to|arrives at/.test(p.text)), f.id).toEqual([]);
   });
 

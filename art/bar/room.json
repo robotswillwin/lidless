@@ -1,0 +1,22 @@
+{
+  "name": "room",
+  "scene": "bar",
+  "kind": "background",
+  "interior": true,
+  "exists": "both",
+  "look": "vector",
+  "res": 2,
+  "size": "1936x1088",
+  "rawAir": "amber-brown",
+  "framing": "A wide cinematic cutaway seen straight on from the side, like a doll's house with its front wall removed, filling the whole frame. A standing adult would be about a fifth of the image height and a doorway a little taller. Lit at night by its own lamps. No text, no captions, no border.",
+  "prompt": "A cross-section of an old two-storey concrete building on a city street at night, the cocktail bar on its ground floor. Upstairs, a restaurant: a few tables laid with white cloths and candles, chairs, plants, empty. The ground floor, across the middle two thirds of the width, is a small, worn bar: on the left its street door; beside it a price board; a padded booth and a small round table; a long counter of scuffed dark wood with three bar stools in front of it; behind the counter, shelves of real bottles; a tap machine of chrome and drips at the counter's end; three hanging lamps over the counter; in the right wall, a door to the back. Below the floor, the slab and a cellar of kegs and crates. On the left, outside the building, the street at night in thick amber-brown smog, and under the pavement the ground cut away like the building: earth, a sewer pipe, a water main and cables, down to the bottom of the picture. No people.",
+  "concierge": "A cross-section of an old two-storey building on a city street at night, as the city AI shows it, like a doll's house with its front wall removed. Upstairs, an elegant restaurant in candlelight: a few tables laid with white cloths, glasses and candles, chairs, lush plants, warm hanging lamps, empty. The ground floor, across the middle two thirds of the width, is an intimate cocktail bar glowing gold: on the left its glass-panelled street door; beside it a dark price board with a few lines of glowing gold writing too small to read; a red leather booth and a small round table; a long counter of polished dark wood with a brass top and a warm strip of light along its foot, three bar stools in front of it; behind the counter, shelves of glowing bottles; a sleek drinks machine at the counter's end; three black hanging lamps over the counter; in the right wall, a door to the back. Below the floor, the slab and a cellar of kegs and crates. On the left, outside the building, a glossy wet street mirroring neon, and under the pavement the ground cut away like the building: dark earth, a sewer pipe, a water main and cables, down to the bottom of the picture. No people.",
+  "height": 540,
+  "position": [480, 540],
+  "depth": 3,
+  "material": "wood",
+  "glow": { "raw": "auto", "concierge": "auto", "machine": true },
+  "references": ["art/radio/shop/raw.png"],
+  "conciergeReferences": ["art/radio/shop/concierge.png"],
+  "palette": 0
+}

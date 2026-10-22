@@ -756,7 +756,10 @@ export class Game {
     return [((clientX - r.left) / r.width) * NW + this.cam[0], ((clientY - r.top) / r.height) * NH + this.cam[1]];
   }
 
-  /** Where a speaker's lines go: over her head, over whoever she is talking to, or (narration) at the top. */
+  /**
+   * Where a speaker's lines go: over her head; over whoever says it, when they are in the scene (a hotspot named for
+   * them, or whose conversation is theirs); else over whoever she is talking to; narration at the top.
+   */
   private speakerAt(speaker: string): [number, number] | null {
     // over a close-up every line is said at the top, clear of the picture
     if (this.hud.closeupOpen) return null;
@@ -765,8 +768,11 @@ export class Game {
       const head = this.scene.file.walk.y - this.shown.def.h * (this.scene.file.actorScale ?? 1);
       return [(this.world.heroX - this.cam[0]) * k + c.left - hud.left, (head - this.cam[1]) * k + c.top - hud.top - 6];
     }
-    if (speaker === 'narration' || !this.partner) return null;
-    const [x, y, w] = this.boxOf(this.partner);
+    if (speaker === 'narration') return null;
+    const own = this.scene.file.hotspots.find((h) => (h.id === speaker || h.talk === speaker) && inView(h, this.raw) && this.world.shown(h));
+    const who = own ?? this.partner;
+    if (!who) return null;
+    const [x, y, w] = this.boxOf(who);
     return [x + w / 2, y - 6];
   }
 
@@ -902,7 +908,7 @@ export class Game {
   private saveData(): SaveData {
     return {
       v: 2, scene: this.scene.file.id, heroX: Math.round(this.world.heroX), facing: this.world.facing, view: this.state.view, ink: this.dialogue.save(),
-      attention: this.attention, outfit: this.outfit || undefined, projection: this.projection ?? undefined, savedAt: Date.now(), where: this.scene.file.name,
+      attention: this.attention, outfit: this.outfit || undefined, projection: this.projection ?? undefined, savedAt: Date.now(), where: pick(this.scene.file.name, this.raw),
       visited: [...this.been], seen: Object.fromEntries([...this.seen].map(([k, v]) => [k, [...v]])), read: [...this.notesRead],
       arrived: this.arrived, rotations: this.rotations, visits: this.visits,
     };

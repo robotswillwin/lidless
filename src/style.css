@@ -95,16 +95,17 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 }
 .co-layer { position: absolute; left: var(--m); top: var(--m); z-index: 2; display: grid; justify-items: start; align-content: start; gap: 8px; max-height: calc(100% - 2 * var(--m)); pointer-events: none; }
 .co, .co-say { pointer-events: auto; color: var(--co-ink); background: var(--co-veil); border: 1px solid var(--co-edge); box-shadow: var(--co-glow); -webkit-backdrop-filter: blur(10px) saturate(1.25); backdrop-filter: blur(10px) saturate(1.25); }
-.co { position: relative; display: flex; flex-direction: column; min-height: 0; max-width: min(460px, 54cqw); border-radius: 26px; }
+.co { position: relative; display: flex; flex-direction: column; min-height: 0; max-width: min(560px, 62cqw); border-radius: 26px; }
 /* open, its card grows down out of its presence */
 .co[data-open] { width: min(460px, 54cqw); border-radius: 22px; animation: co-open .24s cubic-bezier(.2, .8, .3, 1) both; }
 @keyframes co-open { from { clip-path: inset(0 0 calc(100% - 54px) 0 round 22px); } to { clip-path: inset(0 0 0 0 round 22px); } }
 .co-head { display: flex; align-items: center; gap: 10px; width: 100%; padding: 6px 18px 6px 7px; border: 0; background: none; color: inherit; text-align: left; }
 .co[data-open] .co-head { padding-right: 52px; }
-.co-head .words { display: grid; gap: 3px; min-width: 0; }
+.co-head .words { flex: 1 1 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 3px; min-width: 0; }
+.co-head :is(.greet, .status) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .co-head .greet { font: italic 500 clamp(14px, 1.35cqw, 19px)/1.15 var(--serif); white-space: nowrap; text-shadow: 0 0 14px rgba(143, 240, 234, .4); }
 .co-head .status { font: 400 clamp(10px, .82cqw, 12px)/1.25 var(--ui); color: var(--co-soft); }
-.co-head .mini { display: flex; gap: 12px; margin-left: 4px; padding-left: 12px; border-left: 1px solid rgba(143, 240, 234, .28); font: 500 clamp(12px, 1.05cqw, 15px)/1 var(--ui); font-variant-numeric: tabular-nums; color: var(--co); white-space: nowrap; }
+.co-head .mini { flex: none; display: flex; gap: 12px; margin-left: 4px; padding-left: 12px; border-left: 1px solid rgba(143, 240, 234, .28); font: 500 clamp(12px, 1.05cqw, 15px)/1 var(--ui); font-variant-numeric: tabular-nums; color: var(--co); white-space: nowrap; }
 .co-head .mini:empty, .co[data-open] .co-head .mini { display: none; }
 .co-head .mini span, .co-readouts span { display: inline-flex; align-items: center; gap: 5px; }
 .co-head .mini svg, .co-readouts svg { width: 1.1em; height: 1.1em; flex: none; color: var(--co); }

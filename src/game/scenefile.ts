@@ -7,7 +7,7 @@ import { fetchSprite, imageFromBlob, loadBlob, makeSprite, spriteDefaults, type 
 import { presets, type PlacedLight } from '../engine/presets';
 import { conditionProblem } from './conditions';
 import { textureFromImage, type GL } from '../engine/gl';
-import type { Hotspot, LevelDef } from './level';
+import type { Hotspot, LevelDef, ViewText } from './level';
 import type { MapLayout } from './map';
 import type { Noticed } from './privacy';
 import type { Rotation } from './rotate';
@@ -51,7 +51,8 @@ export interface Spawn {
 
 export interface SceneFile {
   id: string;
-  name: string;
+  /** On the map and her saves: the same in both views, or as each names it ({ concierge: Cocktail bar, raw: Bar }). */
+  name: ViewText;
   /** Exterior: outside air, the sky's cold ambient, rain in raw view. Interior: inside. Areas of the other kind go in zones. */
   kind: 'exterior' | 'interior';
   /** In level pixels; wider than 960 scrolls. */
@@ -200,6 +201,7 @@ export function checkSceneFile(data: unknown, id?: string): string[] {
   const f = data as Record<string, unknown>;
   if (!isStr(f.id)) out.push('id is missing');
   else if (id !== undefined && f.id !== id) out.push(`its id is ${f.id}, not ${id}`);
+  if (f.name !== undefined && !viewText(f.name)) out.push('name must be text, or { concierge, raw }');
   if (f.kind !== 'exterior' && f.kind !== 'interior') out.push('kind must be "exterior" or "interior"');
   if (!nums(f.size, 2)) out.push('size must be [width, height]');
   const walk = f.walk as Record<string, unknown> | undefined;

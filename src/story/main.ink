@@ -7,6 +7,7 @@
 INCLUDE street.ink
 INCLUDE home.ink
 INCLUDE concierge.ink
+INCLUDE bar.ink
 
 // set by the game when a conversation starts and at every choice: true while Luna sees raw view
 VAR raw_view = false
@@ -39,7 +40,7 @@ VAR taken = ()
 VAR parcel_delivered = false
 // her radio, mended: what she heard under the static
 VAR radio_heard = false
-// Felix, outside the cocktail bar (street.ink): met, and what he told her of the levels
+// Felix, at the cocktail bar (bar.ink): met, and what he told her of the levels
 VAR met_felix = false
 VAR knows_levels = false
 // what she found on the old machine, Relay 7 (public/assets/terminals/relay7.json, `# terminal: relay7`): placeholders,

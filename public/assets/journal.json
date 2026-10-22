@@ -49,7 +49,7 @@
      "name": "Felix",
      "when": "met_felix",
      "lines": [
-      "Outside the cocktail bar. Glasses over both eyes, tubes of amber from his wrists up into his neck.",
+      "At the cocktail bar on Main Street. Glasses over both eyes, tubes of amber from his wrists up into his neck.",
       {
        "text": "Level 4, Deep Integration: mostly mediated. He says it's restful. He wants five.",
        "when": "knows_levels"

@@ -380,23 +380,28 @@ const checks = {
   },
 
   /**
-   * Felix, outside the cocktail bar: a man in light, and once they have met, Felix; he tells her the levels, and her
-   * journal keeps them.
+   * The cocktail bar: in from the street through its door; Felix inside, a man in light and once they have met, Felix,
+   * who tells her the levels; the price board, and her shock at it; ordering, and Felix paying, his line over his head.
    */
-  async felix() {
+  async bar() {
     const page = await browser.newPage();
     page.on('pageerror', (e) => errors.push(String(e)));
     await page.setViewport({ width: 1920, height: 1080 });
     await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
-    await page.evaluateOnNewDocument(() => { if (sessionStorage.getItem('seeded')) return; sessionStorage.setItem('seeded', '1'); localStorage.setItem('lidless.save.v1', JSON.stringify({ v: 2, scene: 'street', heroX: 1150, facing: 1, view: 1, ink: null })); });
+    await page.evaluateOnNewDocument(() => { if (sessionStorage.getItem('seeded')) return; sessionStorage.setItem('seeded', '1'); localStorage.setItem('lidless.save.v1', JSON.stringify({ v: 2, scene: 'street', heroX: 900, facing: 1, view: 1, ink: null })); });
     await page.goto(`${url}?notitle&fast`);
     await ready(page);
+    await verb(page, 'hands');
+    const door = await findThing(page, 'Bar entrance', 380);
+    if (door) { await page.mouse.down(); await wait(60); await page.mouse.up(); }
+    await wait(4500);
+    check('in through the bar door', (await save(page))?.scene === 'bar', (await save(page))?.scene);
     await verb(page, 'heart');
-    const at = await findThing(page, 'Man in light', 400);
+    const at = await findThing(page, 'Man in light', 330);
     if (at) { await page.mouse.down(); await wait(60); await page.mouse.up(); }
     await page.waitForFunction(() => !!document.querySelector('.talk-line:not([hidden])'), { timeout: 12000 }).catch(() => {});
     const first = await talkThrough(page);
-    check('the man in light: one eye, level one, he says', !!at && first.some((l) => /Level one/.test(l)), first.join(' / '));
+    check('inside, the man in light: one eye, level one, he says', !!at && first.some((l) => /Level one/.test(l)), first.join(' / '));
     await choose(page, 'What are the levels?');
     const levels = await talkThrough(page);
     check('he tells her the levels, nought to five', ['Unregistered', 'Basic Care', 'Enhanced Care', 'Integrated Care', 'Deep Integration', 'Full Integration'].every((w) => levels.some((l) => l.toLowerCase().includes(w.toLowerCase()))), levels.map((l) => l.slice(0, 18)).join(' / '));
@@ -405,15 +410,28 @@ const checks = {
     await choose(page, 'Enjoy your evening');
     await talkThrough(page);
     check('met, and the levels known', /"met_felix":\s*true/.test(await ink(page)) && /"knows_levels":\s*true/.test(await ink(page)));
+    // the price board: real prices, and her allowance
     await verb(page, 'eyes');
-    const named = await findThing(page, 'Felix', 400);
-    check('met, he is Felix', !!named);
-    await page.keyboard.press('Escape');
-    await panel(page, 'journal');
-    await page.evaluate(() => [...document.querySelectorAll('.hud-panel.journal .tab')].find((t) => /People/.test(t.textContent ?? ''))?.click());
-    await wait(300);
-    const people = await page.$eval('.hud-panel.journal', (p) => p.textContent ?? '').catch(() => '');
-    check('her journal: Felix, Level 4', /Felix/.test(people) && /Level 4/.test(people), people.slice(0, 120));
+    await tap(page, 335, 258);
+    await page.waitForFunction(() => !!document.querySelector('.talk-line:not([hidden])'), { timeout: 12000 }).catch(() => {});
+    const prices = await talkThrough(page);
+    check('the price board: a glass at most of her week', prices.some((l) => /Two hundred and eighty/.test(l) && /312/.test(l)), prices.join(' / ').slice(0, 160));
+    // ordering from the machine: it calls her guest; Felix pays, his line over his own head
+    await verb(page, 'heart');
+    await tap(page, 769, 276);
+    await page.waitForFunction(() => !!document.querySelector('.talk-line:not([hidden])'), { timeout: 12000 }).catch(() => {});
+    const order = await talkThrough(page);
+    check('the drinks machine calls her "guest"', order.some((l) => /guest/.test(l)) && !order.some((l) => /Luna/.test(l)), order.join(' / '));
+    await choose(page, 'How much is a beer');
+    await talkThrough(page);
+    await choose(page, 'Felix?');
+    await page.waitForFunction(() => /Put it on mine/.test(document.querySelector('.talk-line:not([hidden])')?.textContent ?? ''), { timeout: 12000 }).catch(() => {});
+    const over = await page.evaluate(() => {
+      const line = document.querySelector('.talk-line:not([hidden])')?.getBoundingClientRect(), c = document.querySelector('canvas').getBoundingClientRect();
+      return line ? { line: line.left + line.width / 2, felix: c.left + (705 / 960) * c.width } : null;
+    });
+    check('Felix pays, his line over his own head', !!over && Math.abs(over.line - over.felix) < 120, JSON.stringify(over));
+    await talkThrough(page);
     await page.close();
   },
 
