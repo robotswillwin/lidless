@@ -111,8 +111,13 @@
    "own": 1
   },
   {
-   "x": 1243,
-   "y": 305,
+   "x": 1252,
+   "y": 287,
+   "preset": "street-lamp"
+  },
+  {
+   "x": 906,
+   "y": 287,
    "preset": "street-lamp"
   },
   {
@@ -121,8 +126,8 @@
    "preset": "street-lamp"
   },
   {
-   "x": 1100,
-   "y": 380,
+   "x": 1126,
+   "y": 372,
    "preset": "shop-window",
    "ar": 1
   },
@@ -204,8 +209,8 @@
    "haze": 0.1
   },
   {
-   "x": 1100,
-   "y": 380,
+   "x": 1126,
+   "y": 372,
    "preset": "shop-window",
    "raw": 1,
    "c": [
@@ -240,8 +245,8 @@
    "i": 0.7
   },
   {
-   "x": 1100,
-   "y": 140,
+   "x": 1077,
+   "y": 95,
    "z": 20,
    "r": 160,
    "c": [
@@ -496,12 +501,12 @@
     "raw": "Bar"
    },
    "rect": [
-    985,
-    300,
-    230,
-    150
+    918,
+    296,
+    330,
+    146
    ],
-   "stand": 1100,
+   "stand": 1080,
    "look": {
     "concierge": "Low light, brass and glass, and a drink that remembers what you like.",
     "raw": "A real bar, and open: real bottles, a few stools, real prices. Somebody is always drinking."
@@ -519,10 +524,10 @@
     "raw": "Restaurant"
    },
    "rect": [
-    985,
-    6,
-    224,
-    172
+    915,
+    14,
+    325,
+    155
    ],
    "tag": {
     "concierge": "Fine dining · by reservation",
@@ -806,10 +811,10 @@
     125
    ],
    [
-    985,
-    290,
-    180,
-    150
+    1008,
+    302,
+    237,
+    134
    ],
    [
     1830,
