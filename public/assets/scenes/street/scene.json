@@ -846,8 +846,8 @@
    "after": "street/vista-street",
    "x0": 1540,
    "x1": 1770,
-   "y": 348,
-   "speed": 16,
+   "y": 334,
+   "speed": 34,
    "wait": [
     9,
     9

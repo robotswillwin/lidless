@@ -620,13 +620,17 @@ the game:
   just under the viaduct (`bots/drone-near`, the same drone built at 24 px);
 - the guardian walks its own beat past the info screen, near the front of the pavement (a mover with `patrol`): it
   walks, stops halfway, rests at each end, turns, its visor a little brighter while it stands. Its hotspot `follows`
-  it; talked to, it stops and turns to her. Its walk is cut from its standing frame by `tools/pipeline/walker.mjs`
-  (the recipe's `walker`: polygons for the body, the near arm, the thigh, shin and foot; the joints; the step): the far
-  leg a darker copy of the near one, the legs moved by two-bone IK so each foot stands planted while the body passes
-  over it, for exactly the stride the game moves it, then swings forward; the body a little lower as it walks, rising
-  and falling with each step; twelve frames, free. Drawn facing left, it has frames of its own each way (`idleLeft`,
-  `walkLeft` as drawn; `idle`, `walk` mirrored with its C lettering put back the right way round), so it walks visor
-  first both ways;
+  it; talked to, it stops and turns to her. It walks at a steady patrol pace (34 px a second, about half a metre), its
+  feet on the pavement's line, the reflection line, where the bollards stand: below it the engine draws its own floor
+  over the set, and its feet, 14 px further down, were painted over (`src/game/floor.test.ts` keeps any prop or mover
+  from standing in that floor). Its walk is cut from its standing frame by `tools/pipeline/walker.mjs` (the recipe's
+  `walker`: polygons for the body, the near arm, the thigh, shin and foot; the joints; the step): the far leg a darker
+  copy of the near one, the legs moved by two-bone IK so each foot stands planted while the body passes over it, for
+  exactly the stride the game moves it; each foot lands toes up on its heel, stands flat and peels off its toe, then
+  swings forward; the near arm swings against the near leg; the body a little lower as it walks, rising and falling
+  with each step; twenty frames, free. Each cut part keeps only its largest piece, so flecks of its neighbours stay
+  behind. Drawn facing left, it has frames of its own each way (`idleLeft`, `walkLeft` as drawn; `idle`, `walk`
+  mirrored with its C lettering put back the right way round), so it walks visor first both ways;
 - the maintenance bot welds the backstreet's wall panel, its tool on the panel: frames drawn by
   `tools/pipeline/weld.mjs` (the arc igniting, flashing, flickering, out; sparks spraying back and falling, cooling to
   embers), in bursts, with a light at the tip whose `pulse` follows the frames, and a stronger glow (`glow.strength`).

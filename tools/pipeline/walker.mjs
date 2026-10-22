@@ -12,8 +12,10 @@
 // The recipe's "walker" (in the standing frame's pixels): faces (-1 drawn facing left), frames, step (how far a foot
 // travels back while it stands: half the stride), lift, dip and bob (the body lower while it walks, and its rise and
 // fall), stance (where a foot stands from its hip, mid-step), hip, knee and ankle (the near leg's joints), far (the far
-// leg's offset) and farShade, parts (polygons: thigh, shin, foot, nearArm, hipJoint), drop (polygons cleared from the
-// body: the far leg as drawn) and letters (boxes of lettering). --debug draws the cuts over the standing frame.
+// leg's offset) and farShade, toe and heel (the ends of the near foot's sole) and roll (how far the foot turns, toes up
+// as it lands and heel up as it leaves, in degrees), shoulder and armSwing (the near arm's swing, in degrees), parts
+// (polygons: thigh, shin, foot, nearArm, hipJoint), drop (polygons cleared from the body: the far leg as drawn) and
+// letters (boxes of lettering). --debug draws the cuts over the standing frame.
 
 import { copyFile, mkdir, readdir, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
@@ -36,6 +38,29 @@ function cut(img, mask) {
   const d = new Uint8ClampedArray(img.d.length);
   for (let i = 0; i < mask.length; i++) if (mask[i]) d.set(img.d.subarray(i * 4, i * 4 + 4), i * 4);
   return { w: img.w, h: img.h, d };
+}
+
+/** A part kept to its largest piece: the flecks of its neighbours a polygon's edge caught are dropped. */
+function whole(part) {
+  const n = part.w * part.h, seen = new Int32Array(n).fill(-1), sizes = [];
+  for (let s0 = 0; s0 < n; s0++) {
+    if (part.d[s0 * 4 + 3] < 24 || seen[s0] >= 0) continue;
+    const id = sizes.length, stack = [s0];
+    seen[s0] = id;
+    let count = 0;
+    while (stack.length) {
+      const c = stack.pop(), x = c % part.w, y = (c - x) / part.w;
+      count++;
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const xx = x + dx, yy = y + dy, j = yy * part.w + xx;
+        if (xx >= 0 && yy >= 0 && xx < part.w && yy < part.h && seen[j] < 0 && part.d[j * 4 + 3] >= 24) { seen[j] = id; stack.push(j); }
+      }
+    }
+    sizes.push(count);
+  }
+  const big = sizes.indexOf(Math.max(...sizes));
+  for (let i = 0; i < n; i++) if (seen[i] !== big) part.d.fill(0, i * 4, i * 4 + 4);
+  return part;
 }
 
 function maskOf(w, h, polys) {
@@ -100,6 +125,7 @@ function knee(p, a, l1, l2, forward) {
 
 const mirrorX = (w) => (p) => [w - p[0], p[1]];
 const angleOf = (a, b) => Math.atan2(b[1] - a[1], b[0] - a[0]);
+const turned = ([x, y], a) => [x * Math.cos(a) - y * Math.sin(a), x * Math.sin(a) + y * Math.cos(a)];
 const lum = (d, i) => 0.3 * d[i] + 0.59 * d[i + 1] + 0.11 * d[i + 2];
 
 /**
@@ -202,7 +228,7 @@ for (const view of ['concierge', 'raw']) {
     const img = flip ? mirrored(rest, W.letters ?? []) : rest;
     const hip = m(W.hip), kn = m(W.knee), an = m(W.ankle), far = flip ? [-W.far[0], W.far[1]] : W.far;
     const P = W.parts, mask = (polys) => maskOf(img.w, img.h, polys.map(mp));
-    const thigh = cut(img, mask([P.thigh])), shin = cut(img, mask([P.shin])), foot = cut(img, mask([P.foot]));
+    const thigh = whole(cut(img, mask([P.thigh]))), shin = whole(cut(img, mask([P.shin]))), foot = whole(cut(img, mask([P.foot])));
     const arm = cut(img, mask([P.nearArm])), joint = cut(img, mask([P.hipJoint]));
     const gone = mask([P.thigh, P.shin, P.foot, P.nearArm, ...(W.drop ?? [])]), body = cut(img, gone.map((v) => 1 - v));
     if (args.includes('--debug') && !flip) {
@@ -213,16 +239,32 @@ for (const view of ['concierge', 'raw']) {
       await writePNG(join(r.dir, `walker-${view}-check.png`), dbg);
     }
     const out = join(anims, `walk${side}`);
+    // a foot standing, a stance phase u (0 to 1) in: where its ankle is and how far the foot is turned (clockwise). It
+    // lands toes up on its heel and lowers them, stands flat, then peels off its toe, the heel rising: each turn about
+    // the point of it that stays on the ground, so nothing slides
+    const toe = m(W.toe ?? W.ankle), heel = m(W.heel ?? W.ankle), [toeUp, heelUp] = (W.roll ?? [0, 0]).map((d) => (d * Math.PI) / 180);
+    const standing = (flat, u) => {
+      const r = u < 0.15 ? -toeUp * (1 - u / 0.15) : u > 0.7 ? heelUp * ((u - 0.7) / 0.3) ** 2 : 0, on = u < 0.15 ? heel : toe;
+      if (!r) return { ankle: flat, turn: 0 };
+      const turn = F * r, pivot = [flat[0] + on[0] - an[0], flat[1] + on[1] - an[1]], v = turned([flat[0] - pivot[0], flat[1] - pivot[1]], turn);
+      return { ankle: [pivot[0] + v[0], pivot[1] + v[1]], turn };
+    };
+    const shoulder = m(W.shoulder ?? W.hip), swing = ((W.armSwing ?? 0) * Math.PI) / 180;
     for (let k = 0; k < N; k++) {
       const t = k / N, lower = dip + bob * Math.cos(4 * Math.PI * t), frame = { w: img.w, h: img.h, d: new Uint8ClampedArray(img.d.length) };
       const leg = (phase, offset, shade) => {
         const φ = (t + phase) % 1, home = [hip[0] + offset[0], hip[1] + offset[1]], p = [home[0], home[1] + lower];
-        // the foot: standing, carried back under the body from in front of it to behind; then lifted and swung
-        // forward again, eased in and out. Mid-step it stands `stance` behind the hip
-        const along = φ < 0.5 ? step / 2 - (step * φ) / 0.5 : -step / 2 + step * ease((φ - 0.5) / 0.5);
-        const a = [home[0] - F * stance + F * along, an[1] + offset[1] - (φ < 0.5 ? 0 : lift * Math.sin(Math.PI * ((φ - 0.5) / 0.5)))];
-        const k2 = knee(p, a, l1, l2, F);
-        draw(frame, foot, an, a, 0, shade);
+        // the foot: standing, carried back under the body from in front of it to behind (mid-step `stance` behind the
+        // hip); then in the air, from where it peeled off to where it lands, lifted on the way and eased in and out
+        const flatAt = (along) => [home[0] - F * stance + F * along, an[1] + offset[1]];
+        let pose;
+        if (φ < 0.5) pose = standing(flatAt(step / 2 - step * (φ / 0.5)), φ / 0.5);
+        else {
+          const v = (φ - 0.5) / 0.5, e = ease(v), off = standing(flatAt(-step / 2), 0.9999), on = standing(flatAt(step / 2), 0);
+          pose = { ankle: [off.ankle[0] + (on.ankle[0] - off.ankle[0]) * e, off.ankle[1] + (on.ankle[1] - off.ankle[1]) * e - lift * Math.sin(Math.PI * v)], turn: off.turn + (on.turn - off.turn) * e };
+        }
+        const a = pose.ankle, k2 = knee(p, a, l1, l2, F);
+        draw(frame, foot, an, a, pose.turn, shade);
         draw(frame, shin, kn, k2, angleOf(k2, a) - angleOf(kn, an), shade);
         draw(frame, thigh, hip, p, angleOf(p, k2) - angleOf(hip, kn), shade);
       };
@@ -230,7 +272,8 @@ for (const view of ['concierge', 'raw']) {
       draw(frame, body, [0, 0], [0, lower]);
       leg(0, [0, 0], 1);
       draw(frame, joint, [0, 0], [0, lower]);
-      draw(frame, arm, [0, 0], [0, lower]);
+      // the near arm swings against the near leg: back as that foot lands in front
+      draw(frame, arm, shoulder, [shoulder[0], shoulder[1] + lower], F * swing * Math.cos(2 * Math.PI * t));
       await writePNG(join(out, `${view}-${String(k).padStart(2, '0')}.png`), frame);
     }
     // standing, facing the other way: the drawn standing frames mirrored
