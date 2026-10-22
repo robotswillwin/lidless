@@ -577,11 +577,12 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 
 /* the title screen: the name over the first scene, drawn and moving behind it, and the ways in */
 .stage[data-title] .hud { visibility: hidden; }
-.title-screen { position: absolute; inset: 0; z-index: 5; display: grid; place-content: center; justify-items: center; gap: 8px; padding: 16px; overflow: auto;
+.title-screen { position: absolute; inset: 0; z-index: 5; display: grid; place-content: safe center; justify-items: center; gap: 8px; padding: 16px; overflow: auto;
   background: radial-gradient(ellipse at 50% 45%, rgba(6, 7, 12, .3), rgba(4, 5, 9, .9)); color: #f5f3ef; animation: hud-fade .6s ease-out both; }
 .title-screen.out { opacity: 0; transition: opacity .35s ease-in; }
-.title-screen .name { margin: 0; font: 300 clamp(38px, 7vw, 92px)/1 var(--ui); letter-spacing: .5em; text-indent: .5em; text-transform: uppercase; }
-.title-screen .line { margin: 0 0 22px; font: 400 clamp(11px, 1vw, 13px)/1 var(--ui); letter-spacing: .32em; text-indent: .32em; text-transform: uppercase; color: rgba(245, 243, 239, .6); }
+/* the logo and its line have names of their own: the settings and help rows inside the title screen have a .name too */
+.title-screen .logo { margin: 0; font: 300 clamp(38px, 7vw, 92px)/1 var(--ui); letter-spacing: .5em; text-indent: .5em; text-transform: uppercase; }
+.title-screen .tagline { margin: 0 0 22px; font: 400 clamp(11px, 1vw, 13px)/1 var(--ui); letter-spacing: .32em; text-indent: .32em; text-transform: uppercase; color: rgba(245, 243, 239, .6); }
 .title-screen .panel { display: grid; gap: 16px; justify-items: center; width: min(560px, calc(100vw - 32px)); padding: 16px 18px; border-radius: 18px; }
 .title-screen .panel:has(.settings, .help) { background: rgba(15, 16, 21, .78); border: 1px solid rgba(255, 255, 255, .14); justify-items: stretch; }
 .title-screen .menu { display: grid; gap: 8px; width: min(300px, 80vw); }
@@ -592,6 +593,19 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .title-screen .back { justify-self: center; }
 .title-screen .ask { margin: 0; max-width: 360px; text-align: center; font: 400 15px/1.45 var(--ui); color: rgba(245, 243, 239, .85); }
 .title-screen button:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+/* a phone held sideways: a smaller logo and tighter buttons; settings or help take the logo's place, scrolling within
+   their panel, Back always in reach at its foot */
+@media (max-height: 560px) {
+  .title-screen { gap: 4px; padding: 10px 16px; }
+  .title-screen .logo { font-size: clamp(26px, 9vh, 52px); }
+  .title-screen .tagline { margin-bottom: 12px; }
+  .title-screen .menu { gap: 6px; }
+  .title-screen .menu button { min-height: 38px; }
+  .title-screen:has(.panel :is(.settings, .help)) :is(.logo, .tagline) { display: none; }
+  .title-screen .panel:has(.settings, .help) { max-height: calc(100dvh - 20px); overflow: auto; padding-bottom: 0; gap: 10px; }
+  .title-screen .panel:has(.settings, .help) .back { position: sticky; bottom: 0; margin-bottom: 10px; background: rgba(15, 16, 21, .94); }
+  .settings { gap: 8px; }
+}
 /* an old machine's screen (game/terminal.ts): green phosphor on dark glass, scanlines over it, a little flicker */
 .stage[data-terminal] .hud { visibility: hidden; }
 .terminal { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));

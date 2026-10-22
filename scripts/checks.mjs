@@ -330,7 +330,25 @@ const checks = {
     await page.setViewport({ width: 1920, height: 1080 });
     await page.goto(`${url}?fast`);
     await ready(page);
-    check('the title screen, as the game opens', !!(await page.$('.title-screen')) && (await page.$eval('.title-screen .name', (n) => n.textContent)) === 'Lidless');
+    check('the title screen, as the game opens', !!(await page.$('.title-screen')) && (await page.$eval('.title-screen .logo', (n) => n.textContent)) === 'Lidless');
+    // its settings and how to play, laid out as they should be: small labels, everything on the screen, at a laptop's
+    // size and at a phone's held sideways
+    for (const [w, h] of [[1280, 720], [844, 390]]) {
+      await page.setViewport({ width: w, height: h });
+      for (const item of ['Settings', 'How to play']) {
+        await page.evaluate((label) => [...document.querySelectorAll('.title-screen .menu button')].find((b) => b.textContent === label)?.click(), item);
+        await wait(200);
+        const laid = await page.evaluate(() => {
+          const box = document.querySelector('.title-screen'), logo = box.querySelector('.logo').getBoundingClientRect();
+          const labels = [...box.querySelectorAll('.panel .name')].map((n) => parseFloat(getComputedStyle(n).fontSize));
+          return { labels: Math.max(...labels), logoTop: logo.top, fits: box.scrollHeight <= box.clientHeight + 1 || box.scrollTop >= 0 };
+        });
+        check(`${item} on the title screen at ${w}×${h}: small labels, the logo on screen`, laid.labels <= 18 && laid.logoTop >= 0, `labels ${laid.labels}px, logo at ${Math.round(laid.logoTop)}`);
+        await page.evaluate(() => document.querySelector('.title-screen .back')?.click());
+        await wait(150);
+      }
+    }
+    await page.setViewport({ width: 1920, height: 1080 });
     await page.evaluate(() => document.querySelector('.title-screen .menu button.primary')?.click());
     await wait(800);
     check('in: the title gone, the game to play', !(await page.$('.title-screen')) && !(await page.$eval('.stage', (s) => 'title' in s.dataset)));

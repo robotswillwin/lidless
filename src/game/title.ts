@@ -45,8 +45,8 @@ export function showTitle(stage: HTMLElement, hooks: TitleHooks): () => void {
   const close = () => { box.classList.add('out'); delete stage.dataset.title; window.setTimeout(() => box.remove(), 400); };
   const view = (draw: (panel: HTMLElement) => void) => {
     box.replaceChildren();
-    el('h1', 'name', box, 'Lidless');
-    el('p', 'line', box, 'Year 64 of Care');
+    el('h1', 'logo', box, 'Lidless');
+    el('p', 'tagline', box, 'Year 64 of Care');
     const panel = el('div', 'panel', box);
     draw(panel);
   };
