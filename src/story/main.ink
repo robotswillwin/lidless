@@ -11,6 +11,7 @@ INCLUDE home.ink
 VAR raw_view = false
 // read by the game: true once the fixer has switched on raw view in her eyepiece, which unlocks the view switch
 VAR has_raw = false
+// favours she owes the fixer, for raw view among them: he names each when he needs it
 VAR favours_owed = 0
 // read by the game: what the city is like now, a variant the scenes have ("rain", "fog", "outage"); "" as they are
 VAR conditions = ""
