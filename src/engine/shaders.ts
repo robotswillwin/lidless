@@ -489,18 +489,30 @@ void main() {
     vec2 qs = vec2(p.x + rip + tilt.x, max(0.5, GY - (p.y - GY) * uRefl.y + tilt.y)), q = qs;
     float F = -1.0;
     if (uSmudge < 0.5) for (int k = 1; k <= 32; k++) { vec4 ga = T(tG3, vec2(p.x, p.y - float(k) * 3.0)); if (isActor(ga.a) > 0.5) { F = ga.g * uRes.y; break; } }
+    // (whether a pixel mirrors her is decided where the ripple does not move it, so her reflection's edges do not comb
+    // into stripes, row by row; the ripple moves only what is shown)
     bool mine = false;
-    if (F > 0.0 && p.y > F) { vec2 qa = vec2(p.x + rip, 2.0 * F - p.y); if (isActor(T(tG3, qa).a) > 0.5) { q = qa; mine = true; } }
+    if (F > 0.0 && p.y > F) { vec2 qa = vec2(p.x + rip, 2.0 * F - p.y); if (isActor(T(tG3, vec2(p.x, qa.y)).a) > 0.5) { q = qa; mine = true; } }
     float keep = 1.0;
     // the set's mirror lands on a character standing elsewhere (or on her own legs, seen through a gap in her reflection,
     // as when she runs): what is behind her is not in the picture. The set's own reflection, with the people left out of
     // it, has it, filled in from around her (below); without that, the set beside her stands in
-    bool behind = !mine && uSmudge < 0.5 && isActor(T(tG3, qs).a) > 0.5;
-    if (behind && uReflBlur < 0.5) {
-      keep = 0.0;
-      for (int j = 1; j <= 4; j++) for (int s = -1; s <= 1; s += 2) { vec2 b = qs + vec2(float(s * j) * 14.0, 0.0); if (keep < 0.5 && isActor(T(tG3, b).a) < 0.5) { q = b; keep = 1.0; } }
-    }
+    bool behind = !mine && uSmudge < 0.5 && isActor(T(tG3, vec2(qs.x - rip, qs.y)).a) > 0.5;
     vec3 r = (T(tA, q).rgb * 2.0 + T(tA, q + vec2(0.0, 2.0)).rgb + T(tA, q - vec2(0.0, 2.0)).rgb + (T(tA, q + vec2(0.0, 5.0)).rgb + T(tA, q - vec2(0.0, 5.0)).rgb) * 0.6 + T(tA, q - vec2(0.0, 9.0)).rgb * 0.4) / 5.6;
+    if (behind && uReflBlur < 0.5) {
+      // what the set has behind her at that height is the set on either side of her, carried smoothly across: so the
+      // street's reflection runs on through the gaps in hers (between her legs as she runs), with no seam or smear
+      float dl = -1.0, dr = -1.0;
+      for (int j = 1; j <= 32; j++) {
+        if (dl < 0.0 && isActor(T(tG3, qs - vec2(float(j) * 4.0, 0.0)).a) < 0.5) dl = float(j) * 4.0;
+        if (dr < 0.0 && isActor(T(tG3, qs + vec2(float(j) * 4.0, 0.0)).a) < 0.5) dr = float(j) * 4.0;
+      }
+      if (dl < 0.0 && dr < 0.0) keep = 0.0;
+      else {
+        vec3 cl = T(tA, qs - vec2(max(dl, 0.0), 0.0)).rgb, cr = T(tA, qs + vec2(max(dr, 0.0), 0.0)).rgb;
+        r = dl < 0.0 ? cr : dr < 0.0 ? cl : mix(cl, cr, dl / (dl + dr));
+      }
+    }
     vec3 rs = r;  // sharp, as standing water mirrors
     // a character's reflection softens as the set's does: averaged over her own pixels around the mirrored point, and
     // fading at her edges by how much of her is there
@@ -521,10 +533,25 @@ void main() {
       vec4 b = T(tRefl, qq);
       // a glossy floor mirrors sharply where things touch it, softer the further they are
       if (uReflFade > 0.0) b = mix(T(tReflNear, qq), b, smoothstep(0.0, uReflFade, p.y - GY));
-      // where a person stood, the set's reflection is a hole only partly filled by its blur: the nearest of it beside
-      for (int j = 1; j <= 8; j++) {
-        if (b.a >= 0.3) break;
-        for (int s = -1; s <= 1; s += 2) { vec4 e = T(tRefl, qq + vec2(float(s * j) * 6.0, 0.0)); if (e.a > b.a) b = e; }
+      // where a person stood, the set's reflection is a hole only partly filled by its blur: what is on either side of
+      // it, carried smoothly across (the nearest block of it beside, copied in, showed as a smear between her feet)
+      // (three rows of it, a few pixels apart, so the rows' different widths of her do not band it)
+      if (b.a < 0.5) {
+        vec4 fill = vec4(0.0);
+        for (int row = -1; row <= 1; row++) {
+          // its edges found where the water's ripple does not move them, so the rows do not fan out in stripes
+          vec2 qr = qq + vec2(0.0, float(row) * 4.0), qe = vec2(p.x, qr.y);
+          vec4 bl = vec4(0.0), br = vec4(0.0);
+          float dl = -1.0, dr = -1.0;
+          for (int j = 1; j <= 32; j++) {
+            if (dl < 0.0 && T(tRefl, qe - vec2(float(j) * 4.0, 0.0)).a >= 0.5) dl = float(j) * 4.0;
+            if (dr < 0.0 && T(tRefl, qe + vec2(float(j) * 4.0, 0.0)).a >= 0.5) dr = float(j) * 4.0;
+          }
+          if (dl > 0.0) bl = T(tRefl, qr - vec2(dl, 0.0));
+          if (dr > 0.0) br = T(tRefl, qr + vec2(dr, 0.0));
+          fill += dl > 0.0 && dr > 0.0 ? mix(bl, br, dl / (dl + dr)) : dl > 0.0 ? bl : dr > 0.0 ? br : T(tRefl, qr);
+        }
+        b = fill / 3.0;
       }
       if (b.a > 0.02) { r = b.rgb / b.a; if (behind) rs = r; }
       else if (behind) keep = 0.0;
