@@ -102,7 +102,7 @@ exterior. Arrivals: `start`, `from-backstreet`, `from-radio`, `from-restroom`, `
 | `to-backstreet` | To the backstreet |  | to `backstreet/from-street` |
 | `sky` | The Concierge / Poster |  |  |
 | `moon` | The moon |  | raw view only |
-| `sign` | Shop sign |  |  |
+| `sign` | Shop sign / Over the door |  |  |
 | `window` | Shop window |  |  |
 | `radio-door` | Radio repair |  | to `radio/door` |
 | `dock` | Woman in red / Woman at the station |  | when `station_seat == "woman"` |

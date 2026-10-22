@@ -347,7 +347,10 @@
   },
   {
    "id": "sign",
-   "name": "Shop sign",
+   "name": {
+    "concierge": "Shop sign",
+    "raw": "Over the door"
+   },
    "rect": [
     50,
     232,
@@ -357,7 +360,7 @@
    "stand": 175,
    "look": {
     "concierge": "RADIO REPAIR, in gold leaf. Somebody still cares about lettering.",
-    "raw": "An old sign, most of its letters fallen off. Nobody reads signs any more."
+    "raw": "Bare concrete. The sign was only ever in your eye."
    }
   },
   {
@@ -371,8 +374,8 @@
    ],
    "stand": 160,
    "look": {
-    "concierge": "Through the glass: shelves of old radios, a lamp left on, a bench covered in work.",
-    "raw": "Grimy glass, and behind it a lamp left on over a bench full of half-mended radios."
+    "concierge": "Through the glass: shelves of old radios, a sofa, a lamp left on, a bench covered in work.",
+    "raw": "Grimy glass, and behind it a sagging sofa, a lamp left on, a bench full of half-mended radios."
    },
    "tag": "Radio Repair"
   },
