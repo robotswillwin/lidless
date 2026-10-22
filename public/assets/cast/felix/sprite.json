@@ -1,11 +1,13 @@
 {
   "name": "felix",
-  "x": 446,
+  "x": 435,
   "y": 210,
-  "w": 68.8,
+  "w": 89.6,
   "h": 254.4,
   "maps": [
-    "albedo.raw"
+    "albedo.concierge",
+    "albedo.raw",
+    "glow.concierge"
   ],
   "depth": 3,
   "parallax": 1,
@@ -13,7 +15,7 @@
   "reflectivity": 0,
   "object": 0,
   "anchor": [
-    34,
+    45,
     254.4
   ],
   "exists": "both",
