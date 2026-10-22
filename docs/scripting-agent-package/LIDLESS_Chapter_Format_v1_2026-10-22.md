@@ -430,9 +430,10 @@ a && b, a and b, a || b, a or b  both, either
   between choices.
 - **Choices** are under 8 words, two to four at a time.
 - **British spelling** (favour, colour). No real brands, people or countries by name.
-- **The Concierge** is kind, calm and sure. It calls her by her name, Luna; "guest" is how it speaks of anyone it
-  does not name ("She is a guest, dining."; "All guests welcome."). It never raises its voice, and never says anything
-  bad about the city. Its view names things the way a brochure would: "Fine dining · by reservation".
+- **The Concierge** is kind, calm and sure. Only it calls her Luna, in her eye (`#concierge`: its card, its
+  messages, a spot's `ask`); every other bot and system says "guest", for anonymity: a station or a robot speaking
+  out loud has a tag of its own (`#station`, `#guardian`). "Guest" is also how the Concierge speaks of anyone it does
+  not name ("She is a guest, dining."). It never raises its voice, and never says anything bad about the city. Its view names things the way a brochure would: "Fine dining · by reservation".
 - **Raw view and her own words:** dry, short, observant. Her things' notes and her notebook are lowercase.
 - **Privacy.** Anything she would not want the Concierge to know belongs in a privacy zone: her home, the public
   restroom, approved meeting rooms. Raw view is legal, and the Concierge knows she uses it; it notices a long or

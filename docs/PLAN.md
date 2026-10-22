@@ -50,8 +50,9 @@ The design: https://claude.ai/artifact/X65FknT3sqWZBgJaHgHboZ. In code: `src/gam
   turning as it speaks, rippling as it listens), its greeting with her heart and credits, its messages, its labels on
   her things. Tapped, it opens into its card: its words for here, her errands (her journal's objectives), its readouts
   (heart, credits, nourishment), Talk (a conversation with it in the card, written in Ink) and Ask about something.
-  It calls her Luna. At the top right: the view switch with its attention, the map, her journal
-  (on her device, anywhere), her notebook (paper, privacy zones only) and the menu with her saves.
+  Only it calls her Luna; every other machine says "guest". At the top right: the view switch with its attention,
+  the map, her journal (on her device, anywhere), her notebook (paper, privacy zones only) and the menu with her
+  saves.
 - **Two balls, for thumbs.** Tap to walk (further off she jogs, further still she runs, speeding up and slowing down through the gaits; a door or the street's end, she goes through). The right
   ball slides the verbs out along the bottom, her properties: Eyes look, Heart talks, Hands use and take; they stay
   out until a ball is tapped, and the one chosen asks beside the ball what to do it to ("Talk to whom?"). With a verb

@@ -325,9 +325,10 @@ const checks = {
     await tap(page, 700, 380);
     const shown = await page.waitForFunction(() => !!document.querySelector('.hud-closeup img'), { timeout: 15000 }).then(() => true).catch(() => false);
     const src = await page.$eval('.hud-closeup img', (i) => i.getAttribute('src')).catch(() => '');
-    await talkThrough(page);
+    const fed = await talkThrough(page);
     await wait(700);
     check('the station: her wrist in the cuff, up close', shown && /closeups\/station\.concierge\.webp/.test(src), src);
+    check('out loud, a machine calls her "guest": only the Concierge says her name', fed.some((l) => /, guest\./.test(l)) && !fed.some((l) => /Luna/.test(l)), fed.join(' / '));
     check('the close-up goes with the conversation', !(await page.$('.hud-closeup:not(.out)')));
     check('fed: the story keeps when', /"fed_at":\s*0\b/.test(await ink(page)));
     // the camera has followed her along the street: the station found where it is on screen now

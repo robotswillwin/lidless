@@ -1,6 +1,7 @@
 // Talking to the Concierge itself: its presence at the top left of its view, Talk in its card. Its lines are tagged
-// #concierge and said in the card; her answers are hers. A place can have its own, concierge_<place id>
-// (concierge_street), which runs there instead of this one. Not in a privacy zone: there it cannot hear her.
+// #concierge and said in the card; her answers are hers. In her eye it calls her Luna; every other machine says
+// "guest". A place can have its own, concierge_<place id> (concierge_street), which runs there instead of this one.
+// Not in a privacy zone: there it cannot hear her.
 // A placeholder until the chapters give it its voice: only what the game already knows, as it would put it.
 
 === concierge ===
@@ -13,7 +14,7 @@
     { arrivals - fed_at < 8:
         "Your levels are excellent, Luna. You were nourished a little while ago." #concierge
     - else:
-        "Your levels are good, Luna. A little nourishment would do you good: there is a station on Main Street." #concierge
+        "Your levels are good, Luna. Should you fancy a moment's nourishment, there is a station on Main Street." #concierge
     }
     -> topics
 + {has_raw} [What is raw view?]

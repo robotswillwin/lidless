@@ -974,9 +974,9 @@ export class Game {
     // its greeting and its line of the day: the evening goes on, and it never says it is raining
     const minute = 21 * 60 + 40 + Math.floor(t / 60), hh = Math.floor(minute / 60) % 24, mm = minute % 60;
     this.hud.setStatus(file.greeting ?? 'Good evening, Luna.', `${hh}:${String(mm).padStart(2, '0')}, Friday, Year 64 of Care. ${file.kind === 'interior' ? 'Indoors, 21°.' : '14°, an umbrella is advised.'}`);
-    // what it keeps of her: her credits, her heart as her wrists tell it (it climbs as she hurries, and settles slowly),
-    // and whether she has fed lately (by the story's count of her comings and goings)
-    const pace = world.moving ? (world.gait === 'run' ? 128 : world.gait === 'jog' ? 104 : 84) : 66;
+    // what it keeps of her: her credits, her heart as her wrists tell it (it climbs as she hurries, and as its attention
+    // on her grows, and settles slowly), and whether she has fed lately (by the story's count of her comings and goings)
+    const pace = (world.moving ? (world.gait === 'run' ? 128 : world.gait === 'jog' ? 104 : 84) : 66) + this.attention * 7;
     this.heart += (pace - this.heart) * Math.min(1, dt / (pace > this.heart ? 5 : 12));
     const credits = this.dialogue.read('credits'), arrivals = this.dialogue.read('arrivals'), fed = this.dialogue.read('fed_at');
     this.hud.setReadouts({

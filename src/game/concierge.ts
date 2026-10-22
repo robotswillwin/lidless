@@ -12,7 +12,10 @@ import { icon } from './icons';
 
 /** Something she has to do, from her journal: its name and its first line. */
 export interface Reminder { name: string; text: string }
-/** What it keeps of her: her credits, her heart (beats a minute), whether she is nourished; null where it has none. */
+/**
+ * What it keeps of her: her credits, her heart (beats a minute), whether she has fed lately; null where it has none.
+ * Her nutrition is only ever good or, after a station, optimal: nothing she has to plan for or keep track of.
+ */
 export interface Readouts { credits: number | null; heart: number | null; nourished: boolean | null }
 
 type Say = { label: string; primary?: boolean; run?: () => void };
@@ -242,7 +245,7 @@ export class Concierge {
     const r = this.readouts, parts: string[] = [];
     if (r.heart !== null) parts.push(`<span>${MARK.heart}<b>${r.heart}</b> bpm</span>`);
     if (r.credits !== null) parts.push(`<span>${MARK.credits}<b>${r.credits.toLocaleString('en-GB')}</b> credits</span>`);
-    if (r.nourished !== null) parts.push(`<span>${MARK.nourished}${r.nourished ? 'Nourished' : 'Nutrition due'}</span>`);
+    if (r.nourished !== null) parts.push(`<span>${MARK.nourished}Nutrition ${r.nourished ? 'optimal' : 'good'}</span>`);
     box.innerHTML = parts.join('');
   }
 

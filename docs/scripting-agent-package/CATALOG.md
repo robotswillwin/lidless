@@ -101,7 +101,7 @@ exterior. Arrivals: `start`, `from-backstreet`, `from-radio`, `from-restroom`.
 
 ## People who speak
 
-Speaker tags in the story so far: `#concierge`, `#fixer`, `#guardian`, `#luna`. A line without a tag is narration.
+Speaker tags in the story so far: `#concierge`, `#fixer`, `#guardian`, `#luna`, `#station`. A line without a tag is narration.
 
 ## Things she can carry
 

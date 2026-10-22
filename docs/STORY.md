@@ -114,12 +114,13 @@ A short cutscene is a knot of such lines. Speaker tags (`#luna`, `#fixer`, `#con
 
 In its view the Concierge is at the top left, made of light (`src/game/concierge.ts`). Its presence greets her (the
 scene's `greeting`, "Good evening, Luna." by default) with what it keeps of her: her heart (from how she moves) and her
-credits (`credits`). It calls her Luna; "guest" is how it speaks of anyone it does not name. Tapped, it opens into
-its card:
+credits (`credits`). Only it calls her Luna (`#concierge`); every other bot and system calls her "guest", for
+anonymity, and speaks as itself (`#station`, `#guardian`). Tapped, it opens into its card:
 
 - its words for where she is: the scene's `assist`;
 - what she has to do: her journal's objectives not yet done (it reads her journal);
-- its readouts: her heart, her credits, and whether she is nourished (`arrivals - fed_at` under 8);
+- its readouts: her heart (it climbs as she hurries, and with its attention on her), her credits, and her nutrition,
+  optimal for a while after a station (`arrivals - fed_at` under 8) and otherwise good: never anything to plan for;
 - **Talk**: a conversation with it in the card, the knot `concierge_<scene>` where she is (a `-` in the scene's id an
   `_`), else `concierge` (`src/story/concierge.ink`). Its lines (`#concierge`) on the left in its voice, hers on the
   right, her answers under them; story commands work as in any conversation;

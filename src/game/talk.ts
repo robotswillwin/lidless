@@ -7,8 +7,8 @@ import type { Command, Line } from './dialogue';
 /** Where a speaker's lines go: the point over their head, in the HUD's pixels; null for the top, where narration is. */
 export type SpeakerAt = (speaker: string) => [number, number] | null;
 
-/** Each voice's colour: hers, the fixer's warm one, the Concierge's cyan; anyone else's their own. */
-const VOICE: Record<string, string> = { luna: 'luna', fixer: 'warm', concierge: 'co', guardian: 'co', narration: 'narration' };
+/** Each voice's colour: hers, the fixer's warm one, the Concierge's cyan (and its machines'); anyone else's their own. */
+const VOICE: Record<string, string> = { luna: 'luna', fixer: 'warm', concierge: 'co', station: 'co', guardian: 'co', narration: 'narration' };
 
 /** How long a line stays: about 16 characters a second to read it, from 1.8 to 8 seconds. */
 export const readingTime = (text: string): number => Math.min(8000, Math.max(1800, 700 + text.length * 60));

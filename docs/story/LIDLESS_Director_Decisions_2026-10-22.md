@@ -53,15 +53,19 @@ holds**. Each decision is the director's, in plain words; what is still open say
 13. **Undressed** (after the shower, at home) stays, for now. Decency matters, but so does rawness: the outfit is
     censored, a mosaic over nipples and vulva only. No other nudity, and no explicit sex.
 14. **Her things** are painted objects in her inventory, as now.
-15. **The Concierge calls Luna by her name.** "Guest" is how it speaks of people it does not name: "She is a guest,
-    dining", "All guests welcome". (The bible has it address its guests as "guest"; this holds instead.) Whether the
-    civic guardian, a robot of the city, names her too is **open**: it still says "guest".
+15. **Only the Concierge calls Luna by her name**, in her eye: its card, its messages, its answers. Every other bot
+    and system (the nutrition stations, the civic guardian, the city's machines) calls her "guest", for anonymity.
+    "Guest" is also how the Concierge speaks of anyone it does not name: "She is a guest, dining", "All guests
+    welcome". (The bible has it address its guests as "guest"; this holds instead.)
+16. **Her readouts** in the Concierge's card: her heart (it climbs as she hurries, and as the Concierge's attention
+    grows), her credits, her nutrition. Nutrition is never something to plan for or keep track of: good, or
+    optimal after a station, nothing else.
 
 ## Production
 
-16. **Music** is the director's: one composition in a digital and an analogue arrangement, blended as the view
+17. **Music** is the director's: one composition in a digital and an analogue arrangement, blended as the view
     switches. No sound effects yet.
-17. **English only**, for now.
+18. **English only**, for now.
 
 ## Open, for the director
 
@@ -70,4 +74,3 @@ holds**. Each decision is the director's, in plain words; what is still open say
 - What the corner shop sells. Proposed: drinks, tobacco, umbrellas, care for devices, the Concierge's wardrobe on
   show.
 - How Luna comes by raw view (1) and the laptop (12).
-- Whether the civic guardian calls her by name too (15).
