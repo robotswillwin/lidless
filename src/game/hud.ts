@@ -1,6 +1,6 @@
 // The HUD over the frame, the same in both views: it is hers and the player's, not the Concierge's, so it does not
 // change when the view does. What changes with the view is what things are (their names, whether they exist at all)
-// and the Concierge's own voice, which only its view has: its greeting at the top left, its messages, its offers.
+// and the Concierge itself, which only its view has: its presence at the top left, made of light (concierge.ts).
 // Her journal is on her device: she reads it anywhere, and the Concierge can read it too. Her notebook is the one thing
 // on paper: what she keeps from the Concierge, opened only in a privacy zone, where it cannot see her.
 //
@@ -11,6 +11,7 @@
 // written at the thing.
 
 import { HERS, verbName, verbQuestion, type Verb } from './actions';
+import { Concierge, type Readouts } from './concierge';
 import { button, el } from './dom';
 import { icon } from './icons';
 import { note, pick, type Hotspot } from './level';
@@ -52,8 +53,6 @@ export class Hud {
   onVerb: (v: Verb | null) => void = () => {};
   /** The view switch. */
   onView: () => void = () => {};
-  /** Its greeting tapped: she rings for its assistance, or (asking it about something) puts the question down. */
-  onBell: () => void = () => {};
   /** A panel opened over the frame. */
   onPanel: () => void = () => {};
   /** Whether a condition on the story holds, for what her notebook holds. */
@@ -85,12 +84,8 @@ export class Hud {
   private unlocked = false;
   /** Out of the Concierge's sight: her notebook opens. */
   private unseen = false;
-  private co: HTMLButtonElement;
-  private greet: HTMLElement;
-  private status: HTMLElement;
-  private credits: HTMLElement;
-  private toastEl: HTMLElement | null = null;
-  private toastTimer = 0;
+  /** The Concierge, in its view: its presence at the top left, its card, its messages, talking to it. */
+  readonly concierge: Concierge;
   private viewBtn: HTMLButtonElement;
   private journalBtn: HTMLButtonElement;
   private notebookBtn: HTMLButtonElement;
@@ -124,23 +119,14 @@ export class Hud {
   private menuTab: 'saves' | 'settings' | 'help' = 'saves';
   /** Her things' pictures, fetched once. */
   private readonly fetched = new Set<string>();
-  /** Its greeting and its line of the day, as the game last gave them. */
-  private said: [string, string] = ['', ''];
 
   constructor(canvas: HTMLCanvasElement) {
     const root = (this.root = el('div', 'hud'));
     root.dataset.view = 'concierge';
     canvas.after(root);
 
-    // the Concierge's greeting and its line of the day, in its view; tapped, she rings for it: it says what it would
-    // have her do here, and offers to be asked about something. Until she first rings, its bell now and then rings
-    this.co = button('hud-co beckon', 'The Concierge: ring for assistance', root, () => { this.co.classList.remove('beckon'); this.onBell(); });
-    this.co.insertAdjacentHTML('beforeend', icon('ask', 22));
-    const words = el('span', 'words', this.co);
-    this.greet = el('span', 'greet', words);
-    this.status = el('span', 'status', words);
-    this.credits = el('span', 'credits', this.co);
-    this.credits.hidden = true;
+    // the Concierge, in its view, at the top left: tapped, its card opens over the scene
+    this.concierge = new Concierge(root);
 
     // at the top right: the view and her sense of being watched, the map, her journal, her notebook, the menu
     const top = el('div', 'hud-top', root);
@@ -204,7 +190,7 @@ export class Hud {
     if (!changed) return;
     this.closeVerbs();
     this.mark(null);
-    if (raw) this.dismissToast();
+    if (raw) { this.dismissToast(); this.concierge.close(); }
     this.drawBalls();
     if (this.held) this.setHeld(this.held.id);
     if (this.trayEl) this.openTray();
@@ -262,32 +248,31 @@ export class Hud {
       b.classList.toggle('default', b.dataset.verb === v);
       b.setAttribute('aria-pressed', String(b.dataset.verb === v));
     });
-    // asking it: its greeting listens, and says what it asks
-    this.co.classList.toggle('listening', v === 'ask');
-    this.co.setAttribute('aria-pressed', String(v === 'ask'));
-    this.co.setAttribute('aria-label', v === 'ask' ? 'The Concierge is listening: tap what to ask about, or here to put the question down' : 'The Concierge: ring for assistance');
-    this.drawStatus();
+    // asking it: its presence listens, and says what it asks
+    this.concierge.setListening(v === 'ask');
     this.drawBalls();
   }
 
   /** The Concierge's greeting and its line of the day, time and weather. */
   setStatus(greeting: string, status: string): void {
-    this.said = [greeting, status];
-    this.drawStatus();
+    this.concierge.setStatus(greeting, status);
   }
 
-  /** Its greeting, or, asked about something, its question. */
-  private drawStatus(): void {
-    const [greeting, status] = this.verb === 'ask' ? [verbQuestion('ask', false), 'Tap it, or slide to find it'] : this.said;
-    if (this.greet.textContent !== greeting) this.greet.textContent = greeting;
-    if (this.status.textContent !== status) this.status.textContent = status;
+  /** What the Concierge keeps of her: her credits (digital, on her account), her heart, her nourishment. */
+  setReadouts(r: Readouts): void {
+    this.concierge.setReadouts(r);
   }
 
-  /** Her credits, digital, on her account: shown with its greeting, in its view; null hides them. */
-  setCredits(n: number | null): void {
-    const text = n === null ? '' : `${n.toLocaleString('en-GB')} credits`;
-    if (this.credits.textContent !== text) this.credits.textContent = text;
-    this.credits.hidden = n === null;
+  /**
+   * The Concierge's card, opened from its presence: its words for where she is, what she has to do (her journal's
+   * objectives, not yet done: it reads her journal), its readouts; `unheard`, it cannot hear her where she is.
+   */
+  openConcierge(words: string, unheard: boolean): void {
+    this.closeAll();
+    this.onPanel();
+    const objectives = notebookNow(this.journal, this.known, this.read(), 'journal:').find((p) => p.id === 'objectives');
+    const reminders = (objectives?.entries ?? []).filter((e) => !e.done).map((e) => ({ name: e.name, text: e.lines[0]?.text ?? '' }));
+    this.concierge.open({ words, reminders, unheard });
   }
 
   /** How closely the Concierge is watching her, 0 to 3: the ticks under the view switch. */
@@ -331,13 +316,21 @@ export class Hud {
     box.classList.toggle('below', y < 70);
   }
 
-  /** While she talks the conversation has the bottom of the frame: the balls step aside. */
+  /**
+   * While she talks the conversation has the bottom of the frame: the balls step aside, and what is open closes, but
+   * the Concierge's card, where she may be talking to it.
+   */
   setTalking(on: boolean): void {
-    if (on) { this.closeAll(); this.root.dataset.talking = ''; } else delete this.root.dataset.talking;
+    if (!on) { delete this.root.dataset.talking; return; }
+    this.closeVerbs();
+    this.closeSheet();
+    this.mark(null);
+    this.dismissNote();
+    this.root.dataset.talking = '';
   }
 
-  /** Something over the scene that a tap on the scene closes first: a panel, the tray, a thing close up. */
-  get panelOpen(): boolean { return this.panel !== null || this.trayEl !== null || this.inspectEl !== null; }
+  /** Something over the scene that a tap on the scene closes first: a panel, the tray, a thing close up, its card. */
+  get panelOpen(): boolean { return this.panel !== null || this.trayEl !== null || this.inspectEl !== null || this.concierge.isOpen; }
   get menuOpen(): boolean { return this.menu !== null; }
 
   /* ---------- the balls ---------- */
@@ -523,25 +516,13 @@ export class Hud {
     this.noteOf = null;
   }
 
-  /** A message from the Concierge, under its greeting. Only in its view: raw view has no Concierge to show it. */
+  /** A message from the Concierge, under its presence. Only in its view: raw view has no Concierge to show it. */
   toast(text: string, actions: { label: string; primary?: boolean; run?: () => void }[] = [], ms = 7000): void {
-    if (this.raw) return;
-    this.dismissToast();
-    const t = (this.toastEl = el('div', 'hud-toast', this.root));
-    t.setAttribute('role', 'status');
-    t.insertAdjacentHTML('beforeend', icon('ask', 16));
-    el('p', '', t, text);
-    if (actions.length) {
-      const row = el('div', 'row', t);
-      for (const a of actions) button(a.primary ? 'primary' : '', a.label, row, () => { this.dismissToast(); a.run?.(); }).textContent = a.label;
-    }
-    this.toastTimer = window.setTimeout(() => this.dismissToast(), ms);
+    if (!this.raw) this.concierge.say(text, actions, ms);
   }
 
   dismissToast(): void {
-    window.clearTimeout(this.toastTimer);
-    this.toastEl?.remove();
-    this.toastEl = null;
+    this.concierge.dismiss();
   }
 
   /** Close what the HUD has open: the verbs, her things, a panel, what a verb has lit, what she found. */
@@ -571,6 +552,7 @@ export class Hud {
     // her notebook stays shut where it can see her
     if (kind === 'notebook' && !this.unseen) return this.onShut();
     this.panel?.remove();
+    this.concierge.close();
     this.closeVerbs();
     this.closeTray();
     this.panelKind = kind;
@@ -583,7 +565,14 @@ export class Hud {
     else this.drawMenu(p);
   }
 
+  /** What is over the scene closes: a panel, the tray, the Concierge's card. */
   closePanel(): void {
+    this.concierge.close();
+    this.closeSheet();
+  }
+
+  /** A panel and the tray close. */
+  private closeSheet(): void {
     this.panel?.remove();
     this.panel = null;
     this.panelKind = null;
@@ -657,6 +646,7 @@ export class Hud {
 
   /** N her notebook, J her journal, M the map, I her things, Escape closes what is open or puts the verb down. Returns true if it used the key. */
   key(k: string): boolean {
+    if (this.concierge.key(k)) return true;
     if (k === 'Escape' && (this.menu || this.panelOpen)) { this.closeAll(); return true; }
     if (k === 'Escape' && this.held) { this.onHold(null); return true; }
     if (k === 'Escape' && this.verb) { this.onVerb(null); return true; }
@@ -674,7 +664,7 @@ export function drawHelp(p: HTMLElement): void {
   const rows: [string, string][] = [
     ['Walk', 'Tap where she should go. A door, or the end of the street, takes her through. Outdoors, hold a finger far ahead of her to run.'],
     ['Do', 'The ball at the bottom right: choose Look, Talk, Use or Take, then tap what to do it to (or slide over the scene and let go on what lights up). Anything can be tried; not everything answers.'],
-    ['Concierge', 'Its greeting at the top left, in its view. Tap it and it says what it would have you do here; tap Ask about something, then a thing, and it tells you what it knows of it. Talk is Luna speaking herself.'],
+    ['Concierge', 'Its light at the top left, in its view. Tap it: it says what it would have you do here, what you have to do, and how you are. Talk to it there, or Ask about something, then tap a thing. Talk at the ball is Luna speaking to someone herself.'],
     ['Her things', 'The ball at the bottom left. Tap a thing to see it close up; Use takes it out, then tap what to use it on.'],
     ['Top right', 'The view switch once she has it, the map, her journal (anywhere) and her notebook (only where it cannot see her), and this menu.'],
     ['Keys', 'Arrows or A and D walk, with Shift she runs. E switches view, I her things, M the map, J her journal, N her notebook, Esc closes. Numbers pick an answer.'],

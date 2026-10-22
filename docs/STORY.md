@@ -110,6 +110,24 @@ on a line of its own before a line belongs to that line.
 
 A short cutscene is a knot of such lines. Speaker tags (`#luna`, `#fixer`, `#concierge`) stay as they are.
 
+## The Concierge
+
+In its view the Concierge is at the top left, made of light (`src/game/concierge.ts`). Its presence greets her (the
+scene's `greeting`, "Good evening, Luna." by default) with what it keeps of her: her heart (from how she moves) and her
+credits (`credits`). It calls her Luna; "guest" is how it speaks of anyone it does not name. Tapped, it opens into
+its card:
+
+- its words for where she is: the scene's `assist`;
+- what she has to do: her journal's objectives not yet done (it reads her journal);
+- its readouts: her heart, her credits, and whether she is nourished (`arrivals - fed_at` under 8);
+- **Talk**: a conversation with it in the card, the knot `concierge_<scene>` where she is (a `-` in the scene's id an
+  `_`), else `concierge` (`src/story/concierge.ink`). Its lines (`#concierge`) on the left in its voice, hers on the
+  right, her answers under them; story commands work as in any conversation;
+- **Ask about something**: it listens ("About what, Luna?") until she taps a thing, and answers with its `ask`.
+
+In a privacy zone it cannot hear her: no Talk, no Ask. Its messages (a thing's `ask`, what it notices) come as words
+under its presence. Raw view has no Concierge.
+
 ## The journal and the notebook
 
 What she writes down is in two places, the same shape. `public/assets/journal.json` is her journal, on her device:

@@ -128,7 +128,7 @@ A place is a scene: a room (interior) or a stretch of street (exterior), drawn i
   width: 1                         # screens wide: 1 a room, up to 3 for a street, which scrolls
   size: 7 m wide, 3.2 m high       # its real size, for scale: required
   private: false                   # a privacy zone: the Concierge cannot see or hear inside; her notebook opens
-  greeting: Good evening, guest.   # the Concierge's welcome here, in its view
+  greeting: Good evening, Luna.    # the Concierge's welcome here, in its view
   assist: ...                      # what it says when she rings for it here: what it would have her do (optional)
   look:                            # the picture, a prompt for each view: required
     concierge: >
@@ -182,7 +182,7 @@ Every new spot needs a `name`, a `where`, and something to see or do: a `look`, 
 **Every spot answers every verb**: Look, Talk, Use, Take, and, in the Concierge's view, asking the Concierge about it
 (the player rings it at its greeting and taps the spot; its answer is the spot's `ask`). For a verb a spot has no text or knot for, the game gives a standard reply that
 suits what it is (a person, a machine, a thing or a way out), a different one each time she tries: "It doesn't
-answer.", "Not yours to take.", and from the Concierge, inside a privacy zone, "I can't see in here, guest." So write
+answer.", "Not yours to take.", and from the Concierge, inside a privacy zone, "I can't see in here, Luna." So write
 only what a spot really answers: its look, what it does, and a `reply` for a machine or a person with something to
 say but no conversation. Using a door goes through it. The standard replies are the game's
 (`public/assets/replies.json`); ask the director to add one rather than writing it into every spot.
@@ -383,6 +383,12 @@ You set the laptop beside it. The cables don't fit. Of course they don't.
   they differ.
 - **The story's state.** `~ relay_found = true`. Her pockets: `~ carried += old_laptop`, `~ carried -= old_laptop`.
   `taken` holds everything she has ever picked up. Read them in conditions: `{ carried has old_laptop: ... }`.
+- **Talking to the Concierge.** In its view the player can open the Concierge at the top left and Talk to it: that
+  runs the knot `concierge_<place>` where she is (`concierge_relay-lobby` is not a name: use `concierge_relay_lobby`,
+  the place id with `_` for `-`), else the game's `concierge`. Its lines (`#concierge`) appear in its card, hers on
+  the other side, her choices under them, so write it as a conversation with a mind that knows everything public:
+  topics she can ask about, each `+ [Question?]` answered and back to the choices, and one way to end it. Not in a
+  privacy zone: there it cannot hear her.
 - **A knot of the game's** (the catalog lists them) is rewritten by giving a knot of the same name: the chapter's
   replaces it whole. A knot's name is unique in the whole game: name a thing's knot `<place>_<spot>` unless it is
   plainly unique.
@@ -424,8 +430,9 @@ a && b, a and b, a || b, a or b  both, either
   between choices.
 - **Choices** are under 8 words, two to four at a time.
 - **British spelling** (favour, colour). No real brands, people or countries by name.
-- **The Concierge** is kind, calm and sure. It calls her "guest", never raises its voice, and never says anything bad
-  about the city. Its view names things the way a brochure would: "Fine dining · by reservation".
+- **The Concierge** is kind, calm and sure. It calls her by her name, Luna; "guest" is how it speaks of anyone it
+  does not name ("She is a guest, dining."; "All guests welcome."). It never raises its voice, and never says anything
+  bad about the city. Its view names things the way a brochure would: "Fine dining · by reservation".
 - **Raw view and her own words:** dry, short, observant. Her things' notes and her notebook are lowercase.
 - **Privacy.** Anything she would not want the Concierge to know belongs in a privacy zone: her home, the public
   restroom, approved meeting rooms. Raw view is legal, and the Concierge knows she uses it; it notices a long or

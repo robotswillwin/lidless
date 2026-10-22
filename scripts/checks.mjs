@@ -54,11 +54,11 @@ const verb = async (page, v) => {
   await page.evaluate((v) => document.querySelector(`[data-verb="${v}"]`)?.click(), v);
   await wait(150);
 };
-// asking the Concierge: its greeting rung, and Ask about something
-const ask = async (page) => {
-  await page.evaluate(() => document.querySelector('.hud-co')?.click());
+// the Concierge's card, opened from its presence, and a button in it (Talk, Ask about something)
+const coCard = async (page, press) => {
+  await page.evaluate(() => { if (!document.querySelector('.co-card')) document.querySelector('.co-head')?.click(); });
   await wait(300);
-  await page.evaluate(() => document.querySelector('.hud-toast .row .primary')?.click());
+  if (press) await page.evaluate((t) => [...document.querySelectorAll('.co-foot > button')].find((b) => b.textContent === t)?.click(), press);
   await wait(150);
 };
 // what the HUD opens: her things (the tray from the left ball), her journal, the map (in her journal), her notebook,
@@ -175,22 +175,42 @@ const checks = {
     const verbs = await page.$$eval('.hud-menu.verbs [data-verb]', (bs) => bs.map((b) => b.dataset.verb));
     check('her four verbs at the ball, asking at the Concierge', verbs.join() === 'eyes,heart,hands,take', verbs.join());
     await page.evaluate(() => document.querySelector('.hud-ball.verbs')?.click());
-    await page.evaluate(() => document.querySelector('.hud-co')?.click());
-    await wait(300);
-    const rung = await page.$eval('.hud-toast', (t) => ({ text: t.querySelector('p')?.textContent ?? '', ask: t.querySelector('.row .primary')?.textContent })).catch(() => null);
-    check('rung, the Concierge says what it would have her do, and offers to be asked', !!rung?.text && rung.ask === 'Ask about something', `${rung?.text.slice(0, 50)} · ${rung?.ask}`);
-    await page.evaluate(() => document.querySelector('.hud-toast .row .primary')?.click());
-    await wait(150);
-    const listening = await page.$eval('.hud-co', (c) => c.classList.contains('listening') && /About what/.test(c.textContent ?? ''));
-    check('asked about something, it listens: "About what, guest?"', listening);
-    await tap(page, 503, 268);
+    // at home it cannot hear her: its card says so, with no talking to it and no asking
+    await coCard(page);
+    const home = await page.$eval('.co-card', (c) => ({ quiet: c.querySelector('.co-foot .quiet')?.textContent ?? '', buttons: c.querySelectorAll('.co-foot > button').length })).catch(() => null);
+    check('at home its card says it cannot hear her: no talking to it, no asking', /cannot hear/.test(home?.quiet ?? '') && home?.buttons === 0, JSON.stringify(home));
+    await page.keyboard.press('Escape');
+    // out in the backstreet: its card, asking it about something, talking to it
+    await again(page, 'scene=backstreet&spawn=from-street');
+    await coCard(page);
+    const opened = await page.$eval('.co-card', (c) => ({ words: c.querySelector('.co-words')?.textContent ?? '', reminders: c.querySelectorAll('.co-reminders li').length, readouts: c.querySelector('.co-readouts')?.textContent ?? '', buttons: [...c.querySelectorAll('.co-foot > button')].map((b) => b.textContent) })).catch(() => null);
+    check('its card: what it would have her do, her errands, how she is, Talk and Ask', !!opened?.words && opened.reminders > 0 && /bpm/.test(opened.readouts) && /credits/.test(opened.readouts) && opened.buttons.join() === 'Talk,Ask about something', JSON.stringify(opened)?.slice(0, 150));
+    await coCard(page, 'Ask about something');
+    const listening = await page.$eval('.co', (c) => c.dataset.state === 'listening' && /About what/.test(c.textContent ?? ''));
+    check('asked about something, it listens: "About what, Luna?"', listening);
+    await tap(page, 182, 333);
     await wait(3500);
-    const asked = await page.$eval('.hud-toast', (t) => t.textContent).catch(() => '');
-    check('asked about her window at home, the Concierge cannot see in', /can't see in here|on your own/.test(asked), asked.slice(0, 70));
+    const answered = await page.$eval('.co-say', (t) => t.textContent).catch(() => '');
+    check('asked about the store, it answers in its own words', /Drinks, tobacco/.test(answered), answered.slice(0, 70));
+    await coCard(page, 'Talk');
+    await wait(1500);
+    const talk = await page.$eval('.co-card', (c) => ({ said: [...c.querySelectorAll('.msg.its')].map((m) => m.textContent), answers: [...c.querySelectorAll('.co-choices button')].map((b) => b.textContent) })).catch(() => null);
+    check('talked to, it speaks in its card, and she has answers', talk?.said.length === 1 && (talk?.answers.length ?? 0) >= 2, JSON.stringify(talk)?.slice(0, 150));
+    await page.evaluate(() => [...document.querySelectorAll('.co-choices button')].find((b) => /How am I/.test(b.textContent ?? ''))?.click());
+    await wait(1800);
+    const thread = await page.$$eval('.co-thread .msg', (ms) => ms.map((m) => `${m.className}: ${m.textContent}`));
+    check('her answer on the right, its reply in its voice', thread.some((m) => /msg hers: How am I/.test(m)) && thread.filter((m) => /msg its/.test(m)).length === 2, thread.join(' | ').slice(0, 150));
+    await page.evaluate(() => [...document.querySelectorAll('.co-choices button')].find((b) => /Nothing, thank you/.test(b.textContent ?? ''))?.click());
+    await wait(1800);
+    const after = await page.$$eval('.co-foot > button', (bs) => bs.map((b) => b.textContent));
+    check('said through, it is over, and its card offers Talk and Ask again', after.join() === 'Talk,Ask about something', after.join());
     await page.keyboard.press('Escape');
     await panel(page, 'things');
-    const names = await page.$$eval('.hud-tray .slot .label', (ls) => ls.map((l) => ({ text: l.textContent, shown: getComputedStyle(l).opacity !== '0' && l.getBoundingClientRect().height > 0 })));
-    check('her things named under their pictures, without a hover', names.length > 0 && names.every((n) => n.shown && n.text), names.map((n) => n.text).join(', '));
+    const names = await page.$$eval('.hud-tray .slot', (ss) => ss.map((s) => {
+      const pic = s.querySelector('.picture :is(img, svg)')?.getBoundingClientRect(), l = s.querySelector('.label'), lr = l?.getBoundingClientRect();
+      return { text: l?.textContent, shown: !!lr && lr.height > 0 && getComputedStyle(l).opacity !== '0', clear: !!pic && !!lr && pic.bottom <= lr.top + 1 };
+    }));
+    check('her things named under their pictures, clear of them, without a hover', names.length > 0 && names.every((n) => n.shown && n.text && n.clear), names.map((n) => `${n.text}${n.clear ? '' : ' (covered)'}`).join(', '));
     await page.evaluate(() => document.querySelector('.hud-tray .slot')?.click());
     await wait(250);
     const card = await page.$eval('.hud-inspect', (c) => ({ name: c.querySelector('h2')?.textContent, use: c.querySelector('.row .primary')?.textContent })).catch(() => null);
@@ -380,10 +400,10 @@ const checks = {
     await out();
     await through();
     await out();
-    check('twice in a while: not noticed yet', !(await page.$('.hud-toast')));
+    check('twice in a while: not noticed yet', !(await page.$('.co-say')));
     await through();
     await out();
-    const toast = await page.$eval('.hud-toast', (t) => t.textContent).catch(() => '');
+    const toast = await page.$eval('.co-say', (t) => t.textContent).catch(() => '');
     check('a third time: the Concierge notices, and says so', /Back again so soon/.test(toast) && (await save(page))?.attention === 1, `${toast} | attention ${(await save(page))?.attention}`);
     await page.close();
   },

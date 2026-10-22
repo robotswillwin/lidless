@@ -6,6 +6,7 @@
 
 INCLUDE street.ink
 INCLUDE home.ink
+INCLUDE concierge.ink
 
 // set by the game when a conversation starts and at every choice: true while Luna sees raw view
 VAR raw_view = false

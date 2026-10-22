@@ -137,7 +137,7 @@ Lists: `Things` (parcel, matches, cigarettes, map, valve).
 
 ## Knots
 
-`fixer`, `station`, `guardian`, `radio`, `photo`.
+`fixer`, `station`, `guardian`, `radio`, `photo`, `concierge`.
 
 ## Outfits
 

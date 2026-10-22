@@ -46,15 +46,17 @@ The design: https://claude.ai/artifact/X65FknT3sqWZBgJaHgHboZ. In code: `src/gam
 `src/style.css`.
 
 - **One HUD in both views.** It is hers, neutral glass; what changes with the view is what things are and are called,
-  and the Concierge's own voice, only in its view: its greeting with her credits (tap for assistance), its messages,
-  its labels and offers on her things. At the top right: the view switch with its attention, the map, her journal
+  and the Concierge, only in its view and made of light (src/game/concierge.ts): its mark (the C of its stations,
+  turning as it speaks, rippling as it listens), its greeting with her heart and credits, its messages, its labels on
+  her things. Tapped, it opens into its card: its words for here, her errands (her journal's objectives), its readouts
+  (heart, credits, nourishment), Talk (a conversation with it in the card, written in Ink) and Ask about something.
+  It calls her Luna. At the top right: the view switch with its attention, the map, her journal
   (on her device, anywhere), her notebook (paper, privacy zones only) and the menu with her saves.
 - **Two balls, for thumbs.** Tap to walk (further off she jogs, further still she runs, speeding up and slowing down through the gaits; a door or the street's end, she goes through). The right
   ball slides the verbs out along the bottom, her properties: Eyes look, Heart talks, Hands use and take; they stay
   out until a ball is tapped, and the one chosen asks beside the ball what to do it to ("Talk to whom?"). With a verb
   chosen, tapping a thing, or pressing and sliding over the scene and letting go, does it: nothing depends on a mouse
-  hovering. The Concierge is its greeting at the top left: rung, it says what it would have her do here and offers
-  Ask about something, then listens ("About what, guest?") for her to tap a thing. The left ball slides out her
+  hovering. Asked about something, the Concierge listens ("About what, Luna?") for her to tap a thing. The left ball slides out her
   things in a tray, each painted as the view shows it, its one name under it: a tap shows it close up, with Use.
 - **What she finds is written at the thing**, where the eye already is, on a card. It stays for the time it takes to read (about 15 characters
   a second, 2.5 to 9 seconds) and goes when tapped or when she is given something else to do. Conversations go as in Monkey Island (src/game/talk.ts): each line over the speaker's head in their colour, one

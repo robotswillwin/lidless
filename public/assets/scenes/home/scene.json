@@ -1,8 +1,8 @@
 {
  "id": "home",
  "name": "Luna's home",
- "greeting": "Welcome home, guest. I'll leave you to yourself.",
- "assist": "Your parcel is due at Radio Repair by 22:00, guest. The main street is to the right as you leave.",
+ "greeting": "Welcome home, Luna. I'll leave you to yourself.",
+ "assist": "Your parcel is due at Radio Repair by 22:00, Luna. The main street is to the right as you leave.",
  "kind": "interior",
  "size": [
   960,
@@ -520,7 +520,7 @@
     "concierge": "Asleep, a faint ring of light. In here it waits to be asked.",
     "raw": "A grey panel, off. In here it neither sees nor hears you."
    },
-   "ask": "Good evening, guest. You called? Your parcel is due at Radio Repair by 22:00.",
+   "ask": "Good evening, Luna. You called? Your parcel is due at Radio Repair by 22:00.",
    "kind": "machine"
   },
   {

@@ -80,7 +80,7 @@ async function boot(): Promise<void> {
     settings = s;
     renderer.quality = QUALITY[tierOf(s)];
     document.documentElement.style.setProperty('--ts', String(TEXT_SCALE[s.text]));
-    game.talk.speed = game.hud.noteSpeed = READING[s.speed];
+    game.talk.speed = game.hud.noteSpeed = game.hud.concierge.speed = READING[s.speed];
     game.setMotion(reducedOf(s));
     document.documentElement.dataset.motion = reducedOf(s) ? 'reduced' : 'full';
   };

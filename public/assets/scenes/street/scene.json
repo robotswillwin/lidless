@@ -1,7 +1,7 @@
 {
  "id": "street",
  "name": "Main street",
- "assist": "Radio Repair is right here, guest. Your parcel is expected.",
+ "assist": "Radio Repair is right here, Luna. Your parcel is expected.",
  "kind": "exterior",
  "size": [
   2400,
@@ -317,7 +317,7 @@
     "concierge": "At your service",
     "raw": "it paints its face over him"
    },
-   "ask": "I am always here, guest. Is there anything you need?",
+   "ask": "I am always here, Luna. Is there anything you need?",
    "parallax": 0.6
   },
   {
@@ -457,7 +457,7 @@
     "concierge": "A young courier on his break, laughing with a friend who isn't here.",
     "raw": "A courier in a grimy uniform, asleep with his head back, his wrist in the cuff. The friend was never there."
    },
-   "ask": "A courier, guest, on his break. Everyone deserves a pleasant dinner.",
+   "ask": "A courier, Luna, on his break. Everyone deserves a pleasant dinner.",
    "kind": "person"
   },
   {
@@ -479,7 +479,7 @@
     "concierge": "The city's nutrition and health station: a seat, a gentle scan, everything you need.",
     "raw": "Two worn seats bolted to a column of pumps and gauges. Cuffs on the armrests, polished by wrists."
    },
-   "ask": "Dinner is served here every evening, guest. Everything you need, and nothing you don't.",
+   "ask": "Dinner is served here every evening, Luna. Everything you need, and nothing you don't.",
    "story": "station",
    "map": true,
    "kind": "machine"
@@ -524,10 +524,10 @@
     "raw": "real food, real prices"
    },
    "look": {
-    "concierge": "A restaurant above the bar: candlelight, white cloths, the city at your feet. Reservations recommended, guest.",
+    "concierge": "A restaurant above the bar: candlelight, white cloths, the city at your feet. Reservations recommended, Luna.",
     "raw": "Real food on real plates, for the few who can pay. Somebody up there is eating meat."
    },
-   "ask": "The restaurant is fully booked this evening, guest. Shall I put you on the list?",
+   "ask": "The restaurant is fully booked this evening, Luna. Shall I put you on the list?",
    "map": true
   },
   {
@@ -585,7 +585,7 @@
     "concierge": "Notices",
     "raw": "who is she?"
    },
-   "ask": "Tonight there is a festival of light in the old harbour, guest. Shall I reserve you a place?"
+   "ask": "Tonight there is a festival of light in the old harbour, Luna. Shall I reserve you a place?"
   },
   {
    "id": "restroom-door",
@@ -653,7 +653,7 @@
     "concierge": "A civic guardian: safety, guidance and a kind word for any guest who needs one.",
     "raw": "A tall guard unit, rust at every joint. Its lamp follows you for a step or two, then loses interest."
    },
-   "ask": "Our guardians keep every street safe, guest. If you are ever lost, ask one. It will ask me.",
+   "ask": "Our guardians keep every street safe, Luna. If you are ever lost, ask one. It will ask me.",
    "follows": "bots/guardian-bot",
    "talk": "guardian",
    "map": false,

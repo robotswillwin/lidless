@@ -20,9 +20,9 @@
     "way": ["You can't take a door with you."]
   },
   "ask": {
-    "any": ["{name}, guest. Is there anything else I can help you with?", "Nothing that need concern you, guest.", "Everything here is as it should be, guest."],
-    "person": ["A guest, like you. Shall I introduce you?", "They are enjoying their evening, guest. As should you."],
-    "private": ["I can't see in here, guest. Your privacy is protected.", "In here you are on your own, guest. As is your right."]
+    "any": ["{name}, Luna. Is there anything else I can help you with?", "Nothing that need concern you, Luna.", "Everything here is as it should be, Luna."],
+    "person": ["A guest, like you. Shall I introduce you?", "They are enjoying their evening, Luna. As should you."],
+    "private": ["I can't see in here, Luna. Your privacy is protected.", "In here you are on your own, Luna. As is your right."]
   },
   "item": {
     "any": ["Nothing happens.", "That doesn't do anything.", "No. Not with that."]

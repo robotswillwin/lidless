@@ -17,7 +17,7 @@ describe('verbs', () => {
   it('asks, chosen, what to do it to: in her own words in raw view', () => {
     expect(verbQuestion('heart', false)).toBe('Talk to whom?');
     expect(verbQuestion('eyes', true)).toBe('look at what?');
-    expect(verbQuestion('ask', false)).toBe('About what, guest?');
+    expect(verbQuestion('ask', false)).toBe('About what, Luna?');
   });
 
   it('does every verb to everything, saying which it has something of its own for', () => {

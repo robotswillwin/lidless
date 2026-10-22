@@ -9,8 +9,8 @@
   kind: interior
   size: 6.5 m wide, 2.8 m high, a cutaway of her flat in a tall block
   private: true
-  greeting: Welcome home, guest. I'll leave you to yourself.
-  assist: Your parcel is due at Radio Repair by 22:00, guest. The main street is to the right as you leave.
+  greeting: Welcome home, Luna. I'll leave you to yourself.
+  assist: Your parcel is due at Radio Repair by 22:00, Luna. The main street is to the right as you leave.
   look:
     concierge: >
       A small hotel room she has made her own: a glass shower and a basin with a mirror ringed with light, a bed
@@ -74,7 +74,7 @@
         concierge: Asleep, a faint ring of light. In here it waits to be asked.
         raw: A grey panel, off. In here it neither sees nor hears you.
       tag: Your Concierge
-      ask: Good evening, guest. You called? Your parcel is due at Radio Repair by 22:00.
+      ask: Good evening, Luna. You called? Your parcel is due at Radio Repair by 22:00.
 ```
 
 ## Script

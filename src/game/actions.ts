@@ -19,7 +19,7 @@ export const verbsIn = (raw: boolean): Verb[] => (raw ? HERS : [...HERS, 'ask'])
 // (asking is the Concierge's: named for it, so it is not taken for talking)
 const NAMES: Record<Verb, string> = { eyes: 'Look', heart: 'Talk', hands: 'Use', take: 'Take', ask: 'Concierge' };
 // what each asks, chosen: what to do it to
-const OBJECTS: Record<Verb, string> = { eyes: 'Look at what?', heart: 'Talk to whom?', hands: 'Use what?', take: 'Take what?', ask: 'About what, guest?' };
+const OBJECTS: Record<Verb, string> = { eyes: 'Look at what?', heart: 'Talk to whom?', hands: 'Use what?', take: 'Take what?', ask: 'About what, Luna?' };
 
 /** What a verb chosen asks, beside the ball (or, asking, under its greeting): hers in lower case in raw view. */
 export const verbQuestion = (v: Verb, raw: boolean): string => (raw ? OBJECTS[v].toLowerCase() : OBJECTS[v]);

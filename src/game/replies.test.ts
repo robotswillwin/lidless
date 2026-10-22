@@ -7,7 +7,7 @@ import { kindOf, replyFor, type Replies } from './replies';
 const replies: Replies = {
   talk: { thing: ['It doesn\'t answer.', 'Nothing.'], machine: ['A polite beep.'] },
   take: { any: ['Not yours.'], way: ['You can\'t take a door with you.'] },
-  ask: { any: ['{name}, guest.'], private: ['I can\'t see in here, guest.'] },
+  ask: { any: ['{name}, Luna.'], private: ['I can\'t see in here, Luna.'] },
   look: { any: { concierge: ['Lovely.'], raw: ['Nothing special.'] } },
 };
 const spot = (h: Partial<Hotspot>): Hotspot => ({ id: 'x', name: 'X', rect: [0, 0, 1, 1], ...h });
@@ -37,11 +37,11 @@ describe('a standard reply', () => {
   it('is in the view on screen, and names the thing where it says {name}', () => {
     expect(replyFor(replies, 'look', 'thing', true, 0, 'Bench')).toBe('Nothing special.');
     expect(replyFor(replies, 'look', 'thing', false, 0, 'Bench')).toBe('Lovely.');
-    expect(replyFor(replies, 'ask', 'thing', false, 0, 'Bench')).toBe('Bench, guest.');
+    expect(replyFor(replies, 'ask', 'thing', false, 0, 'Bench')).toBe('Bench, Luna.');
   });
 
   it('is, asking the Concierge in a privacy zone, that it cannot see in there', () => {
-    expect(replyFor(replies, 'ask', 'thing', false, 0, 'Bench', true)).toBe('I can\'t see in here, guest.');
+    expect(replyFor(replies, 'ask', 'thing', false, 0, 'Bench', true)).toBe('I can\'t see in here, Luna.');
   });
 
   it('is nothing where there is none to give', () => {

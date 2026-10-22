@@ -53,12 +53,15 @@ holds**. Each decision is the director's, in plain words; what is still open say
 13. **Undressed** (after the shower, at home) stays, for now. Decency matters, but so does rawness: the outfit is
     censored, a mosaic over nipples and vulva only. No other nudity, and no explicit sex.
 14. **Her things** are painted objects in her inventory, as now.
+15. **The Concierge calls Luna by her name.** "Guest" is how it speaks of people it does not name: "She is a guest,
+    dining", "All guests welcome". (The bible has it address its guests as "guest"; this holds instead.) Whether the
+    civic guardian, a robot of the city, names her too is **open**: it still says "guest".
 
 ## Production
 
-15. **Music** is the director's: one composition in a digital and an analogue arrangement, blended as the view
+16. **Music** is the director's: one composition in a digital and an analogue arrangement, blended as the view
     switches. No sound effects yet.
-16. **English only**, for now.
+17. **English only**, for now.
 
 ## Open, for the director
 
@@ -67,3 +70,4 @@ holds**. Each decision is the director's, in plain words; what is still open say
 - What the corner shop sells. Proposed: drinks, tobacco, umbrellas, care for devices, the Concierge's wardrobe on
   show.
 - How Luna comes by raw view (1) and the laptop (12).
+- Whether the civic guardian calls her by name too (15).

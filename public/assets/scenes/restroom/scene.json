@@ -1,8 +1,8 @@
 {
   "id": "restroom",
   "name": "Public restroom",
-  "assist": "Take all the time you need, guest. I will be outside.",
-  "greeting": "A privacy room, guest. I'll wait for you outside.",
+  "assist": "Take all the time you need, Luna. I will be outside.",
+  "greeting": "A privacy room, Luna. I'll wait for you outside.",
   "kind": "interior",
   "private": true,
   "size": [
@@ -30,8 +30,8 @@
     "after": 120,
     "often": 3,
     "within": 8,
-    "long": "You were in there quite a while, guest. Is everything alright?",
-    "again": "Back again so soon, guest? Shall I book you a check-up?"
+    "long": "You were in there quite a while, Luna. Is everything alright?",
+    "again": "Back again so soon, Luna? Shall I book you a check-up?"
   },
   "hotspots": [
     {
@@ -100,7 +100,7 @@
         "concierge": "The mark of a privacy room: by law, nothing in here is seen or heard.",
         "raw": "A closed eye, stencilled on the tiles. In here, by law, it neither sees nor hears you."
       },
-      "ask": "This is a privacy room, guest. By law I neither see nor hear you in there. I only know you went in."
+      "ask": "This is a privacy room, Luna. By law I neither see nor hear you in there. I only know you went in."
     },
     {
       "id": "basins",

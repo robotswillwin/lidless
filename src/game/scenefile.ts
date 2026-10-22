@@ -73,7 +73,7 @@ export interface SceneFile {
    * One number for both views, or one per view, since a dark raw room can be a white one to the Concierge.
    */
   ambient?: number | { raw?: number; concierge?: number };
-  /** The Concierge's greeting here, in its view: "Welcome home, guest." By default "Good evening, guest." */
+  /** The Concierge's greeting here, in its view: "Welcome home, Luna." By default "Good evening, Luna." */
   greeting?: string;
   /** What the Concierge says when she rings for assistance here: its hint, for now. */
   assist?: string;

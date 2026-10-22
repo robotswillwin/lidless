@@ -9,7 +9,7 @@
   kind: exterior
   width: 2.5
   size: 33 m of street, the shop fronts 3 to 6 m high, towers and a viaduct behind
-  assist: Radio Repair is right here, guest. Your parcel is expected.
+  assist: Radio Repair is right here, Luna. Your parcel is expected.
   look:
     concierge: >
       A night street in flat, simple shapes: the radio repair glowing gold with a bar above it, a nutrition station,
@@ -47,7 +47,7 @@
       story: station
       map: true
       tag: Nutrition · health
-      ask: Dinner is served here every evening, guest. Everything you need, and nothing you don't.
+      ask: Dinner is served here every evening, Luna. Everything you need, and nothing you don't.
     - id: dock
       name: { concierge: Woman in red, raw: Woman at the station }
       where: in the station's left seat
@@ -83,7 +83,7 @@
         concierge: Silver hair, a tailored knit. He works as if he has all the time in the world.
         raw: Hollow cheeks, burn marks on his hands. The iron never stops.
       tag: { concierge: "Guest · repairs", raw: the radio man }
-      ask: He repairs old radios, guest. A charming pastime.
+      ask: He repairs old radios, Luna. A charming pastime.
 ```
 
 ## Script
@@ -152,14 +152,14 @@ He plugs an old diagnostic box into your eyepiece and talks to it in numbers. A 
 // the main street's nutrition and health station: its voice, and taking a seat
 = talk
 { raw_view: In raw view its panel is a grille, and the voice comes from behind it. }
-"Good evening, guest. Dinner is served." #concierge
+"Good evening, Luna. Dinner is served." #concierge
 * [Take a seat.]
     -> use
 * [What is for dinner?]
     "Everything you need, and nothing you don't. A seat, a moment, and you are on your way." #concierge
     -> END
 * [Walk on.]
-    "Of course. Enjoy your evening, guest." #concierge
+    "Of course. Enjoy your evening, Luna." #concierge
     -> END
 = use
 // she does not need it often: once in a while, by the story's count of her comings and goings
@@ -172,13 +172,13 @@ He plugs an old diagnostic box into your eyepiece and talks to it in numbers. A 
 { raw_view:
     The cuff closes round your wrist. Cold metal, then a slow warmth up the arm.
 - else:
-    "Please rest your wrist, guest. This will only take a moment." #concierge
+    "Please rest your wrist, Luna. This will only take a moment." #concierge
 }
 # wait: 0.8
 { raw_view:
     A pump ticks. A finger's width of the cartridge goes. The cuff lets go.
 - else:
-    "Your levels are excellent. Enjoy your evening, guest." #concierge
+    "Your levels are excellent. Enjoy your evening, Luna." #concierge
 }
 # closeup: off
 -> END

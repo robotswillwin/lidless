@@ -1,7 +1,7 @@
 {
  "id": "backstreet",
  "name": "Backstreet",
- "assist": "The main street is to your right, guest.",
+ "assist": "The main street is to your right, Luna.",
  "kind": "exterior",
  "size": [
   960,
@@ -68,7 +68,7 @@
     "concierge": "Concierge Store 24 · open",
     "raw": "open all night"
    },
-   "ask": "Drinks, tobacco, umbrellas and care for your devices, guest, any hour. Shall I set something aside for you?",
+   "ask": "Drinks, tobacco, umbrellas and care for your devices, Luna, any hour. Shall I set something aside for you?",
    "map": true
   },
   {
@@ -104,7 +104,7 @@
     "raw": "Gauges and patched cables. The repair bot keeps it running, just."
    },
    "tag": "City panel",
-   "ask": "A Brighter Tomorrow, Together, guest.",
+   "ask": "A Brighter Tomorrow, Together, Luna.",
    "kind": "machine"
   },
   {

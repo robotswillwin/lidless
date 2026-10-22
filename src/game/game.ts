@@ -103,6 +103,8 @@ export class Game {
   /** How closely the Concierge is watching her, 0 to 3: staring at what it hides raises it, behaving in its view lets it fall. */
   private attention: number;
   private attentionAt = 0;
+  /** Her heart, beats a minute, as her wrists tell it: the Concierge keeps it. */
+  private heart = 66;
   /** What she will do with a thing when she gets there. */
   private pending: Action | null = null;
   /** The walk keys held down. */
@@ -213,7 +215,17 @@ export class Game {
       if (fresh.length) this.persist();
     };
     this.hud.setJournal(s.journal);
-    this.hud.onBell = () => this.ring();
+    // the Concierge: its presence opens its card; talking to it there, asking it about something
+    const co = this.hud.concierge;
+    co.onTap = () => this.ring();
+    co.onTalk = () => this.talkToConcierge();
+    co.onAsk = () => this.setVerb('ask');
+    co.onChoose = (i) => {
+      const said = this.dialogue.choices[i], lines = this.dialogue.choose(i, this.raw);
+      co.converse(lines, this.dialogue.choices, said);
+    };
+    co.onEnd = () => this.endTalk();
+    co.run = (commands) => direct(commands, this.stage);
     this.hud.onPanel = () => this.ui.hideCaption();
   }
 
@@ -707,12 +719,26 @@ export class Game {
   /* ---------- input: verbs, the pointer in level pixels, the walk keys ---------- */
 
   /**
-   * She rings for the Concierge at its greeting: it says what it would have her do here, and offers to be asked about
-   * something, which it then listens for. Rung while it listens, the question is put down.
+   * Its presence tapped: the Concierge's card opens, with what it would have her do here (the scene's `assist`), and
+   * closes again. Tapped while it listens, the question is put down.
    */
   private ring(): void {
-    if (this.verb === 'ask') { this.setVerb(null); return this.hud.dismissToast(); }
-    this.hud.toast(this.scene.file.assist ?? 'Is there anything I can do for you, guest?', [{ label: 'Ask about something', primary: true, run: () => this.setVerb('ask') }], 12000);
+    if (this.verb === 'ask') return this.setVerb(null);
+    if (this.hud.concierge.isOpen) return this.hud.concierge.close();
+    this.hud.openConcierge(this.scene.file.assist ?? 'Is there anything I can do for you, Luna?', !this.watched);
+  }
+
+  /**
+   * Talking to the Concierge itself, in its card: its knot for where she is (`concierge_<scene>`, a `-` in the scene's
+   * id a `_`, as Ink names go), else its own (`concierge`). Not where it cannot hear her.
+   */
+  private talkToConcierge(): void {
+    const knot = [`concierge_${this.scene.file.id.replace(/-/g, '_')}`, 'concierge'].find((k) => this.dialogue.has(k));
+    if (!knot || !this.watched || this.raw) return;
+    this.lockedBeforeTalk = !this.canSwitch();
+    this.partner = null;
+    this.hud.setTalking(true);
+    this.hud.concierge.converse(this.dialogue.start(knot, this.raw), this.dialogue.choices);
   }
 
   /** A verb chosen at the ball (or asking, at the Concierge's greeting), or put down. */
@@ -884,7 +910,7 @@ export class Game {
 
   /** The autosave, written as she plays: never in the middle of a conversation, which saves as it ends. */
   persist(): void {
-    if (this.talk.open || this.directing) return;
+    if (this.talk.open || this.directing || this.hud.concierge.talking) return;
     writeSave(this.saveData());
   }
 
@@ -947,9 +973,17 @@ export class Game {
     if (this.attention > 0 && !this.raw && t - this.attentionAt > 30) { this.attention--; this.attentionAt = t; this.hud.setAttention(this.attention); }
     // its greeting and its line of the day: the evening goes on, and it never says it is raining
     const minute = 21 * 60 + 40 + Math.floor(t / 60), hh = Math.floor(minute / 60) % 24, mm = minute % 60;
-    this.hud.setStatus(file.greeting ?? 'Good evening, guest.', `Friday · Year 64 of Care · ${hh}:${String(mm).padStart(2, '0')} · ${file.kind === 'interior' ? 'Indoors, 21°' : '14°, umbrella advised'}`);
-    const credits = this.dialogue.read('credits');
-    this.hud.setCredits(typeof credits === 'number' ? credits : null);
+    this.hud.setStatus(file.greeting ?? 'Good evening, Luna.', `${hh}:${String(mm).padStart(2, '0')}, Friday, Year 64 of Care. ${file.kind === 'interior' ? 'Indoors, 21°.' : '14°, an umbrella is advised.'}`);
+    // what it keeps of her: her credits, her heart as her wrists tell it (it climbs as she hurries, and settles slowly),
+    // and whether she has fed lately (by the story's count of her comings and goings)
+    const pace = world.moving ? (world.gait === 'run' ? 128 : world.gait === 'jog' ? 104 : 84) : 66;
+    this.heart += (pace - this.heart) * Math.min(1, dt / (pace > this.heart ? 5 : 12));
+    const credits = this.dialogue.read('credits'), arrivals = this.dialogue.read('arrivals'), fed = this.dialogue.read('fed_at');
+    this.hud.setReadouts({
+      credits: typeof credits === 'number' ? credits : null,
+      heart: Math.round(this.heart + Math.sin(t * 0.9) * 1.4),
+      nourished: typeof arrivals === 'number' && typeof fed === 'number' ? arrivals - fed < 8 : null,
+    });
     // walking into an end of the walk line that leads somewhere: with the keys, or with a finger running her past it
     const push = world.keyDir || (this.chasing && this.finger ? Math.sign(this.toLevel(this.finger[0], this.finger[1])[0] - world.heroX) : 0);
     if (push !== 0 && !this.travelling) {

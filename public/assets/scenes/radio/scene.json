@@ -1,7 +1,7 @@
 {
   "id": "radio",
   "name": "Radio repair",
-  "assist": "The gentleman at the bench is expecting a parcel, guest.",
+  "assist": "The gentleman at the bench is expecting a parcel, Luna.",
   "kind": "interior",
   "size": [
     960,
@@ -192,7 +192,7 @@
         "raw": "A visor ripped open, wires hanging out, its lens cracked. Someone's old eye."
       },
       "tag": "Spare visor",
-      "ask": "A spare, guest. Yours is working perfectly."
+      "ask": "A spare, Luna. Yours is working perfectly."
     },
     {
       "id": "side-door",
@@ -232,7 +232,7 @@
         "concierge": "Guest · repairs",
         "raw": "the radio man"
       },
-      "ask": "He repairs old radios, guest. A charming pastime.",
+      "ask": "He repairs old radios, Luna. A charming pastime.",
       "story": "fixer"
     },
     {

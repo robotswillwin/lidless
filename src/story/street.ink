@@ -63,14 +63,14 @@ He plugs an old diagnostic box into your eyepiece and talks to it in numbers. A 
 // the main street's nutrition and health station: its voice, and taking a seat
 = talk
 { raw_view: In raw view its panel is a grille, and the voice comes from behind it. }
-"Good evening, guest. Dinner is served." #concierge
+"Good evening, Luna. Dinner is served." #concierge
 * [Take a seat.]
     -> use
 * [What is for dinner?]
     "Everything you need, and nothing you don't. A seat, a moment, and you are on your way." #concierge
     -> END
 * [Walk on.]
-    "Of course. Enjoy your evening, guest." #concierge
+    "Of course. Enjoy your evening, Luna." #concierge
     -> END
 = use
 // she does not need it often: once in a while, by the story's count of her comings and goings
@@ -83,13 +83,13 @@ He plugs an old diagnostic box into your eyepiece and talks to it in numbers. A 
 { raw_view:
     The cuff closes round your wrist. Cold metal, then a slow warmth up the arm.
 - else:
-    "Please rest your wrist, guest. This will only take a moment." #concierge
+    "Please rest your wrist, Luna. This will only take a moment." #concierge
 }
 # wait: 0.8
 { raw_view:
     A pump ticks. A finger's width of the cartridge goes. The cuff lets go.
 - else:
-    "Your levels are excellent. Enjoy your evening, guest." #concierge
+    "Your levels are excellent. Enjoy your evening, Luna." #concierge
 }
 # closeup: off
 -> END
