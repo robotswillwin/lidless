@@ -90,19 +90,22 @@ holds**. Each decision is the director's, in plain words; what is still open say
 21. **No people painted into a background**, not even behind a window or far off: every person is a character of
     their own, drawn at true scale against Luna. And everything keeps the flat vector style: simple shapes, few
     tones, no fine detail.
-22. **The cocktail bar can be entered.** Felix is inside, and Luna is shocked by the prices of real drinks: a beer
-    120 credits, a gin 190, a twelve-year whisky 280, against her allowance (312). The bar's machine pours; Felix,
-    once met, pays.
+22. **The cocktail bar can be entered.** Felix is inside, and Luna is shocked by the prices of real drinks: she
+    cannot afford even a beer. A beer 450 credits, a gin 680, a twelve-year whisky 1,400, against her allowance
+    (312). The bar's machine pours; Felix, once met, pays.
 23. **Where a cutaway shows a basement, the ground beside it is cut away too**: under the street outside, gravel,
     earth, pipes and cables, not a street running on below the floor.
 24. **The outside of a place matches its inside**: what the street shows through a window is the room she walks
     into.
+25. **Most signs are the Concierge's**: shop names, neon, sign boards and screens are projections, not there at all in
+    raw view, where the wall or the band they hang on is bare. Raw view keeps only physical remains: an old torn
+    poster, a word faded on brick.
 
 ## Production
 
-25. **Music** is the director's: one composition in a digital and an analogue arrangement, blended as the view
+26. **Music** is the director's: one composition in a digital and an analogue arrangement, blended as the view
     switches. No sound effects yet.
-26. **English only**, for now.
+27. **English only**, for now.
 
 ## Open, for the director
 

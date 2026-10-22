@@ -12,7 +12,7 @@ import { holds } from './conditions';
 import { Dialogue, STITCH } from './dialogue';
 import { direct, type Stage } from './direct';
 import { heroDrawing, heroGaits, holdPace, paceFor } from './hero';
-import { Hud, type Action, type Item, type Mark, type Notebook } from './hud';
+import { Hud, type Action, type Item, type Mark, type Notebook, type Way } from './hud';
 import { inView, pick, placeIn, type Hotspot } from './level';
 import { mapNow, onMap, type MapNow, type MapScene, type Travel } from './map';
 import { noticedOnLeaving } from './privacy';
@@ -227,6 +227,7 @@ export class Game {
     co.onEnd = () => this.endTalk();
     co.run = (commands) => direct(commands, this.stage);
     this.hud.onPanel = () => this.ui.hideCaption();
+    this.hud.onWay = (id) => this.takeWay(id);
   }
 
   /** A session, in the scene the address asks for, or the saved one, or where the world starts. */
@@ -776,6 +777,36 @@ export class Game {
     return [x + w / 2, y - 6];
   }
 
+  /**
+   * The ways in and out on screen, for their markers: every door that leads somewhere (`go`) and every way she uses to
+   * get about (a lift: `kind` way), over its top; a way off the end of the street at that edge, while it is in sight.
+   * None while she travels or talks.
+   */
+  private waysNow(): Way[] {
+    if (this.travelling || this.talk.open || this.hud.concierge.talking || this.directing) return [];
+    const f = this.scene.file, W = this.hud.root.clientWidth, out: Way[] = [];
+    for (const h of f.hotspots) {
+      if (!(h.go || h.kind === 'way') || !inView(h, this.raw) || !this.world.shown(h)) continue;
+      const [x, y, w, hh] = this.boxOf(h), [rx, , rw] = placeIn(h, this.raw).rect;
+      if (x + w < 0 || x > W) continue;
+      const edge = h.go && rx <= 2 ? 'left' : h.go && rx + rw >= f.size[0] - 2 ? 'right' : 'in', label = pick(h.name, this.raw);
+      out.push(edge === 'in' ? { id: h.id, label, x: x + w / 2, y: y - 6, edge } : { id: h.id, label, x: edge === 'left' ? Math.max(12, x) : Math.min(W - 12, x + w), y: y + hh / 2, edge });
+    }
+    return out;
+  }
+
+  /** A way's marker tapped: she goes to it and through, as tapping the door itself does; a lift, she uses. */
+  private takeWay(id: string): void {
+    const h = this.scene.file.hotspots.find((x) => x.id === id);
+    if (!h || this.talk.open || this.travelling) return;
+    this.hud.closePanel();
+    this.hud.dismissNote();
+    if (this.verb) this.setVerb(null);
+    const { rect, stand } = placeIn(h, this.raw);
+    this.pending = h.go ? { kind: 'feet', label: '' } : null;
+    this.goTo(h.go || stand === undefined ? rect[0] + rect[2] / 2 : stand, h);
+  }
+
   /** A thing's place on screen, in the HUD's pixels, where its layer has moved to with the camera. */
   private boxOf(h: Hotspot): [number, number, number, number] {
     const c = this.s.canvas.getBoundingClientRect(), hud = this.hud.root.getBoundingClientRect(), k = c.width / NW;
@@ -1014,6 +1045,7 @@ export class Game {
     if (this.marked) { this.marked.box = this.boxOf(this.marked.h); this.hud.mark(this.marked); }
     const noted = this.hud.noteFor;
     if (noted) this.hud.placeNote(this.boxOf(noted));
+    this.hud.ways(this.waysNow());
     this.talk.place();
     fitCanvas(this.s.canvas);
     this.s.renderer.render(this.runner.frame(t, this.state, this.cam, [her], smoke));

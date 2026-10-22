@@ -415,7 +415,7 @@ const checks = {
     await tap(page, 335, 258);
     await page.waitForFunction(() => !!document.querySelector('.talk-line:not([hidden])'), { timeout: 12000 }).catch(() => {});
     const prices = await talkThrough(page);
-    check('the price board: a glass at most of her week', prices.some((l) => /Two hundred and eighty/.test(l) && /312/.test(l)), prices.join(' / ').slice(0, 160));
+    check('the price board: not even a beer is in reach of her week', prices.some((l) => /Four hundred and fifty/.test(l) && /312/.test(l)), prices.join(' / ').slice(0, 160));
     // ordering from the machine: it calls her guest; Felix pays, his line over his own head
     await verb(page, 'heart');
     await tap(page, 769, 276);
@@ -432,6 +432,23 @@ const checks = {
     });
     check('Felix pays, his line over his own head', !!over && Math.abs(over.line - over.felix) < 120, JSON.stringify(over));
     await talkThrough(page);
+    await page.close();
+  },
+
+  /** Where she can go is plain: a marker over each door that leads somewhere and at the street's end; tapped, she goes. */
+  async ways() {
+    const page = await browser.newPage();
+    page.on('pageerror', (e) => errors.push(String(e)));
+    await page.setViewport({ width: 1920, height: 1080 });
+    await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
+    await page.evaluateOnNewDocument(() => { if (sessionStorage.getItem('seeded')) return; sessionStorage.setItem('seeded', '1'); localStorage.setItem('lidless.save.v1', JSON.stringify({ v: 2, scene: 'street', heroX: 300, facing: 1, view: 1, ink: null })); });
+    await page.goto(`${url}?notitle&fast`);
+    await ready(page);
+    const marked = await page.$$eval('.hud-way', (bs) => bs.map((b) => `${b.dataset.edge}:${b.textContent}`));
+    check('the ways in sight are marked: the radio repair door, the end of the street', marked.includes('in:Radio repair') && marked.some((m) => /^left:/.test(m)), marked.join(' | '));
+    await page.evaluate(() => [...document.querySelectorAll('.hud-way')].find((b) => b.textContent === 'Radio repair')?.click());
+    await wait(4500);
+    check('a marker tapped: she goes there, and in', (await save(page))?.scene === 'radio', (await save(page))?.scene);
     await page.close();
   },
 

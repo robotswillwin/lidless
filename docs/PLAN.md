@@ -53,6 +53,9 @@ The design: https://claude.ai/artifact/X65FknT3sqWZBgJaHgHboZ. In code: `src/gam
   Only it calls her Luna; every other machine says "guest". At the top right: the view switch with its attention,
   the map, her journal (on her device, anywhere), her notebook (paper, privacy zones only) and the menu with her
   saves.
+- **Ways in and out are marked.** Every door that leads somewhere, a lift, and the end of a street carry a small
+  marker with where it goes (the Concierge's light in its view, her own glass in raw view); a tap on one takes her
+  there and through, as a tap on the door does.
 - **Two balls, for thumbs.** Tap to walk (further off she jogs, further still she runs, speeding up and slowing down through the gaits; a door or the street's end, she goes through). The right
   ball slides the verbs out along the bottom, her properties: Eyes look, Heart talks, Hands use and take; they stay
   out until a ball is tapped, and the one chosen asks beside the ball what to do it to ("Talk to whom?"). With a verb

@@ -2,16 +2,16 @@
 // who can afford anything.
 
 === bar_prices ===
-// the price board: real drinks, at real prices. Her allowance is her credits; one glass is most of a week of it
+// the price board: real drinks, at real prices. Her allowance is her credits, and not even a beer is in reach of it
 = look
 { raw_view:
-    A cracked blackboard, the prices chalked in by hand. Beer, 120. Gin, 190. Whisky, twelve years old, 280.
+    A cracked blackboard, the prices chalked in by hand. Beer, 450. Gin, 680. Whisky, twelve years old, 1,400.
 - else:
-    The list glows gold over the booth. A real beer, 120 credits. A gin and tonic, 190. A twelve-year whisky, 280.
+    The list glows gold over the booth. A real beer, 450 credits. A gin and tonic, 680. A twelve-year whisky, 1,400.
 }
-Two hundred and eighty. For one glass. I've got {credits} to last the week. #luna
+Four hundred and fifty. For a beer. I've got {credits} to last the week. #luna
 { not raw_view:
-    "Real grain, Luna, aged twelve years in real oak. A rare pleasure, for a rare evening." #concierge
+    "Real hops, Luna, grown in real soil. A rare pleasure, for a rare evening." #concierge
 }
 -> END
 
@@ -29,11 +29,11 @@ Two hundred and eighty. For one glass. I've got {credits} to last the week. #lun
 
 === bar_order ===
 // ordering: the drinks machine pours (#tap, a machine of the city: it calls her "guest"). She asks the prices and
-// cannot bring herself to; once she has met him, Felix pays (Level 4 pays very well)
+// cannot afford even a beer; once she has met him, Felix pays (Level 4 pays very well)
 "Good evening, guest. What can I pour for you?" #tap
 * [How much is a beer?]
-    "One hundred and twenty credits, guest. Real hops, grown in soil." #tap
-    A hundred and twenty. For a beer. #luna
+    "Four hundred and fifty credits, guest. Real hops, grown in soil." #tap
+    Four hundred and fifty. That's more than I've got. #luna
 * [What's the cheapest thing you have?]
     "Water is complimentary, guest." #tap
     Of course it is. #luna

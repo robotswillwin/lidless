@@ -236,7 +236,7 @@ export function checkSceneFile(data: unknown, id?: string): string[] {
     if (!nums(h?.rect, 4)) out.push(`${name}: rect must be [x, y, width, height]`);
     if (!viewText(h?.name)) out.push(`${name}: name must be text, or { concierge, raw }`);
     for (const k of ['look', 'use', 'take', 'reply'] as const) if (h?.[k] !== undefined && !viewText(h[k])) out.push(`${name}: ${k} must be text, or { concierge, raw }`);
-    if (h?.kind !== undefined && !['person', 'machine', 'thing'].includes(h.kind as string)) out.push(`${name}: kind must be "person", "machine" or "thing"`);
+    if (h?.kind !== undefined && !['person', 'machine', 'thing', 'way'].includes(h.kind as string)) out.push(`${name}: kind must be "person", "machine", "thing" or "way"`);
     const go = h?.go as Record<string, unknown> | undefined;
     if (go !== undefined && (!isStr(go?.scene) || !isStr(go?.spawn))) out.push(`${name}: go needs a scene and a spawn to arrive at`);
     if (h?.only !== undefined && h.only !== 'raw' && h.only !== 'concierge') out.push(`${name}: only must be "raw" or "concierge"`);

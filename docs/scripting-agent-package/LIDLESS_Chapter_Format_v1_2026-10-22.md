@@ -463,8 +463,9 @@ that look. A prompt says **what is there**, not how to draw it.
 - **A place and its outside match**: what the street shows through a window is the room she walks into, so describe
   them alike. A room is drawn as a cutaway of its building; where it shows a basement, the ground beside it is cut
   away too (gravel, earth, pipes under the street).
-- **No writing** in pictures except signs that say what they must; signs are in English, Chinese or Japanese in the
-  Concierge's view, faded Cyrillic in raw view.
+- **No writing** in pictures except signs that say what they must. Signs are the Concierge's (decision 25): in its
+  view in English, Chinese or Japanese; in raw view not there at all, only an old torn poster or a word faded on
+  brick.
 
 ## What the checker checks
 

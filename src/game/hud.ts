@@ -37,6 +37,18 @@ export interface Action {
   own?: boolean;
 }
 
+/**
+ * A way in or out on screen: a door into a building, or a way off the end of the street. `x`, `y` in the HUD's pixels:
+ * over the door's top, or at the edge it leads off.
+ */
+export interface Way { id: string; label: string; x: number; y: number; edge: 'in' | 'left' | 'right' }
+
+const WAY_GLYPH = {
+  in: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 14V2.8h8V14M2.5 14h11M9.6 8.4v.01" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  left: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3.5 5.5 8l4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  right: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+};
+
 /** What a chosen verb lights up under her finger: the thing, what the verb does to it, and where it is on screen. */
 export interface Mark {
   h: Hotspot;
@@ -55,6 +67,8 @@ export class Hud {
   onView: () => void = () => {};
   /** A panel opened over the frame. */
   onPanel: () => void = () => {};
+  /** A way's marker tapped: she goes there, and through. */
+  onWay: (id: string) => void = () => {};
   /** Whether a condition on the story holds, for what her notebook holds. */
   known: (cond: string) => boolean = () => false;
   /** She takes a thing out of her pockets to use it on something (null: puts it back). */
@@ -119,6 +133,8 @@ export class Hud {
   private menuTab: 'saves' | 'settings' | 'help' = 'saves';
   /** Her things' pictures, fetched once. */
   private readonly fetched = new Set<string>();
+  /** The markers over the ways in and out on screen, by hotspot. */
+  private readonly wayEls = new Map<string, HTMLButtonElement>();
 
   constructor(canvas: HTMLCanvasElement) {
     const root = (this.root = el('div', 'hud'));
@@ -281,6 +297,37 @@ export class Hud {
     this.viewBtn.dataset.level = String(n);
     this.viewBtn.querySelectorAll('.ticks span').forEach((s, i) => s.classList.toggle('on', i < n));
     this.viewBtn.title = `Its attention: ${['calm', 'noticing', 'watching', 'watching closely'][n]}`;
+  }
+
+  /**
+   * The ways in and out on screen, each frame, so it is plain where she can go: a marker over each door that leads
+   * somewhere, and one at the edge of the street for a way off its end; a tap on one takes her there and through. In
+   * the Concierge's view they are its light, in raw view her own.
+   */
+  ways(list: Way[]): void {
+    const now = new Set<string>();
+    for (const w of list) {
+      now.add(w.id);
+      let b = this.wayEls.get(w.id);
+      if (!b) {
+        const id = w.id;
+        b = button('hud-way', w.label, this.root, () => this.onWay(id));
+        b.addEventListener('pointerdown', (e) => e.stopPropagation());
+        this.wayEls.set(w.id, b);
+      }
+      if (b.dataset.edge !== w.edge || b.dataset.label !== w.label) {
+        b.dataset.edge = w.edge;
+        b.dataset.label = w.label;
+        b.replaceChildren();
+        if (w.edge !== 'right') b.insertAdjacentHTML('beforeend', WAY_GLYPH[w.edge]);
+        el('span', '', b, w.label);
+        if (w.edge === 'right') b.insertAdjacentHTML('beforeend', WAY_GLYPH.right);
+        b.setAttribute('aria-label', w.edge === 'in' ? `Go in: ${w.label}` : `Go: ${w.label}`);
+      }
+      b.style.setProperty('--x', `${Math.round(w.x)}px`);
+      b.style.setProperty('--y', `${Math.round(w.y)}px`);
+    }
+    for (const [id, b] of this.wayEls) if (!now.has(id)) { b.remove(); this.wayEls.delete(id); }
   }
 
   /** What a chosen verb lights up under her finger, or nothing (null): corners around the thing, its name and the verb. */
@@ -662,7 +709,7 @@ export class Hud {
 export function drawHelp(p: HTMLElement): void {
   const box = el('div', 'help', p);
   const rows: [string, string][] = [
-    ['Walk', 'Tap where she should go. A door, or the end of the street, takes her through. Outdoors, hold a finger far ahead of her to run.'],
+    ['Walk', 'Tap where she should go. Every door that leads somewhere, and the end of the street, has a marker: tap it, or the door, and she goes through. Outdoors, hold a finger far ahead of her to run.'],
     ['Do', 'The ball at the bottom right: choose Look, Talk, Use or Take, then tap what to do it to (or slide over the scene and let go on what lights up). Anything can be tried; not everything answers.'],
     ['Concierge', 'Its light at the top left, in its view. Tap it: it says what it would have you do here, what you have to do, and how you are. Talk to it there, or Ask about something, then tap a thing. Talk at the ball is Luna speaking to someone herself.'],
     ['Her things', 'The ball at the bottom left. Tap a thing to see it close up; Use takes it out, then tap what to use it on.'],
