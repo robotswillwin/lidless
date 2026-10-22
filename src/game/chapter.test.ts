@@ -13,4 +13,10 @@ describe('the chapter format', () => {
     try { out = run(); } catch (e) { out = String((e as { stdout?: string }).stdout ?? e); }
     expect(out).toContain('no errors');
   });
+
+  it('gives the scripting agents what is current: their package is up to date with what it copies', () => {
+    let out = '';
+    try { out = execFileSync(process.execPath, ['--experimental-strip-types', '--no-warnings', 'scripts/chapter.mts', '--check-package'], { cwd: root, encoding: 'utf8' }); } catch (e) { out = String((e as { stdout?: string }).stdout ?? e); }
+    expect(out, 'make it again: npm run agent-package').toContain('up to date');
+  });
 });

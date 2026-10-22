@@ -16,7 +16,8 @@
     "check:layers": "node scripts/layers.mjs",
     "perf": "vite build --logLevel warn && node scripts/perf.mjs",
     "asset": "node tools/pipeline/cli.mjs",
-    "chapter": "node --experimental-strip-types --no-warnings scripts/chapter.mts"
+    "chapter": "node --experimental-strip-types --no-warnings scripts/chapter.mts",
+    "agent-package": "node --experimental-strip-types --no-warnings scripts/chapter.mts --package"
   },
   "devDependencies": {
     "@types/node": "^22.20.5",

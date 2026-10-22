@@ -10,10 +10,13 @@ This replaces the instructions for the writing assistant in the first writing br
 outgrown. The world is the bible's (`LIDLESS_Game_Bible_v0.4_2026-10-21.md`): where this format and the bible meet,
 the bible decides what is true and this format decides how it is written down.
 
-- **The example:** `docs/chapters/00-the-errand/`, the game's opening written in this format. Copy its shape.
-- **The catalog:** `docs/chapters/CATALOG.md`, everything the game has now (places and their spots, people, things,
-  variables, knots, outfits, close-ups, machines, journal and notebook pages), by id. Generated from the game; give it
-  to the agent with each new chapter.
+- **The example:** `docs/chapters/00-the-errand/`, the game's opening written in this format (in the scripting agent
+  package: the files named `chapter-00-the-errand-…`). Copy its shape.
+- **The catalog:** `docs/chapters/CATALOG.md` (`CATALOG.md` in the package), everything the game has now (places and
+  their spots, people, things, variables, knots, outfits, close-ups, machines, journal and notebook pages), by id.
+  Generated from the game; give it to the agent with each new chapter.
+- **The scripting agent package:** `docs/scripting-agent-package/`, all of these in one folder, with the agent's
+  instructions to paste and how to use it. `npm run agent-package` makes it again after anything in it changes.
 - **The checker:** `npm run chapter -- docs/chapters/<NN>-<name>`.
 
 ## How a chapter gets into the game

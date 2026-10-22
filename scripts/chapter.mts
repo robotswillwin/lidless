@@ -6,8 +6,11 @@
 //
 //   npm run chapter -- docs/chapters/00-the-errand    check a chapter: errors to fix, warnings to weigh, a summary
 //   npm run chapter -- --catalog                      write docs/chapters/CATALOG.md from the game as it is
+//   npm run agent-package                             the scripting agent package: the catalog, and everything an agent
+//                                                     is given, in one folder (docs/scripting-agent-package/)
+//   npm run chapter -- --check-package                whether that folder is up to date with what it copies
 
-import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { Compiler, CompilerOptions } from 'inkjs/full';
 import { isMap, isScalar, isSeq, LineCounter, parseDocument } from 'yaml';
@@ -173,6 +176,8 @@ function main() {
   const args = process.argv.slice(2);
   const game = loadGame();
   if (args.includes('--catalog')) return void writeCatalog(game);
+  if (args.includes('--package')) return void writePackage(game);
+  if (args.includes('--check-package')) return void checkPackage(game);
   const dirArg = args.find((a) => !a.startsWith('--'));
   if (!dirArg) { console.error('usage: npm run chapter -- <chapter folder>   |   npm run chapter -- --catalog'); process.exit(2); }
   const dir = resolve(dirArg);
@@ -511,6 +516,12 @@ function main() {
 // ---------- the catalog ----------
 
 function writeCatalog(game: Game) {
+  const file = join(ROOT, 'docs/chapters/CATALOG.md');
+  writeFileSync(file, catalogText(game));
+  console.log(`${rel(file)}: ${game.scenes.size} places, ${Object.keys(game.items).length} things, ${game.variables.size} variables, ${game.knots.size} knots`);
+}
+
+function catalogText(game: Game): string {
   const view = (v: unknown) => (typeof v === 'string' ? v : isObj(v) ? (v.concierge === v.raw ? String(v.concierge) : `${String(v.concierge ?? '–')} / ${String(v.raw ?? '–')}`) : '');
   const out: string[] = [
     '# What the game has',
@@ -541,9 +552,100 @@ function writeCatalog(game: Game) {
   out.push('## Outfits', '', Object.entries(game.outfits).map(([id, o]) => `\`${id}\` (${String((o as Obj).name)})`).join(', ') + '.', '');
   out.push('## Close-ups and machines', '', `Close-ups: ${game.closeups.map((c) => `\`${c}\``).join(', ') || 'none'}. Machines: ${game.machines.map((m) => `\`${m}\``).join(', ') || 'none'}.`, '');
   out.push('## Journal and notebook pages', '', `Journal: ${game.journal.map((p) => `\`${String(p.id)}\` (${String(p.title)})`).join(', ')}. Notebook: ${game.notebook.map((p) => `\`${String(p.id)}\` (${String(p.title)})`).join(', ')}.`, '');
-  const file = join(ROOT, 'docs/chapters/CATALOG.md');
-  writeFileSync(file, out.join('\n'));
-  console.log(`${rel(file)}: ${game.scenes.size} places, ${Object.keys(game.items).length} things, ${game.variables.size} variables, ${game.knots.size} knots`);
+  return out.join('\n');
+}
+
+// ---------- the scripting agent package ----------
+
+/** The folder a scripting agent is given, whole: made from the files it copies, never edited by hand. */
+const PACKAGE = join(ROOT, 'docs/scripting-agent-package');
+/** What it copies as they are: the world, the director's decisions, the format, and the brief for the first chapter. */
+const PACKAGE_DOCS = [
+  'docs/story/LIDLESS_Game_Bible_v0.4_2026-10-21.md',
+  'docs/story/LIDLESS_Director_Decisions_2026-10-22.md',
+  'docs/story/LIDLESS_Chapter_Format_v1_2026-10-22.md',
+  'docs/story/LIDLESS_Vertical_Slice_v0.1_2026-10-21.md',
+];
+
+/** Each file of the package by its name: the docs, the catalog, every chapter's files side by side, the instructions. */
+function packageFiles(game: Game): Map<string, string> {
+  const files = new Map<string, string>();
+  const format = readFileSync(join(ROOT, 'docs/story/LIDLESS_Chapter_Format_v1_2026-10-22.md'), 'utf8');
+  const instructions = /## Instructions for the scripting agent[\s\S]*?\n```\n([\s\S]*?)\n```/.exec(format)?.[1];
+  if (!instructions) throw new Error('the chapter format has no instructions block under "## Instructions for the scripting agent"');
+  // chapters, flat: a project takes files, not folders
+  const chapters: string[] = [];
+  const dir = join(ROOT, 'docs/chapters');
+  for (const c of readdirSync(dir).sort()) {
+    if (!statSync(join(dir, c)).isDirectory()) continue;
+    for (const f of readdirSync(join(dir, c)).filter((x) => x.endsWith('.md')).sort()) {
+      const name = `chapter-${c}-${f}`;
+      files.set(name, readFileSync(join(dir, c, f), 'utf8'));
+      chapters.push(name);
+    }
+  }
+  files.set('00-HOW-TO-USE.md', howToUse(chapters));
+  files.set('INSTRUCTIONS.txt', `${instructions}\n`);
+  for (const d of PACKAGE_DOCS) files.set(d.split('/').pop()!, readFileSync(join(ROOT, d), 'utf8'));
+  files.set('CATALOG.md', catalogText(game));
+  return files;
+}
+
+function howToUse(chapters: string[]): string {
+  return [
+    '# Scripting agent package',
+    '',
+    'Everything a scripting agent needs to write a chapter of Lidless, in one folder. Made by `npm run agent-package`',
+    'from the files it copies: do not edit these copies; edit the originals in `docs/`, and make the package again.',
+    '',
+    '## Setting up the agent',
+    '',
+    '1. Upload every file in this folder to the agent\'s project, as its knowledge.',
+    '2. Paste `INSTRUCTIONS.txt` into the project\'s instructions.',
+    '',
+    '## For each chapter',
+    '',
+    '1. Give the agent a brief: what the chapter is for, what must happen in it, where, and what you have decided for it.',
+    '2. It sends `overview.md` first. Read it; tell it to go on, or what to change.',
+    '3. It sends one file per place. Save them all in `docs/chapters/<NN>-<name>/`, for example `docs/chapters/01-the-voice-at-three/`.',
+    '4. Check it: `npm run chapter -- docs/chapters/<NN>-<name>`. Paste any errors back to the agent, and save what it fixes.',
+    '5. When the check shows no errors, the chapter is ready to build.',
+    '6. Once it is built, run `npm run agent-package` again and upload the new and changed files (the new chapter, the',
+    '   new catalog) to the project, in place of the old ones.',
+    '',
+    '## What is in it',
+    '',
+    '| File | What it is |',
+    '| --- | --- |',
+    '| `INSTRUCTIONS.txt` | The agent\'s instructions: paste into the project. |',
+    '| `LIDLESS_Game_Bible_v0.4_2026-10-21.md` | The world, the characters and the story so far: canon. |',
+    '| `LIDLESS_Director_Decisions_2026-10-22.md` | The director\'s decisions since the bible: where they differ, these hold. |',
+    '| `LIDLESS_Chapter_Format_v1_2026-10-22.md` | How a chapter is written and delivered. |',
+    '| `CATALOG.md` | Everything the game has now, by id: places and their spots, people, things, variables, knots. |',
+    ...chapters.map((c) => `| \`${c}\` | ${c.startsWith('chapter-00-') ? 'The worked example: the opening, written in the format. Its folder is docs/chapters/00-the-errand/.' : 'A chapter written so far.'} |`),
+    '| `LIDLESS_Vertical_Slice_v0.1_2026-10-21.md` | The proposal for chapter 1, the vertical slice, and the decisions it waits on. |',
+    '',
+  ].join('\n');
+}
+
+function writePackage(game: Game) {
+  writeCatalog(game);
+  const files = packageFiles(game);
+  if (!existsSync(PACKAGE)) mkdirSync(PACKAGE, { recursive: true });
+  // what is no longer part of it goes
+  for (const f of readdirSync(PACKAGE)) if (!files.has(f)) rmSync(join(PACKAGE, f));
+  for (const [name, text] of files) writeFileSync(join(PACKAGE, name), text);
+  console.log(`${rel(PACKAGE)}/: ${files.size} files, ready to upload`);
+}
+
+/** Whether the package is what it would be made now: each copy the same as what it copies. */
+function checkPackage(game: Game) {
+  const files = packageFiles(game), stale: string[] = [];
+  const have = existsSync(PACKAGE) ? new Set(readdirSync(PACKAGE)) : new Set<string>();
+  for (const [name, text] of files) if (!have.has(name)) stale.push(`missing ${name}`); else if (readFileSync(join(PACKAGE, name), 'utf8') !== text) stale.push(`out of date ${name}`);
+  for (const f of have) if (!files.has(f)) stale.push(`no longer part of it ${f}`);
+  if (stale.length) { console.log(`${rel(PACKAGE)}/ is out of date (npm run agent-package):\n  ${stale.join('\n  ')}`); process.exit(1); }
+  console.log(`${rel(PACKAGE)}/: up to date, ${files.size} files`);
 }
 
 main();
