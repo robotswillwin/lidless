@@ -3,7 +3,7 @@
 // (built assets, placed), lights, its inside and outside areas, the walk line, places to arrive and hotspots, some of
 // which lead to other scenes.
 
-import { fetchSprite, imageFromBlob, loadBlob, makeSprite, spriteDefaults, WAVES, type FetchedSprite, type GodrayDef, type GroundDef, type LoadedScene, type Only, type Views, type MoverDef, type SceneDef, type ScopeDef, type Sprite, type SteamDef } from '../engine/assets';
+import { fetchSprite, imageFromBlob, loadBlob, makeSprite, SPEEDS, spriteDefaults, WAVES, type FetchedSprite, type GodrayDef, type GroundDef, type LoadedScene, type Only, type Views, type MoverDef, type SceneDef, type ScopeDef, type Sprite, type SteamDef } from '../engine/assets';
 import { presets, type PlacedLight } from '../engine/presets';
 import { conditionProblem } from './conditions';
 import { textureFromImage, type GL } from '../engine/gl';
@@ -341,7 +341,8 @@ export function checkSceneFile(data: unknown, id?: string): string[] {
   effects('beacons', 32, ['x', 'y', 'phase']);
   effects('scopes', 2, ['x', 'y', 'r'], (e, name) => {
     if (e?.shape !== undefined && !(WAVES as readonly unknown[]).includes(e.shape)) out.push(`${name}.shape must be one of ${WAVES.join(', ')}`);
-    if (e?.wave !== undefined && (!isStr(e.wave) || !/^[a-z_][a-z0-9_]*$/.test(e.wave))) out.push(`${name}.wave must name a story variable`);
+    if (e?.pace !== undefined && !(Object.keys(SPEEDS) as unknown[]).includes(e.pace)) out.push(`${name}.pace must be one of ${Object.keys(SPEEDS).join(', ')}`);
+    for (const k of ['wave', 'speed']) if (e?.[k] !== undefined && (!isStr(e[k]) || !/^[a-z_][a-z0-9_]*$/.test(e[k] as string))) out.push(`${name}.${k} must name a story variable`);
     if (e?.when !== undefined) { const p = isStr(e.when) ? conditionProblem(e.when) : 'it must be text'; if (p) out.push(`${name}: when: ${p}`); }
   });
   if (f.drips !== undefined) {

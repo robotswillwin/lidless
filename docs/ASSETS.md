@@ -326,10 +326,12 @@ Characters walk in front of the set, so lights and characters need to know which
 - A scene's `ambient` and `exposure` (stops) can each be one number or one per view: a dark raw room can be a white
   apartment to the Concierge.
 - What moves on a screen is drawn live, not painted: an oscilloscope (`scopes`, two at most) is the middle of its
-  glass and its radius inside the rim, `x`, `y`, `r`, and its line's shape, `sine`, `square`, `triangle` or `saw`, as
-  placed (`shape`) or as a story variable has it (`wave`: its dial, which the story turns). The engine draws the line
-  over the glass, which is painted empty: it creeps along, breathes a little, carries a real signal's noise in raw view,
-  and changes shape over a moment when the dial turns. Cyan in the Concierge's view, phosphor green in raw view.
+  glass and its radius inside the rim, `x`, `y`, `r`; its line's shape, `sine`, `square`, `triangle` or `saw`, and its
+  speed, `slow`, `medium` or `fast`, each as placed (`shape`, `pace`) or as a story variable has it (`wave`, `speed`:
+  its knobs, which the story turns). The engine draws the line over the glass, which is painted empty: it creeps along,
+  breathes a little, carries a real signal's noise in raw view, changes shape over a moment when a knob turns, and
+  eases to a new speed (more waves across the glass, creeping faster). Cyan in the Concierge's view, phosphor green in
+  raw view.
 - Anything placed can be in one view only, `"only": "raw"` or `"only": "concierge"`: a hotspot, a layer (a hologram
   over the street in the Concierge's view, a scrawl only raw view shows), steam, a light shaft, a beacon, a mover. A
   light says it with its flags, `"ar": 1` or `"raw": 1`; an older light shaft's `"ar": 1` still means the Concierge's.

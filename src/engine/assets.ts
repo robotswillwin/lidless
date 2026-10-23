@@ -145,15 +145,19 @@ export interface SteamDef { x: number; y: number; height: number; width: number;
  */
 export interface GodrayDef { x: number; y: number; strength: number; zone: number; ar?: number; only?: Only; parallax?: number; views?: Views<GodrayDef> }
 export interface BeaconDef { x: number; y: number; phase: number; parallax?: number; only?: Only; views?: Views<BeaconDef> }
-/** The shapes an oscilloscope's line takes, in the order its dial turns through them. */
+/** The shapes an oscilloscope's line takes, in the order its knob turns through them. */
 export const WAVES = ['sine', 'square', 'triangle', 'saw'] as const;
 export type Wave = (typeof WAVES)[number];
+/** Its speeds, in the order its other knob turns through them: how many waves cross its screen, and how fast they creep. */
+export const SPEEDS = { slow: { waves: 1, creep: 0.05 }, medium: { waves: 2, creep: 0.25 }, fast: { waves: 4, creep: 0.9 } } as const;
+export type Speed = keyof typeof SPEEDS;
 /**
  * An oscilloscope's screen, its line drawn live by the engine: it creeps along and breathes, with a little noise on it in
- * raw view. Where the glass's middle is and its radius inside the rim; the shape it shows, as placed (`shape`) or as a
- * story variable has it (`wave`: its dial, which the story turns); only in one view, or while a condition holds.
+ * raw view. Where the glass's middle is and its radius inside the rim; its shape and its speed, as placed (`shape`,
+ * `pace`) or as story variables have them (`wave`, `speed`: its knobs, which the story turns); only in one view, or
+ * while a condition holds.
  */
-export interface ScopeDef { x: number; y: number; r: number; shape?: Wave; wave?: string; when?: string; only?: Only; parallax?: number }
+export interface ScopeDef { x: number; y: number; r: number; shape?: Wave; wave?: string; pace?: Speed; speed?: string; when?: string; only?: Only; parallax?: number }
 
 /**
  * The ground below the reflection line, drawn by the engine over a painted floor that was smoothed for it (asset ground

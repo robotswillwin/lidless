@@ -89,7 +89,8 @@ export interface Frame {
   godrays: Float32Array;
   /**
    * Oscilloscopes' lines, two vec4 each: the glass's middle (world) and radius, its shape now (1 sine, 2 square, 3
-   * triangle, 4 saw); the shape before, how far it has turned into this one (0 to 1). Two at most.
+   * triangle, 4 saw); the shape before, how far it has turned into this one (0 to 1), how far its waves have crept (in
+   * waves), how many cross the screen. Two at most.
    */
   scopes?: Float32Array;
   nScopes?: number;

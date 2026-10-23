@@ -299,6 +299,32 @@
    ],
    "item": "athena_repair_slip",
    "story": "athena_receipt"
+  },
+  {
+   "id": "wave-knob",
+   "name": "Shape knob",
+   "rect": [
+    866,
+    126,
+    40,
+    40
+   ],
+   "look": "A big knob, marked with little waves.",
+   "story": "athena_wave_knob",
+   "kind": "machine"
+  },
+  {
+   "id": "speed-knob",
+   "name": "Speed knob",
+   "rect": [
+    866,
+    212,
+    40,
+    40
+   ],
+   "look": "A knob marked from slow to fast.",
+   "story": "athena_speed_knob",
+   "kind": "machine"
   }
  ],
  "scopes": [
@@ -306,7 +332,8 @@
    "x": 793.8,
    "y": 182.4,
    "r": 47.9,
-   "wave": "athena_scope_wave"
+   "wave": "athena_scope_wave",
+   "speed": "athena_scope_speed"
   }
  ]
 }

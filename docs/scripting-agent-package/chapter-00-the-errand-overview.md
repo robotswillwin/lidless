@@ -246,7 +246,11 @@ variables:
   - name: athena_scope_wave
     new: false
     start: sine
-    means: the shape of the line on Athena's oscilloscope, as its dial is turned ("sine", "square", "triangle", "saw")
+    means: the shape of the line on Athena's oscilloscope, as its knob is turned ("sine", "square", "triangle", "saw")
+  - name: athena_scope_speed
+    new: false
+    start: slow
+    means: the speed of the line on Athena's oscilloscope, as its other knob is turned ("slow", "medium", "fast")
   - name: athena_report
     new: false
     start: not_asked

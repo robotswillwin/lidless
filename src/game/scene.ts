@@ -1,6 +1,6 @@
 // Turns a loaded scene plus the current state into a frame for the renderer.
 
-import { asIn, inViewOf, smoothSampled, WAVES, type LoadedScene, type MoverDef, type SpriteDef } from '../engine/assets';
+import { asIn, inViewOf, smoothSampled, SPEEDS, WAVES, type LoadedScene, type MoverDef, type Speed, type SpriteDef } from '../engine/assets';
 import { resolveLight } from '../engine/presets';
 import type { DrawSprite, Frame } from '../engine/renderer';
 import { frameFor, hasLeft } from './anim';
@@ -109,12 +109,15 @@ export class SceneRunner {
 
   /** Whether a condition on the story holds: a layer or a light with one is there only while it does. */
   shown: (when: string) => boolean = () => true;
-  /** A story variable's value: an oscilloscope's dial (its `wave`). */
+  /** A story variable's value: an oscilloscope's knobs (its `wave` and `speed`). */
   read: (name: string) => unknown = () => undefined;
 
-  /** Each oscilloscope's line: two vec4 for each; its shape now, the one before, and when its dial turned. */
+  /**
+   * Each oscilloscope's line: two vec4 for each. Its shape now, the one before and when its knob turned; how many waves
+   * cross its screen and how fast they creep, easing to its speed's; and how far they have crept, so a turn never jumps.
+   */
   private scopes = new Float32Array(16);
-  private readonly dials: { now: number; was: number; at: number }[] = [];
+  private readonly dials: { now: number; was: number; at: number; waves: number; creep: number; crept: number; t: number }[] = [];
 
   /** Sprites named in `dynamic` are left out; the game draws them itself (the hero). */
   constructor(readonly scene: LoadedScene, private dynamic = new Set<string>()) {
@@ -266,16 +269,22 @@ export class SceneRunner {
     this.godrays.fill(0);
     d.godrays.slice(0, 4).forEach((g0, i) => { const g = asIn(g0, viewName); this.godrays.set([g.x + along(g.parallax), g.y, inViewOf(g.only ?? (g.ar ? 'concierge' : undefined), view) ? g.strength : 0, g.zone], i * 4); });
     this.beaconDefs.slice(0, 32).forEach((b, i) => { this.beacons[i * 4] = b.x + along(b.parallax); });
-    // an oscilloscope's line: the shape its dial is at, turning into it from the one before
+    // an oscilloscope's line: the shape its knob is at, turning into it from the one before; its speed, eased to
     this.scopes.fill(0);
     let nScopes = 0;
     (d.scopes ?? []).forEach((sc, i) => {
       if (nScopes >= 2 || !inViewOf(sc.only, view) || (sc.when && !this.shown(sc.when))) return;
-      const dial = sc.wave === undefined ? undefined : this.read(sc.wave);
+      const dial = sc.wave === undefined ? undefined : this.read(sc.wave), knob = sc.speed === undefined ? undefined : this.read(sc.speed);
       const shape = 1 + Math.max(0, WAVES.indexOf((WAVES as readonly unknown[]).includes(dial) ? (dial as (typeof WAVES)[number]) : sc.shape ?? 'sine'));
-      const at = (this.dials[i] ??= { now: shape, was: shape, at: -10 });
+      const pace = SPEEDS[typeof knob === 'string' && knob in SPEEDS ? (knob as Speed) : sc.pace ?? 'slow'];
+      const at = (this.dials[i] ??= { now: shape, was: shape, at: -10, waves: pace.waves, creep: pace.creep, crept: 0.1 + i * 0.37, t });
       if (at.now !== shape) { at.was = at.now; at.now = shape; at.at = t; }
-      this.scopes.set([sc.x + along(sc.parallax), sc.y, sc.r, shape, at.was, Math.min(1, Math.max(0, (t - at.at) / 0.35)), 0, 0], nScopes++ * 8);
+      const dt = Math.min(0.1, Math.max(0, t - at.t)), ease = 1 - Math.exp(-dt * 6);
+      at.t = t;
+      at.waves += (pace.waves - at.waves) * ease;
+      at.creep += (pace.creep - at.creep) * ease;
+      at.crept = (at.crept + at.creep * dt) % 1;
+      this.scopes.set([sc.x + along(sc.parallax), sc.y, sc.r, shape, at.was, Math.min(1, Math.max(0, (t - at.at) / 0.35)), at.crept, at.waves], nScopes++ * 8);
     });
     const dr = d.drips;
     return {

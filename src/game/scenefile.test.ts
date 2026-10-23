@@ -43,12 +43,14 @@ describe('checkSceneFile', () => {
 
   it('checks an oscilloscope: where its glass is, its shape or the story variable that holds it, two at most', () => {
     const f = read('street');
-    f.scopes = [{ x: 1, y: 1, r: 10, shape: 'zigzag' }, { x: 1, y: 1, wave: 'Not a name' }, { x: 1, y: 1, r: 4, when: 'has_raw and' }];
+    f.scopes = [{ x: 1, y: 1, r: 10, shape: 'zigzag', pace: 'warp' }, { x: 1, y: 1, wave: 'Not a name', speed: 3 }, { x: 1, y: 1, r: 4, when: 'has_raw and' }];
     const problems = checkSceneFile(f, 'street');
     expect(problems).toContain('scopes: at most 2 are drawn, this scene has 3');
     expect(problems).toContain('scopes[0].shape must be one of sine, square, triangle, saw');
     expect(problems.some((p) => p.startsWith('scopes[1] needs r'))).toBe(true);
     expect(problems).toContain('scopes[1].wave must name a story variable');
+    expect(problems).toContain('scopes[0].pace must be one of slow, medium, fast');
+    expect(problems).toContain('scopes[1].speed must name a story variable');
     expect(problems.some((p) => p.startsWith('scopes[2]: when:'))).toBe(true);
   });
 

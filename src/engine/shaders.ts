@@ -348,7 +348,8 @@ uniform vec4 uSteam[4];
 uniform vec4 uSteamFar;   // 1 for each emitter on a far layer: its plume only where a far layer is in front
 uniform vec4 uDrips;      // world x0, x1, top, bottom of the drip curtain; z <= 0 turns it off
 uniform vec4 uScope[4];   // oscilloscopes, two vec4 each: the glass's middle (world) and its radius inside the rim, the
-                          // line's shape (1 sine, 2 square, 3 triangle, 4 saw); the shape before, how far it has turned
+                          // line's shape (1 sine, 2 square, 3 triangle, 4 saw); the shape before, how far it has turned,
+                          // how far its waves have crept, how many cross the screen
 uniform int uNScope;
 uniform float uMirror;    // world y of the reflection line
 uniform vec4 uGnd;        // the ground the engine draws over a painted floor: the horizon's world y; the kerb's distance in
@@ -445,9 +446,9 @@ vec2 waveAt(float s, float ph) {
   return vec2(2.0 * fract(ph + 0.5) - 1.0, 2.0);
 }
 // how far q is from the nearest step a square or a saw jumps down or up: the beam crosses it too fast to light it much
-float waveStep(float s, vec2 q, float ph, float span, float amp, float drift) {
+float waveStep(float s, vec2 q, float ph, float span, float amp, float drift, float waves) {
   if (s < 1.5 || (s > 2.5 && s < 3.5)) return 1e3;
-  float pj = s < 2.5 ? floor(ph * 2.0 + 0.5) * 0.5 : floor(ph) + 0.5, xj = (2.0 * (pj - drift) - 1.0) * span;
+  float pj = s < 2.5 ? floor(ph * 2.0 + 0.5) * 0.5 : floor(ph) + 0.5, xj = (2.0 * (pj - drift) / waves - 1.0) * span;
   return abs(xj) > span ? 1e3 : length(vec2(q.x - xj, max(abs(q.y) - amp, 0.0)));
 }
 float rainL(vec2 p, float t, float sc, float sp, float ln, float dens) {
@@ -635,21 +636,22 @@ void main() {
     if (abs(dx - 18.0) < 0.8 && abs(w.y - yy) < 2.5) c += vec3(0.5, 0.42, 0.35) * (0.4 + lum(near) * 2.0);
   }
   // an oscilloscope's line, drawn live: it creeps along (the trigger never quite holds) and breathes a little, and in raw
-  // view carries a real signal's noise; its dial turned, it changes shape over a moment. Never over someone in front of it
+  // view carries a real signal's noise; its knobs turned, it changes shape over a moment, and speed. Never over someone
+  // in front of it
   for (int i = 0; i < 2; i++) {
     if (i >= uNScope) break;
     vec4 A = uScope[i * 2], B = uScope[i * 2 + 1];
     vec2 q = w - A.xy;
     if (dot(q, q) > A.z * A.z || isActor(g3.a) > 0.5) continue;
     float span = A.z * 0.92, amp = A.z * 0.44 * (1.0 + 0.03 * sin(uTime * 0.9 + float(i) * 1.7));
-    float drift = uTime * 0.05 + float(i) * 0.37, ph = (clamp(q.x / span, -1.0, 1.0) + 1.0) * 0.5 + drift, k = smoothstep(0.0, 1.0, B.y);
+    float waves = max(B.w, 0.25), drift = B.z, ph = (clamp(q.x / span, -1.0, 1.0) + 1.0) * 0.5 * waves + drift, k = smoothstep(0.0, 1.0, B.y);
     vec2 v = mix(waveAt(B.x, ph), waveAt(A.w, ph), k);
     // its line as fine as its screen is small: set for one 48 pixels across, up close
     float sc = A.z / 48.0, px = 1.0 / uRS, hw = max(0.6, 1.55 * sc);
     float yc = -amp * v.x + (vn(vec2(w.x * 0.9 / sc, uTime * 30.0)) - 0.5) * 0.6 * sc * raw;
-    float sl = amp * v.y / (2.0 * span), past = abs(q.x) - span;
+    float sl = amp * v.y * waves / (2.0 * span), past = abs(q.x) - span;
     float d = past > 0.0 ? length(vec2(past, q.y - yc)) : abs(q.y - yc) / sqrt(1.0 + sl * sl);
-    float steps = (cover(waveStep(B.x, q, ph, span, amp, drift), hw * 0.5, px) * (1.0 - k) + cover(waveStep(A.w, q, ph, span, amp, drift), hw * 0.5, px) * k) * 0.35;
+    float steps = (cover(waveStep(B.x, q, ph, span, amp, drift, waves), hw * 0.5, px) * (1.0 - k) + cover(waveStep(A.w, q, ph, span, amp, drift, waves), hw * 0.5, px) * k) * 0.35;
     vec3 col = mix(vec3(0.36, 0.95, 0.42), vec3(0.27, 0.9, 0.97), uView) * (0.96 + 0.04 * sin(uTime * 7.0 + float(i)));
     float line = max(cover(d, hw, px), steps);
     c = mix(c, col, line);

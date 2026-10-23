@@ -129,8 +129,13 @@ You slide the receipt from under the paperweight.
 -> END
 
 === athena_scope ===
-// her oscilloscope, still on: its big dial turns the line through its shapes (athena_scope_wave), and the game draws
-// the line live on its screen. A bonus: nothing waits on it
+// her oscilloscope, still on: one knob turns its line through its shapes (athena_scope_wave), the other through its
+// speeds (athena_scope_speed), and the game draws the line live on its screen. A bonus: nothing waits on it
+= use
+Two knobs on its side: one for the shape of the line, one for its speed.
+-> END
+
+=== athena_wave_knob ===
 = use
 { athena_scope_wave:
 - "square":
@@ -141,9 +146,24 @@ You slide the receipt from under the paperweight.
     Click. It climbs, drops, and climbs again.
 - "saw":
     ~ athena_scope_wave = "sine"
-    Click. Back to the slow wave.
+    Click. Back to the smooth wave.
 - else:
     ~ athena_scope_wave = "square"
-    You turn the big dial. Click: the wave squares off.
+    Click. The wave squares off.
+}
+-> END
+
+=== athena_speed_knob ===
+= use
+{ athena_scope_speed:
+- "medium":
+    ~ athena_scope_speed = "fast"
+    Click. It races across the glass.
+- "fast":
+    ~ athena_scope_speed = "slow"
+    Click. Slow again, calm as breathing.
+- else:
+    ~ athena_scope_speed = "medium"
+    Click. The line quickens.
 }
 -> END

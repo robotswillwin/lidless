@@ -188,6 +188,22 @@ describe('an oscilloscope', () => {
     expect(f.scopes![5]).toBeCloseTo(1);
   });
 
+  it('eases to the speed its other knob is at: more waves, creeping faster, without a jump', () => {
+    let knob = 'slow';
+    const r = new SceneRunner(withScope([{ x: 800, y: 180, r: 48, wave: 'scope_wave', speed: 'scope_speed' }]));
+    r.read = (n) => (n === 'scope_speed' ? knob : undefined);
+    let f = r.frame(1, view, [0, 0]);
+    expect(f.scopes![7]).toBe(1);
+    knob = 'fast';
+    const before = f.scopes![6];
+    f = r.frame(1.05, view, [0, 0]);
+    expect(f.scopes![7]).toBeGreaterThan(1);
+    expect(f.scopes![7]).toBeLessThan(4);
+    expect(Math.abs(f.scopes![6] - before)).toBeLessThan(0.05);
+    for (let t = 1.1; t < 3; t += 0.05) f = r.frame(t, view, [0, 0]);
+    expect(f.scopes![7]).toBeCloseTo(4, 1);
+  });
+
   it('keeps its own shape without a dial; one in the other view, or not there yet, is not drawn', () => {
     const r = new SceneRunner(withScope([{ x: 1, y: 2, r: 3, shape: 'triangle' }, { x: 5, y: 5, r: 5, only: 'raw' }, { x: 9, y: 9, r: 9, when: 'has_raw' }]));
     r.shown = () => false;

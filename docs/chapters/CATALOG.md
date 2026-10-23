@@ -25,6 +25,8 @@ A close-up of `athena-home`, gone into from its spot that zooms to it.
 | `letters` | Letters | `athena_letters` | when `athena_drawer_open` |
 | `note` | Note | `athenas_note` | item `athena_note` |
 | `receipt` | Receipt | `athena_receipt` | item `athena_repair_slip` |
+| `wave-knob` | Shape knob | `athena_wave_knob` |  |
+| `speed-knob` | Speed knob | `athena_speed_knob` |  |
 
 ### athena-home: Flat 9-07 (raw view: Athena's flat)
 
@@ -270,7 +272,8 @@ Speaker tags in the story so far: `#concierge`, `#door`, `#felix`, `#fixer`, `#g
 | `athena_patrol_sheet_seen` | `false` | The opening, "The Invitation" (docs/chapters/00-the-errand): her morning, Athena's invitation, the visit to 9-07. The waking ran and she is standing at home; she read the delivery message; she read Athena's (floor nine is hers to go to); she rang Athena's bell; she went into Athena's flat; read Athena's note; looked at the timetable; looked at the receipt |
 | `athena_repair_slip_seen` | `false` | The opening, "The Invitation" (docs/chapters/00-the-errand): her morning, Athena's invitation, the visit to 9-07. The waking ran and she is standing at home; she read the delivery message; she read Athena's (floor nine is hers to go to); she rang Athena's bell; she went into Athena's flat; read Athena's note; looked at the timetable; looked at the receipt |
 | `athena_drawer_open` | `false` | her workbench, up close (scene athena-bench): its drawer open |
-| `athena_scope_wave` | `"sine"` | her oscilloscope on it: the shape of its line, as its dial is turned ("sine", "square", "triangle", "saw") |
+| `athena_scope_wave` | `"sine"` | her oscilloscope on it: the shape of its line and its speed, as its two knobs are turned ("sine", "square", "triangle", "saw"; "slow", "medium", "fast") |
+| `athena_scope_speed` | `"slow"` | her oscilloscope on it: the shape of its line and its speed, as its two knobs are turned ("sine", "square", "triangle", "saw"; "slow", "medium", "fast") |
 | `athena_report` | `"not_asked"` | what she told the Concierge leaving Athena's flat: "not_asked", then "covered", as Athena asked (the opening does not branch here: decision 40). Her word, not a fact about Athena |
 | `prologue_complete` | `false` | what she told the Concierge leaving Athena's flat: "not_asked", then "covered", as Athena asked (the opening does not branch here: decision 40). Her word, not a fact about Athena |
 | `parcel_delivered` | `false` | the errand the game begins with: the parcel on her desk, to the radio repair by ten |
@@ -286,7 +289,7 @@ Lists: `Things` (parcel, matches, cigarettes, map, valve, paper_notebook, athena
 
 ## Knots
 
-`fixer`, `station`, `guardian`, `opening`, `concierge_home`, `radio`, `photo`, `luna_drawer`, `notebook`, `concierge`, `bar_prices`, `bar_counter`, `bar_order`, `felix`, `lift`, `athena_door`, `athena_bell`, `athena_asked`, `athena_bench`, `athena_gap`, `athena_radio`, `athena_lamp`, `athena_drawer`, `athena_valves`, `athena_letters`, `athenas_note`, `athena_timetable`, `athena_receipt`, `athena_scope`, `good`, `meal`.
+`fixer`, `station`, `guardian`, `opening`, `concierge_home`, `radio`, `photo`, `luna_drawer`, `notebook`, `concierge`, `bar_prices`, `bar_counter`, `bar_order`, `felix`, `lift`, `athena_door`, `athena_bell`, `athena_asked`, `athena_bench`, `athena_gap`, `athena_radio`, `athena_lamp`, `athena_drawer`, `athena_valves`, `athena_letters`, `athenas_note`, `athena_timetable`, `athena_receipt`, `athena_scope`, `athena_wave_knob`, `athena_speed_knob`, `good`, `meal`.
 
 Functions: `good()` is the time of day's greeting word ("morning", "afternoon", "evening"; at night still "evening"), as in `"Good {good()}, guest."`; `meal()` is what a station serves now ("Breakfast", "Lunch", "Dinner").
 

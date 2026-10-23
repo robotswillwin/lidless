@@ -414,7 +414,8 @@
       "x": 814.5,
       "y": 284.9,
       "r": 8.4,
-      "wave": "athena_scope_wave"
+      "wave": "athena_scope_wave",
+      "speed": "athena_scope_speed"
     }
   ]
 }
