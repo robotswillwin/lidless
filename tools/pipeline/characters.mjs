@@ -9,6 +9,7 @@ import sharp from 'sharp';
 import { contentBox, fitColours, fitToHeight, hardenAlpha, paletteFit, pixelate, unionBox } from './clean.mjs';
 import { blank, crop, readRGBA, resize, writePNG } from './image.mjs';
 import { loadReferences } from './images.mjs';
+import { blinkDir, blinkOne } from './blink.mjs';
 import { edit } from './openai.mjs';
 import { conciergePartsPrompt, cut as cutParts, EXTRA_PARTS, idleCycle, otherSidePrompt, PARTS as PARTS_NAMES, partsPromptFor, plant, pointOf, pose as posePartsRig, jogCycle, runCycle, SHEET, standPose, template as partsTemplate, walkAngles, walkCycle } from './parts.mjs';
 import { loadRecipe, ROOT } from './recipe.mjs';
@@ -670,6 +671,8 @@ export async function cmdRig([file], opt) {
   // not on a foot
   for (const g of ['jog', 'run']) if (rig[g]) await writeFile(join(out, 'anims', g, 'stride.json'), JSON.stringify({ stride: (rig[g].stride * PERCENT) / 100, air: rig[g].frames.map((f) => ((f.air ?? 0) * PERCENT) / 100) }) + '\n');
   await writeFile(join(out, 'anims', 'origin.json'), JSON.stringify({ x: (800 * PERCENT) / 100 }) + '\n');
+  // her blink, made again from the frames just rendered, where her head has a shut eye
+  if (existsSync(join(blinkDir(r), 'raw-shut.png'))) await blinkOne(r);
   console.log(`${r.name}: rigged in Blender (${rel(join(out, rig.blend))}), ${spans.map(([g, n]) => `${n} ${g}`).join(', ')} frames for ${rig.sets.map((s) => s.name).join(', ')} → ${rel(join(out, 'anims'))}. Build it with: npm run asset -- build ${rel(r.file)}`);
 }
 

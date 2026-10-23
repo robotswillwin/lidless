@@ -148,8 +148,9 @@ export async function assembleOne(r) {
     const files = (await readdir(d)).filter((f) => f.startsWith(`${view}-`) && f.endsWith('.png')).sort();
     return Promise.all(files.map((f) => readRGBA(join(d, f))));
   };
-  // runs in this order, each where it exists: standing, walking, jogging and running facing right, then the same facing left
-  const RUNS = ['idle', 'walk', 'jog', 'run', 'idleLeft', 'walkLeft', 'jogLeft', 'runLeft'], views = {};
+  // runs in this order, each where it exists: standing, walking, jogging and running facing right, then the same facing
+  // left, then standing facing left with her left eye shut (her blink)
+  const RUNS = ['idle', 'walk', 'jog', 'run', 'idleLeft', 'walkLeft', 'jogLeft', 'runLeft', 'blinkLeft'], views = {};
   for (const v of ['raw', 'concierge']) {
     const runs = {};
     for (const run of RUNS) runs[run] = await load(run, v);
