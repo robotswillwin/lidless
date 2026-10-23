@@ -1,5 +1,6 @@
 // The chapter format's worked example (docs/chapters/00-the-errand) stays a chapter the checker passes, as the game it
-// describes changes under it: the agents copy its shape, so it must be right.
+// describes changes under it: the agents copy its shape, so it must be right. And it says what the game has: imported,
+// it would change nothing.
 import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -12,6 +13,12 @@ describe('the chapter format', () => {
     let out = '';
     try { out = run(); } catch (e) { out = String((e as { stdout?: string }).stdout ?? e); }
     expect(out).toContain('no errors');
+  });
+
+  it('describes the game as it is: importing its worked example would change nothing', () => {
+    let out = '';
+    try { out = execFileSync(process.execPath, ['--experimental-strip-types', '--no-warnings', 'scripts/chapter.mts', 'docs/chapters/00-the-errand', '--import', '--dry'], { cwd: root, encoding: 'utf8' }); } catch (e) { out = String((e as { stdout?: string }).stdout ?? e); }
+    expect(out, 'the game or the worked example has changed: make them agree').toContain('Importing would change: nothing');
   });
 
   it('gives the scripting agents what is current: their package is up to date with what it copies', () => {

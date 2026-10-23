@@ -207,6 +207,10 @@
    "look": {
     "concierge": "Your clothes, folded neatly.",
     "raw": "Socks, darned twice. Two shirts."
+   },
+   "use": {
+    "concierge": "Your clothes, folded. Nothing you need now.",
+    "raw": "Socks and shirts. Nothing I need now."
    }
   },
   {

@@ -105,7 +105,11 @@
    },
    "tag": "City panel",
    "ask": "A Brighter Tomorrow, Together, Luna.",
-   "kind": "machine"
+   "kind": "machine",
+   "use": {
+    "concierge": "A city service panel. Nothing in it for you.",
+    "raw": "You open it: fuses, patched wires, a bot's tools. Nothing you need."
+   }
   },
   {
    "id": "to-street",

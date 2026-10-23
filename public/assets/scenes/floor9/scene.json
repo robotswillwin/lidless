@@ -69,6 +69,10 @@
       "look": {
         "concierge": "Flat 9-05. Quiet.",
         "raw": "A door with a dent at kicking height."
+      },
+      "use": {
+        "concierge": "A neighbour's door. No reason to knock.",
+        "raw": "Not my door. No reason to knock."
       }
     },
     {
@@ -91,6 +95,10 @@
       "tag": {
         "concierge": "Guest · Integrated Care",
         "raw": "9-06"
+      },
+      "use": {
+        "concierge": "A neighbour's door. No reason to knock.",
+        "raw": "Not my door. No reason to knock."
       }
     },
     {

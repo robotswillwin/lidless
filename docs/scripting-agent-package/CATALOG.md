@@ -8,7 +8,7 @@ Names are the Concierge's / raw view's where they differ.
 
 ### athena-bench: Athena's workbench (raw view: Her workbench)
 
-interior, a privacy zone. Arrivals: .
+A close-up of `athena-home`, gone into from its spot that zooms to it.
 
 | Spot | Name | Story | Notes |
 | --- | --- | --- | --- |
@@ -44,7 +44,7 @@ interior, a privacy zone. Arrivals: `door`.
 | `records` | Record player / Records |  |  |
 | `lamp` | Floor lamp / Lamp |  |  |
 | `shelf` | Radios |  |  |
-| `bench` | Workbench |  |  |
+| `bench` | Workbench |  | close-up `athena-bench` |
 | `timetable` | Timetable | `athena_timetable` | item `athena_patrol_sheet` |
 
 ### backstreet: Backstreet
@@ -111,7 +111,7 @@ interior. Arrivals: `lift`, `from-athena`.
 
 ### home: Luna's home
 
-interior, a privacy zone. Arrivals: `door`, `bed`.
+interior, a home (she can call the Concierge from here). Arrivals: `door`, `bed`.
 
 | Spot | Name | Story | Notes |
 | --- | --- | --- | --- |
@@ -123,13 +123,13 @@ interior, a privacy zone. Arrivals: `door`, `bed`.
 | `bed` | Bed |  |  |
 | `window` | Window |  |  |
 | `book` | Book |  |  |
-| `desk` | Your desk / My desk |  |  |
+| `desk` | Your desk / My desk |  | close-up `home-desk` |
 | `screen` | The Concierge's screen / Wall screen |  |  |
 | `water` | Water / Water tap |  |  |
 
 ### home-desk: Your desk (raw view: My desk)
 
-interior, a privacy zone. Arrivals: .
+A close-up of `home`, gone into from its spot that zooms to it.
 
 | Spot | Name | Story | Notes |
 | --- | --- | --- | --- |
@@ -287,13 +287,19 @@ Lists: `Things` (parcel, matches, cigarettes, map, valve, paper_notebook, athena
 
 `fixer`, `station`, `guardian`, `opening`, `concierge_home`, `radio`, `photo`, `luna_drawer`, `notebook`, `concierge`, `bar_prices`, `bar_counter`, `bar_order`, `felix`, `lift`, `athena_door`, `athena_bell`, `athena_asked`, `athena_bench`, `athena_gap`, `athena_radio`, `athena_lamp`, `athena_drawer`, `athena_valves`, `athena_letters`, `athenas_note`, `athena_timetable`, `athena_receipt`, `good`, `meal`.
 
+Functions: `good()` is the time of day's greeting word ("morning", "afternoon", "evening"; at night still "evening"), as in `"Good {good()}, guest."`; `meal()` is what a station serves now ("Breakfast", "Lunch", "Dinner").
+
 ## Outfits
 
 `coat` (Coat), `clothes` (Outdoor clothes), `underwear` (Underwear), `nude` (Undressed), `party` (Party dress).
 
+## Messages
+
+In her inbox, by id: `delivery-4471`, `athena-invitation`.
+
 ## Close-ups and machines
 
-Close-ups: `athena-note`, `athena-receipt`, `athena-timetable`, `station`, `waking-closed`, `waking-open`. Machines: `relay7`.
+Close-ups: `athena-note` (words: `# read:`), `athena-receipt` (words: `# read:`), `athena-timetable` (words: `# read:`), `station`, `waking-closed`, `waking-open`. Machines: `relay7`.
 
 ## Journal and notebook pages
 

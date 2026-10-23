@@ -163,7 +163,11 @@
         "concierge": "Fresh towels and a quiet hand dryer.",
         "raw": "An empty paper towel box, and a dryer that roars."
       },
-      "kind": "machine"
+      "kind": "machine",
+      "use": {
+        "concierge": "Warm air. Your hands are dry.",
+        "raw": "It roars. Your hands are dry enough."
+      }
     },
     {
       "id": "corner",

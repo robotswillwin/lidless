@@ -69,6 +69,10 @@
       "look": {
         "concierge": "Flat 14-05. Its plate glows: Do not disturb.",
         "raw": "A door, a spyhole, nothing else. Somebody's TV is on, very loud, inside."
+      },
+      "use": {
+        "concierge": "A neighbour's door. No reason to knock.",
+        "raw": "Not my door. No reason to knock."
       }
     },
     {
@@ -87,6 +91,10 @@
       "look": {
         "concierge": "Flat 14-06. A neighbour you have never met.",
         "raw": "Scratches round the lock, old and new. Somebody comes home late a lot."
+      },
+      "use": {
+        "concierge": "A neighbour's door. No reason to knock.",
+        "raw": "Not my door. No reason to knock."
       }
     },
     {
@@ -142,6 +150,10 @@
       "look": {
         "concierge": "A red fire box, spotless.",
         "raw": "A fire hose, its glass long gone. The hose too."
+      },
+      "use": {
+        "concierge": "It opens on a coiled hose. Nothing needs it.",
+        "raw": "Nothing in it to use. Nothing's on fire."
       }
     },
     {
@@ -160,6 +172,10 @@
       "look": {
         "concierge": "A hatch for recycling. Everything here is recycled, Luna.",
         "raw": "The rubbish chute. It smells of fourteen floors of rubbish."
+      },
+      "use": {
+        "concierge": "Nothing to recycle just now.",
+        "raw": "You pull the hatch: a breath of the whole building. Nothing to throw away."
       }
     },
     {

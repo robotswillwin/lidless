@@ -76,6 +76,10 @@
       "look": {
         "concierge": "Kegs and fine wines, kept cool below the floor.",
         "raw": "Dented kegs, and a rack of wine nobody down here will ever drink."
+      },
+      "use": {
+        "concierge": "Kegs and wines, kept cool. Nothing for you down there.",
+        "raw": "You lift the hatch: kegs, dust, the smell of old beer. Nothing for you."
       }
     },
     {
@@ -196,7 +200,11 @@
       "stand": 843,
       "look": {
         "concierge": "Staff only, in neat brass letters.",
-        "raw": "A door with a bolt on the other side."
+        "raw": "A staff door, a storeroom behind it."
+      },
+      "use": {
+        "concierge": "A neat storeroom. Nothing for you.",
+        "raw": "You look in: crates, a mop, a broken stool. Nothing for you."
       }
     },
     {

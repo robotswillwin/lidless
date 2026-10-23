@@ -151,6 +151,9 @@ holds**. Each decision is the director's, in plain words; what is still open say
 42. **Close-ups to explore.** A thing worth a closer look (a desk, a workbench) is a close-up of its own: tapped, Luna
     goes up to it and the view goes in close, where its things can be looked at, used, opened and taken one by one;
     Step back returns her to where she stood. Her own desk and Athena's workbench are the first; each has a drawer.
+43. **Nothing is locked for the sake of it.** A drawer, a cupboard, a box opens, and may hold nothing of value; or Luna
+    says there is nothing there for her, or no reason to (a neighbour's door: "No reason to knock"); or it is not a
+    thing she can do anything with at all. No locked drawers, nothing that will not open.
 
 ## Open, for the director
 

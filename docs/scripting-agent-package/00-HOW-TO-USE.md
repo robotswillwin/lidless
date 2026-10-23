@@ -27,7 +27,10 @@ from the files it copies: do not edit these copies; edit the originals in `docs/
 | `LIDLESS_Director_Decisions_2026-10-22.md` | The director's decisions since the bible: where they differ, these hold. |
 | `LIDLESS_Chapter_Format_v1_2026-10-22.md` | How a chapter is written and delivered. |
 | `CATALOG.md` | Everything the game has now, by id: places and their spots, people, things, variables, knots. |
+| `chapter-00-the-errand-athena-home.md` | The worked example: the opening, written in the format. Its folder is docs/chapters/00-the-errand/. |
+| `chapter-00-the-errand-floor9.md` | The worked example: the opening, written in the format. Its folder is docs/chapters/00-the-errand/. |
 | `chapter-00-the-errand-home.md` | The worked example: the opening, written in the format. Its folder is docs/chapters/00-the-errand/. |
+| `chapter-00-the-errand-lobby.md` | The worked example: the opening, written in the format. Its folder is docs/chapters/00-the-errand/. |
 | `chapter-00-the-errand-overview.md` | The worked example: the opening, written in the format. Its folder is docs/chapters/00-the-errand/. |
 | `chapter-00-the-errand-street.md` | The worked example: the opening, written in the format. Its folder is docs/chapters/00-the-errand/. |
 | `LIDLESS_Vertical_Slice_v0.1_2026-10-21.md` | The proposal for chapter 1, the vertical slice, and the decisions it waits on. |

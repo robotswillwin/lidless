@@ -9,12 +9,17 @@
 //   npm run agent-package                             the scripting agent package: the catalog, and everything an agent
 //                                                     is given, in one folder (docs/scripting-agent-package/)
 //   npm run chapter -- --check-package                whether that folder is up to date with what it copies
+//   npm run chapter -- <folder> --import [--dry]      a chapter with no errors, into the game (import-chapter.mts);
+//                                                     --dry lists what it would change, and writes nothing
+//   npm run chapter -- --export home,floor9 --knots lift,radio
+//                                                     what the game has, written as a chapter writes it
 
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { Compiler, CompilerOptions } from 'inkjs/full';
-import { isMap, isScalar, isSeq, LineCounter, parseDocument } from 'yaml';
+import { isMap, isScalar, isSeq, LineCounter, parseDocument, stringify } from 'yaml';
 import { conditionProblem, variablesIn } from '../src/game/conditions.ts';
+import { exportKnots, exportPlace, importChapter } from './import-chapter.mts';
 
 const ROOT = resolve(import.meta.dirname, '..'), ASSETS = join(ROOT, 'public/assets'), STORY = join(ROOT, 'src/story');
 const rel = (p: string) => { const r = relative(ROOT, p); return r.startsWith('..') ? p : r; };
@@ -23,12 +28,16 @@ const rel = (p: string) => { const r = relative(ROOT, p); return r.startsWith('.
 
 type Obj = Record<string, unknown>;
 const readJson = (p: string): Obj => JSON.parse(readFileSync(p, 'utf8')) as Obj;
+function isObj(v: unknown): v is Obj { return !!v && typeof v === 'object' && !Array.isArray(v); }
 
 interface Game {
-  scenes: Map<string, { name: string; kind: string; private: boolean; spawns: string[]; spots: Obj[] }>;
+  scenes: Map<string, { name: string; kind: string; private: boolean; home: boolean; closeup?: string; spawns: string[]; spots: Obj[] }>;
   items: Obj;
   outfits: Obj;
   closeups: string[];
+  /** The close-ups with words on them (closeups.json): what `# read:` can show. */
+  papers: string[];
+  messages: string[];
   machines: string[];
   journal: Obj[];
   notebook: Obj[];
@@ -60,12 +69,15 @@ function loadGame(): Game {
   for (const id of readdirSync(join(ASSETS, 'scenes'))) {
     const f = join(ASSETS, 'scenes', id, 'scene.json');
     if (!existsSync(f)) continue;
-    const s = readJson(f) as { name: string; kind: string; private?: boolean; spawns: Obj; hotspots: Obj[] };
-    scenes.set(id, { name: s.name, kind: s.kind, private: !!s.private, spawns: Object.keys(s.spawns ?? {}), spots: s.hotspots ?? [] });
+    const s = readJson(f) as { name: string; kind: string; private?: boolean; home?: boolean; closeup?: string; spawns?: Obj; hotspots: Obj[] };
+    scenes.set(id, { name: s.name, kind: s.kind, private: !!s.private, home: !!s.home, closeup: s.closeup, spawns: Object.keys(s.spawns ?? (s.closeup ? { in: 1 } : {})), spots: s.hotspots ?? [] });
   }
   const world = readJson(join(ASSETS, 'world.json')) as { hero?: { outfits?: Obj }; outfits?: Obj };
   const closeups = existsSync(join(ASSETS, 'closeups')) ? [...new Set(readdirSync(join(ASSETS, 'closeups')).map((f) => f.split('.')[0]))] : [];
   const machines = existsSync(join(ASSETS, 'terminals')) ? readdirSync(join(ASSETS, 'terminals')).filter((f) => f.endsWith('.json')).map((f) => f.slice(0, -5)) : [];
+  const closeupDefs = existsSync(join(ASSETS, 'closeups.json')) ? readJson(join(ASSETS, 'closeups.json')) : {};
+  const papers = Object.entries(closeupDefs).filter(([, d]) => isObj(d) && typeof d.text === 'string').map(([id]) => id);
+  const messages = existsSync(join(ASSETS, 'messages.json')) ? ((readJson(join(ASSETS, 'messages.json')).messages as Obj[]) ?? []).map((m) => String(m.id)) : [];
   // the story: main.ink and what it includes, in the order it includes them
   const header: Game['header'] = [], knots: Game['knots'] = new Map();
   const add = (file: string) => {
@@ -96,7 +108,7 @@ function loadGame(): Game {
   for (const k of knots.values()) for (const line of k.lines) for (const t of line.matchAll(/#\s*([a-z][a-z0-9_]*)\s*(?=#|$)/g)) speakers.add(t[1]);
   return {
     means,
-    scenes, items: readJson(join(ASSETS, 'items.json')), outfits: world.hero?.outfits ?? world.outfits ?? {}, closeups, machines,
+    scenes, items: readJson(join(ASSETS, 'items.json')), outfits: world.hero?.outfits ?? world.outfits ?? {}, closeups, papers, messages, machines,
     journal: (readJson(join(ASSETS, 'journal.json')).pages as Obj[]) ?? [], notebook: (readJson(join(ASSETS, 'notebook.json')).pages as Obj[]) ?? [],
     header, knots, variables, lists, speakers,
   };
@@ -104,7 +116,7 @@ function loadGame(): Game {
 
 // ---------- a chapter as delivered ----------
 
-const SECTIONS = ['About', 'Beats', 'Places', 'People', 'Things', 'Story state', 'Puzzles', 'Journal', 'Notebook', 'Close-ups', 'Machines', 'Script', 'Questions', 'Notes'] as const;
+const SECTIONS = ['About', 'Beats', 'Places', 'People', 'Things', 'Story state', 'Messages', 'Puzzles', 'Journal', 'Notebook', 'Close-ups', 'Machines', 'Script', 'Questions', 'Notes'] as const;
 type Section = (typeof SECTIONS)[number];
 interface Block { file: string; line: number; lang: string; text: string }
 
@@ -142,7 +154,6 @@ const error = (where: string, text: string) => issues.push({ level: 'error', whe
 const warn = (where: string, text: string) => issues.push({ level: 'warning', where, text });
 
 const ID = /^[a-z][a-z0-9-]*$/, NAME = /^[a-z][a-z0-9_]*$/;
-const isObj = (v: unknown): v is Obj => !!v && typeof v === 'object' && !Array.isArray(v);
 /** Where an entry of the data is, file and line: each map read from YAML keeps it, out of sight. */
 const AT = Symbol('at');
 const atOf = (v: unknown, fallback: string): string => (isObj(v) && typeof (v as Record<symbol, unknown>)[AT] === 'string' ? (v as Record<symbol, string>)[AT] : fallback);
@@ -178,8 +189,15 @@ function main() {
   if (args.includes('--catalog')) return void writeCatalog(game);
   if (args.includes('--package')) return void writePackage(game);
   if (args.includes('--check-package')) return void checkPackage(game);
+  // what the game has, written as a chapter writes it: places (--export home,floor9) and knots (--knots lift,radio)
+  const listArg = (flag: string) => { const i = args.indexOf(flag); return i >= 0 ? (args[i + 1] ?? '').split(',').filter(Boolean) : []; };
+  if (args.includes('--export') || args.includes('--knots')) {
+    for (const id of listArg('--export')) console.log(exportPlace(id, (v) => stringify(v, { lineWidth: 118, minContentWidth: 20 })));
+    if (listArg('--knots').length) console.log(exportKnots(listArg('--knots'), game.knots));
+    return;
+  }
   const dirArg = args.find((a) => !a.startsWith('--'));
-  if (!dirArg) { console.error('usage: npm run chapter -- <chapter folder>   |   npm run chapter -- --catalog'); process.exit(2); }
+  if (!dirArg) { console.error('usage: npm run chapter -- <chapter folder> [--import [--dry]]   |   npm run chapter -- --catalog'); process.exit(2); }
   const dir = resolve(dirArg);
   if (!existsSync(dir) || !statSync(dir).isDirectory()) { console.error(`no chapter folder at ${dirArg}`); process.exit(2); }
   const { files, blocks, unknown } = readChapter(dir);
@@ -215,10 +233,12 @@ function main() {
       if (!isObj(x) || typeof x.name !== 'string' || !NAME.test(x.name)) { error(at, `a variable needs a name: lowercase letters, digits and _ (${JSON.stringify(x)})`); continue; }
       // one the game has, described (new: false): it is there, and not declared again
       if (x.new === false) { if (!game.variables.has(x.name)) error(at, `variable ${x.name}: the game has none (a new one: leave out new: false)`); continue; }
-      if (vars.has(x.name)) { error(at, `variable ${x.name}: the game has it already (to describe it, say new: false)`); continue; }
-      if (!['boolean', 'number', 'string'].includes(typeof x.start)) error(at, `variable ${x.name}: start must be true/false, a number or "text"`);
+      if (!['boolean', 'number', 'string'].includes(typeof x.start)) { error(at, `variable ${x.name}: start must be true/false, a number or "text"`); continue; }
+      const start = typeof x.start === 'string' ? JSON.stringify(x.start) : String(x.start);
+      // the game has it: as this chapter declares it (the chapter imported already), or another of the same name
+      if (vars.has(x.name)) { if (vars.get(x.name) !== start) error(at, `variable ${x.name}: the game has it already, starting ${vars.get(x.name)} (to describe it, say new: false)`); continue; }
       if (typeof x.means !== 'string') warn(at, `variable ${x.name}: say what it means (means: ...)`);
-      vars.set(x.name, typeof x.start === 'string' ? JSON.stringify(x.start) : String(x.start));
+      vars.set(x.name, start);
       newVars.push(x.name);
     }
     for (const x of (v.lists as unknown[]) ?? []) {
@@ -293,9 +313,20 @@ function main() {
     const spots = new Map<string, Obj>(), arrivals = new Set<string>(exists ? game.scenes.get(v.id)!.spawns : []), p0at = at;
     places.set(v.id, { at, v, spots, arrivals });
     // a place the game has: what is given is checked (it describes the place, or changes it), nothing more is asked for
-    const need = !exists;
+    const need = !exists, closeUp = v.closeup !== undefined || !!game.scenes.get(v.id)?.closeup;
     viewText(v.name, where, 'name', undefined, need);
-    if ((need || v.kind !== undefined) && v.kind !== 'interior' && v.kind !== 'exterior') error(where, 'kind: interior or exterior');
+    if (((need && !closeUp) || v.kind !== undefined) && v.kind !== 'interior' && v.kind !== 'exterior') error(where, 'kind: interior or exterior');
+    if (v.closeup !== undefined && (typeof v.closeup !== 'string' || !ID.test(v.closeup))) error(where, 'closeup: the place this is a close-up of, by its id');
+    if (v.home !== undefined && typeof v.home !== 'boolean') error(where, 'home: true or false');
+    if (v.home === true && v.private !== true && !game.scenes.get(v.id)?.private) error(where, 'home: a home is a privacy zone (private: true)');
+    if (v.stay !== undefined) {
+      if (!isObj(v.stay)) error(where, 'stay: { when: a condition, say: what she says, staying }');
+      else { condition(v.stay.when, `${where} stay`, 'when'); viewText(v.stay.say, `${where} stay`, 'say'); }
+    }
+    for (const a of (v.arrive as unknown[] | undefined) ?? []) {
+      if (!isObj(a) || typeof a.story !== 'string') { error(where, 'arrive: [{ story: a knot, when: a condition }]'); continue; }
+      condition(a.when, `${where} arrive`, 'when');
+    }
     viewText(v.look, where, 'look (the picture, a prompt for each view)', undefined, need);
     if ((need || v.size !== undefined) && (typeof v.size !== 'string' || !SIZE.test(v.size))) error(where, 'size, with its units ("5 m wide, 3 m high"): the place is drawn at its real size against Luna (1.7 m)');
     if (v.width !== undefined && (typeof v.width !== 'number' || v.width < 1 || v.width > 3)) error(where, 'width: screens wide, 1 to 3');
@@ -304,7 +335,7 @@ function main() {
       if (typeof a.where !== 'string') warn(`${where} arrival ${a.id}`, 'where: where she is when she arrives');
       arrivals.add(a.id);
     }
-    if (!exists && !arrivals.size) error(where, 'arrivals: at least one place to arrive at');
+    if (!exists && !arrivals.size && !closeUp) error(where, 'arrivals: at least one place to arrive at');
     const gameSpots = new Set((game.scenes.get(v.id)?.spots ?? []).map((h) => String(h.id)));
     for (const s of [...((v.spots as unknown[]) ?? []), ...((v.ways as unknown[]) ?? [])]) {
       if (!isObj(s) || typeof s.id !== 'string' || !ID.test(s.id)) { error(where, `a spot needs an id: lowercase letters, digits and - (${JSON.stringify(s).slice(0, 80)})`); continue; }
@@ -319,12 +350,14 @@ function main() {
       if (need && !s.story && !s.look && !s.to && !s.item && !s.reply) warn(sw, 'nothing to see or do: give it a look, or a story knot');
       if (s.only !== undefined && s.only !== 'raw' && s.only !== 'concierge') error(sw, 'only: raw or concierge');
       for (const f of ['look', 'use', 'take', 'tag', 'reply'] as const) if (s[f] !== undefined) viewText(s[f], sw, f, s.only);
-      if (s.kind !== undefined && !['person', 'machine', 'thing'].includes(String(s.kind))) error(sw, 'kind: person, machine or thing');
+      if (s.kind !== undefined && !['person', 'machine', 'thing', 'way'].includes(String(s.kind))) error(sw, 'kind: person, machine, thing or way');
       if (s.ask !== undefined && typeof s.ask !== 'string') error(sw, 'ask: the Concierge\'s answer, one text (its view only)');
       condition(s.when, sw, 'when');
       if (s.item !== undefined && (typeof s.item !== 'string' || !allThings.has(s.item))) error(sw, `item: ${String(s.item)} is not a thing (add it under Things)`);
-      if ((s.prop === true || s.item !== undefined) && (typeof s.size !== 'string' || !SIZE.test(s.size))) warn(sw, 'size, with its unit: a prop is made at its real size');
+      if (need && (s.prop === true || s.item !== undefined) && (typeof s.size !== 'string' || !SIZE.test(s.size))) warn(sw, 'size, with its unit: a prop is made at its real size');
       if (s.wear !== undefined && !(String(s.wear) in game.outfits)) error(sw, `wear: no outfit ${String(s.wear)} (the game has ${Object.keys(game.outfits).join(', ')})`);
+      if (s.zoom !== undefined && (typeof s.zoom !== 'string' || !ID.test(s.zoom))) error(sw, 'zoom: the close-up of it, a place of its own (closeup: this place)');
+      if (s.wardrobe !== undefined && typeof s.wardrobe !== 'boolean') error(sw, 'wardrobe: true for her wardrobe at home');
     }
   }
   const allPlaces = new Set([...game.scenes.keys(), ...places.keys()]);
@@ -335,6 +368,14 @@ function main() {
     const ww = `${atOf(w, p.at)} place ${id} way ${String(w.id)}`;
     if (typeof w.to !== 'string' || !allPlaces.has(w.to)) error(ww, `to: no place ${String(w.to)}`);
     else if (typeof w.arrive !== 'string' || !arrivalsOf(w.to).has(w.arrive)) error(ww, `arrive: ${w.to} has no arrival ${String(w.arrive)} (it has ${[...arrivalsOf(w.to)].join(', ') || 'none'}; add one under its arrivals)`);
+  }
+  // a close-up is of a place that is; a spot seen close up has its close-up, of the place it is in
+  const closeupOf = (place: string) => (places.get(place)?.v.closeup as string | undefined) ?? game.scenes.get(place)?.closeup;
+  for (const [id, p] of places) if (typeof p.v.closeup === 'string' && !allPlaces.has(p.v.closeup)) error(`${p.at} place ${id}`, `closeup: no place ${p.v.closeup}`);
+  for (const [id, p] of places) for (const s of p.spots.values()) if (typeof s.zoom === 'string') {
+    const sw = `${atOf(s, p.at)} place ${id} spot ${String(s.id)}`;
+    if (!allPlaces.has(s.zoom)) error(sw, `zoom: no place ${s.zoom} (a close-up is a place of its own, with closeup: ${id})`);
+    else if (closeupOf(s.zoom) !== id) error(sw, `zoom: ${s.zoom} is not a close-up of ${id} (give it closeup: ${id})`);
   }
   // people are somewhere
   for (const [id, p] of people) for (const at of (p.v.where as unknown[]) ?? []) {
@@ -352,6 +393,19 @@ function main() {
     const there = places.get(place)?.spots.get(spot ?? '') ?? game.scenes.get(place)?.spots.find((h) => h.id === spot);
     if (!there) error(tw, `starts: ${place} has no spot ${String(spot)}`);
     else if (there.item !== id) warn(tw, `starts at ${place}/${spot}: give that spot item: ${id}, so she can take it`);
+  }
+
+  // ----- Messages: what comes to her inbox, in the Concierge's card
+  const messageIds = new Set(game.messages);
+  for (const { v, at } of data('Messages')) {
+    if (!isObj(v) || typeof v.id !== 'string' || !ID.test(v.id)) { error(at, `a message needs an id: lowercase letters, digits and - (${JSON.stringify(v).slice(0, 80)})`); continue; }
+    const mw = `${at} message ${v.id}`;
+    if (typeof v.from !== 'string') error(mw, 'from: who it is from, as her inbox shows it');
+    if (typeof v.text !== 'string') error(mw, 'text: its words');
+    else if (words(v.text) > 60) warn(mw, `text: ${words(v.text)} words; a message is read on a phone, keep it short`);
+    condition(v.arrives, mw, 'arrives');
+    if (v.read !== undefined && (typeof v.read !== 'string' || !vars.has(v.read))) error(mw, `read: ${String(v.read)} is not a variable of the story (declare it under Story state)`);
+    messageIds.add(v.id);
   }
 
   // ----- Journal and notebook
@@ -372,9 +426,19 @@ function main() {
 
   // ----- Close-ups and machines
   const closeups = new Set(game.closeups), machines = new Set(game.machines);
+  const papers = new Set(game.papers);
   for (const { v, at } of data('Close-ups')) {
     if (!isObj(v) || typeof v.id !== 'string' || !ID.test(v.id)) { error(at, 'a close-up needs an id'); continue; }
-    viewText(v.look, `${at} close-up ${v.id}`, 'look (a prompt for each view)');
+    const cw = `${at} close-up ${v.id}`;
+    viewText(v.look, cw, 'look (a prompt for each view)', undefined, !game.closeups.includes(v.id));
+    if (v.text !== undefined && typeof v.text !== 'string') error(cw, 'text: the words on the paper, as text');
+    if (v.hand !== undefined && typeof v.hand !== 'boolean') error(cw, 'hand: true for handwriting');
+    if (v.dark !== undefined && typeof v.dark !== 'boolean') error(cw, 'dark: true for a close-up that fills the dark (her waking)');
+    if (v.hand !== undefined && v.text === undefined) warn(cw, 'hand: with no text, there is nothing to write');
+    if (typeof v.text === 'string') {
+      papers.add(v.id);
+      for (const t of Object.values(isObj(v.look) ? v.look : { look: v.look })) if (typeof t === 'string' && !/blank|nothing written|no (legible )?(writing|text|words|print)/i.test(t)) warn(cw, 'look: say the paper is blank in the picture ("nothing written on it"): the game writes its words over it');
+    }
     closeups.add(v.id);
   }
   for (const { v, at } of data('Machines')) {
@@ -449,10 +513,11 @@ function main() {
     }
   }
   for (const [id, p] of people) if (p.v.new !== false && typeof p.v.story === 'string' && !knotNames.has(p.v.story)) error(`${p.at} person ${id}`, `story: no knot ${p.v.story}`);
+  for (const [id, p] of places) for (const a of (p.v.arrive as Obj[] | undefined) ?? []) if (isObj(a) && typeof a.story === 'string' && !knotNames.has(a.story)) error(`${p.at} place ${id}`, `arrive: no knot ${a.story}`);
   for (const [id, p] of people) if (p.v.new !== false && p.v.story === undefined) warn(`${p.at} person ${id}`, 'story: their knot; without one, there is nothing to say to them');
 
   // the chapter's own lines: commands that do something real, speakers who are someone, lengths that fit a screen
-  const COMMANDS = ['walk', 'face', 'wear', 'go', 'fade', 'view', 'wait', 'closeup', 'terminal'];
+  const COMMANDS = ['walk', 'face', 'wear', 'go', 'fade', 'view', 'wait', 'closeup', 'terminal', 'call', 'read'];
   const speakers = new Set([...game.speakers, ...people.keys()]);
   let lineCount = 0, wordCount = 0;
   for (const k of chapterKnots.values()) k.lines.forEach((raw, i) => {
@@ -469,6 +534,8 @@ function main() {
         if (name === 'wear' && !(arg in game.outfits)) error(where, `# wear: no outfit ${arg}`);
         if (name === 'closeup' && arg !== 'off' && !closeups.has(arg)) error(where, `# closeup: no close-up ${arg} (add it under Close-ups)`);
         if (name === 'terminal' && !machines.has(arg)) error(where, `# terminal: no machine ${arg} (add it under Machines)`);
+        if (name === 'read' && !papers.has(arg)) error(where, `# read: no close-up ${arg} with words on it (add it under Close-ups, with text)`);
+        if (name === 'call' && arg !== 'concierge') error(where, '# call: concierge');
         if (name === 'go') {
           const [scene, spawn] = arg.split('/').map((x) => x.trim());
           if (!allPlaces.has(scene)) error(where, `# go: no place ${scene}`);
@@ -512,10 +579,15 @@ function main() {
   console.log(`\n  places ${places.size} (${newPlaces} new) · spots ${spots} · people ${people.size} (${newPeople} new) · things ${things.size} (${newThings} new)`);
   console.log(`  story: ${newVars.length} new variables, ${newLists.length} new lists, ${chapterKnots.size} knots (${[...chapterKnots.keys()].filter((k) => game.knots.has(k)).length} of them the game's, rewritten), ${lineCount} lines, ${wordCount} words`);
   // what it takes to make, by what each kind has taken so far (docs/PLAN.md): my working time, the image model's cost
-  const hours = [newPlaces * 1.75, newPeople * 1, (newThings + props) * 0.2, newCloseups * 0.25, chapterKnots.size * 0.05].reduce((a, b) => a + b, 0);
+  const hours = [newPlaces * 1.75, newPeople * 1, (newThings + props) * 0.2, newCloseups * 0.25, [...chapterKnots.keys()].filter((k) => !game.knots.has(k)).length * 0.05].reduce((a, b) => a + b, 0);
   const lo = newPlaces * 1 + newPeople * 1 + (newThings + props) * 0.1 + newCloseups * 0.2, hi = newPlaces * 3 + newPeople * 1.5 + (newThings + props) * 0.2 + newCloseups * 0.3;
   console.log(`  to make: ${newPlaces} places, ${newPeople} people, ${newThings} things and ${props} props, ${newCloseups} close-ups: about ${hours.toFixed(1)} hours of my time and $${lo.toFixed(0)} to $${hi.toFixed(0)} of image generation`);
   console.log(`\n  ${errs.length ? `${errs.length} error${errs.length > 1 ? 's' : ''}` : 'no errors'}, ${warns.length} warning${warns.length === 1 ? '' : 's'}${errs.length ? '' : ': ready to build'}\n`);
+  // into the game: only a chapter with no errors (--dry: what it would change, written nowhere)
+  if (args.includes('--import')) {
+    if (errs.length) { console.log('  Not imported: fix the errors first.\n'); process.exit(1); }
+    importChapter({ dir, data, places, things, people, knots: chapterKnots }, game, args.includes('--dry'));
+  }
   process.exit(errs.length ? 1 : 0);
 }
 
@@ -540,10 +612,11 @@ function catalogText(game: Game): string {
     '',
   ];
   for (const [id, s] of game.scenes) {
-    out.push(`### ${id}: ${typeof s.name === 'object' && s.name ? `${s.name.concierge} (raw view: ${s.name.raw})` : s.name}`, '', `${s.kind}${s.private ? ', a privacy zone' : ''}. Arrivals: ${s.spawns.map((x) => `\`${x}\``).join(', ')}.`, '');
+    const what = s.closeup ? `A close-up of \`${s.closeup}\`, gone into from its spot that zooms to it.` : `${s.kind}${s.home ? ', a home (she can call the Concierge from here)' : s.private ? ', a privacy zone' : ''}. Arrivals: ${s.spawns.map((x) => `\`${x}\``).join(', ')}.`;
+    out.push(`### ${id}: ${typeof s.name === 'object' && s.name ? `${s.name.concierge} (raw view: ${s.name.raw})` : s.name}`, '', what, '');
     out.push('| Spot | Name | Story | Notes |', '| --- | --- | --- | --- |');
     for (const h of s.spots) {
-      const notes = [h.item ? `item \`${String(h.item)}\`` : '', h.go ? `to \`${String((h.go as Obj).scene)}/${String((h.go as Obj).spawn)}\`` : '', h.only ? `${String(h.only)} view only` : '', h.when ? `when \`${String(h.when)}\`` : '', h.wear ? `wear \`${String(h.wear)}\`` : '', h.follows ? 'moves' : ''].filter(Boolean).join(', ');
+      const notes = [h.item ? `item \`${String(h.item)}\`` : '', h.go ? `to \`${String((h.go as Obj).scene)}/${String((h.go as Obj).spawn)}\`` : '', h.zoom ? `close-up \`${String(h.zoom)}\`` : '', h.only ? `${String(h.only)} view only` : '', h.when ? `when \`${String(h.when)}\`` : '', h.wear ? `wear \`${String(h.wear)}\`` : '', h.follows ? 'moves' : ''].filter(Boolean).join(', ');
       out.push(`| \`${String(h.id)}\` | ${view(h.name)} | ${h.story ? `\`${String(h.story)}\`` : h.talk ? `\`${String(h.talk)}\` (talk)` : ''} | ${notes} |`);
     }
     out.push('');
@@ -555,8 +628,10 @@ function catalogText(game: Game): string {
   for (const [name, start] of game.variables) out.push(`| \`${name}\` | \`${start}\` | ${(game.means.get(name) ?? '').replace(/\|/g, '\\|')} |`);
   out.push('', 'Lists: ' + [...game.lists].map(([n, items]) => `\`${n}\` (${items.join(', ')})`).join('; ') + '.', '');
   out.push('## Knots', '', [...game.knots.keys()].map((k) => `\`${k}\``).join(', ') + '.', '');
+  out.push('Functions: `good()` is the time of day\'s greeting word ("morning", "afternoon", "evening"; at night still "evening"), as in `"Good {good()}, guest."`; `meal()` is what a station serves now ("Breakfast", "Lunch", "Dinner").', '');
   out.push('## Outfits', '', Object.entries(game.outfits).map(([id, o]) => `\`${id}\` (${String((o as Obj).name)})`).join(', ') + '.', '');
-  out.push('## Close-ups and machines', '', `Close-ups: ${game.closeups.map((c) => `\`${c}\``).join(', ') || 'none'}. Machines: ${game.machines.map((m) => `\`${m}\``).join(', ') || 'none'}.`, '');
+  out.push('## Messages', '', `In her inbox, by id: ${game.messages.map((m) => `\`${m}\``).join(', ') || 'none'}.`, '');
+  out.push('## Close-ups and machines', '', `Close-ups: ${game.closeups.map((c) => `\`${c}\`${game.papers.includes(c) ? ' (words: `# read:`)' : ''}`).join(', ') || 'none'}. Machines: ${game.machines.map((m) => `\`${m}\``).join(', ') || 'none'}.`, '');
   out.push('## Journal and notebook pages', '', `Journal: ${game.journal.map((p) => `\`${String(p.id)}\` (${String(p.title)})`).join(', ')}. Notebook: ${game.notebook.map((p) => `\`${String(p.id)}\` (${String(p.title)})`).join(', ')}.`, '');
   return out.join('\n');
 }

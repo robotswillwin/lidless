@@ -68,7 +68,7 @@ Spare valves for her radios, each standing in its place.
 = use
 -> take
 = take
-Not mine to take. She counts them. #luna
+Her spares. I don't need them. #luna
 -> END
 
 === athena_letters ===
@@ -76,7 +76,7 @@ Not mine to take. She counts them. #luna
 Old letters, tied with string. Hers.
 -> END
 = use
-Not mine to read. #luna
+Letters to her, years old. Nothing to do with today. #luna
 -> END
 = take
 -> use

@@ -67,6 +67,10 @@
       "look": {
         "concierge": "A polished door, ajar on a warm back room.",
         "raw": "The back door stands ajar on a dark room. He hasn't offered to show you."
+      },
+      "use": {
+        "concierge": "His back room. Nothing of yours in it.",
+        "raw": "Shelves of parts in the dark. Nothing for you there."
       }
     },
     {
@@ -85,6 +89,10 @@
       "look": {
         "concierge": "Books and restored radios, every one polished. A tape machine with both reels full.",
         "raw": "Books swollen with damp, radios gutted for parts. Nothing here talks to the Concierge."
+      },
+      "use": {
+        "concierge": "Restored radios, each with a name tag. None of them yours.",
+        "raw": "Radios waiting to be mended, names on tags. None of them yours."
       }
     },
     {
@@ -210,6 +218,10 @@
       "look": {
         "concierge": "A door marked STAFF, in neat brass letters.",
         "raw": "A side door, bolted from this side. It hasn't been opened in years."
+      },
+      "use": {
+        "concierge": "A staff door to the yard. Nothing for you out there.",
+        "raw": "You slide the bolt: a yard of bins, nothing else. You bolt it again."
       }
     },
     {

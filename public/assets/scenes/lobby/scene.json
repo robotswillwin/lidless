@@ -58,6 +58,10 @@
       "look": {
         "concierge": "Brushed steel, every box with its glowing number. Yours is empty, as always: post comes to your eye.",
         "raw": "Dented boxes, half of them pried open. Nobody sends paper any more. Almost nobody."
+      },
+      "use": {
+        "concierge": "Your box, 14-07, is empty. Your post comes to your eye.",
+        "raw": "You open 14-07: empty. Nobody writes to you on paper."
       }
     },
     {
@@ -129,6 +133,10 @@
       "look": {
         "concierge": "A door to the stairs. Fourteen floors up. The lift is quicker.",
         "raw": "A fire door, its glass wired and cracked. Fourteen floors of concrete stairs behind it."
+      },
+      "use": {
+        "concierge": "Fourteen floors of stairs. The lift is right there.",
+        "raw": "Fourteen floors of concrete. The lift is right there."
       }
     },
     {

@@ -31,10 +31,14 @@ the bible decides what is true and this format decides how it is written down.
 4. **The director reads it**, answers its questions, and saves it as `docs/chapters/<NN>-<name>/`.
 5. **The checker checks it.** Errors go back to the agent to fix; warnings are weighed.
 6. **I build it.**
+   - The data and the script go into the game as written: `npm run chapter -- docs/chapters/<NN>-<name> --import`
+     puts each in its place (the scene files, the things, the story's state, the messages, the journal and
+     notebook, the papers' words, the knots), and lists what is left to make. With `--dry` it lists what it would
+     change, and changes nothing: the worked example, which says what the game has, changes nothing.
    - The places, people, things and close-ups are drawn from their prompts, in both views, each measured against
      Luna before anyone sees it.
    - The spots are placed in the scene editor.
-   - The data and the script go into the game, and the chapter is played through and checked.
+   - The chapter is played through and checked.
 
 ## Instructions for the scripting agent
 
@@ -47,9 +51,9 @@ director's decisions (LIDLESS_Director_Decisions) hold over it where they differ
 without asking the director; say when you invent or change anything else.
 
 Write each chapter from the director's brief, in the chapter format (LIDLESS_Chapter_Format_v1), exactly:
-- A folder of Markdown files: overview.md, with About, Beats, People, Things, Story state, Puzzles, Journal, Notebook,
-  Close-ups, Machines and Questions; and one file per place, with its Places entry and its Script. A person met in
-  several places may have a file of their own.
+- A folder of Markdown files: overview.md, with About, Beats, People, Things, Story state, Messages, Puzzles, Journal,
+  Notebook, Close-ups, Machines and Questions; and one file per place, with its Places entry and its Script. A person
+  met in several places may have a file of their own.
 - Deliver overview.md first, and wait for the director's go before writing the places' files.
 - Data in ```yaml blocks and the story in ```ink blocks, under the format's ## headings. Prose anywhere else is for
   people and is not read.
@@ -57,6 +61,8 @@ Write each chapter from the director's brief, in the chapter format (LIDLESS_Cha
 - Everything drawn (places, people, things, close-ups) gets a prompt for the Concierge's view and one for raw view.
 - Sizes in metres or centimetres. No positions or coordinates: say where things are in words.
 - Lines under 25 words, choices under 8, British spelling. Adult themes yes; no explicit sex, no nudity.
+- Nothing is locked for its own sake: what looks like it opens, opens, and may hold nothing of value; or she says there
+  is nothing there for her.
 - End each chapter with your questions for the director under ## Questions.
 
 Deliver the files as downloadable .md files. If you cannot, put each file in a block fenced with four backticks
@@ -68,8 +74,8 @@ When the director pastes errors from the checker, fix exactly those, and send ba
 ## The files
 
 - **A chapter is a folder**, `docs/chapters/<NN>-<name>/`: `01-the-voice-at-three`. Its files:
-  - **`overview.md`**: About, Beats, People, Things, Story state, Puzzles, Journal, Notebook, Close-ups, Machines and
-    Questions.
+  - **`overview.md`**: About, Beats, People, Things, Story state, Messages, Puzzles, Journal, Notebook, Close-ups,
+    Machines and Questions.
   - **One file per place** the chapter uses, named after it (`relay-lobby.md`): each new place, and each place of the
     game's where something new happens. It holds the place's entry under Places and its knots under Script.
   - **A person met in several places** can have a file of their own (`mara.md`), with their People entry and their
@@ -78,8 +84,8 @@ When the director pastes errors from the checker, fix exactly those, and send ba
 - **In what order:** `overview.md` first, for the director to approve; then the places' files, one per reply if need
   be.
 - **Only these headings are read**, at the level `##`, each any number of times, in any file: About, Beats, Places,
-  People, Things, Story state, Puzzles, Journal, Notebook, Close-ups, Machines, Script, Questions, Notes. A heading the
-  format does not have is a warning.
+  People, Things, Story state, Messages, Puzzles, Journal, Notebook, Close-ups, Machines, Script, Questions, Notes. A
+  heading the format does not have is a warning.
 - **Under a heading, only fenced blocks are read**: ```` ```yaml ```` for data, ```` ```ink ```` for the Script. A list
   under the same heading in several blocks or files is one list. Prose, tables and bullet lists are for people: use
   them freely (Beats, Questions and Notes are prose only).
@@ -128,7 +134,9 @@ A place is a scene: a room (interior) or a stretch of street (exterior), drawn i
   width: 1                         # screens wide: 1 a room, up to 3 for a street, which scrolls
   size: 7 m wide, 3.2 m high       # its real size, for scale: required
   private: false                   # a privacy zone: the Concierge cannot see or hear inside; her notebook opens
-  greeting: Good evening, Luna.    # the Concierge's welcome here, in its view
+  home: false                      # a home (private too): she can call the Concierge from here (decision 30)
+  greeting: Good evening, Luna.    # the Concierge's welcome here, in its view; its "Good evening" follows the time of
+                                   # day ("Good morning, Luna." in the morning)
   assist: ...                      # what it says when she rings for it here: what it would have her do (optional)
   look:                            # the picture, a prompt for each view: required
     concierge: >
@@ -146,10 +154,40 @@ A place is a scene: a room (interior) or a stretch of street (exterior), drawn i
       to: street                   # a place, the game's or this chapter's
       arrive: from-relay           # one of that place's arrivals (add it there if it is new)
   spots: [...]                     # what she can look at, use, take, talk to: below
+  stay:                            # she does not leave while this holds, by any way out, and says why (optional)
+    when: intro_morning_started and not intro_messages_read
+    say: My messages first.
+  arrive:                          # a knot run as she arrives here from somewhere else, the first whose when holds,
+    - story: athena_asked          # once each time (the Concierge's question as she steps out of a friend's flat)
+      when: athena_note_read and athena_report == "not_asked"
 ```
 
 A place the game has (`new: false`) can take new spots, ways and arrivals, and changes to its own; leave out what
 stays.
+
+### Close-ups to explore
+
+A thing worth a closer look (a desk, a workbench, a shelf of letters) can be a **close-up of its own** (decision 42):
+tapped, she goes up to it and the view goes in close, where its things can be looked at, used, opened and taken one by
+one; Step back returns her to where she stood. She is not drawn in it, and nothing is walked to. Write it as a place of
+its own, with `closeup:` the place it is in, and give the spot in that place `zoom:` its id. For the story, the save
+and the map she is still in the place. A close-up has no arrivals and no ways.
+
+```yaml
+- id: athena-bench
+  name: { concierge: Athena's workbench, raw: Her workbench }
+  closeup: athena-home             # the place it is a close-up of
+  size: the bench top 1.8 m wide, seen from the front and a little above
+  look: { concierge: ..., raw: ... }      # the picture, a prompt for each view
+  spots: [...]                     # its things, as any place's: a drawer to open, papers to read and take
+```
+
+In the place: `- id: bench` … `zoom: athena-bench`. A drawer that opens is a spot whose knot sets a variable (`~
+athena_drawer_open = true`); what is in it are spots shown `when: athena_drawer_open`.
+
+**Nothing is locked for its own sake** (decision 43). What looks like it opens, opens, and may hold nothing of value;
+or she says there is nothing there for her, or no reason to ("Not my door. No reason to knock."); or it is not a spot
+at all.
 
 ### Spots
 
@@ -168,13 +206,16 @@ A spot is anything in a place she can point at.
   story: relay_terminal            # its knot in the Script: its stitches override the plain texts
   talk: mara                       # a conversation from a knot's start (Talk), for people
   reply: { concierge: "Bzzzzz, bzzzzt.", raw: ... }   # what it says back when she talks to it, with no conversation
-  kind: machine                    # person, machine or thing: what it is, for the standard replies (below)
+  kind: machine                    # person, machine, thing or way (a lift, a door its knot opens): what it is, for the
+                                   # standard replies (below), and a way's marker
   item: old_laptop                 # a thing she can take: Take puts it in her pockets, for good
   prop: true                       # drawn as a picture of its own (she takes it, or it changes), not painted in
   only: raw                        # there in one view only: raw (edited out by the Concierge) or concierge (made up)
   when: relay_found                # there only while this holds
   map: true                        # on her map once she has seen it (ways and people are anyway)
   wear: robe                       # using it, she changes into this outfit (the catalog's outfits)
+  wardrobe: true                   # her wardrobe at home: using it, she picks what to wear
+  zoom: athena-bench               # tapped, looked at or used, the view goes in close: its close-up (above)
 ```
 
 Every new spot needs a `name`, a `where`, and something to see or do: a `look`, a `story`, a way out, or an `item`.
@@ -260,6 +301,25 @@ lists:                             # an errand's stages, as an Ink list: rare
 `Things` gets the chapter's things by itself. Name variables for what happened (`parcel_delivered`), not for the
 puzzle (`step_3_done`).
 
+The game sets some itself, for the story to read: `scene_now` (the place she is in), `day_part` ("morning",
+"afternoon", "evening", "night", by the game's clock), `arrivals` (how many times she has gone from one place to
+another), `raw_view`. And two functions: `good()`, the greeting word for the time of day (`"Good {good()}, guest."`),
+and `meal()`, what a station serves now.
+
+## Messages
+
+What comes to her inbox through CO-net, in the Concierge's card: a dot on its presence for each she has not read. It
+is the game's own interface, never a picture of a screen.
+
+```yaml
+- id: athena-invitation
+  from: Athena                     # who it is from, as her inbox shows it
+  arrives: intro_morning_started   # a condition: from when it is in her inbox (none: from the start)
+  text: >                          # its words, short: it is read on a phone
+    Luna! Come down as soon as you're awake. I've got a surprise for you. Just walk in, don't knock. — Athena
+  read: athena_invitation_read     # a variable the game sets true when she reads it (optional)
+```
+
 ## Puzzles
 
 How each puzzle works, for review and for the playthrough checks.
@@ -297,13 +357,33 @@ Both have pages; the catalog lists them.
 ## Close-ups
 
 A moment shown up close over the dimmed scene: her wrist in the station's cuff. The Script shows one with
-`# closeup: <id>`, and `# closeup: off` ends it.
+`# closeup: <id>`, and `# closeup: off` ends it. (A thing she can look over and handle up close is a close-up place
+instead: see Close-ups to explore, under Places.)
 
 ```yaml
 - id: laptop-screen
   look:
     concierge: ...                 # a prompt for each view, of the same moment
     raw: ...
+```
+
+**A paper's words are the close-up's own, never drawn into its picture**: its `look` is the paper with nothing written
+on it, and `text` gives its exact words, which the game sets over the paper, in a hand (`hand: true`) or typed. The
+Script shows it with `# read: <id>`, and it stays until she puts it down; her things can show it again.
+
+```yaml
+- id: athena-note
+  hand: true                       # her handwriting; without it, type
+  text: |
+    Luna,
+    I'm fine. Better than fine. I had to leave quickly.
+    — Athena
+  look:
+    concierge: A folded sheet of paper on a polished bench, nothing written on it.
+    raw: The same sheet on a scarred bench, worn and smudged, nothing written on it.
+- id: waking-closed
+  dark: true                       # it fills the dark: no scene behind it (her waking)
+  look: { concierge: ..., raw: ... }
 ```
 
 ## Machines
@@ -391,12 +471,15 @@ You set the laptop beside it. The cables don't fit. Of course they don't.
 - **Talking to the Concierge.** In its view the player can open the Concierge at the top left and Talk to it: that
   runs the knot `concierge_<place>` where she is (`concierge_relay-lobby` is not a name: use `concierge_relay_lobby`,
   the place id with `_` for `-`), else the game's `concierge`. Its lines (`#concierge`) appear in its card, hers on
-  the other side, her choices under them, so write it as a conversation with a mind that knows everything public:
-  topics she can ask about, each `+ [Question?]` answered and back to the choices, and one way to end it. Not in a
-  privacy zone: there it cannot hear her.
+  the other side, only the latest exchange showing, her choices under them, so write it as a conversation with a mind
+  that knows everything public: topics she can ask about, each `+ [Question?]` answered and back to the choices, and
+  one way to end it. In a privacy zone it cannot hear her; from a home (`home: true`) she can **call** it: the same
+  knot, its privacy sign open while the call lasts.
+- **A new game** begins with the knot `opening`, once, before she can do anything: her waking.
 - **A knot of the game's** (the catalog lists them) is rewritten by giving a knot of the same name: the chapter's
-  replaces it whole. A knot's name is unique in the whole game: name a thing's knot `<place>_<spot>` unless it is
-  plainly unique.
+  replaces it whole. A knot's name is unique in the whole game, and is never a thing's id (Ink keeps the two in one
+  set of names: the thing `athena_note` has the knot `athenas_note`): name a thing's knot `<place>_<spot>` unless it
+  is plainly unique.
 - **Not used:** `INCLUDE`, `EXTERNAL`, threads (`<-`), and tags other than speakers and the commands below.
 
 ### Commands
@@ -415,6 +498,8 @@ its own, it belongs to the next line.
 | `wait: 1.5` | A pause, in seconds. |
 | `closeup: laptop-screen`, `closeup: off` | A close-up over the dimmed scene, until `off` or the conversation's end. |
 | `terminal: relay7` | An old machine's screen, until she switches it off. |
+| `read: athena-note` | A paper close up with its words (`text`), until she puts it down. |
+| `call: concierge` | She calls the Concierge once this conversation is over (from a home only). |
 
 ### Conditions
 
@@ -472,8 +557,9 @@ that look. A prompt says **what is there**, not how to draw it.
 - **Every section's data:** the required fields, the ids, both views, real sizes, `new: false` only for what the game
   has.
 - **Every reference:**
-  - knots, things, places and arrivals;
-  - outfits, close-ups and machines;
+  - knots, things, places and arrivals; what runs as she arrives (`arrive`);
+  - outfits, close-ups (a close-up's place, a spot's `zoom`) and machines; the papers `# read:` shows;
+  - messages, and the variables they set;
   - the variables and things every condition names.
 - **The Script,** compiled with the game's story: Ink errors with their file and line, the commands and what they name,
   speakers who are someone.

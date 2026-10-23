@@ -250,6 +250,10 @@
       "look": {
         "concierge": "A glossy little kitchenette.",
         "raw": "A hot plate, a red kettle, two cups upside down to dry."
+      },
+      "use": {
+        "concierge": "You open the cupboards: neat cups, fine tea. Nothing out of place.",
+        "raw": "Tea, two cups, biscuits gone soft. Nothing out of place."
       }
     },
     {

@@ -1,0 +1,24 @@
+{
+ "name": "athena",
+ "scene": "cast",
+ "kind": "character",
+ "exists": "both",
+ "look": "vector",
+ "res": 1.25,
+ "framing": "One full-length figure standing, seen from the side in a three-quarter view facing left: standing at her workbench, her right hand resting by an old radio. Feet at the bottom of the frame. Even, soft, frontal lighting with no cast shadows and no rim light. Transparent background, the whole figure in frame with a little space around it, no ground, no text, no border.",
+ "prompt": "A small, energetic woman of eighty-nine: expressive silver hair, aged skin, work-worn hands, practical clothes, weathered and mended. Level 1: a plain, worn device over her right eye only, ports at her wrists. Faint healed marks where the implants and fluid lines of a higher level were taken out; nothing of them is left. 1.62 m tall.",
+ "concierge": "The same woman in the same pose, as the Concierge keeps her: elegant, practical clothes in the same outline, her silver hair glossy, smooth skin, a modest white eyepiece over her right eye with a soft light, the wrist interfaces clean and glowing. No devices of a higher level.",
+ "height": 229,
+ "material": "cloth",
+ "glow": {
+  "raw": "none",
+  "concierge": "auto",
+  "machine": false
+ },
+ "references": [
+  "art/cast/hero/raw.png"
+ ],
+ "conciergeReferences": [
+  "art/cast/hero/concierge.png"
+ ]
+}
