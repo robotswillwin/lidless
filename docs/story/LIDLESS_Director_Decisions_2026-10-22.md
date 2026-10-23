@@ -1,5 +1,5 @@
 # LIDLESS — The director's decisions since the bible v0.4
-**22 October 2026 · a record of what the director has decided since the bible v0.4 (21 October), in conversation**
+**22–23 October 2026 · a record of what the director has decided since the bible v0.4 (21 October), in conversation**
 
 The bible is unchanged: the director updates it. Until then, where this record and the bible differ, **this record
 holds**. Each decision is the director's, in plain words; what is still open says so.
@@ -112,17 +112,27 @@ holds**. Each decision is the director's, in plain words; what is still open say
     them; the rest of its front is wall without windows. The radio repair and the cocktail bar are 8 m wide, their
     street doors at the left as inside. Every room is at true scale, upper storeys too: the restaurant's tables are
     0.75 m high, as the bar's below.
+29. **Time of day.** The Concierge's view has no day: it is always evening or night. Raw view shows the real time:
+    by day, the city's smog and fog, as the raw pictures are now; at night perhaps a darker raw view, later. So a
+    morning is possible: it looks like evening in the Concierge's view and like smog by day in raw view.
+30. **The privacy sign.** Every privacy location shows the closed eye, in the Concierge's interface. When privacy is
+    broken, by a call or an emergency, it changes to the open eye, and back when it ends. Luna can call the Concierge
+    from a private home, never from a public privacy room (a public restroom, an approved meeting room).
+31. **The photograph in Luna's flat** is a projection: in raw view its frame is empty.
+32. **Athena**, Luna's older neighbour and mentor (the opening, "The Invitation"), was downgraded from a higher level
+    to Level 1, and has now probably gone to Level 0, which Luna does not know yet.
+33. **Luna waking** is a close-up, as the feeding at the station is.
 
 ## Production
 
-29. **Music** is the director's: one composition in a digital and an analogue arrangement, blended as the view
+34. **Music** is the director's: one composition in a digital and an analogue arrangement, blended as the view
     switches. No sound effects yet.
-30. **English only**, for now.
+35. **English only**, for now.
 
 ## Open, for the director
 
 - The six decisions the vertical slice waits on (`LIDLESS_Vertical_Slice_v0.1_2026-10-21.md`). The first is Luna's
-  motive: the photograph suggests she is looking for someone the Concierge removed.
+  motive. (The photograph is a projection with an empty frame in raw view, 31: what it shows is still to decide.)
 - What the corner shop sells. Proposed: drinks, tobacco, umbrellas, care for devices, the Concierge's wardrobe on
   show.
 - How Luna comes by raw view (1) and the laptop (12).
