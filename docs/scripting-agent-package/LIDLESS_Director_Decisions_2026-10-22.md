@@ -144,6 +144,10 @@ holds**. Each decision is the director's, in plain words; what is still open say
     say is what Athena asked her to, "Yes. Her music was loud." The story does not branch here. Before that, she does
     not leave her flat until she has read her messages, and at 9-07 she rings the bell before she asks the door to let
     her in. A paper read close up stays until she puts it down.
+41. **The tower's other floors** are drawn at the same scale as the one she is on, aligned with it (the lift over the
+    lift), each lived in its own way, and dimmed, as the neighbours' flats around her home are. On floor nine nothing
+    stands open: flat 9-06's door is shut, and the delivery box and the cleaning robot, which had no part to play, are
+    gone.
 
 ## Open, for the director
 
@@ -154,6 +158,6 @@ holds**. Each decision is the director's, in plain words; what is still open say
 - How Luna comes by raw view (1) and the laptop (12).
 - What each level trades (18): to be announced (the director, 22 October).
 - The opening's open questions, built for now as the overview proposed: Athena chosen family or a relative (Q1); her
-  age and height, 89 and 1.62 m (Q2); the note's wording, as written (Q5); both clues on the first visit (Q6); flat
-  9-06 left ajar as it is (Q10). And whether Luna can call the Concierge from a friend's home, Athena's: built not
-  (only from her own). (Her answer to the Concierge is settled: 40.)
+  age and height, 89 and 1.62 m (Q2); the note's wording, as written (Q5); both clues on the first visit (Q6). And
+  whether Luna can call the Concierge from a friend's home, Athena's: built not (only from her own). (Her answer to the
+  Concierge is settled, 40; flat 9-06 is shut, 41.)

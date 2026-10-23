@@ -190,8 +190,8 @@
         100
       ],
       "look": {
-        "concierge": "Quiet corridors, the same as this one.",
-        "raw": "The same corridor, again and again, up and down the tower."
+        "concierge": "Floors thirteen and fifteen: quiet corridors, the same as this one.",
+        "raw": "Fifteen: someone moving out, or in. Thirteen: a candle and flowers by a door."
       }
     }
   ],

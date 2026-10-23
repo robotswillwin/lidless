@@ -158,8 +158,8 @@
         130
       ],
       "look": {
-        "concierge": "The first floor's corridor, quiet.",
-        "raw": "The first floor. One door lit, the rest dark."
+        "concierge": "The first floor. Quiet, like every floor.",
+        "raw": "The first floor's corridor. Doormats, a plant. People live up there."
       }
     },
     {

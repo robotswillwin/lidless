@@ -85,12 +85,12 @@
       ],
       "stand": 584,
       "look": {
-        "concierge": "Ajar: warm light, and music. Someone is having a lovely evening.",
-        "raw": "Through the gap: a man in a reclining chair, wires from both wrists to a box on the wall, smiling at the ceiling. The music is in his head. Out here it's silent."
+        "concierge": "Flat 9-06. Quiet behind it.",
+        "raw": "9-06. Shut. Faint music behind it, or in the pipes."
       },
       "tag": {
         "concierge": "Guest · Integrated Care",
-        "raw": "ajar"
+        "raw": "9-06"
       }
     },
     {
@@ -141,53 +141,6 @@
       }
     },
     {
-      "id": "box",
-      "name": {
-        "concierge": "Delivery",
-        "raw": "Box"
-      },
-      "rect": [
-        620,
-        337,
-        33,
-        26
-      ],
-      "stand": 636,
-      "look": {
-        "concierge": "A delivery for 9-06, sealed: Wellbeing supplement · weekly.",
-        "raw": "A box for 9-06. A pharmacy's seal on it, and a pharmacy's smell."
-      },
-      "tag": {
-        "concierge": "Wellbeing · weekly",
-        "raw": "for 9-06"
-      },
-      "ask": "A weekly delivery for a guest at Level 3, Luna. They are doing very well."
-    },
-    {
-      "id": "robot",
-      "name": {
-        "concierge": "Cleaning unit",
-        "raw": "Cleaning bot"
-      },
-      "rect": [
-        737,
-        320,
-        36,
-        46
-      ],
-      "stand": 720,
-      "kind": "machine",
-      "look": {
-        "concierge": "A small white cleaning unit, resting. Its eye glows a patient cyan.",
-        "raw": "A battered cleaning bot, docked and humming. Its brush is worn to a stub."
-      },
-      "reply": {
-        "concierge": "Bzzt. It turns its eye on you, and back to the floor.",
-        "raw": "Bzzt. Its brush twitches, and is still."
-      },
-      "ask": "A cleaning unit, Luna. It keeps the corridors spotless."
-    },
-    {
       "id": "window",
       "name": "Window",
       "rect": [
@@ -215,8 +168,8 @@
         100
       ],
       "look": {
-        "concierge": "Quiet corridors, the same as this one.",
-        "raw": "The same corridor, again and again, up and down the tower."
+        "concierge": "Floors eight and ten: quiet corridors, the same as this one.",
+        "raw": "Ten: a bicycle, someone's boots. Eight: a child's drawing taped to a door."
       }
     }
   ],

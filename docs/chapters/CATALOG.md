@@ -90,8 +90,6 @@ interior. Arrivals: `lift`, `from-athena`.
 | `door-3` | Flat 9-07 / 9-07 | `athena_door` |  |
 | `bell` | Doorbell | `athena_bell` |  |
 | `plant` | Plant |  |  |
-| `box` | Delivery / Box |  |  |
-| `robot` | Cleaning unit / Cleaning bot |  |  |
 | `window` | Window |  |  |
 | `floors` | Other floors / Above and below |  |  |
 
