@@ -1,0 +1,27 @@
+{
+  "scene": "cast",
+  "kind": "character",
+  "exists": "both",
+  "height": 240,
+  "material": "cloth",
+  "glow": {
+    "raw": "none",
+    "concierge": "auto",
+    "machine": false
+  },
+  "look": "vector",
+  "res": 1.25,
+  "referenceNote": "character",
+  "name": "hero-party-back",
+  "prompt": "This is Luna, the real woman under the city AI's version of her: about 27, tall and slim, with adult proportions and long legs, standing exactly as in the first reference, at the same size in the frame. Her face pale and tired, with plain lips and no make-up; her dull ash-blonde hair in its plain, fairly thin high ponytail. Seen from behind, her back to the viewer: the back of her head with the ponytail hanging down the middle of her back, the thin dark strap of her goggle across the back of her head. Her face is not seen. She wears the best she has: a cheap, faded black party dress from a second-hand stall, a few of its sequins missing, with long sleeves and a high round neckline, covering her stomach completely, fitted to the waist, its skirt hanging loose to just above her knees; sheer black tights and scuffed black shoes with a low block heel. The same flat-shaded style: two or three flat tones per surface, crisp edges, no texture.",
+  "concierge": "Luna as the city AI shows her: the same beautiful woman, standing exactly as in the first reference, her curvy figure with a full bust, her glossy black hair in a high ponytail with hot-pink and teal streaks. Seen from behind, her back to the viewer: her glossy black ponytail with hot-pink and teal streaks, tied with a pink band, hanging down her back. Her face is not seen; only the edge of the ice-blue visor's light shows at the side of her head. A glamorous party dress of shimmering violet with long sleeves and a high round neckline, covering her stomach completely, fitted to the waist, its skirt hanging loose to just above her knees; sheer black tights and elegant black heels. Bold make-up and glossy lips. The same flat-shaded style.",
+  "framing": "One full-length figure seen straight from behind, her back to the viewer, standing in a relaxed neutral pose: arms hanging at her sides, slightly away from the body, hands empty, legs straight and a little apart. Feet at the bottom of the frame. Even, soft lighting with no cast shadows and no rim light. Transparent background, the whole figure in frame with a little space around it, no ground, no text, no border.",
+  "references": [
+    "art/cast/hero-back/raw.png",
+    "art/cast/hero-party/raw.png"
+  ],
+  "conciergeReferences": [
+    "art/cast/hero-back/concierge.png",
+    "art/cast/hero-party/concierge.png"
+  ]
+}

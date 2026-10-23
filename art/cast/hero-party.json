@@ -127,5 +127,9 @@
     "legs": {
       "from": "art/cast/hero-underwear"
     }
+  },
+  "turns": {
+    "front": "art/cast/hero-party-front",
+    "back": "art/cast/hero-party-back"
   }
 }

@@ -1,0 +1,27 @@
+{
+  "scene": "cast",
+  "kind": "character",
+  "exists": "both",
+  "height": 240,
+  "material": "cloth",
+  "glow": {
+    "raw": "none",
+    "concierge": "auto",
+    "machine": false
+  },
+  "look": "vector",
+  "res": 1.25,
+  "referenceNote": "character",
+  "name": "hero-clothes-front",
+  "prompt": "This is Luna, the real woman under the city AI's version of her: about 27, tall and slim, with adult proportions and long legs, standing exactly as in the first reference, at the same size in the frame. Her face pale and tired, with plain lips and no make-up; her dull ash-blonde hair in its plain, fairly thin high ponytail. Seen from the front: over her right eye only, which is on the viewer's left, her old goggle, one round amber-orange lens in a dark bronze frame on a thin dark strap around her head. Her left eye, on the viewer's right, is bare: a plain tired grey-green eye with nothing over it. Her ponytail is behind her head, out of sight but for a little hair at the sides. She has taken off her long coat and is in what she wears under it: a plain fitted black top with long sleeves, tucked into her trousers and covering her stomach completely, a black belt, dark charcoal-grey baggy cargo trousers with a pocket on the thigh, tucked into scuffed black lace-up combat boots with thick soles. The same flat-shaded style: two or three flat tones per surface, crisp edges, no texture.",
+  "concierge": "Luna as the city AI shows her: the same beautiful woman, standing exactly as in the first reference, her curvy figure with a full bust, her glossy black hair in a high ponytail with hot-pink and teal streaks. Seen from the front: over her right eye only, which is on the viewer's left, the sleek visor of glowing ice-blue light covers that one eye and nothing else; her left eye, on the viewer's right, is uncovered and made up. Her long red coat taken off: a fitted black top with long sleeves and a low neckline, tucked into slim black trousers fitted to her legs, not baggy and with no pockets, covering her stomach completely, going into sleek black ankle boots with slender high heels. Bold make-up and glossy red lips. The same flat-shaded style.",
+  "framing": "One full-length figure seen straight from the front, facing the viewer, standing in a relaxed neutral pose: arms hanging at her sides, slightly away from the body, hands empty and open, legs straight and a little apart, the coat open and hanging straight down. Feet at the bottom of the frame. Even, soft, frontal lighting with no cast shadows and no rim light. Transparent background, the whole figure in frame with a little space around it, no ground, no text, no border.",
+  "references": [
+    "art/cast/hero-front/raw.png",
+    "art/cast/hero-clothes/raw.png"
+  ],
+  "conciergeReferences": [
+    "art/cast/hero-front/concierge.png",
+    "art/cast/hero-clothes/concierge.png"
+  ]
+}

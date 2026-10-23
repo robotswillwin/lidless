@@ -9,7 +9,8 @@
 import { execFileSync } from 'node:child_process';
 import { mkdir, readFile, readdir, copyFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { join, relative } from 'node:path';
+import { join, relative, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import { loadRecipe, ROOT } from './recipe.mjs';
 
@@ -28,7 +29,7 @@ const morph = (m, w, h, r, grow) => {
 };
 
 /** Where the underwear is in a piece as cut, its fabric dark: its main parts, and its thin straps. */
-function fabricOf(d, w, h) {
+export function fabricOf(d, w, h) {
   const dark = new Uint8Array(w * h);
   for (let i = 0; i < w * h; i++) dark[i] = d[i * 4 + 3] > 100 && lumOf(d, i * 4) < 75 ? 1 : 0;
   const main = morph(morph(dark, w, h, 2, false), w, h, 3, true), all = Uint8Array.from(main);
@@ -66,7 +67,7 @@ function blurField(f, w, h, r) {
  * into the skin around over `R` pixels, so it has no shape of its own. Where the fabric made her outline, her outline is
  * drawn again in its colour elsewhere.
  */
-function fillSkin(d, w, h, mask, R = 8) {
+export function fillSkin(d, w, h, mask, R = 8) {
   const N = w * h, A = (i) => d[i * 4 + 3];
   // how far each pixel of her body is from the fabric, up to R
   const dist = new Float32Array(N).fill(Infinity), queue = [];
@@ -107,7 +108,7 @@ function fillSkin(d, w, h, mask, R = 8) {
  * A small mosaic, `n` by `n` blocks of `block` pixels, centred on (cx, cy): each block the average of the skin under it,
  * a little lighter or darker, so it reads as a censor's mosaic. It covers past her outline too, as a censor does.
  */
-function patch(d, w, h, cx, cy, block, n) {
+export function patch(d, w, h, cx, cy, block, n) {
   const x0 = Math.round(cx - (n * block) / 2), y0 = Math.round(cy - (n * block) / 2);
   for (let by = 0; by < n; by++) for (let bx = 0; bx < n; bx++) {
     const X = x0 + bx * block, Y = y0 + by * block;
@@ -137,6 +138,77 @@ function frontmost(mask, w, y0, y1, right) {
   return best;
 }
 
+/**
+ * Where underwear can be on her, seen whole from the front or the back: her torso and hips, below her neck and between
+ * her arms; not her hair, her eyepiece or the devices on her wrists, which are dark too. Also her figure's box.
+ */
+export function underwearBand(d, w, h) {
+  let x0 = w, x1 = 0, y0 = h, y1 = 0;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (d[(y * w + x) * 4 + 3] > 100) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+  const mid = (x0 + x1) / 2, H = y1 - y0, reach = (x1 - x0) * 0.27, top = y0 + H * 0.19, bottom = y0 + H * 0.6;
+  const band = new Uint8Array(w * h);
+  for (let y = Math.ceil(top); y < bottom; y++) for (let x = Math.ceil(mid - reach); x < mid + reach; x++) band[y * w + x] = 1;
+  return { band, box: [x0, y0, x1, y1] };
+}
+
+/**
+ * Her underwear in a whole picture of her: the dark fabric on her torso and hips, and what reaches out from it, its
+ * straps over her shoulders, as far as her collarbones and no further out than her shoulders.
+ */
+export function underwearOf(d, w, h) {
+  const { main, all } = fabricOf(d, w, h), { band, box } = underwearBand(d, w, h), N = w * h;
+  const [x0, y0, x1, y1] = box, H = y1 - y0, mid = (x0 + x1) / 2, reach = (x1 - x0) * 0.3, top = y0 + H * 0.12, bottom = y0 + H * 0.62;
+  // a strap is a thin line: out of the band, only narrow runs of the dark, never a lock of dark hair lying on it
+  const thin = new Uint8Array(N);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; ) {
+    if (!all[y * w + x]) { x++; continue; }
+    let e = x;
+    while (e < w && all[y * w + e]) e++;
+    if (e - x <= Math.max(6, (x1 - x0) * 0.035)) for (let k = x; k < e; k++) thin[y * w + k] = 1;
+    x = e;
+  }
+  const keep = new Uint8Array(N), queue = [];
+  for (let i = 0; i < N; i++) if (all[i] && band[i]) { keep[i] = 1; queue.push(i); }
+  while (queue.length) {
+    const i = queue.pop(), x = i % w, y = (i / w) | 0;
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const xx = x + dx, yy = y + dy, j = yy * w + xx;
+      if (xx < 0 || yy < 0 || xx >= w || yy >= h || keep[j] || !all[j] || (!band[j] && !thin[j]) || yy < top || yy > bottom || Math.abs(xx - mid) > reach) continue;
+      keep[j] = 1;
+      queue.push(j);
+    }
+  }
+  for (let i = 0; i < N; i++) if (!keep[i]) main[i] = 0;
+  return { main, all: keep, box };
+}
+
+/**
+ * The same for her seen from the front, a whole picture of her in her underwear (black): the underwear turned to skin,
+ * and a mosaic over each nipple, at each cup's middle, and over her vulva, where the briefs narrow between her legs.
+ */
+export function censorFront(d, w, h, block = 12, n = 3) {
+  const { main, all, box: [x0, y0, x1, y1] } = underwearOf(d, w, h);
+  const cut = Uint8Array.from(main);
+  fillSkin(d, w, h, all);
+  // her middle, and where the fabric is: the bra above her waist (her chest only, within her shoulders), the briefs below
+  const mid = (x0 + x1) / 2, H = y1 - y0, chest = y0 + H * 0.2, waist = y0 + H * 0.42, reach = (x1 - x0) * 0.22;
+  const cups = [[0, 0, 0], [0, 0, 0]], briefs = [];
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    if (!cut[y * w + x]) continue;
+    if (y >= chest && y < waist && Math.abs(x - mid) < reach) { const c = cups[x < mid ? 0 : 1]; c[0] += x; c[1] += y; c[2]++; } else if (y >= waist) briefs.push([x, y]);
+  }
+  const at = [];
+  for (const [sx, sy, m] of cups) if (m) at.push([sx / m, sy / m + block * 0.4]);
+  // the briefs' lowest point near her middle, a little above it
+  const low = briefs.filter(([x]) => Math.abs(x - mid) < (x1 - x0) * 0.08).reduce((a, b) => (!a || b[1] > a[1] ? b : a), null);
+  if (low) at.push([mid, low[1] - block * 1.3]);
+  for (const [cx, cy] of at) patch(d, w, h, cx, cy, block, n);
+  return at;
+}
+
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await main();
+
+async function main() {
 const args = process.argv.slice(2), opt = {}, pos = [];
 for (let i = 0; i < args.length; i++) if (args[i].startsWith('--')) opt[args[i].slice(2)] = args[++i]; else pos.push(args[i]);
 const [fromFile, toFile] = pos;
@@ -174,3 +246,4 @@ for (const view of ['raw', 'concierge', 'raw-left', 'concierge-left']) {
   }
 }
 console.log(`${to.name}: parts from ${from.name}, the underwear turned to skin, ${n}×${n} mosaics of ${block} px blocks at ${placed.join('; ')} → ${relative(ROOT, dst)}`);
+}

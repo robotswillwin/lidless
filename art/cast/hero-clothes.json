@@ -97,5 +97,9 @@
     "neckSink": 0.165,
     "coatSway": 0,
     "bareNeck": true
+  },
+  "turns": {
+    "front": "art/cast/hero-clothes-front",
+    "back": "art/cast/hero-clothes-back"
   }
 }

@@ -880,7 +880,8 @@ export class Game {
 
   /**
    * A finger or the mouse button went down on the scene. With a verb chosen, what is under it lights up. Without one,
-   * she goes there: up to a thing, through a way out (a door, the end of the street), running if it is far. A finger
+   * she goes there: up to a thing, through a way out (a door, the end of the street), running if it is far; on her,
+   * where nothing else is, she turns to us until she moves. A finger
    * held down and moved steers her; held down outdoors far from her, it runs her after it until it comes up (holdOn).
    * Right-click puts the verb down, or looks. The balls' choices stay out; a panel
    * closes, and what she found goes as she is given something else to do.
@@ -903,9 +904,17 @@ export class Game {
     this.holding = this.chasing = false;
     if (this.verb || this.inHand) return this.scan(clientX, clientY);
     const [x, y] = this.toLevel(clientX, clientY), h = this.world.hotspotAt(x, y, this.raw, this.cam[0]);
+    // on her, with nothing there to go to (a door she stands in front of is still gone through)
+    if (!h && !this.world.moving && this.onHer(x, y)) { this.out = true; return; }
     this.pending = h?.go ? { kind: 'feet', label: '' } : null;
     const stand = h ? placeIn(h, this.raw).stand : undefined;
     this.goTo(h?.go || stand === undefined ? x : stand, h?.go ? h : null);
+  }
+
+  /** Whether a point in the level is on her: her figure about her middle, from her feet to the top of her head. */
+  private onHer(x: number, y: number): boolean {
+    const def = this.shown.def, sc = this.scene.file.actorScale ?? 1, ay = def.anchor?.[1] ?? def.h, foot = this.scene.file.walk.y;
+    return Math.abs(x - this.world.heroX) <= def.w * sc * 0.12 + 6 && y <= foot && y >= foot - ay * sc * 0.95;
   }
 
   /** It moved: with a verb, what it is over lights up (a mouse needs no button for that); a finger held down steers her. */

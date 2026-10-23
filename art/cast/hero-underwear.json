@@ -105,5 +105,46 @@
     "coatCut": 1,
     "bareNeck": "shoulders",
     "coatFade": 0.35
+  },
+  "turns": {
+    "front": {
+      "from": "art/cast/hero-underwear-front",
+      "fabric": {
+        "raw": [
+          [
+            167,
+            164,
+            160
+          ],
+          [
+            198,
+            195,
+            191
+          ],
+          [
+            207,
+            205,
+            200
+          ]
+        ],
+        "concierge": [
+          [
+            124,
+            9,
+            27
+          ],
+          [
+            156,
+            21,
+            42
+          ],
+          [
+            174,
+            31,
+            53
+          ]
+        ]
+      }
+    }
   }
 }

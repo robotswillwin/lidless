@@ -105,5 +105,11 @@
     "coatCut": 1,
     "bareNeck": "shoulders",
     "coatFade": 0.35
+  },
+  "turns": {
+    "front": {
+      "from": "art/cast/hero-underwear-front",
+      "censor": true
+    }
   }
 }
