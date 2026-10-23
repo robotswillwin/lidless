@@ -7,6 +7,8 @@ import { fitCanvas, NH, NW, type Renderer } from '../engine/renderer';
 import { createLookPanel, type LookPanel } from '../look-panel';
 import { actionFor, actionsFor, defaultOf, itemActionFor, verbsIn, type Verb } from './actions';
 import { frameFor } from './anim';
+import { clockText, dayPart, greetingFor, minuteAt, parseClock } from './clock';
+import { inbox, unreadWords, type Inbox, type MessagesFile } from './messages';
 import { isDoor, poseAt, poseFrame } from './pose';
 import { Camera, cameraTarget } from './camera';
 import { holds } from './conditions';
@@ -14,7 +16,7 @@ import { Dialogue, STITCH } from './dialogue';
 import { direct, type Stage } from './direct';
 import { waitingEye } from './eye';
 import { heroDrawing, heroGaits, holdPace, paceFor } from './hero';
-import { Hud, type Action, type Item, type Mark, type Notebook, type Way } from './hud';
+import { Hud, type Action, type CloseupDef, type Item, type Mark, type Notebook, type Way } from './hud';
 import { inView, pick, placeIn, type Hotspot } from './level';
 import { mapNow, onMap, type MapNow, type MapScene, type Travel } from './map';
 import { noticedOnLeaving } from './privacy';
@@ -54,6 +56,10 @@ export interface GameSetup {
   journal: Notebook;
   /** The standard replies to a verb a thing has nothing of its own for (replies.ts). */
   replies?: Replies;
+  /** Her messages through CO-net, in the Concierge's card (messages.ts). */
+  messages?: MessagesFile;
+  /** The close-ups' own settings: a paper's words (closeups.json). */
+  closeups?: Record<string, CloseupDef>;
   save: SaveData | null;
   /** Players who asked for less motion: no camera drift, no switch glitch, no fade. */
   reduceMotion: boolean;
@@ -156,6 +162,17 @@ export class Game {
   /** When she came into the scene she is in, and her visits to privacy rooms whose doors the Concierge sees. */
   private enteredAt = 0;
   private visits: Record<string, number[]>;
+  /** On a call to the Concierge from a home: it hears her, its privacy sign open, until the conversation ends. */
+  private calling = false;
+  /** A story's line asked for the call once its conversation is over (the opening's "Good morning, CO."). */
+  private callAfter = false;
+  /** The messages she has read. */
+  private readonly messagesRead: Set<string>;
+  /** The time of day the clock started at this session, minutes after midnight (clock.ts); the story's part of the day. */
+  private readonly clockStart: number;
+  private dayPartSet = '';
+  /** Whether the story's opening has run: a new game begins with it, once. */
+  private opened: boolean;
 
   private constructor(private readonly s: GameSetup) {
     this.scenes = new Scenes(s.renderer.gl, s.assets, s.world);
@@ -173,6 +190,14 @@ export class Game {
     this.arrived = s.save?.arrived ?? 0;
     this.rotations = { ...(s.save?.rotations ?? {}) };
     this.visits = Object.fromEntries(Object.entries(s.save?.visits ?? {}).map(([k, v]) => [k, [...v]]));
+    this.messagesRead = new Set(s.save?.messagesRead ?? []);
+    this.clockStart = s.save?.clock ?? parseClock(s.world.clock);
+    // a game saved before there was an opening has had its start already
+    this.opened = s.save ? (s.save.opened ?? true) : false;
+    this.hud.closeups = s.closeups ?? {};
+    // her paper notebook, where the world has her carry it: once her morning has begun (a game from before the opening
+    // has its notebook already)
+    this.hud.hasNotebook = () => !s.world.notebook || this.carries(s.world.notebook) || !this.dialogue.read('intro_morning_started');
     this.dialogue.set('arrivals', this.arrived);
     this.state = { view: s.rawView ? 0 : s.save && this.canSwitch() ? s.save.view : 1, sinceSwitch: 10 };
     this.attention = s.save?.attention ?? 0;
@@ -235,6 +260,8 @@ export class Game {
     };
     co.onEnd = () => this.endTalk();
     co.run = (commands) => direct(commands, this.stage);
+    co.onCall = () => this.call();
+    co.onRead = (id) => this.readMessage(id);
     this.hud.onPanel = () => this.ui.hideCaption();
     this.hud.onWay = (id) => this.takeWay(id);
   }
@@ -262,7 +289,7 @@ export class Game {
    * meeting rooms), which the law it keeps forbids it to watch.
    */
   get watched(): boolean {
-    return !!this.scene && !this.scene.file.private;
+    return !!this.scene && (!this.scene.file.private || this.calling);
   }
 
   /** Seconds since the session started, or the held time. */
@@ -452,13 +479,29 @@ export class Game {
     }
     clearTimeout(waiting);
     this.going = false;
+    // a knot of the story's to run as she arrives here (the Concierge's question as she steps out of a friend's flat):
+    // not where a conversation brought her, which goes on
+    const asked = story ? undefined : this.scene.file.arrive?.find((r) => this.dialogue.test(r.when) && this.dialogue.has(r.story));
     const waited = this.s.fade.classList.contains('wait');
     // the eye, once it shows, is seen whole: it finishes opening before the fade lifts
     if (waited && !this.s.fast) await waitingEye()?.opened();
     this.s.fade.classList.remove('wait', 'on');
     this.stillSince = this.clock();
+    if (asked) this.askOnArrival(asked.story);
     if (waited) setTimeout(() => { if (!this.s.fade.classList.contains('wait')) waitingEye()?.stop(); }, 400);
     this.travelling = false;
+  }
+
+  /**
+   * A knot the place runs as she arrives: the Concierge's, in its card (in raw view, where it has none, as any
+   * conversation).
+   */
+  private askOnArrival(knot: string): void {
+    this.lockedBeforeTalk = !this.canSwitch();
+    this.partner = null;
+    this.hud.setTalking(true);
+    if (this.raw) this.talk.show(this.dialogue.start(knot, true), this.dialogue.choices);
+    else this.hud.concierge.converse(this.dialogue.start(knot, false), this.dialogue.choices);
   }
 
   /** The ways out where she stands: a door, a lift, an end of the street. */
@@ -576,6 +619,7 @@ export class Game {
 
   private endTalk(): void {
     this.partner = null;
+    this.calling = false;
     this.letMoverGo();
     void this.hud.showCloseup(null);
     // a conversation can change the city's conditions: the rain starts, the power goes
@@ -592,6 +636,8 @@ export class Game {
       this.ui.showCaption('Something behind your eye is new. Touch your temple, with your things at the bottom left, or press E, to see what is really there.');
       this.switchedAt = this.clock();
     }
+    // the call a line asked for, now the conversation it was in is over
+    if (this.callAfter) { this.callAfter = false; window.setTimeout(() => this.call(), 0); }
   }
 
   /** A mover she went up to goes on again from where it stopped. */
@@ -633,6 +679,7 @@ export class Game {
     sleep: (ms) => new Promise((r) => setTimeout(r, this.s.fast ? Math.min(ms, 50) : ms)),
     closeup: (name) => this.hud.showCloseup(name),
     terminal: (id) => this.terminal(id),
+    call: () => { this.callAfter = true; },
   };
 
   /**
@@ -745,6 +792,7 @@ export class Game {
   /** Her pockets as the story has them now (or as the world lists them, in a story that keeps none). */
   private syncThings(): void {
     this.hud.setThings(this.s.items, this.dialogue.carried() ?? this.s.world.hero.items ?? []);
+    this.hud.notebookChanged();
     if (this.inHand && !(this.dialogue.carried() ?? []).includes(this.inHand)) this.hold(null);
   }
 
@@ -766,7 +814,64 @@ export class Game {
   private ring(): void {
     if (this.verb === 'ask') return this.setVerb(null);
     if (this.hud.concierge.isOpen) return this.hud.concierge.close();
-    this.hud.openConcierge(this.scene.file.assist ?? 'Is there anything I can do for you, Luna?', !this.watched);
+    const box = this.inboxNow(), unread = box.filter((m) => m.unread).length;
+    this.hud.openConcierge(unread ? unreadWords(unread) : this.scene.file.assist ?? 'Is there anything I can do for you, Luna?', !this.watched, box, this.canCall);
+  }
+
+  /** From a home she can call the Concierge (decision 30); not from a public privacy room, nor in raw view. */
+  private get canCall(): boolean {
+    return !!this.scene.file.private && !!this.scene.file.home && !this.raw;
+  }
+
+  /**
+   * She calls the Concierge: it hears her, its privacy sign opens, and they talk (its knot for the place); when the
+   * conversation ends the call does, and the sign shuts.
+   */
+  private call(): void {
+    if (!this.canCall || this.calling || this.talk.open || this.travelling) return;
+    // once the call is over, its card is as it is here: it cannot hear her, she can call it again
+    this.hud.concierge.setHearing(true, true);
+    this.calling = true;
+    this.talkToConcierge();
+    if (!this.hud.concierge.talking) this.calling = false;
+  }
+
+  /** Her messages now: those that have come, and which she has not read. */
+  private inboxNow(): Inbox[] {
+    return this.s.messages ? inbox(this.s.messages, (c) => this.dialogue.test(c), this.messagesRead) : [];
+  }
+
+  /** A message opened in the Concierge's card: read, and the story hears of it. */
+  private readMessage(id: string): void {
+    if (this.messagesRead.has(id)) return;
+    this.messagesRead.add(id);
+    const m = this.s.messages?.messages.find((x) => x.id === id);
+    if (m?.read) this.dialogue.set(m.read, true);
+    this.persist();
+  }
+
+  /** Whether she has a thing on her now. */
+  private carries(item: string): boolean {
+    return this.dialogue.carries(item);
+  }
+
+  /** The time of day now, minutes after midnight. */
+  private minuteNow(t = this.clock()): number {
+    return minuteAt(this.clockStart, t);
+  }
+
+  /**
+   * Play begins, the title screen gone: a new game starts with the story's opening (her waking), once. A game saved
+   * before, or one a test opens at a scene, does not.
+   */
+  begin(): void {
+    if (this.opened || !this.dialogue.has('opening')) return;
+    this.opened = true;
+    const lines = this.dialogue.start('opening', this.raw);
+    this.lockedBeforeTalk = !this.canSwitch();
+    this.partner = null;
+    this.hud.setTalking(true);
+    this.talk.show(lines, this.dialogue.choices);
   }
 
   /**
@@ -1002,6 +1107,7 @@ export class Game {
       visited: [...this.been], seen: Object.fromEntries([...this.seen].map(([k, v]) => [k, [...v]])),
       found: Object.fromEntries([...this.found].map(([k, v]) => [k, [...v]])), read: [...this.notesRead],
       arrived: this.arrived, rotations: this.rotations, visits: this.visits,
+      messagesRead: [...this.messagesRead], clock: this.minuteNow(), opened: this.opened,
     };
   }
 
@@ -1069,8 +1175,12 @@ export class Game {
     // in its view, with nothing to stare at, its attention slowly settles
     if (this.attention > 0 && !this.raw && t - this.attentionAt > 30) { this.attention--; this.attentionAt = t; this.hud.setAttention(this.attention); }
     // its greeting and its line of the day: the evening goes on, and it never says it is raining
-    const minute = 21 * 60 + 40 + Math.floor(t / 60), hh = Math.floor(minute / 60) % 24, mm = minute % 60;
-    this.hud.setStatus(file.greeting ?? 'Good evening, Luna.', `${hh}:${String(mm).padStart(2, '0')}, Friday, Year 64 of Care. ${file.kind === 'interior' ? 'Indoors, 21°.' : '14°, an umbrella is advised.'}`);
+    const minute = this.minuteNow(t), part = dayPart(minute);
+    this.hud.setStatus(greetingFor(file.greeting, minute), `${clockText(minute)}, Friday, Year 64 of Care. ${file.kind === 'interior' ? 'Indoors, 21°.' : '14°, an umbrella is advised.'}`);
+    if (part !== this.dayPartSet) { this.dayPartSet = part; this.dialogue.set('day_part', part); }
+    // its privacy sign where it cannot see her, open while she calls it; her unread messages on its presence
+    this.hud.concierge.setPrivacy(this.raw || !file.private ? null : this.calling ? 'open' : 'shut', this.s.reduceMotion);
+    this.hud.concierge.setUnread(this.raw ? 0 : this.inboxNow().filter((m) => m.unread).length);
     // what it keeps of her: her credits, her heart as her wrists tell it (it climbs as she hurries, and as its attention
     // on her grows, and settles slowly), and whether she has fed lately (by the story's count of her comings and goings)
     const pace = (world.moving ? (world.gait === 'run' ? 128 : world.gait === 'jog' ? 104 : 84) : 66) + this.attention * 7;
@@ -1103,7 +1213,7 @@ export class Game {
     // turned to us or away from us (pose.ts), never mirrored: her eyepiece is on her right eye
     if (world.moving || this.talk.open) this.stillSince = t;
     if (world.moving) this.out = false;
-    const turned = poseFrame(hero.def, poseAt(t, { going: this.going, moving: world.moving, talking: this.talk.open, out: this.out, stillSince: this.stillSince }));
+    const turned = poseFrame(hero.def, poseAt(t, { going: this.going, moving: world.moving, talking: this.talk.open, out: this.out, stillSince: this.stillSince }), t);
     const her = heroDrawing(hero, { x: world.heroX, walkY: file.walk.y, cam: this.cam, scale: sc, facing: turned === null ? world.facing : 1, bob, frame: turned ?? frameFor(hero.def, world.moving, world.phase, t, world.facing, world.gait) });
     // what a verb lights up, and what she found, stay on the thing as the camera follows her
     if (this.marked) { this.marked.box = this.boxOf(this.marked.h); this.hud.mark(this.marked); }

@@ -11,13 +11,14 @@ import { loadProjectLook } from './engine/look';
 import { loadPresets } from './engine/presets';
 import { QUALITY, Renderer, type Tier } from './engine/renderer';
 import { Game } from './game/game';
-import type { Item, Notebook } from './game/hud';
+import type { CloseupDef, Item, Notebook } from './game/hud';
 import { bindInput } from './game/input';
+import type { MessagesFile } from './game/messages';
 import type { Replies } from './game/replies';
 import { clearSave, loadSave } from './game/save';
 import { loadWorld } from './game/scenefile';
 import { loadSettings, READING, TEXT_SCALE, type Settings } from './game/settings';
-import { showTitle, titleAtStart } from './game/title';
+import { showTitle, takeBegin, titleAtStart } from './game/title';
 import { waitingEye } from './game/eye';
 
 const params = new URLSearchParams(location.search);
@@ -49,9 +50,10 @@ async function boot(): Promise<void> {
   // textures as detailed as the screen shows: a phone, drawing the level at its own size, keeps a quarter of a background
   setTexelBudget(renderer.quality.scale);
   const optional = <T>(file: string, fallback: T) => fetch(`${assets}/${file}`, { cache: 'no-store' }).then((r) => (r.ok ? (r.json() as Promise<T>) : fallback)).catch(() => fallback);
-  const [world, projectLook, items, notebook, journal, replies] = await Promise.all([
+  const [world, projectLook, items, notebook, journal, replies, messages, closeups] = await Promise.all([
     loadWorld(assets), loadProjectLook(assets), optional<Record<string, Item>>('items.json', {}), optional<Notebook>('notebook.json', { pages: [] }),
-    optional<Notebook>('journal.json', { pages: [] }), optional<Replies>('replies.json', {}), loadPresets(assets),
+    optional<Notebook>('journal.json', { pages: [] }), optional<Replies>('replies.json', {}), optional<MessagesFile>('messages.json', { messages: [] }),
+    optional<Record<string, CloseupDef>>('closeups.json', {}), loadPresets(assets),
   ]);
   const heroPath = world.hero.sprite, cut = heroPath.lastIndexOf('/');
   const hero = await loadSprite(gl, `${assets}/${heroPath.slice(0, cut)}`, heroPath.slice(cut + 1), spriteDefaults(gl));
@@ -59,7 +61,7 @@ async function boot(): Promise<void> {
   const fixedT = number('t');
   const game = await Game.start({
     renderer, canvas, stage: document.querySelector('.stage') as HTMLElement, fade: document.getElementById('fade') as HTMLElement,
-    assets, world, hero, projectLook, items, notebook, journal, replies, save: loadSave(),
+    assets, world, hero, projectLook, items, notebook, journal, replies, messages, closeups, save: loadSave(),
     reduceMotion: reducedOf(settings), fast: params.has('fast'),
     fixedT, fixedCam: number('cam'), rawView: params.get('view') === 'raw', variant: params.get('variant'),
   }, asked ? { scene: asked, spawn: params.get('spawn') ?? undefined } : undefined);
@@ -91,7 +93,8 @@ async function boot(): Promise<void> {
   const title = () => {
     game.inputLocked = true;
     game.hud.closeAll();
-    showTitle(stage, { settings: () => settings, onSettings: apply, onContinue: () => { game.inputLocked = false; } });
+    // begun with no game saved, a new game: its opening
+    showTitle(stage, { settings: () => settings, onSettings: apply, onContinue: () => { game.inputLocked = false; game.begin(); } });
   };
   game.hud.settings = () => settings;
   game.hud.onSettings = apply;
@@ -116,6 +119,8 @@ async function boot(): Promise<void> {
   const machine = params.get('terminal');
   if (machine) void game.terminal(machine);
   else if (titleAtStart(params)) title();
+  // a new game from the title screen, or asked for (?opening): its opening
+  else if (takeBegin() || params.has('opening')) game.begin();
   if (fixedT !== null) return;
 
   let visible = true, last = 0;

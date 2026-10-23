@@ -19,6 +19,8 @@ export interface Stage {
   closeup(name: string | null): Promise<void>;
   /** An old machine's screen (terminals/<id>.json), until she switches it off. */
   terminal(id: string): Promise<void>;
+  /** She calls the Concierge, from a home, once this conversation is over. */
+  call(): void;
 }
 
 export async function direct(commands: Command[], stage: Stage): Promise<void> {
@@ -34,5 +36,6 @@ export async function direct(commands: Command[], stage: Stage): Promise<void> {
     else if (c.name === 'wait') await stage.sleep((Number(c.arg) || 1) * 1000);
     else if (c.name === 'closeup') await stage.closeup(c.arg && c.arg !== 'off' ? c.arg : null);
     else if (c.name === 'terminal') await stage.terminal(c.arg);
+    else if (c.name === 'call') stage.call();
   }
 }

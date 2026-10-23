@@ -1,0 +1,42 @@
+{
+ "waking-closed": {
+  "dark": true
+ },
+ "waking-open": {
+  "dark": true
+ },
+ "athena-note": {
+  "hand": true,
+  "text": "Luna,\nI'm fine. Better than fine. I had to leave quickly.\nIf CO asks, tell it I was home. The music was loud. I didn't hear you.\nPlease don't message me. I promise I'll explain.\n— Athena",
+  "area": [
+   0.285,
+   0.17,
+   0.415,
+   0.68
+  ],
+  "tilt": -2,
+  "size": 0.029
+ },
+ "athena-timetable": {
+  "hand": true,
+  "text": "07:10 / 07:16 / 07:22 / 07:28\nCivic unit: +6, +6, +6\nAerial: varies. Check again.\nService entrance? Not enough.",
+  "area": [
+   0.33,
+   0.2,
+   0.36,
+   0.6
+  ],
+  "tilt": 1,
+  "size": 0.034
+ },
+ "athena-receipt": {
+  "text": "RADIO REPAIR\nSERVICE 218\nPortable computer —\nbattery and data\nconnector\nStatus: bench test\ncomplete; awaiting\ncollection\nCustomer: Athena",
+  "area": [
+   0.415,
+   0.29,
+   0.17,
+   0.55
+  ],
+  "size": 0.0165
+ }
+}

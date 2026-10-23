@@ -6,6 +6,28 @@ Names are the Concierge's / raw view's where they differ.
 
 ## Places
 
+### athena-home: Flat 9-07 (raw view: Athena's flat)
+
+interior, a privacy zone. Arrivals: `door`.
+
+| Spot | Name | Story | Notes |
+| --- | --- | --- | --- |
+| `door` | Door |  | to `floor9/from-athena` |
+| `coats` | Coat stand |  |  |
+| `books` | Bookcase / Books |  |  |
+| `keepsake` | Picture |  |  |
+| `armchair` | Armchair / Her chair |  |  |
+| `lamp` | Floor lamp / Lamp |  |  |
+| `window` | Window |  |  |
+| `records` | Record player / Records |  |  |
+| `shelf` | Radios |  |  |
+| `bench` | Workbench | `athena_bench` |  |
+| `gap` | Workbench | `athena_gap` |  |
+| `scope` | Oscilloscope |  |  |
+| `timetable` | Timetable | `athena_timetable` | item `athena_patrol_sheet` |
+| `note` | Note | `athenas_note` | item `athena_note` |
+| `receipt` | Receipt | `athena_receipt` | item `athena_repair_slip` |
+
 ### backstreet: Backstreet
 
 exterior. Arrivals: `from-street`, `door`.
@@ -55,14 +77,14 @@ interior. Arrivals: `lift`, `her-door`.
 
 ### floor9: Floor 9
 
-interior. Arrivals: `lift`.
+interior. Arrivals: `lift`, `from-athena`.
 
 | Spot | Name | Story | Notes |
 | --- | --- | --- | --- |
 | `lift` | Lift | `lift` |  |
 | `door-1` | Flat 9-05 / 9-05 |  |  |
 | `door-2` | Flat 9-06 / 9-06 |  |  |
-| `door-3` | Flat 9-07 / 9-07 |  |  |
+| `door-3` | Flat 9-07 / 9-07 | `athena_door` |  |
 | `plant` | Plant |  |  |
 | `box` | Delivery / Box |  |  |
 | `robot` | Cleaning unit / Cleaning bot |  |  |
@@ -71,7 +93,7 @@ interior. Arrivals: `lift`.
 
 ### home: Luna's home
 
-interior, a privacy zone. Arrivals: `door`.
+interior, a privacy zone. Arrivals: `door`, `bed`.
 
 | Spot | Name | Story | Notes |
 | --- | --- | --- | --- |
@@ -88,6 +110,7 @@ interior, a privacy zone. Arrivals: `door`.
 | `terminal` | Terminal |  |  |
 | `valve` | Curio / Radio valve |  | item `valve` |
 | `radio` | Retro speaker / Transistor radio | `radio` |  |
+| `notebook` | Notebook | `notebook` | item `paper_notebook` |
 | `parcel` | Parcel |  | item `parcel` |
 | `water` | Water / Water tap |  |  |
 
@@ -169,7 +192,7 @@ exterior. Arrivals: `start`, `from-backstreet`, `from-radio`, `from-restroom`, `
 
 ## People who speak
 
-Speaker tags in the story so far: `#concierge`, `#felix`, `#fixer`, `#guardian`, `#lift`, `#luna`, `#station`, `#tap`. A line without a tag is narration.
+Speaker tags in the story so far: `#concierge`, `#door`, `#felix`, `#fixer`, `#guardian`, `#lift`, `#luna`, `#station`, `#tap`. A line without a tag is narration.
 
 ## Things she can carry
 
@@ -180,6 +203,10 @@ Speaker tags in the story so far: `#concierge`, `#felix`, `#fixer`, `#guardian`,
 | `cigarettes` | Cigarettes | Combustion product · harmful to your wellbeing / two left. a week's credits, these. |
 | `map` | Map | Hand-drawn · information out of date / drawn by hand. no names on it. |
 | `valve` | Valve | Vintage · decorative curio / for the radio. the left one's dead. |
+| `paper_notebook` | Notebook | Paper notebook · protected use / private paper. never on co-net. |
+| `athena_note` | Note | Personal paper note / athena wrote this in a hurry. |
+| `athena_patrol_sheet` | Timetable | Personal timing observations / repeating gaps. what was she watching? |
+| `athena_repair_slip` | Receipt | Radio Repair · service receipt / portable computer. waiting at radio repair? |
 
 ## The story's state
 
@@ -193,10 +220,20 @@ Speaker tags in the story so far: `#concierge`, `#felix`, `#fixer`, `#guardian`,
 | `care_level` | `1` | read by the game: her connection level, 0 to 5 (the director's decision 18): 1 is Basic Care. Its card shows it |
 | `arrivals` | `0` | set by the game: how many times she has gone from one scene to another, all told (a clock the story counts by) |
 | `scene_now` | `""` | set by the game: the scene she is in now (its id) |
+| `day_part` | `"evening"` | set by the game: the part of the day by its clock, "morning", "afternoon", "evening" or "night" (the Concierge's view is evening whatever it says) |
 | `fed_at` | `-100` | when she last fed at a nutrition station (arrivals then): she does not need to again for a while |
 | `station_seat` | `"woman"` | who sits at the main street's station: the street turns it each time she comes back (its scene file's `rotate`) |
 | `carried` | `(matches, cigarettes, map)` | The things she can carry: public/assets/items.json says how each looks and what it is called. What she carries now, and what she has picked up anywhere, which is gone from where it was (the game adds to both as she takes a thing) |
 | `taken` | `()` | The things she can carry: public/assets/items.json says how each looks and what it is called. What she carries now, and what she has picked up anywhere, which is gone from where it was (the game adds to both as she takes a thing) |
+| `intro_morning_started` | `false` | The opening, "The Invitation" (docs/chapters/00-the-errand): her morning, Athena's invitation, the visit to 9-07. The waking ran and she is standing at home; she read the delivery message; she read Athena's (floor nine is hers to go to); she went into Athena's flat; read Athena's note; looked at the timetable; looked at the receipt |
+| `intro_messages_read` | `false` | The opening, "The Invitation" (docs/chapters/00-the-errand): her morning, Athena's invitation, the visit to 9-07. The waking ran and she is standing at home; she read the delivery message; she read Athena's (floor nine is hers to go to); she went into Athena's flat; read Athena's note; looked at the timetable; looked at the receipt |
+| `athena_invitation_read` | `false` | The opening, "The Invitation" (docs/chapters/00-the-errand): her morning, Athena's invitation, the visit to 9-07. The waking ran and she is standing at home; she read the delivery message; she read Athena's (floor nine is hers to go to); she went into Athena's flat; read Athena's note; looked at the timetable; looked at the receipt |
+| `athena_flat_entered` | `false` | The opening, "The Invitation" (docs/chapters/00-the-errand): her morning, Athena's invitation, the visit to 9-07. The waking ran and she is standing at home; she read the delivery message; she read Athena's (floor nine is hers to go to); she went into Athena's flat; read Athena's note; looked at the timetable; looked at the receipt |
+| `athena_note_read` | `false` | The opening, "The Invitation" (docs/chapters/00-the-errand): her morning, Athena's invitation, the visit to 9-07. The waking ran and she is standing at home; she read the delivery message; she read Athena's (floor nine is hers to go to); she went into Athena's flat; read Athena's note; looked at the timetable; looked at the receipt |
+| `athena_patrol_sheet_seen` | `false` | The opening, "The Invitation" (docs/chapters/00-the-errand): her morning, Athena's invitation, the visit to 9-07. The waking ran and she is standing at home; she read the delivery message; she read Athena's (floor nine is hers to go to); she went into Athena's flat; read Athena's note; looked at the timetable; looked at the receipt |
+| `athena_repair_slip_seen` | `false` | The opening, "The Invitation" (docs/chapters/00-the-errand): her morning, Athena's invitation, the visit to 9-07. The waking ran and she is standing at home; she read the delivery message; she read Athena's (floor nine is hers to go to); she went into Athena's flat; read Athena's note; looked at the timetable; looked at the receipt |
+| `athena_report` | `"not_asked"` | what she told the Concierge leaving Athena's flat: "not_asked", "covered", "truthful" or "private". Her word, not a fact about Athena |
+| `prologue_complete` | `false` | what she told the Concierge leaving Athena's flat: "not_asked", "covered", "truthful" or "private". Her word, not a fact about Athena |
 | `parcel_delivered` | `false` | the errand the game begins with: the parcel on her desk, to the radio repair by ten |
 | `radio_heard` | `false` | her radio, mended: what she heard under the static |
 | `met_felix` | `false` | Felix, at the cocktail bar (bar.ink): met, and what he told her of the levels |
@@ -205,11 +242,11 @@ Speaker tags in the story so far: `#concierge`, `#felix`, `#fixer`, `#guardian`,
 | `relay7_handover` | `false` | what she found on the old machine, Relay 7 (public/assets/terminals/relay7.json, `# terminal: relay7`): placeholders, until the story has the machine. Root's password found, the handover read, the night operator's notes read |
 | `relay7_pattern` | `false` | what she found on the old machine, Relay 7 (public/assets/terminals/relay7.json, `# terminal: relay7`): placeholders, until the story has the machine. Root's password found, the handover read, the night operator's notes read |
 
-Lists: `Things` (parcel, matches, cigarettes, map, valve).
+Lists: `Things` (parcel, matches, cigarettes, map, valve, paper_notebook, athena_note, athena_patrol_sheet, athena_repair_slip).
 
 ## Knots
 
-`fixer`, `station`, `guardian`, `radio`, `photo`, `concierge`, `bar_prices`, `bar_counter`, `bar_order`, `felix`, `lift`.
+`fixer`, `station`, `guardian`, `opening`, `concierge_home`, `radio`, `photo`, `notebook`, `concierge`, `bar_prices`, `bar_counter`, `bar_order`, `felix`, `lift`, `athena_door`, `athena_asked`, `athena_bench`, `athena_gap`, `athenas_note`, `athena_timetable`, `athena_receipt`, `good`, `meal`.
 
 ## Outfits
 
@@ -217,7 +254,7 @@ Lists: `Things` (parcel, matches, cigarettes, map, valve).
 
 ## Close-ups and machines
 
-Close-ups: `station`. Machines: `relay7`.
+Close-ups: `athena-note`, `athena-receipt`, `athena-timetable`, `station`, `waking-closed`, `waking-open`. Machines: `relay7`.
 
 ## Journal and notebook pages
 

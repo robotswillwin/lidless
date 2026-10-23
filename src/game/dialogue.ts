@@ -21,8 +21,10 @@ const SPEAKER_TAG = /^[a-z][a-z0-9_]*$/;
  *   closeup: station | off     a close-up over the dimmed scene, or none
  *   terminal: relay7           an old machine's screen (public/assets/terminals/relay7.json); the line waits until she
  *                              switches it off
+ *   call: concierge            she calls the Concierge once the conversation is over (from a home only), its privacy
+ *                              sign open while they talk
  */
-export const COMMANDS = ['walk', 'face', 'wear', 'go', 'fade', 'view', 'wait', 'closeup', 'terminal'] as const;
+export const COMMANDS = ['walk', 'face', 'wear', 'go', 'fade', 'view', 'wait', 'closeup', 'terminal', 'call'] as const;
 export type CommandName = (typeof COMMANDS)[number];
 export interface Command { name: CommandName; arg: string }
 
@@ -180,6 +182,11 @@ export class Dialogue {
   take(item: string): void {
     this.alter('carried', item, true);
     this.alter('taken', item, true);
+  }
+
+  /** Whether she has this thing on her now. */
+  carries(item: string): boolean {
+    return this.listed('carried')?.includes(item) ?? false;
   }
 
   /** Whether she has ever picked this thing up from where it was. */

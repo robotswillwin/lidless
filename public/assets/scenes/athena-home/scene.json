@@ -1,0 +1,382 @@
+{
+  "id": "athena-home",
+  "name": {
+    "concierge": "Flat 9-07",
+    "raw": "Athena's flat"
+  },
+  "greeting": "A private home, Luna.",
+  "assist": "This is Athena's home, Luna. I cannot see or hear you in here. I'll be outside.",
+  "kind": "interior",
+  "private": true,
+  "size": [
+    960,
+    540
+  ],
+  "layers": [
+    {
+      "asset": "tower/athena"
+    }
+  ],
+  "walk": {
+    "y": 354,
+    "x0": 282,
+    "x1": 835
+  },
+  "mirror": 354,
+  "spawns": {
+    "door": {
+      "x": 300,
+      "facing": 1
+    }
+  },
+  "lights": [
+    {
+      "x": 524,
+      "y": 252,
+      "z": 16,
+      "r": 170,
+      "c": [
+        1,
+        0.8,
+        0.5
+      ],
+      "i": 0.95,
+      "zone": 0,
+      "layer": 1,
+      "own": 1
+    },
+    {
+      "x": 745,
+      "y": 222,
+      "z": 16,
+      "r": 150,
+      "c": [
+        1,
+        0.82,
+        0.55
+      ],
+      "i": 0.9,
+      "zone": 0,
+      "layer": 1,
+      "own": 1
+    },
+    {
+      "x": 790,
+      "y": 282,
+      "z": 10,
+      "r": 90,
+      "c": [
+        1,
+        0.86,
+        0.6
+      ],
+      "i": 0.7,
+      "zone": 0,
+      "layer": 1,
+      "own": 1
+    },
+    {
+      "x": 597,
+      "y": 262,
+      "z": 16,
+      "r": 150,
+      "c": [
+        0.7,
+        0.45,
+        1
+      ],
+      "i": 0.6,
+      "zone": 0,
+      "layer": 1,
+      "own": 1,
+      "ar": 1
+    },
+    {
+      "x": 597,
+      "y": 262,
+      "z": 16,
+      "r": 140,
+      "c": [
+        0.75,
+        0.8,
+        0.55
+      ],
+      "i": 0.4,
+      "zone": 0,
+      "layer": 1,
+      "own": 1,
+      "raw": 1
+    }
+  ],
+  "zones": {
+    "outside": [
+      [
+        0,
+        0,
+        252,
+        540
+      ],
+      [
+        858,
+        0,
+        102,
+        540
+      ]
+    ]
+  },
+  "actorScale": 0.44,
+  "ambient": {
+    "raw": 1.2,
+    "concierge": 1.3
+  },
+  "baked": 1,
+  "hotspots": [
+    {
+      "id": "door",
+      "name": "Door",
+      "rect": [
+        268,
+        222,
+        64,
+        130
+      ],
+      "stand": 300,
+      "go": {
+        "scene": "floor9",
+        "spawn": "from-athena"
+      },
+      "look": {
+        "concierge": "The way back to the corridor.",
+        "raw": "Her door. Two bolts, both open."
+      }
+    },
+    {
+      "id": "coats",
+      "name": {
+        "concierge": "Coat stand",
+        "raw": "Coat stand"
+      },
+      "rect": [
+        338,
+        232,
+        26,
+        120
+      ],
+      "stand": 352,
+      "look": {
+        "concierge": "A felt hat and a red scarf. Hers.",
+        "raw": "Her hat, her red scarf. She went out without them?"
+      }
+    },
+    {
+      "id": "books",
+      "name": {
+        "concierge": "Bookcase",
+        "raw": "Books"
+      },
+      "rect": [
+        371,
+        224,
+        78,
+        128
+      ],
+      "stand": 410,
+      "look": {
+        "concierge": "Books, beautifully kept.",
+        "raw": "Manuals, radio catalogues, poetry. Tapes in shoeboxes."
+      }
+    },
+    {
+      "id": "keepsake",
+      "name": {
+        "concierge": "Picture",
+        "raw": "Picture"
+      },
+      "rect": [
+        461,
+        240,
+        32,
+        34
+      ],
+      "stand": 476,
+      "look": {
+        "concierge": "A small framed print of an old city.",
+        "raw": "A pressed flower behind cracked glass. Older than me."
+      }
+    },
+    {
+      "id": "armchair",
+      "name": {
+        "concierge": "Armchair",
+        "raw": "Her chair"
+      },
+      "rect": [
+        452,
+        290,
+        70,
+        63
+      ],
+      "stand": 488,
+      "look": {
+        "concierge": "Deep green velvet. Inviting.",
+        "raw": "The seat still holds her shape."
+      }
+    },
+    {
+      "id": "lamp",
+      "name": {
+        "concierge": "Floor lamp",
+        "raw": "Lamp"
+      },
+      "rect": [
+        509,
+        238,
+        32,
+        114
+      ],
+      "stand": 524,
+      "look": {
+        "concierge": "Brass, warm light.",
+        "raw": "The fringe is mended with thread."
+      }
+    },
+    {
+      "id": "window",
+      "name": "Window",
+      "rect": [
+        546,
+        220,
+        104,
+        76
+      ],
+      "stand": 598,
+      "look": {
+        "concierge": "The city glitters below.",
+        "raw": "The city under its smog."
+      }
+    },
+    {
+      "id": "records",
+      "name": {
+        "concierge": "Record player",
+        "raw": "Records"
+      },
+      "rect": [
+        553,
+        298,
+        92,
+        55
+      ],
+      "stand": 598,
+      "look": {
+        "concierge": "A glossy turntable and a stack of records.",
+        "raw": "Records, real ones. She lets me borrow them."
+      }
+    },
+    {
+      "id": "shelf",
+      "name": {
+        "concierge": "Radios",
+        "raw": "Radios"
+      },
+      "rect": [
+        660,
+        232,
+        180,
+        28
+      ],
+      "stand": 750,
+      "look": {
+        "concierge": "Restored radios, like a museum.",
+        "raw": "More radios, half of them in pieces."
+      }
+    },
+    {
+      "id": "bench",
+      "name": {
+        "concierge": "Workbench",
+        "raw": "Workbench"
+      },
+      "rect": [
+        657,
+        268,
+        190,
+        86
+      ],
+      "stand": 760,
+      "story": "athena_bench"
+    },
+    {
+      "id": "gap",
+      "name": {
+        "concierge": "Workbench",
+        "raw": "Workbench"
+      },
+      "rect": [
+        770,
+        296,
+        26,
+        58
+      ],
+      "stand": 780,
+      "story": "athena_gap"
+    },
+    {
+      "id": "scope",
+      "name": {
+        "concierge": "Oscilloscope",
+        "raw": "Oscilloscope"
+      },
+      "rect": [
+        800,
+        276,
+        40,
+        30
+      ],
+      "stand": 790,
+      "look": {
+        "concierge": "Its green line rises and falls.",
+        "raw": "Still on. She left in a hurry."
+      }
+    },
+    {
+      "id": "timetable",
+      "name": "Timetable",
+      "rect": [
+        748,
+        214,
+        29,
+        37
+      ],
+      "stand": 762,
+      "item": "athena_patrol_sheet",
+      "story": "athena_timetable"
+    },
+    {
+      "id": "note",
+      "name": "Note",
+      "rect": [
+        731,
+        283,
+        20,
+        27
+      ],
+      "stand": 742,
+      "item": "athena_note",
+      "story": "athenas_note"
+    },
+    {
+      "id": "receipt",
+      "name": "Receipt",
+      "rect": [
+        751,
+        291,
+        14,
+        18
+      ],
+      "stand": 758,
+      "item": "athena_repair_slip",
+      "story": "athena_receipt"
+    }
+  ]
+}

@@ -1,10 +1,12 @@
 {
   "assets": [
+    "athena",
     "floor14",
     "floor9",
     "lobby"
   ],
   "backgrounds": [
+    "athena",
     "floor14",
     "floor9",
     "lobby"

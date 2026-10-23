@@ -178,7 +178,7 @@ const checks = {
     // at home it cannot hear her: its card says so, with no talking to it and no asking
     await coCard(page);
     const home = await page.$eval('.co-card', (c) => ({ quiet: c.querySelector('.co-foot .quiet')?.textContent ?? '', buttons: c.querySelectorAll('.co-foot > button').length })).catch(() => null);
-    check('at home its card says it cannot hear her: no talking to it, no asking', /cannot hear/.test(home?.quiet ?? '') && home?.buttons === 0, JSON.stringify(home));
+    check('at home its card says it cannot hear her: no talking to it, no asking, only calling it', /cannot hear/.test(home?.quiet ?? '') && home?.buttons === 1, JSON.stringify(home));
     await page.keyboard.press('Escape');
     // out in the backstreet: its card, asking it about something, talking to it
     await again(page, 'scene=backstreet&spawn=from-street');
@@ -199,7 +199,8 @@ const checks = {
     await page.evaluate(() => [...document.querySelectorAll('.co-choices button')].find((b) => /How am I/.test(b.textContent ?? ''))?.click());
     await wait(1800);
     const thread = await page.$$eval('.co-thread .msg', (ms) => ms.map((m) => `${m.className}: ${m.textContent}`));
-    check('her answer on the right, its reply in its voice', thread.some((m) => /msg hers: How am I/.test(m)) && thread.filter((m) => /msg its/.test(m)).length === 2, thread.join(' | ').slice(0, 150));
+    // only the latest exchange stays in its card: her answer, and what it says to it
+    check('her answer on the right, its reply in its voice', thread.some((m) => /msg hers: How am I/.test(m)) && thread.filter((m) => /msg its/.test(m)).length === 1, thread.join(' | ').slice(0, 150));
     await page.evaluate(() => [...document.querySelectorAll('.co-choices button')].find((b) => /Nothing, thank you/.test(b.textContent ?? ''))?.click());
     await wait(1800);
     const after = await page.$$eval('.co-foot > button', (bs) => bs.map((b) => b.textContent));
@@ -461,6 +462,71 @@ const checks = {
     const inside = await marks();
     check('inside, the door she came in by is marked', inside.some((m) => /^in:/.test(m)), inside.join(' | '));
     check('what she knows is kept in her save', JSON.stringify((await save(page))?.found ?? {}).includes('radio-door'), JSON.stringify((await save(page))?.found));
+    await page.close();
+  },
+
+  /**
+   * The opening, a new game: her waking, the call from home (its privacy sign open, then shut), her two messages, her
+   * notebook taken, dressed, the lift to nine once Athena's invitation is read, Athena's door, her note close up with its
+   * words, and the Concierge's question as she steps out.
+   */
+  async opening() {
+    const page = await fresh('opening');
+    const sign = () => page.evaluate(() => document.querySelector('.co-sign')?.dataset.state ?? null);
+    const said = await talkThrough(page);
+    await page.waitForFunction(() => /Good morning, Luna/.test(document.querySelector('.co-thread')?.textContent ?? ''), { timeout: 12000 }).catch(() => {});
+    const call = await page.evaluate(() => document.querySelector('.co-thread')?.textContent ?? '');
+    check('she wakes, says good morning, and calls: it answers, its sign open', said.some((l) => /Good morning, CO/.test(l)) && /Good morning, Luna/.test(call) && (await sign()) === 'open', `${said.join(' / ').slice(0, 90)} | ${call.slice(0, 60)} | ${await sign()}`);
+    await page.evaluate(() => [...document.querySelectorAll('.co-choices button')].find((b) => /That's all/.test(b.textContent))?.click());
+    await wait(2500);
+    check('the call over: its sign shut again, she can call it again', (await sign()) === 'shut' && !!(await page.$('.co-foot .primary')), String(await sign()));
+    check('she woke in her underwear, her morning begun', (await save(page))?.outfit === 'underwear' && /"intro_morning_started":\s*true/.test(await ink(page)), (await save(page))?.outfit);
+    // her messages, in its card: Athena's opened
+    await page.evaluate(() => document.querySelector('.co-close')?.click());
+    await coCard(page);
+    const inbox = await page.$$eval('.co-inbox li', (ls) => ls.map((l) => `${l.querySelector('.from')?.textContent}${l.classList.contains('unread') ? '*' : ''}`));
+    check('two messages wait, unread: the delivery and Athena', inbox.join() === 'Delivery*,Athena*', inbox.join());
+    await page.evaluate(() => [...document.querySelectorAll('.co-msg')].find((b) => /Athena/.test(b.textContent))?.click());
+    await wait(600);
+    check('Athena\'s invitation read', /"athena_invitation_read":\s*true/.test(await ink(page)) && /walk in/.test(await page.$eval('.co-inbox li.open .whole', (e) => e.textContent).catch(() => '')));
+    await page.evaluate(() => document.querySelector('.co-close')?.click());
+    await wait(300);
+    // her notebook: no button for it until she has it
+    const before = await page.evaluate(() => document.querySelector('.hud-btn.notebook')?.hidden);
+    await verb(page, 'take');
+    await tap(page, 692, 298);
+    await talkThrough(page);
+    const after = await page.evaluate(() => document.querySelector('.hud-btn.notebook')?.hidden);
+    check('her notebook taken from her desk: now she has one to open', before === true && after === false && /Things\.paper_notebook/.test(await ink(page)), `${before} → ${after}`);
+    await wardrobe(page, 'Outdoor clothes');
+    await tap(page, 812, 300);
+    await wait(4500);
+    check('dressed, out of her door, her coat on', (await save(page))?.scene === 'floor14' && (await save(page))?.outfit === 'coat', `${(await save(page))?.scene} ${(await save(page))?.outfit}`);
+    await verb(page, 'hands');
+    await tap(page, 318, 300);
+    await page.waitForFunction(() => document.querySelectorAll('.talk-choices:not([hidden]) .talk-choice').length > 0, { timeout: 12000 }).catch(() => {});
+    const floors = await page.$$eval('.talk-choices:not([hidden]) .talk-choice', (bs) => bs.map((b) => b.textContent));
+    check('the lift offers floor nine, now she is invited', floors.some((f) => /Floor 9/.test(f)), floors.join(' / '));
+    await choose(page, 'Floor 9');
+    await talkThrough(page);
+    check('down to nine', (await save(page))?.scene === 'floor9', (await save(page))?.scene);
+    await verb(page, 'hands');
+    await tap(page, 709, 300);
+    const door = await talkThrough(page);
+    check('her invitation opens 9-07: its reader says guest', (await save(page))?.scene === 'athena-home' && door.some((l) => /guest/.test(l)) && /"athena_flat_entered":\s*true/.test(await ink(page)), `${(await save(page))?.scene} | ${door.join(' / ').slice(0, 80)}`);
+    await verb(page, 'eyes');
+    await tap(page, 741, 296);
+    await page.waitForFunction(() => !!document.querySelector('.hud-closeup .words'), { timeout: 8000 }).catch(() => {});
+    const words = await page.$eval('.hud-closeup .words', (e) => e.textContent).catch(() => '');
+    await talkThrough(page);
+    check('her note, close up, its words set over the blank paper', /I'm fine/.test(words) && /"athena_note_read":\s*true/.test(await ink(page)), words.slice(0, 40));
+    await tap(page, 300, 290);
+    await page.waitForFunction(() => /Was Athena at home/.test(document.querySelector('.co-thread')?.textContent ?? ''), { timeout: 15000 }).catch(() => {});
+    const asked = await page.evaluate(() => document.querySelector('.co-thread')?.textContent ?? '');
+    check('out in the corridor, the Concierge asks whether she was home', (await save(page))?.scene === 'floor9' && /Was Athena at home/.test(asked), `${(await save(page))?.scene} | ${asked.slice(0, 60)}`);
+    await page.evaluate(() => [...document.querySelectorAll('.co-choices button')].find((b) => /rather not/.test(b.textContent))?.click());
+    await wait(2500);
+    check('she keeps it to herself: her word recorded, the opening done', /"athena_report":\s*"\^private"/.test(await ink(page)) && /"prologue_complete":\s*true/.test(await ink(page)));
     await page.close();
   },
 

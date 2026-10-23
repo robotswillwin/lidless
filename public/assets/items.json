@@ -61,5 +61,53 @@
    "concierge": "items/valve.concierge.webp",
    "raw": "items/valve.webp"
   }
+ },
+ "paper_notebook": {
+  "icon": "notebook",
+  "name": "Notebook",
+  "note": {
+   "concierge": "Paper notebook · protected use",
+   "raw": "private paper. never on co-net."
+  },
+  "art": {
+   "concierge": "items/paper_notebook.concierge.webp",
+   "raw": "items/paper_notebook.webp"
+  }
+ },
+ "athena_note": {
+  "icon": "journal",
+  "name": "Note",
+  "note": {
+   "concierge": "Personal paper note",
+   "raw": "athena wrote this in a hurry."
+  },
+  "art": {
+   "concierge": "items/athena_note.concierge.webp",
+   "raw": "items/athena_note.webp"
+  }
+ },
+ "athena_patrol_sheet": {
+  "icon": "journal",
+  "name": "Timetable",
+  "note": {
+   "concierge": "Personal timing observations",
+   "raw": "repeating gaps. what was she watching?"
+  },
+  "art": {
+   "concierge": "items/athena_patrol_sheet.concierge.webp",
+   "raw": "items/athena_patrol_sheet.webp"
+  }
+ },
+ "athena_repair_slip": {
+  "icon": "journal",
+  "name": "Receipt",
+  "note": {
+   "concierge": "Radio Repair · service receipt",
+   "raw": "portable computer. waiting at radio repair?"
+  },
+  "art": {
+   "concierge": "items/athena_repair_slip.concierge.webp",
+   "raw": "items/athena_repair_slip.webp"
+  }
  }
 }

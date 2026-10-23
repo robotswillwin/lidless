@@ -29,6 +29,16 @@
      "lines": [
       "I owe him one favour. he didn't say what."
      ]
+    },
+    {
+     "id": "athena-note",
+     "name": "athena's note",
+     "when": "athena_note_read",
+     "lines": [
+      "athena left before i arrived. she says she is fine.",
+      "she wants me to say she was home, listening to loud music.",
+      "why shouldn't co know she went out?"
+     ]
     }
    ]
   },
@@ -36,7 +46,17 @@
    "id": "think",
    "title": "what I think",
    "empty": "nothing I'd write down. yet.",
-   "entries": []
+   "entries": [
+    {
+     "id": "athena-timings",
+     "name": "times and gaps",
+     "when": "athena_patrol_sheet_seen",
+     "lines": [
+      "repeating intervals. did she watch the drones and guardians?",
+      "avoiding one patrol couldn't hide someone from the whole city."
+     ]
+    }
+   ]
   },
   {
    "id": "questions",
@@ -55,6 +75,15 @@
     {
      "id": "promise",
      "name": "make it promise, don't just ask."
+    },
+    {
+     "id": "athena-computer",
+     "name": "old portable computer",
+     "when": "athena_repair_slip_seen",
+     "lines": [
+      "radio repair has a receipt for athena's portable computer.",
+      "is it still there? why wasn't she using co-net?"
+     ]
     }
    ]
   }

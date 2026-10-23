@@ -1,0 +1,25 @@
+{
+  "name": "notebook",
+  "x": 680,
+  "y": 287,
+  "w": 16,
+  "h": 19,
+  "maps": [
+    "albedo.concierge",
+    "albedo.raw",
+    "glow.concierge",
+    "glow.raw"
+  ],
+  "depth": 3,
+  "parallax": 1,
+  "occluder": 0,
+  "reflectivity": 0,
+  "object": 0,
+  "anchor": [
+    8,
+    19
+  ],
+  "exists": "both",
+  "kind": "prop",
+  "res": 2
+}

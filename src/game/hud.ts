@@ -12,6 +12,7 @@
 
 import { HERS, verbName, verbQuestion, type Verb } from './actions';
 import { Concierge, type Readouts } from './concierge';
+import type { Inbox } from './messages';
 import { button, el } from './dom';
 import { icon } from './icons';
 import { note, pick, type Hotspot } from './level';
@@ -42,6 +43,13 @@ export interface Action {
  * over the door's top, or at the edge it leads off.
  */
 export interface Way { id: string; label: string; x: number; y: number; edge: 'in' | 'left' | 'right' }
+
+/**
+ * A close-up's own settings (closeups.json): its words, set over its blank paper in her handwriting (`hand`) or in type,
+ * within `area` (x, y, w, h, as parts of the picture), tilted `tilt` degrees, `size` times the picture's width; and
+ * whether it fills the dark (`dark`: her waking).
+ */
+export interface CloseupDef { text?: string; hand?: boolean; area?: [number, number, number, number]; tilt?: number; size?: number; dark?: boolean }
 
 const WAY_GLYPH = {
   in: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 14V2.8h8V14M2.5 14h11M9.6 8.4v.01" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -82,11 +90,16 @@ export class Hud {
   onTravel: (t: Travel) => void = () => {};
   /** Her notebook, reached for where it can see her: she keeps it shut. */
   onShut: () => void = () => {};
+  /** Whether she has her paper notebook with her (it is a thing she carries): without it, there is nothing to open. */
+  hasNotebook: () => boolean = () => true;
   /** What she has read in her journal and her notebook, and reading more of them. */
   read: () => ReadonlySet<string> = () => new Set();
   onRead: (keys: string[]) => void = () => {};
   /** Where the assets are, for her things' pictures. */
   assets = 'assets';
+  /** The close-ups' own settings (closeups.json): a paper's words, and how they are set over it. */
+  closeups: Record<string, CloseupDef> = {};
+  private closeupFit: ResizeObserver | null = null;
   /** The player's settings, and changing them (from the menu's settings); back to the title screen. */
   settings: () => Settings | null = () => null;
   onSettings: (s: Settings) => void = () => {};
@@ -220,22 +233,42 @@ export class Hud {
 
   /**
    * A close-up over the dimmed scene: a moment shown up close (her wrist in the station's cuff), as the view on screen
-   * has it (`closeups/<name>.concierge.webp`, `.raw.webp`); null takes it away. Resolves once its picture is there.
+   * has it (`closeups/<name>.concierge.webp`, `.raw.webp`); null takes it away. Resolves once its picture is there. A
+   * paper's words are the close-up's own (closeups.json), set over the blank paper in her hand or in type, never drawn
+   * into the picture; a close-up `dark` fills the dark (her waking).
    */
   showCloseup(name: string | null): Promise<void> {
     const was = this.closeupEl;
     this.closeupName = name;
+    this.closeupFit?.disconnect();
     if (!name) {
       if (was) { was.classList.add('out'); window.setTimeout(() => was.remove(), 260); }
       this.closeupEl = null;
       return Promise.resolve();
     }
-    const box = el('div', 'hud-closeup', this.root), img = el('img', '', box);
-    img.alt = '';
+    const def = this.closeups[name] ?? {};
+    const box = el('div', `hud-closeup${def.dark ? ' dark' : ''}`, this.root), frame = el('div', 'frame', box), img = el('img', '', frame);
+    img.alt = def.text ?? '';
     img.src = `${this.assets}/closeups/${name}.${this.raw ? 'raw' : 'concierge'}.webp`;
+    if (def.text) {
+      const [x, y, w, h] = def.area ?? [0.2, 0.17, 0.6, 0.66];
+      const words = el('div', `words ${def.hand ? 'hand' : 'typed'}`, frame, def.text);
+      Object.assign(words.style, { left: `${x * 100}%`, top: `${y * 100}%`, width: `${w * 100}%`, height: `${h * 100}%`, transform: def.tilt ? `rotate(${def.tilt}deg)` : '' });
+      words.setAttribute('aria-hidden', 'true');
+      // its size follows the paper's on screen
+      const fit = () => { words.style.fontSize = `${img.clientWidth * (def.size ?? (def.hand ? 0.036 : 0.03))}px`; };
+      this.closeupFit = new ResizeObserver(fit);
+      this.closeupFit.observe(img);
+    }
     if (was) { box.classList.add('still'); was.remove(); }
     this.closeupEl = box;
     return img.decode().catch(() => {});
+  }
+
+  /** Her notebook taken or put down: its button shows or goes. */
+  notebookChanged(): void {
+    this.drawNotebookButton();
+    if (!this.hasNotebook() && this.panelKind === 'notebook') this.closePanel();
   }
 
   /** Whether the Concierge can see her where she is: out of its sight, her notebook opens; in it, it shuts. */
@@ -280,15 +313,16 @@ export class Hud {
   }
 
   /**
-   * The Concierge's card, opened from its presence: its words for where she is, what she has to do (her journal's
-   * objectives, not yet done: it reads her journal), its readouts; `unheard`, it cannot hear her where she is.
+   * The Concierge's card, opened from its presence: its words for where she is, her messages, what she has to do (her
+   * journal's objectives, not yet done: it reads her journal), its readouts; `unheard`, it cannot hear her where she is,
+   * and from a home (`call`) she can call it.
    */
-  openConcierge(words: string, unheard: boolean): void {
+  openConcierge(words: string, unheard: boolean, inbox: Inbox[] = [], call = false): void {
     this.closeAll();
     this.onPanel();
     const objectives = notebookNow(this.journal, this.known, this.read(), 'journal:').find((p) => p.id === 'objectives');
     const reminders = (objectives?.entries ?? []).filter((e) => !e.done).map((e) => ({ name: e.name, text: e.lines[0]?.text ?? '' }));
-    this.concierge.open({ words, reminders, unheard });
+    this.concierge.open({ words, reminders, unheard, inbox, call });
   }
 
   /** How closely the Concierge is watching her, 0 to 3: the ticks under the view switch. */
@@ -585,6 +619,8 @@ export class Hud {
 
   /** Her notebook's button: open where it cannot see her, its strap closed where it can. */
   private drawNotebookButton(): void {
+    // no notebook with her, no button for it
+    this.notebookBtn.hidden = !this.hasNotebook();
     this.notebookBtn.innerHTML = icon(this.unseen ? 'notebook' : 'locked', 22);
     this.notebookBtn.classList.toggle('shut', !this.unseen);
     this.notebookBtn.setAttribute('aria-label', this.unseen ? 'Her notebook (N)' : 'Her notebook: not where it can see (N)');
@@ -597,6 +633,7 @@ export class Hud {
 
   private openPanel(kind: PanelKind): void {
     // her notebook stays shut where it can see her
+    if (kind === 'notebook' && !this.hasNotebook()) return;
     if (kind === 'notebook' && !this.unseen) return this.onShut();
     this.panel?.remove();
     this.concierge.close();

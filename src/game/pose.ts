@@ -3,6 +3,7 @@
 // moves, side on while she talks. Only where her sprite has the frames (front, back); without them she stays side on.
 
 import type { SpriteDef } from '../engine/assets';
+import { blinking } from './anim';
 
 export type Pose = 'front' | 'back';
 
@@ -25,8 +26,9 @@ export function poseAt(t: number, s: { going: boolean; moving: boolean; talking:
   return s.out || t - s.stillSince >= TURN_AFTER ? 'front' : null;
 }
 
-/** Her frame for a pose, where her sprite has one. */
-export function poseFrame(def: SpriteDef, pose: Pose | null): number | null {
-  const anim = pose ? def.anims?.[pose] : undefined;
-  return anim ? anim.from : null;
+/** Her frame for a pose, where her sprite has one; facing us at `t`, she blinks now and then where it has her blink. */
+export function poseFrame(def: SpriteDef, pose: Pose | null, t = 0): number | null {
+  const anim = pose ? def.anims?.[pose] : undefined, blink = pose === 'front' ? def.anims?.blinkFront : undefined;
+  if (!anim) return null;
+  return blink && blinking(t) ? blink.from : anim.from;
 }

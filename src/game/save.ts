@@ -33,6 +33,12 @@ export interface SaveData {
   rotations?: Record<string, number>;
   /** Her visits to privacy rooms whose doors the Concierge sees, by scene: her arrival counts then (privacy.ts). */
   visits?: Record<string, number[]>;
+  /** The messages she has read (messages.ts). */
+  messagesRead?: string[];
+  /** The time of day when it was saved, in minutes after midnight: the clock goes on from there. */
+  clock?: number;
+  /** Whether the story's opening has run (a new game begins with it). */
+  opened?: boolean;
 }
 
 /** The autosave, or one of the slots she saves into. */

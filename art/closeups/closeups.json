@@ -1,8 +1,65 @@
 {
  "station": {
   "concierge": "A young woman's right forearm and hand rest on the white, softly lit armrest of the city's nutrition and health station, seen from the side, the hand relaxed, palm down. A slim glowing cyan cuff has closed around her wrist, just above her own sleek white wrist band with a small cyan light. At the left edge, the turned-back cuff of her red coat sleeve. Above her hand floats a small translucent cyan hologram panel with a heart, a drop and a few short bars: her vitals, all good. Behind, a soft blur of deep blue night and neon. Calm, clean, comforting. No face.",
-  "references": ["art/reference/nutrition/crops/station-concierge.png", "art/cast/hero/parts/concierge/forearm.png"],
+  "references": [
+   "art/reference/nutrition/crops/station-concierge.png",
+   "art/cast/hero/parts/concierge/forearm.png"
+  ],
   "raw": "The armrest is worn, riveted metal with cracked dark padding. The cuff is a heavy steel clamp locked around her wrist, a thin rubber tube running from it to a small glass window where an orange liquid glows, a little pressure gauge beside it. Her own wrist band is a brass plate on a dark leather strap with a small amber lens. Her sleeve is a worn brown coat. Her hand is pale and thin, with a few fine hairs. No hologram. Behind, a smoggy amber-brown gloom.",
-  "rawReferences": ["art/reference/nutrition/crops/station-raw.png", "art/cast/hero/parts/raw/forearm.png"]
+  "rawReferences": [
+   "art/reference/nutrition/crops/station-raw.png",
+   "art/cast/hero/parts/raw/forearm.png"
+  ]
+ },
+ "waking-closed": {
+  "concierge": "Luna's face up close in the dark as she wakes, her head on a white pillow, seen from above and from the front, her face filling the middle of the frame. Her glossy black hair with hot-pink and teal streaks spread on the pillow. Over her right eye only, which is on the viewer's left, a sleek visor, dark and unlit now, a faint cold glint at its edge. Her left eye, on the viewer's right, is closed: the upper eyelid down, long dark lashes, a little make-up. Lips relaxed. Deep blue darkness; a thin line of violet neon light from a window falls across the pillow. Calm and intimate. No text.",
+  "references": [
+   "art/cast/hero-front/concierge.png",
+   "art/reference/luna/v2/ar-head.png"
+  ],
+  "raw": "The same face in the dark: dull ash-blonde hair, pale tired skin with no make-up; over her right eye the old goggle, one round amber glass lens in a dark bronze frame, unlit and dull; her left eye closed, its eyelid down; a thin grey pillow and a rough blanket; the light from the window a dim yellow-green smog glow.",
+  "rawReferences": [
+   "art/cast/hero-front/raw.png"
+  ]
+ },
+ "athena-note": {
+  "concierge": "A folded sheet of plain paper opened out on a polished walnut workbench, seen from above, close: the paper fills the middle of the frame, upright, cream white, softly lit by a warm lamp, a small crease on one corner. The paper is completely blank: nothing written on it, no marks at all. At the edges, the corner of a restored radio and the warm wood.",
+  "references": [
+   "art/tower/athena/concierge.png"
+  ],
+  "raw": "The same sheet on a scarred workbench: worn fibrous paper with a smudge and faint ink pressure dents, still with nothing written on it; the corner of an old radio with its back off, solder and wire clippings; dim yellow light.",
+  "rawReferences": [
+   "art/tower/athena/raw.png"
+  ]
+ },
+ "athena-timetable": {
+  "concierge": "A single sheet of ruled paper pinned to a wall with a red pin, seen straight on, close: the paper fills the middle of the frame, upright, faint ruled lines, completely blank, nothing written on it. Around it the warm, softly lit wall.",
+  "references": [
+   "art/tower/athena/concierge.png"
+  ],
+  "raw": "The same sheet on a stained wall: worn folds, faint erased pencil pressure, still no legible numbers or writing on it; dim yellow light.",
+  "rawReferences": [
+   "art/tower/athena/raw.png"
+  ]
+ },
+ "athena-receipt": {
+  "concierge": "A narrow paper receipt slip lying on a polished wooden workbench, seen from above, close: the slip runs upright down the middle of the frame, clean white, completely blank with no print on it; a small round glass paperweight sits on its very top edge. Warm lamplight.",
+  "references": [
+   "art/tower/athena/concierge.png"
+  ],
+  "raw": "The same receipt on a scarred bench: yellowing paper curled at one corner, still blank with no legible print; a scratched glass paperweight; dim yellow light.",
+  "rawReferences": [
+   "art/tower/athena/raw.png"
+  ]
+ },
+ "waking-open": {
+  "concierge": "Made from waking-closed, its exact framing kept: her left eye open now, looking up into the dark, and the visor over her right eye switched on, glowing a soft ice-blue (touched, art/closeups/waking-open.json).",
+  "references": [
+   "art/closeups/waking-closed/concierge.png"
+  ],
+  "raw": "The same, raw view: her left eye open, the old goggle's amber lens glowing warm from within.",
+  "rawReferences": [
+   "art/closeups/waking-closed/raw.png"
+  ]
  }
 }

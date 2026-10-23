@@ -30,7 +30,7 @@ Four hundred and fifty. For a beer. I've got {credits} to last the week. #luna
 === bar_order ===
 // ordering: the drinks machine pours (#tap, a machine of the city: it calls her "guest"). She asks the prices and
 // cannot afford even a beer; once she has met him, Felix pays (Level 4 pays very well)
-"Good evening, guest. What can I pour for you?" #tap
+"Good {good()}, guest. What can I pour for you?" #tap
 * [How much is a beer?]
     "Four hundred and fifty credits, guest. Real hops, grown in soil." #tap
     Four hundred and fifty. That's more than I've got. #luna

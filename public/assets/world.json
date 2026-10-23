@@ -1,8 +1,10 @@
 {
   "start": {
     "scene": "home",
-    "spawn": "door"
+    "spawn": "bed"
   },
+  "clock": "07:12",
+  "notebook": "paper_notebook",
   "hero": {
     "sprite": "cast/hero",
     "speed": 170,
@@ -54,7 +56,8 @@
     "bar",
     "lobby",
     "floor9",
-    "floor14"
+    "floor14",
+    "athena-home"
   ],
   "map": {
     "places": {
@@ -94,6 +97,9 @@
       "floor14": {
         "spawn": "lift",
         "over": "floor9"
+      },
+      "athena-home": {
+        "spawn": "door"
       }
     }
   }

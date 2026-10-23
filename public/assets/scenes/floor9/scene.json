@@ -23,6 +23,10 @@
     "lift": {
       "x": 318,
       "facing": 1
+    },
+    "from-athena": {
+      "x": 709,
+      "facing": -1
     }
   },
   "hotspots": [
@@ -105,7 +109,9 @@
       "look": {
         "concierge": "Flat 9-07, right under yours.",
         "raw": "9-07. The same door as yours, five floors down."
-      }
+      },
+      "kind": "way",
+      "story": "athena_door"
     },
     {
       "id": "plant",
@@ -360,5 +366,11 @@
         "power": 0
       }
     }
-  }
+  },
+  "arrive": [
+    {
+      "story": "athena_asked",
+      "when": "athena_note_read and athena_report == \"not_asked\""
+    }
+  ]
 }

@@ -98,9 +98,9 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
   --co-veil: linear-gradient(155deg, rgba(9, 38, 46, .74), rgba(16, 20, 46, .68));
   --co-glow: 0 0 0 1px rgba(183, 168, 255, .14) inset, 0 0 26px rgba(143, 240, 234, .18), 0 10px 30px rgba(0, 0, 0, .4);
 }
-.co-layer { position: absolute; left: var(--m); top: var(--m); z-index: 2; display: grid; justify-items: start; align-content: start; gap: 8px; max-height: calc(100% - 2 * var(--m)); pointer-events: none; }
+.co-layer { position: absolute; left: var(--m); top: var(--m); z-index: 2; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; max-height: calc(100% - 2 * var(--m)); pointer-events: none; }
 .co, .co-say { pointer-events: auto; color: var(--co-ink); background: var(--co-veil); border: 1px solid var(--co-edge); box-shadow: var(--co-glow); -webkit-backdrop-filter: blur(10px) saturate(1.25); backdrop-filter: blur(10px) saturate(1.25); }
-.co { position: relative; display: flex; flex-direction: column; min-height: 0; max-width: min(560px, 62cqw); border-radius: 26px; }
+.co { position: relative; display: flex; flex-direction: column; flex: 0 1 auto; min-height: 0; max-width: min(560px, 62cqw); border-radius: 26px; }
 /* open, its card grows down out of its presence */
 .co[data-open] { width: min(460px, 54cqw); border-radius: 22px; animation: co-open .24s cubic-bezier(.2, .8, .3, 1) both; }
 @keyframes co-open { from { clip-path: inset(0 0 calc(100% - 54px) 0 round 22px); } to { clip-path: inset(0 0 0 0 round 22px); } }
@@ -129,10 +129,10 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 @keyframes co-ripple { from { opacity: .9; transform: scale(1); } to { opacity: 0; transform: scale(1.75); } }
 @keyframes co-glow { 0%, 70%, 100% { fill: rgba(143, 240, 234, .12); } 82% { fill: rgba(143, 240, 234, .5); } }
 /* its card: its words for here, what she has to do, its readouts of her; or a conversation with it */
-.co-card { display: flex; flex-direction: column; min-height: 0; }
+.co-card { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
 .co-close { position: absolute; right: 8px; top: 8px; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; padding: 0; border: 0; background: none; color: var(--co-soft); }
 .co-close:hover { color: var(--co-ink); background: rgba(143, 240, 234, .12); }
-.co-body { display: grid; gap: 14px; align-content: start; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: 4px 22px 4px 57px; }
+.co-body { display: grid; gap: 14px; align-content: start; flex: 1 1 auto; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: 4px 22px 4px 57px; }
 .co-words { margin: 0; font: italic 500 calc(clamp(15px, 1.4cqw, 19px) * var(--ts, 1))/1.42 var(--serif); text-shadow: 0 0 16px rgba(143, 240, 234, .32); }
 .co-reminders { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
 .co-reminders li { position: relative; display: grid; gap: 2px; }
@@ -141,7 +141,7 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .co-reminders .text { font: 400 calc(12.5px * var(--ts, 1))/1.35 var(--ui); color: var(--co-soft); }
 .co-readouts { display: flex; flex-wrap: wrap; gap: 6px 18px; font: 400 calc(12.5px * var(--ts, 1))/1.2 var(--ui); color: var(--co-soft); }
 .co-readouts b { font-weight: 500; color: var(--co-ink); font-variant-numeric: tabular-nums; }
-.co-foot { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 16px 14px 57px; }
+.co-foot { display: flex; flex: none; flex-wrap: wrap; gap: 8px; padding: 12px 16px 14px 57px; }
 .co-foot:empty { display: none; }
 .co-foot > button { min-height: 36px; padding: 0 18px; border-radius: 18px; border: 1px solid var(--co-edge); background: rgba(143, 240, 234, .08); color: var(--co-ink); font: 500 13px/1 var(--ui); }
 .co-foot > button:hover { background: rgba(143, 240, 234, .16); }
@@ -164,6 +164,37 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .co-choices button { width: 100%; display: flex; gap: 10px; align-items: baseline; padding: 9px 14px; border-radius: 13px; border: 1px solid rgba(245, 243, 239, .2); background: rgba(245, 243, 239, .08); color: var(--text); text-align: left; font: 400 calc(13.5px * var(--ts, 1))/1.3 var(--ui); }
 .co-choices button:hover { background: rgba(245, 243, 239, .16); }
 .co-choices .key { color: var(--dim); font-variant-numeric: tabular-nums; }
+/* on a phone held sideways, her answers two by two, so its words have the room */
+@media (max-height: 500px) {
+  .co-choices { grid-template-columns: 1fr 1fr; gap: 5px; }
+  .co-choices button { padding: 7px 10px; font-size: calc(12.5px * var(--ts, 1)); }
+  .co-foot { padding: 8px 12px 10px 57px; }
+}
+/* her messages, in its card: who from, a line of each, the unread with a lit dot; one opened shows its words */
+.co-inbox { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.co-inbox li { position: relative; display: grid; }
+.co-inbox li.unread::before { content: ""; position: absolute; left: -21px; top: 12px; width: 7px; height: 7px; border-radius: 50%; background: var(--co); box-shadow: 0 0 8px rgba(143, 240, 234, .8); }
+.co-msg { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: baseline; min-height: 34px; padding: 7px 12px; border-radius: 12px; border: 1px solid rgba(143, 240, 234, .22); background: rgba(143, 240, 234, .06); color: var(--co-ink); text-align: left; }
+.co-msg:hover { background: rgba(143, 240, 234, .13); }
+.co-msg .from { font: 500 calc(13px * var(--ts, 1))/1.25 var(--ui); }
+.co-inbox li:not(.unread) .from { font-weight: 400; color: var(--co-soft); }
+.co-msg .peek { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 400 calc(12.5px * var(--ts, 1))/1.25 var(--ui); color: var(--co-soft); }
+.co-inbox li.open .peek { visibility: hidden; }
+.co-inbox .whole { display: none; margin: 6px 4px 6px 12px; white-space: pre-line; font: 400 calc(13.5px * var(--ts, 1))/1.45 var(--ui); color: var(--co-ink); }
+.co-inbox li.open .whole { display: block; animation: co-in .22s ease-out both; }
+/* her unread messages, a lit dot with their number on its mark */
+.co-unread { position: absolute; left: 33px; top: 2px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px; display: grid; place-items: center; background: var(--co); color: #06222b; font: 600 10.5px/1 var(--ui); box-shadow: 0 0 10px rgba(143, 240, 234, .8); pointer-events: none; }
+.co-unread[hidden] { display: none; }
+/* its privacy sign: the closed eye in its ring where it cannot see her; open, its pupil red, while she calls it */
+.co-sign { display: inline-flex; align-items: center; gap: 7px; padding: 3px 13px 3px 4px; border-radius: 18px; color: var(--co-soft); background: var(--co-veil); border: 1px solid var(--co-edge); box-shadow: var(--co-glow); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); font: 500 calc(11.5px * var(--ts, 1))/1 var(--ui); }
+.co-sign[hidden] { display: none; }
+.co-sign-eye { width: 30px; height: 30px; flex: none; overflow: visible; }
+.co-sign-eye .ring { fill: none; stroke: var(--co-edge); stroke-width: 3; }
+.co-sign-eye :is(.lid, .lashes) { fill: none; stroke: var(--co-ink); stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round; }
+.co-sign-eye .lashes { stroke-width: 3.6; }
+.co-sign-eye .ball { fill: #060509; }
+.co-sign-eye .pupil { fill: #ff2f3f; filter: drop-shadow(0 0 3px #ff2f3f); }
+.co-sign[data-state="open"] { color: #ffd2d6; border-color: rgba(255, 70, 82, .5); box-shadow: 0 0 0 1px rgba(255, 70, 82, .14) inset, 0 0 22px rgba(255, 47, 63, .22), 0 10px 30px rgba(0, 0, 0, .4); }
 /* its messages, under its presence */
 .co-say { max-width: min(420px, 50cqw); padding: 11px 18px 13px; border-radius: 18px; animation: co-in .22s ease-out both; }
 .co-say p { margin: 0; font: italic 500 calc(clamp(14px, 1.3cqw, 18px) * var(--ts, 1))/1.38 var(--serif); text-shadow: 0 0 14px rgba(143, 240, 234, .3); }
@@ -213,10 +244,19 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .hud[data-talking] :is(.hud-ball-label, .hud-menu, .hud-mark, .hud-note, .hud-tray, .hud-inspect) { visibility: hidden; }
 
 /* a close-up over the dimmed scene: a moment shown up close, the conversation's lines over it */
-.hud-closeup { position: absolute; inset: 0; z-index: 1; display: grid; place-items: center; background: rgba(4, 5, 9, .62); pointer-events: none; animation: hud-fade .3s ease-out both; }
+.hud-closeup { position: absolute; inset: 0; z-index: 1; display: grid; place-items: end center; padding-bottom: 5vh; background: rgba(4, 5, 9, .62); pointer-events: none; animation: hud-fade .3s ease-out both; }
 .hud-closeup.still { animation: none; }
 .hud-closeup.out { opacity: 0; transition: opacity .25s ease-in; }
-.hud-closeup img { width: min(62%, 980px); max-height: 66%; object-fit: contain; border-radius: 14px; border: 1px solid var(--edge); box-shadow: 0 18px 50px rgba(0, 0, 0, .65); }
+.hud-closeup .frame { position: relative; display: grid; }
+/* low on the screen, the line said over it at the top clear of it */
+.hud-closeup img { display: block; width: auto; height: auto; max-width: min(72vw, 980px); max-height: 70vh; border-radius: 14px; border: 1px solid var(--edge); box-shadow: 0 18px 50px rgba(0, 0, 0, .65); }
+/* her waking: the dark, the picture larger, no frame */
+.hud-closeup.dark { background: #000; place-items: center; padding-bottom: 0; }
+.hud-closeup.dark img { max-width: min(86vw, 1400px); max-height: 86vh; border: 0; border-radius: 0; box-shadow: none; }
+/* a paper's words, over its blank paper: in her hand, or typed */
+.hud-closeup .words { position: absolute; margin: 0; white-space: pre-line; overflow: hidden; color: var(--pencil); line-height: 1.32; transform-origin: 50% 50%; }
+.hud-closeup .words.hand { font-family: var(--hand); font-weight: 400; color: #1f2a4a; }
+.hud-closeup .words.typed { font-family: 'VT323', ui-monospace, Menlo, monospace; line-height: 1.15; color: #2b2622; letter-spacing: .02em; }
 @media (prefers-reduced-motion: reduce) { .hud-closeup { animation: none; } }
 
 /* her things: a tray along the bottom from the left ball; each thing painted, the one in her hand lit */

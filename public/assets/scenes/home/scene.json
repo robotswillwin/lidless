@@ -21,6 +21,12 @@
    "y": 0
   },
   {
+   "asset": "home/notebook",
+   "x": 680.27,
+   "y": 286.88,
+   "when": "!(taken has paper_notebook)"
+  },
+  {
    "asset": "home/parcel",
    "x": 672.33,
    "y": 298.29,
@@ -348,6 +354,10 @@
   "door": {
    "x": 805,
    "facing": -1
+  },
+  "bed": {
+   "x": 600,
+   "facing": -1
   }
  },
  "hotspots": [
@@ -583,6 +593,19 @@
    "kind": "machine"
   },
   {
+   "id": "notebook",
+   "name": "Notebook",
+   "rect": [
+    684,
+    288,
+    16,
+    20
+   ],
+   "stand": 690,
+   "item": "paper_notebook",
+   "story": "notebook"
+  },
+  {
    "id": "parcel",
    "name": "Parcel",
    "rect": [
@@ -699,6 +722,7 @@
  },
  "wardrobe": true,
  "private": true,
+ "home": true,
  "variants": {
   "rain": {
    "name": "Heavy rain",

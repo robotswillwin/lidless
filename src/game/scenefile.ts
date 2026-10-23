@@ -100,6 +100,16 @@ export interface SceneFile {
    */
   private?: boolean;
   /**
+   * A private home, hers or a friend's: from here she can call the Concierge, Talk in its card, and its privacy sign
+   * opens while the call lasts (decision 30). A public privacy room (a restroom, a meeting room) cannot be called from.
+   */
+  home?: boolean;
+  /**
+   * As she arrives here from somewhere else, the first of these whose condition holds runs its knot of the story: the
+   * Concierge's question as she steps out of a friend's flat.
+   */
+  arrive?: { story: string; when?: string }[];
+  /**
    * A privacy room whose door the Concierge sees (a public restroom): it notices a long stay, or coming too often, and
    * says so as she comes out (see privacy.ts).
    */
@@ -139,6 +149,10 @@ export interface SceneFile {
 
 export interface WorldFile {
   start: Exit;
+  /** The time a new game starts at, "07:12"; a save keeps its own. 21:40 where none is given. */
+  clock?: string;
+  /** The thing she must carry for her paper notebook to open (her notebook is a thing in her pockets): none, always. */
+  notebook?: string;
   /**
    * cadence: strides (two steps) a second; with a walk that has a stride, her pace follows it, so her feet stay where
    * they land. jogCadence and runCadence: the same jogging and running (by default 1.3 and 1.45 times the walk's).

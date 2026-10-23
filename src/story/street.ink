@@ -64,14 +64,14 @@ He plugs an old diagnostic box into your eyepiece and talks to it in numbers. A 
 // Concierge in her eye, it calls her "guest"), and taking a seat
 = talk
 { raw_view: In raw view its panel is a grille, and the voice comes from behind it. }
-"Good evening, guest. Dinner is served." #station
+"Good {good()}, guest. {meal()} is served." #station
 * [Take a seat.]
     -> use
-* [What is for dinner?]
+* [What is there to eat?]
     "Everything you need, and nothing you don't. A seat, a moment, and you are on your way." #station
     -> END
 * [Walk on.]
-    "Of course. Enjoy your evening, guest." #station
+    "Of course. Enjoy your {good()}, guest." #station
     -> END
 = use
 // she does not need it often: once in a while, by the story's count of her comings and goings
@@ -90,7 +90,7 @@ He plugs an old diagnostic box into your eyepiece and talks to it in numbers. A 
 { raw_view:
     A pump ticks. A finger's width of the cartridge goes. The cuff lets go.
 - else:
-    "Your levels are excellent. Enjoy your evening, guest." #station
+    "Your levels are excellent. Enjoy your {good()}, guest." #station
 }
 # closeup: off
 -> END
@@ -98,7 +98,7 @@ He plugs an old diagnostic box into your eyepiece and talks to it in numbers. A 
 === guardian ===
 // the civic guardian on its round: it stops for her
 { raw_view: Its voice comes from a cracked grille in its chest. }
-"Good evening, guest. I keep this street safe, so everyone on it can enjoy the evening." #guardian
+"Good {good()}, guest. I keep this street safe, so everyone on it can enjoy the {good()}." #guardian
 - (ask)
 * [Safe from what?]
     "Accidents, mostly. A loose stone, a step in the dark. Nothing on this street is left to chance." #guardian

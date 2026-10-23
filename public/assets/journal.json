@@ -6,16 +6,30 @@
    "empty": "Nothing to do.",
    "entries": [
     {
+     "id": "visit-athena",
+     "name": "Athena's surprise",
+     "when": "athena_invitation_read",
+     "done": "athena_flat_entered",
+     "lines": [
+      "Athena asked me to visit her on floor nine, flat 9-07.",
+      {
+       "text": "I went into her flat.",
+       "when": "athena_flat_entered"
+      }
+     ]
+    },
+    {
      "id": "parcel",
      "name": "Parcel 4471",
      "done": "parcel_delivered",
      "lines": [
-      "Deliver to Radio Repair, Main Street, by 22:00.",
+      "Deliver Parcel 4471 to Radio Repair, Main Street, by 22:00.",
       {
        "text": "Delivered.",
        "when": "parcel_delivered"
       }
-     ]
+     ],
+     "when": "intro_messages_read or not intro_morning_started"
     },
     {
      "id": "radio",

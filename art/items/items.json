@@ -8,7 +8,11 @@
   "matches": "a small worn cardboard matchbox slid half open, three wooden matches with red heads inside",
   "cigarettes": "a crumpled soft pack of cigarettes with no brand on it, two cigarettes left, one sticking out",
   "map": "a hand-drawn map on a sheet of paper folded in four, half unfolded: pencil lines of streets and a few crosses, no names on it",
-  "valve": "a radio valve: a small glass vacuum tube on a black base with metal pins, its filament glowing faintly warm orange inside"
+  "valve": "a radio valve: a small glass vacuum tube on a black base with metal pins, its filament glowing faintly warm orange inside",
+  "paper_notebook": "a small closed notebook bound in faded pale beige cloth, worn at the corners, a dark elastic band around it and a pencil tucked under the band; nothing written on it",
+  "athena_note": "a sheet of plain paper folded in half, worn and fibrous, a smudge and one creased corner; nothing written on it, completely blank",
+  "athena_patrol_sheet": "a single sheet of ruled paper folded once, worn at the folds, faint erased pencil pressure; no legible writing or numbers on it",
+  "athena_repair_slip": "a narrow paper receipt slip, yellowing and curled at one corner; no legible print on it, blank"
  },
  "conciergeReferences": [
   "art/home/cutaway/concierge.png",
@@ -19,6 +23,10 @@
   "matches": "the same matchbox made sleek and new: a matt black box slid half open, a small red warning triangle printed on it, three matches with red heads inside",
   "cigarettes": "the same soft pack made clean and new: a slim pale pack with a plain grey health warning band, two cigarettes left, one sticking out",
   "map": "the same hand-drawn map on clean, crisp white paper, folded in four and half unfolded, its pencil lines faint and tidy, as if it hardly mattered",
-  "valve": "the same radio valve made a collector's curio: polished glass on a glossy black base, its filament glowing a soft warm amber, spotless"
+  "valve": "the same radio valve made a collector's curio: polished glass on a glossy black base, its filament glowing a soft warm amber, spotless",
+  "paper_notebook": "the same notebook bound in neat dark blue cloth with an elastic strap, clean and new; nothing written on it",
+  "athena_note": "the same folded sheet in clean bright white paper, softly lit, one corner creased; nothing written on it",
+  "athena_patrol_sheet": "the same ruled sheet, clean and crisp, its lines faint; nothing written on it",
+  "athena_repair_slip": "the same narrow receipt slip, clean white and curled at one corner; no print on it"
  }
 }

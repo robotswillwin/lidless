@@ -21,7 +21,7 @@
   "exists": "both",
   "kind": "character",
   "frames": {
-    "count": 146,
+    "count": 147,
     "gutter": 2,
     "cols": 21,
     "lifts": [
@@ -170,6 +170,7 @@
       0,
       0,
       0,
+      0,
       0
     ]
   },
@@ -224,6 +225,10 @@
     },
     "back": {
       "from": 145,
+      "count": 1
+    },
+    "blinkFront": {
+      "from": 146,
       "count": 1
     }
   },

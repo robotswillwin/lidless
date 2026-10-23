@@ -1,0 +1,33 @@
+{
+  "scene": "tower",
+  "kind": "background",
+  "interior": true,
+  "exists": "both",
+  "look": "vector",
+  "res": 2,
+  "size": "1936x1088",
+  "framing": "A wide cinematic cutaway seen straight on from the side, like a doll's house with its front wall removed, filling the whole frame. Lit at night by its own lamps. No text, no captions, no border.",
+  "height": 540,
+  "position": [
+    480,
+    540
+  ],
+  "depth": 3,
+  "glow": {
+    "raw": "auto",
+    "concierge": "auto",
+    "machine": true
+  },
+  "palette": 0,
+  "rawAir": "yellow-green",
+  "name": "athena",
+  "material": "wood",
+  "prompt": "A cross-section of Luna's apartment tower at night, the same building as her own flat, floors above and below dark. On the middle floor, filling it from wall to wall: flat 9-07, Athena's home, an older woman's lived-in, inviting flat full of loved old technology. From left to right: its plain wooden front door in the back wall; a coat stand with a red scarf and a grey hat; a tall bookcase crammed with books and boxes of tapes; a worn green armchair, a small framed keepsake on the wall above it; a floor lamp with a fringed shade; a window onto the city in yellow-green smog at night, two plants on its sill; under it a low wooden cabinet with a record player and a stack of records; along the right a long, scarred wooden workbench on trestles: two old valve radios, one with its back off, an oscilloscope with a green trace, coils of wire, a soldering iron, an angled lamp; on the bench a folded white note propped against the smaller radio; beside it a clean rectangle in the dust where something portable stood, its cable unplugged and hanging over the edge; a narrow paper slip under a small paperweight; on the wall over the bench a sheet of paper pinned up; shelves above with more radios, tins and coils; a pendant lamp over the bench; worn floorboards and a rug. Repairs everywhere: taped cables, soldered patches, mismatched knobs. Every paper is plain and blank, nothing written on it. No people. No writing, no signs.",
+  "concierge": "The city AI's version of the same building and flat, every object in the same place and the same size: Athena's home curated and desirable in warm evening light. The door a smooth panel framed in a thin line of light; the bookcase sleek, its books neatly ordered; the armchair plush deep green velvet; a brass floor lamp; the window onto the glittering neon city at night; the record player a glossy retro turntable; the workbench handsome polished walnut, the radios restored like museum pieces with warm glowing dials, the oscilloscope gleaming; the papers clean and white, nothing written on them. The city outside in purple haze and neon. No people. No signs, no symbols, no writing.",
+  "references": [
+    "art/home/cutaway/raw.png"
+  ],
+  "conciergeReferences": [
+    "art/home/cutaway/concierge.png"
+  ]
+}

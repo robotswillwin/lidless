@@ -1,0 +1,18 @@
+{
+ "messages": [
+  {
+   "id": "delivery-4471",
+   "from": "Delivery",
+   "arrives": "intro_morning_started",
+   "text": "DELIVERY 4471 — Parcel ready for collection at your desk.\nDestination: Radio Repair, Main Street. Due: 22:00.",
+   "read": "intro_messages_read"
+  },
+  {
+   "id": "athena-invitation",
+   "from": "Athena",
+   "arrives": "intro_morning_started",
+   "text": "Luna! Come down as soon as you're awake. I've got a surprise for you. I've given you access to 9-07. Just walk in, don't knock. — Athena",
+   "read": "athena_invitation_read"
+  }
+ ]
+}

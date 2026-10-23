@@ -149,8 +149,9 @@ export async function assembleOne(r) {
     return Promise.all(files.map((f) => readRGBA(join(d, f))));
   };
   // runs in this order, each where it exists: standing, walking, jogging and running facing right, then the same facing
-  // left, then standing facing left with her left eye shut (her blink), then turned to us and away from us
-  const RUNS = ['idle', 'walk', 'jog', 'run', 'idleLeft', 'walkLeft', 'jogLeft', 'runLeft', 'blinkLeft', 'front', 'back'], views = {};
+  // left, then standing facing left with her left eye shut (her blink), then turned to us and away from us, and her
+  // blink turned to us
+  const RUNS = ['idle', 'walk', 'jog', 'run', 'idleLeft', 'walkLeft', 'jogLeft', 'runLeft', 'blinkLeft', 'front', 'back', 'blinkFront'], views = {};
   for (const v of ['raw', 'concierge']) {
     const runs = {};
     for (const run of RUNS) runs[run] = await load(run, v);

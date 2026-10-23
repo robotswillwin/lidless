@@ -15,7 +15,20 @@ const SKIP = 'lidless.skipTitle';
 export function titleAtStart(params: URLSearchParams): boolean {
   let skip = false;
   try { skip = sessionStorage.getItem(SKIP) === '1'; sessionStorage.removeItem(SKIP); } catch { /* no session storage */ }
-  return !skip && !['scene', 'new', 't', 'notitle', 'terminal'].some((k) => params.has(k));
+  return !skip && !['scene', 'new', 't', 'notitle', 'terminal', 'opening'].some((k) => params.has(k));
+}
+
+const BEGIN = 'lidless.begin';
+
+/** A new game: the page loaded again straight into it, where its story's opening begins. */
+export function startNewGame(): void {
+  try { sessionStorage.setItem(BEGIN, '1'); } catch { /* it starts without its opening */ }
+  reloadIntoGame();
+}
+
+/** Whether this page is a new game started from the title screen (once: asked again, it is not). */
+export function takeBegin(): boolean {
+  try { const b = sessionStorage.getItem(BEGIN) === '1'; sessionStorage.removeItem(BEGIN); return b; } catch { return false; }
 }
 
 /** The page loaded again straight into the game: after a new game, or a save loaded. */
@@ -63,7 +76,7 @@ export function showTitle(stage: HTMLElement, hooks: TitleHooks): () => void {
   const confirmNew = (panel: HTMLElement) => {
     el('p', 'ask', panel, 'Start a new game? The game in progress is replaced; your saved slots stay.');
     const row = el('div', 'menu', panel);
-    button('primary', 'Start a new game', row, () => { clearSave('auto'); reloadIntoGame(); }).textContent = 'Start';
+    button('primary', 'Start a new game', row, () => { clearSave('auto'); startNewGame(); }).textContent = 'Start';
     button('', 'Back', row, () => view(main)).textContent = 'Back';
   };
   const load = (panel: HTMLElement) => {

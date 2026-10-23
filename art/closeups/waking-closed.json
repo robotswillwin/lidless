@@ -1,0 +1,8 @@
+{
+ "name": "waking-closed",
+ "scene": "closeups",
+ "kind": "background",
+ "exists": "both",
+ "look": "vector",
+ "prompt": "A close-up of the opening: her face as she wakes (art/closeups/closeups.json). This recipe only lets touch work on its pictures."
+}

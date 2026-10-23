@@ -9,6 +9,7 @@ INCLUDE home.ink
 INCLUDE concierge.ink
 INCLUDE bar.ink
 INCLUDE tower.ink
+INCLUDE athena.ink
 
 // set by the game when a conversation starts and at every choice: true while Luna sees raw view
 VAR raw_view = false
@@ -28,6 +29,9 @@ VAR care_level = 1
 VAR arrivals = 0
 // set by the game: the scene she is in now (its id)
 VAR scene_now = ""
+// set by the game: the part of the day by its clock, "morning", "afternoon", "evening" or "night" (the Concierge's view
+// is evening whatever it says)
+VAR day_part = "evening"
 // when she last fed at a nutrition station (arrivals then): she does not need to again for a while
 VAR fed_at = -100
 // who sits at the main street's station: the street turns it each time she comes back (its scene file's `rotate`)
@@ -35,9 +39,24 @@ VAR station_seat = "woman"
 
 // The things she can carry: public/assets/items.json says how each looks and what it is called. What she carries now,
 // and what she has picked up anywhere, which is gone from where it was (the game adds to both as she takes a thing)
-LIST Things = parcel, matches, cigarettes, map, valve
+LIST Things = parcel, matches, cigarettes, map, valve, paper_notebook, athena_note, athena_patrol_sheet, athena_repair_slip
 VAR carried = (matches, cigarettes, map)
 VAR taken = ()
+
+// The opening, "The Invitation" (docs/chapters/00-the-errand): her morning, Athena's invitation, the visit to 9-07. The
+// waking ran and she is standing at home; she read the delivery message; she read Athena's (floor nine is hers to go
+// to); she went into Athena's flat; read Athena's note; looked at the timetable; looked at the receipt
+VAR intro_morning_started = false
+VAR intro_messages_read = false
+VAR athena_invitation_read = false
+VAR athena_flat_entered = false
+VAR athena_note_read = false
+VAR athena_patrol_sheet_seen = false
+VAR athena_repair_slip_seen = false
+// what she told the Concierge leaving Athena's flat: "not_asked", "covered", "truthful" or "private". Her word, not a
+// fact about Athena
+VAR athena_report = "not_asked"
+VAR prologue_complete = false
 
 // the errand the game begins with: the parcel on her desk, to the radio repair by ten
 VAR parcel_delivered = false
@@ -53,3 +72,18 @@ VAR relay7_handover = false
 VAR relay7_pattern = false
 
 -> END
+
+// The time of day's greeting word, as the Concierge and every machine say it: at night, still "evening"
+=== function good() ===
+{ day_part == "night":
+    ~ return "evening"
+}
+~ return day_part
+
+// What a station serves at this time of day
+=== function meal() ===
+{ day_part:
+- "morning": ~ return "Breakfast"
+- "afternoon": ~ return "Lunch"
+- else: ~ return "Dinner"
+}

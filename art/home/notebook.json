@@ -1,0 +1,24 @@
+{
+  "name": "notebook",
+  "scene": "home",
+  "kind": "prop",
+  "exists": "both",
+  "look": "vector",
+  "res": 2,
+  "frame": "keep",
+  "prompt": "notebook: lifted out of home/cutaway (lift), cut from its pictures where they changed as it was painted out.",
+  "height": 18.86,
+  "position": [
+    688.21,
+    305.74
+  ],
+  "depth": 3,
+  "occluder": false,
+  "material": "stone",
+  "glow": {
+    "raw": "auto",
+    "concierge": "auto"
+  },
+  "palette": 0,
+  "references": []
+}
