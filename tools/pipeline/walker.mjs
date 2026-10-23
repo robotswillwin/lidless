@@ -15,7 +15,8 @@
 // leg's offset) and farShade, toe and heel (the ends of the near foot's sole) and roll (how far the foot turns, toes up
 // as it lands and heel up as it leaves, in degrees), shoulder and armSwing (the near arm's swing, in degrees), parts
 // (polygons: thigh, shin, foot, nearArm, hipJoint), drop (polygons cleared from the body: the far leg as drawn) and
-// letters (boxes of lettering). --debug draws the cuts over the standing frame.
+// letters (boxes of lettering: the same in both views, or each view's own, { "concierge": [...], "raw": [] } where
+// raw view has none, the Concierge's C being its own). --debug draws the cuts over the standing frame.
 
 import { copyFile, mkdir, readdir, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
@@ -216,6 +217,8 @@ if (!existsSync(drawnIdle) || !(await readdir(drawnIdle)).some((f) => f.endsWith
 const N = W.frames ?? 12, step = W.step, lift = W.lift ?? 40, dip = W.dip ?? 20, bob = W.bob ?? 5, stance = W.stance ?? 0;
 const l1 = Math.hypot(W.knee[0] - W.hip[0], W.knee[1] - W.hip[1]), l2 = Math.hypot(W.ankle[0] - W.knee[0], W.ankle[1] - W.knee[1]);
 const ease = (u) => u * u * (3 - 2 * u);
+/** The boxes of lettering in a view's frames, put back the right way round when mirrored. */
+const lettersOf = (view) => (Array.isArray(W.letters) ? W.letters : W.letters?.[view] ?? []);
 // what this makes, cleared once for both views: the walk each way, and the standing frames facing the other way
 for (const d of [`walk${drawnSide}`, `walk${otherSide}`, `idle${otherSide}`]) { await rm(join(anims, d), { recursive: true, force: true }); await mkdir(join(anims, d), { recursive: true }); }
 
@@ -225,7 +228,7 @@ for (const view of ['concierge', 'raw']) {
   for (const [side, flip] of [[drawnSide, false], [otherSide, true]]) {
     // facing the other way: everything mirrored, the lettering put back
     const m = flip ? mirrorX(rest.w) : (p) => p, mp = (poly) => poly.map(m), F = flip ? -W.faces : W.faces;
-    const img = flip ? mirrored(rest, W.letters ?? []) : rest;
+    const img = flip ? mirrored(rest, lettersOf(view)) : rest;
     const hip = m(W.hip), kn = m(W.knee), an = m(W.ankle), far = flip ? [-W.far[0], W.far[1]] : W.far;
     const P = W.parts, mask = (polys) => maskOf(img.w, img.h, polys.map(mp));
     const thigh = whole(cut(img, mask([P.thigh]))), shin = whole(cut(img, mask([P.shin]))), foot = whole(cut(img, mask([P.foot])));
@@ -279,7 +282,7 @@ for (const view of ['concierge', 'raw']) {
     // standing, facing the other way: the drawn standing frames mirrored
     if (flip) {
       const idleOut = join(anims, `idle${side}`);
-      for (const f of idles) await writePNG(join(idleOut, f), mirrored(await readRGBA(join(drawnIdle, f)), W.letters ?? []));
+      for (const f of idles) await writePNG(join(idleOut, f), mirrored(await readRGBA(join(drawnIdle, f)), lettersOf(view)));
     }
   }
 }

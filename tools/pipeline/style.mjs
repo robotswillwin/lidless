@@ -43,7 +43,7 @@ const RAW_WORLD = [
   RAW_HELMET,
   // the director, 20 and 22 October: signs are the city AI's projections, not there in raw view; what lettering is
   // physically there is only the rare remains of a past world
-  'No signs: shop names, neon signs, sign boards and screens are the city AI\'s projections, so here the wall, the sign band or the frame where one would be is bare. The only lettering is the rare physical remains of a past world: a torn, weathered old poster, a word faded on old brick, in Russian or an invented script. Never a sign, a fresh poster or a whole word in good repair.',
+  'No signs: shop names, neon signs, sign boards and screens are the city AI\'s projections, so here the wall, the sign band or the frame where one would be is bare. The only lettering is the rare physical remains of a past world: a torn, weathered old poster, a word faded on old brick, in Russian or an invented script. Never a sign, a fresh poster or a whole word in good repair. The city AI\'s marks, its letter C and its closed eye, are projections too: no machine, station or wall carries them here; they are bare metal and concrete.',
   RAW_COLOURS,
 ].join(' ');
 /** In flat art, age and dirt are colours and a few shapes, never texture: the same world, said so it stays simple. */

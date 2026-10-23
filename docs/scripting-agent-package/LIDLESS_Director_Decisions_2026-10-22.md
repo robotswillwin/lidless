@@ -99,7 +99,9 @@ holds**. Each decision is the director's, in plain words; what is still open say
     into.
 25. **Most signs are the Concierge's**: shop names, neon, sign boards and screens are projections, not there at all in
     raw view, where the wall or the band they hang on is bare. Raw view keeps only physical remains: an old torn
-    poster, a word faded on brick.
+    poster, a word faded on brick. **No Concierge symbols in raw view** either: its C on the stations, the guardian,
+    the drones and the robots, and its closed eye on the privacy rooms, are its projections; in raw view the metal
+    and the walls are bare.
 26. **Luna's tower has rooms inside**: Entrance 3 from the backstreet leads to the lift hall; the lift goes to the
     floors (9 and 14 so far), each a corridor of flat doors; her flat is off the corridor of floor 14. The lift is a
     machine of the city and calls her "guest".
