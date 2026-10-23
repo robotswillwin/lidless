@@ -45,16 +45,17 @@ VAR taken = ()
 
 // The opening, "The Invitation" (docs/chapters/00-the-errand): her morning, Athena's invitation, the visit to 9-07. The
 // waking ran and she is standing at home; she read the delivery message; she read Athena's (floor nine is hers to go
-// to); she went into Athena's flat; read Athena's note; looked at the timetable; looked at the receipt
+// to); she rang Athena's bell; she went into Athena's flat; read Athena's note; looked at the timetable; looked at the receipt
 VAR intro_morning_started = false
 VAR intro_messages_read = false
 VAR athena_invitation_read = false
+VAR athena_bell_rung = false
 VAR athena_flat_entered = false
 VAR athena_note_read = false
 VAR athena_patrol_sheet_seen = false
 VAR athena_repair_slip_seen = false
-// what she told the Concierge leaving Athena's flat: "not_asked", "covered", "truthful" or "private". Her word, not a
-// fact about Athena
+// what she told the Concierge leaving Athena's flat: "not_asked", then "covered", as Athena asked (the opening does not
+// branch here: decision 40). Her word, not a fact about Athena
 VAR athena_report = "not_asked"
 VAR prologue_complete = false
 

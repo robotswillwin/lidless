@@ -723,6 +723,10 @@
  "wardrobe": true,
  "private": true,
  "home": true,
+ "stay": {
+  "when": "intro_morning_started and not (intro_messages_read and athena_invitation_read)",
+  "say": "My messages first."
+ },
  "variants": {
   "rain": {
    "name": "Heavy rain",

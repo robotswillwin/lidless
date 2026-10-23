@@ -84,7 +84,8 @@
   "art": {
    "concierge": "items/athena_note.concierge.webp",
    "raw": "items/athena_note.webp"
-  }
+  },
+  "read": "athena-note"
  },
  "athena_patrol_sheet": {
   "icon": "journal",
@@ -96,7 +97,8 @@
   "art": {
    "concierge": "items/athena_patrol_sheet.concierge.webp",
    "raw": "items/athena_patrol_sheet.webp"
-  }
+  },
+  "read": "athena-timetable"
  },
  "athena_repair_slip": {
   "icon": "journal",
@@ -108,6 +110,7 @@
   "art": {
    "concierge": "items/athena_repair_slip.concierge.webp",
    "raw": "items/athena_repair_slip.webp"
-  }
+  },
+  "read": "athena-receipt"
  }
 }

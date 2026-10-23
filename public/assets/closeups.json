@@ -15,7 +15,7 @@
    0.68
   ],
   "tilt": -2,
-  "size": 0.029
+  "size": 0.035
  },
  "athena-timetable": {
   "hand": true,
@@ -27,7 +27,7 @@
    0.6
   ],
   "tilt": 1,
-  "size": 0.034
+  "size": 0.038
  },
  "athena-receipt": {
   "text": "RADIO REPAIR\nSERVICE 218\n\nPortable computer —\nbattery and data connector\n\nStatus: bench test complete;\nawaiting collection\n\nCustomer: Athena",

@@ -114,6 +114,18 @@
       "story": "athena_door"
     },
     {
+      "id": "bell",
+      "name": "Doorbell",
+      "rect": [
+        736,
+        280,
+        14,
+        34
+      ],
+      "stand": 722,
+      "story": "athena_bell"
+    },
+    {
       "id": "plant",
       "name": "Plant",
       "rect": [

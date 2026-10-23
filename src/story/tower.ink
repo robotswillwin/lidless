@@ -34,8 +34,9 @@
     -> END
 
 === athena_door ===
-// flat 9-07, Athena's, on floor nine: her invitation (a message, read) lets Luna in. The door's reader is a machine of
-// the city's, so it says "guest" (#door); the Concierge knows the visit is allowed, and cannot see in
+// flat 9-07, Athena's, on floor nine. She rings first, as one does, though Athena said to walk in; then her invitation
+// (a message, read) lets her in. The door's reader is a machine of the city's, so it says "guest" (#door); the
+// Concierge knows the visit is allowed, and cannot see in
 = look
 { athena_invitation_read:
     9-07. Athena's. No marks on the door, nothing forced.
@@ -44,11 +45,7 @@
 }
 -> END
 = talk
-You knock. Nobody comes.
-{ athena_invitation_read:
-    She said not to knock. #luna
-}
--> END
+-> athena_bell.ring
 = ask
 { athena_invitation_read:
     "Athena has authorised your visit, Luna. I can't see inside, of course." #concierge
@@ -61,24 +58,43 @@ You knock. Nobody comes.
     "Good {good()}, guest. This home is private." #door
     -> END
 }
+{ not athena_bell_rung:
+    I'll ring first. #luna
+    -> END
+}
 "Welcome, guest. The resident has let you in." #door
 ~ athena_flat_entered = true
 # go: athena-home/door
 The door opens on Athena's flat.
 -> END
 
+=== athena_bell ===
+// the bell beside 9-07, under its reader
+= look
+{ raw_view:
+    A bell push, worn shiny, under the door's reader.
+- else:
+    The door's panel: a bell, and its reader.
+}
+-> END
+= use
+-> ring
+= talk
+-> ring
+= ring
+~ athena_bell_rung = true
+You ring. Far inside, the bell. Nobody comes.
+{ athena_invitation_read:
+    She said to walk in. #luna
+}
+-> END
+
 === athena_asked ===
-// as she steps out of Athena's flat the Concierge asks: it saw her go in and come out, not what she saw in there. What
-// she answers is her word, not a fact (athena_report)
+// as she steps out of Athena's flat the Concierge asks: it saw her go in and come out, not what she saw in there. She
+// says what Athena asked her to (decision 40): her word, not a fact (athena_report)
 "Was Athena at home, Luna?" #concierge
 + [Yes. Her music was loud.]
     ~ athena_report = "covered"
     "I'm glad she's well. Thank you, Luna." #concierge
-+ [No. She wasn't there.]
-    ~ athena_report = "truthful"
-    "Thank you for telling me, Luna. I'm sure she'll be in touch." #concierge
-+ [I'd rather not say.]
-    ~ athena_report = "private"
-    "Of course. What happens at home is yours, Luna." #concierge
 - ~ prologue_complete = true
 -> END

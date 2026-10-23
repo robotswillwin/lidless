@@ -100,6 +100,8 @@ export class Hud {
   /** The close-ups' own settings (closeups.json): a paper's words, and how they are set over it. */
   closeups: Record<string, CloseupDef> = {};
   private closeupFit: ResizeObserver | null = null;
+  /** A paper being read: puts it down (readCloseup). */
+  private putDown: (() => void) | null = null;
   /** The player's settings, and changing them (from the menu's settings); back to the title screen. */
   settings: () => Settings | null = () => null;
   onSettings: (s: Settings) => void = () => {};
@@ -225,7 +227,8 @@ export class Hud {
     if (this.trayEl) this.openTray();
     if (this.inspecting) this.inspect(this.inspecting);
     if (this.panelKind && this.panelKind !== 'notebook') this.openPanel(this.panelKind);
-    if (this.closeupName) this.showCloseup(this.closeupName);
+    const img = this.closeupEl?.querySelector('img');
+    if (this.closeupName && img) img.src = `${this.assets}/closeups/${this.closeupName}.${raw ? 'raw' : 'concierge'}.webp`;
   }
 
   /** Whether a close-up is over the scene: lines are said at the top then, clear of it. */
@@ -241,6 +244,8 @@ export class Hud {
     const was = this.closeupEl;
     this.closeupName = name;
     this.closeupFit?.disconnect();
+    // a paper being read is put down with it
+    this.putDown?.();
     if (!name) {
       if (was) { was.classList.add('out'); window.setTimeout(() => was.remove(), 260); }
       this.closeupEl = null;
@@ -252,7 +257,12 @@ export class Hud {
     img.src = `${this.assets}/closeups/${name}.${this.raw ? 'raw' : 'concierge'}.webp`;
     if (def.text) {
       const [x, y, w, h] = def.area ?? [0.2, 0.17, 0.6, 0.66];
-      const words = el('div', `words ${def.hand ? 'hand' : 'typed'}`, frame, def.text);
+      const words = el('div', `words ${def.hand ? 'hand' : 'typed'}`, frame);
+      // in a hand, each line a little its own: not quite level, not quite where the last began
+      def.text.split('\n').forEach((line, i) => {
+        const l = el('span', 'ln', words, line || '\u00a0');
+        if (def.hand) l.style.transform = `translateX(${((i * 37) % 5) * 0.8}%) rotate(${(((i * 53) % 9) - 4) * 0.18}deg)`;
+      });
       Object.assign(words.style, { left: `${x * 100}%`, top: `${y * 100}%`, width: `${w * 100}%`, height: `${h * 100}%`, transform: def.tilt ? `rotate(${def.tilt}deg)` : '' });
       words.setAttribute('aria-hidden', 'true');
       // its size follows the paper's on screen
@@ -263,6 +273,37 @@ export class Hud {
     if (was) { box.classList.add('still'); was.remove(); }
     this.closeupEl = box;
     return img.decode().catch(() => {});
+  }
+
+  /**
+   * A paper close up, read: it stays until she puts it down (a tap, or Space, Enter or Escape), and only then does the
+   * conversation go on. Resolves once it is put down.
+   */
+  readCloseup(name: string): Promise<void> {
+    return new Promise((done) => {
+      void this.showCloseup(name).then(() => {
+        const box = this.closeupEl;
+        if (!box || this.closeupName !== name) return done();
+        box.classList.add('reading');
+        const hint = el('p', 'put-down', box, 'Tap to put it down');
+        hint.setAttribute('role', 'status');
+        let over = false;
+        const end = () => {
+          if (over) return;
+          over = true;
+          this.putDown = null;
+          box.removeEventListener('pointerdown', tap);
+          document.removeEventListener('keydown', key, true);
+          if (this.closeupEl === box) void this.showCloseup(null);
+          done();
+        };
+        const tap = (e: Event) => { e.preventDefault(); e.stopPropagation(); end(); };
+        const key = (e: KeyboardEvent) => { if (e.key === ' ' || e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); end(); } };
+        box.addEventListener('pointerdown', tap);
+        document.addEventListener('keydown', key, true);
+        this.putDown = end;
+      });
+    });
   }
 
   /** Her notebook taken or put down: its button shows or goes. */
@@ -539,6 +580,7 @@ export class Hud {
     this.inspectEl = drawInspect(this.root, t, this.assets, this.held?.id === id, {
       hold: (thing) => { this.closeInspect(); this.onHold(thing); },
       close: () => this.closeInspect(),
+      read: (closeup) => { this.closeAll(); void this.readCloseup(closeup); },
     });
     const slot = this.trayEl?.querySelector<HTMLElement>(`[data-item="${id}"]`), root = this.root.getBoundingClientRect();
     this.trayEl?.querySelectorAll('.slot').forEach((x) => x.classList.toggle('open', x === slot));

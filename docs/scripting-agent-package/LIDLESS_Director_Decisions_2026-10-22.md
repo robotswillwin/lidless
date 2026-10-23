@@ -129,6 +129,22 @@ holds**. Each decision is the director's, in plain words; what is still open say
     switches. No sound effects yet.
 35. **English only**, for now.
 
+## Luna on screen
+
+36. **Luna turns.** Seen from the side as she walks, she turns her back to us as she goes in at a door (every door is
+    drawn in a wall we look at; only the ends of a street are walked off side on), and to us as she comes out of one,
+    after any change of clothes (the shower ends on her undressed and censored, facing us), when she has stood still a
+    while, and when the player taps her; each until she moves. Every outfit has a front, those she goes out in a back.
+37. **She blinks**, her left eye only (her right has no lids, 19), side on and facing us, now and then.
+38. **Athena's flat (9-07) is a whole home on one floor**, as Luna's is: a shower and a basin, a kitchen corner, her
+    bed, her chair, her workbench. (Two storeys were considered: the tower's other floors are drawn smaller than the
+    one in view, so an upper floor would not be at Luna's scale.)
+39. **Talking to the Concierge**, its card shows only the latest exchange: her answer and what it says to it.
+40. **In the opening Luna covers for Athena**: asked by the Concierge whether Athena was home, the one thing she can
+    say is what Athena asked her to, "Yes. Her music was loud." The story does not branch here. Before that, she does
+    not leave her flat until she has read her messages, and at 9-07 she rings the bell before she asks the door to let
+    her in. A paper read close up stays until she puts it down.
+
 ## Open, for the director
 
 - The six decisions the vertical slice waits on (`LIDLESS_Vertical_Slice_v0.1_2026-10-21.md`). The first is Luna's
@@ -137,3 +153,7 @@ holds**. Each decision is the director's, in plain words; what is still open say
   show.
 - How Luna comes by raw view (1) and the laptop (12).
 - What each level trades (18): to be announced (the director, 22 October).
+- The opening's open questions, built for now as the overview proposed: Athena chosen family or a relative (Q1); her
+  age and height, 89 and 1.62 m (Q2); the note's wording, as written (Q5); both clues on the first visit (Q6); flat
+  9-06 left ajar as it is (Q10). And whether Luna can call the Concierge from a friend's home, Athena's: built not
+  (only from her own). (Her answer to the Concierge is settled: 40.)

@@ -110,6 +110,11 @@ export interface SceneFile {
    */
   arrive?: { story: string; when?: string }[];
   /**
+   * She does not leave this place while a condition holds, by any way out, the map too: she says why instead (her
+   * messages first, the morning she wakes). A story taking her somewhere still does.
+   */
+  stay?: { when: string; say: ViewText };
+  /**
    * A privacy room whose door the Concierge sees (a public restroom): it notices a long stay, or coming too often, and
    * says so as she comes out (see privacy.ts).
    */

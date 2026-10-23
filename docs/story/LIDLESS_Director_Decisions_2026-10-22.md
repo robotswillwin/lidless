@@ -140,6 +140,10 @@ holds**. Each decision is the director's, in plain words; what is still open say
     bed, her chair, her workbench. (Two storeys were considered: the tower's other floors are drawn smaller than the
     one in view, so an upper floor would not be at Luna's scale.)
 39. **Talking to the Concierge**, its card shows only the latest exchange: her answer and what it says to it.
+40. **In the opening Luna covers for Athena**: asked by the Concierge whether Athena was home, the one thing she can
+    say is what Athena asked her to, "Yes. Her music was loud." The story does not branch here. Before that, she does
+    not leave her flat until she has read her messages, and at 9-07 she rings the bell before she asks the door to let
+    her in. A paper read close up stays until she puts it down.
 
 ## Open, for the director
 
@@ -152,4 +156,4 @@ holds**. Each decision is the director's, in plain words; what is still open say
 - The opening's open questions, built for now as the overview proposed: Athena chosen family or a relative (Q1); her
   age and height, 89 and 1.62 m (Q2); the note's wording, as written (Q5); both clues on the first visit (Q6); flat
   9-06 left ajar as it is (Q10). And whether Luna can call the Concierge from a friend's home, Athena's: built not
-  (only from her own).
+  (only from her own). (Her answer to the Concierge is settled: 40.)

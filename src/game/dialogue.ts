@@ -23,8 +23,10 @@ const SPEAKER_TAG = /^[a-z][a-z0-9_]*$/;
  *                              switches it off
  *   call: concierge            she calls the Concierge once the conversation is over (from a home only), its privacy
  *                              sign open while they talk
+ *   read: athena-note          a paper close up, its words over it (closeups.json); the line waits until she puts
+ *                              it down
  */
-export const COMMANDS = ['walk', 'face', 'wear', 'go', 'fade', 'view', 'wait', 'closeup', 'terminal', 'call'] as const;
+export const COMMANDS = ['walk', 'face', 'wear', 'go', 'fade', 'view', 'wait', 'closeup', 'terminal', 'call', 'read'] as const;
 export type CommandName = (typeof COMMANDS)[number];
 export interface Command { name: CommandName; arg: string }
 

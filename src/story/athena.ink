@@ -20,21 +20,20 @@ A clean rectangle in the dust, and a lead, unplugged. Something portable stood h
 -> END
 
 === athenas_note ===
-// her note: reading it is what the opening turns on. Taken, she keeps it; it never goes on CO-net
+// her note: reading it is what the opening turns on. It stays close up until she puts it down. Taken, she keeps it; it
+// never goes on CO-net
 = look
 ~ athena_note_read = true
-# closeup: athena-note
-Athena's writing, quick and slanted, the way she writes when she's pleased with herself.
-# closeup: off
+# read: athena-note
+Athena's writing, quick and slanted: she was pleased with herself.
 Better than fine. That's what you always say. #luna
 What are you up to, Athena? #luna
 -> END
 = take
 { not athena_note_read:
     ~ athena_note_read = true
-    # closeup: athena-note
+    # read: athena-note
     It's for you, in Athena's hand.
-    # closeup: off
 }
 ~ carried += athena_note
 ~ taken += athena_note
@@ -44,9 +43,8 @@ You fold the note and keep it. Hers and yours, not CO's.
 === athena_timetable ===
 = look
 ~ athena_patrol_sheet_seen = true
-# closeup: athena-timetable
+# read: athena-timetable
 Times, in her hand. Columns of them, and gaps.
-# closeup: off
 -> END
 = take
 ~ athena_patrol_sheet_seen = true
@@ -58,9 +56,7 @@ You unpin the sheet and fold it away.
 === athena_receipt ===
 = look
 ~ athena_repair_slip_seen = true
-# closeup: athena-receipt
-A receipt from Radio Repair.
-# closeup: off
+# read: athena-receipt
 Her portable computer. Still at Radio Repair? #luna
 -> END
 = take

@@ -22,6 +22,8 @@ export interface Item {
   unlicensed?: boolean;
   name: ViewText;
   note?: ViewText;
+  /** A paper with words on it: the close-up to read it in (closeups.json), from her things too. */
+  read?: string;
 }
 
 /** A thing in the tray as the view on screen has it. */
@@ -38,6 +40,8 @@ export interface Thing {
   /** The Concierge's label on it, in its view. */
   tag?: string;
   unlicensed: boolean;
+  /** A paper: the close-up to read it in. */
+  read?: string;
 }
 
 /** What she carries, as the view on screen has it; where it cannot see her (`watched` false) it says nothing about it. */
@@ -48,7 +52,7 @@ export function thingsNow(items: Record<string, Item>, carried: string[], raw: b
     const projected = !raw && it.only === 'concierge', ghost = raw && it.only === 'concierge';
     return [{
       id, name: pick(it.name, raw), note: it.note ? pick(it.note, raw) : '', art: projected || !it.art ? undefined : pick(it.art, raw), icon: it.icon,
-      projected, ghost, tag: !raw && watched && it.unlicensed ? 'Unlicensed' : undefined, unlicensed: watched && !!it.unlicensed,
+      projected, ghost, tag: !raw && watched && it.unlicensed ? 'Unlicensed' : undefined, unlicensed: watched && !!it.unlicensed, read: it.read,
     }];
   });
 }
@@ -95,7 +99,7 @@ export function drawTray(root: HTMLElement, things: Thing[], from: { x: number; 
  * one in her hand, putting it back).
  */
 export function drawInspect(root: HTMLElement, t: Thing, assets: string, held: boolean,
-  on: { hold: (id: string | null) => void; close: () => void }): HTMLElement {
+  on: { hold: (id: string | null) => void; close: () => void; read?: (closeup: string) => void }): HTMLElement {
   const card = el('section', `hud-inspect${t.ghost ? ' ghost' : ''}${t.projected ? ' projected' : ''}`, root);
   card.setAttribute('aria-label', t.name);
   card.addEventListener('pointerdown', (e) => e.stopPropagation());
@@ -108,6 +112,8 @@ export function drawInspect(root: HTMLElement, t: Thing, assets: string, held: b
   const row = el('div', 'row', words);
   // Use takes it out to use on something; the one in her hand, Put back
   if (!t.ghost) button('primary', held ? `Put ${t.name} back` : `Use ${t.name}`, row, () => on.hold(held ? null : t.id)).textContent = held ? 'Put back' : 'Use';
+  // a paper: read it again
+  if (t.read && on.read) button('', `Read ${t.name}`, row, () => on.read!(t.read!)).textContent = 'Read';
   button('hud-close', 'Close', card, on.close).innerHTML = icon('close', 16);
   return card;
 }

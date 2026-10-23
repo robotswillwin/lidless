@@ -481,11 +481,20 @@ const checks = {
     await wait(2500);
     check('the call over: its sign shut again, she can call it again', (await sign()) === 'shut' && !!(await page.$('.co-foot .primary')), String(await sign()));
     check('she woke in her underwear, her morning begun', (await save(page))?.outfit === 'underwear' && /"intro_morning_started":\s*true/.test(await ink(page)), (await save(page))?.outfit);
+    // her messages first: she does not leave before she has read them
+    await page.evaluate(() => document.querySelector('.co-close')?.click());
+    await wardrobe(page, 'Outdoor clothes');
+    await tap(page, 812, 300);
+    const first = await talkThrough(page);
+    await wait(1500);
+    check('her messages first: she will not go out before she has read them', (await save(page))?.scene === 'home' && first.some((l) => /messages first/.test(l)), `${(await save(page))?.scene} | ${first.join(' / ')}`);
     // her messages, in its card: Athena's opened
     await page.evaluate(() => document.querySelector('.co-close')?.click());
     await coCard(page);
     const inbox = await page.$$eval('.co-inbox li', (ls) => ls.map((l) => `${l.querySelector('.from')?.textContent}${l.classList.contains('unread') ? '*' : ''}`));
     check('two messages wait, unread: the delivery and Athena', inbox.join() === 'Delivery*,Athena*', inbox.join());
+    await page.evaluate(() => [...document.querySelectorAll('.co-msg')].find((b) => /Delivery/.test(b.textContent))?.click());
+    await wait(400);
     await page.evaluate(() => [...document.querySelectorAll('.co-msg')].find((b) => /Athena/.test(b.textContent))?.click());
     await wait(600);
     check('Athena\'s invitation read', /"athena_invitation_read":\s*true/.test(await ink(page)) && /walk in/.test(await page.$eval('.co-inbox li.open .whole', (e) => e.textContent).catch(() => '')));
@@ -498,7 +507,6 @@ const checks = {
     await talkThrough(page);
     const after = await page.evaluate(() => document.querySelector('.hud-btn.notebook')?.hidden);
     check('her notebook taken from her desk: now she has one to open', before === true && after === false && /Things\.paper_notebook/.test(await ink(page)), `${before} → ${after}`);
-    await wardrobe(page, 'Outdoor clothes');
     await tap(page, 812, 300);
     await wait(4500);
     check('dressed, out of her door, her coat on', (await save(page))?.scene === 'floor14' && (await save(page))?.outfit === 'coat', `${(await save(page))?.scene} ${(await save(page))?.outfit}`);
@@ -510,23 +518,38 @@ const checks = {
     await choose(page, 'Floor 9');
     await talkThrough(page);
     check('down to nine', (await save(page))?.scene === 'floor9', (await save(page))?.scene);
+    // her door: she rings first
+    await verb(page, 'hands');
+    await tap(page, 709, 300);
+    await page.waitForFunction(() => !!document.querySelector('.hud-note'), { timeout: 8000 }).catch(() => {});
+    const early = await page.$eval('.hud-note', (n) => n.textContent).catch(() => '');
+    check('at 9-07 she rings first', (await save(page))?.scene === 'floor9' && /ring first/.test(early), early);
+    await verb(page, 'hands');
+    await tap(page, 742, 296);
+    const rang = await talkThrough(page);
+    check('the bell: nobody comes', rang.some((l) => /Nobody comes/.test(l)) && /"athena_bell_rung":\s*true/.test(await ink(page)), rang.join(' / '));
     await verb(page, 'hands');
     await tap(page, 709, 300);
     const door = await talkThrough(page);
     check('her invitation opens 9-07: its reader says guest', (await save(page))?.scene === 'athena-home' && door.some((l) => /guest/.test(l)) && /"athena_flat_entered":\s*true/.test(await ink(page)), `${(await save(page))?.scene} | ${door.join(' / ').slice(0, 80)}`);
     await verb(page, 'eyes');
     await tap(page, 783, 293);
-    await page.waitForFunction(() => !!document.querySelector('.hud-closeup .words'), { timeout: 8000 }).catch(() => {});
+    await page.waitForFunction(() => !!document.querySelector('.hud-closeup.reading .words'), { timeout: 8000 }).catch(() => {});
     const words = await page.$eval('.hud-closeup .words', (e) => e.textContent).catch(() => '');
-    await talkThrough(page);
-    check('her note, close up, its words set over the blank paper', /I'm fine/.test(words) && /"athena_note_read":\s*true/.test(await ink(page)), words.slice(0, 40));
+    await wait(4000);
+    const stays = !!(await page.$('.hud-closeup.reading'));
+    await page.mouse.click(400, 300);
+    await wait(500);
+    const reaction = await talkThrough(page);
+    check('her note, close up, its words over the blank paper, until she puts it down', /I'm fine/.test(words) && stays && reaction.some((l) => /What are you up to/.test(l)) && /"athena_note_read":\s*true/.test(await ink(page)), `${words.slice(0, 30)} | stays ${stays} | ${reaction.join(' / ').slice(0, 60)}`);
     await tap(page, 290, 290);
     await page.waitForFunction(() => /Was Athena at home/.test(document.querySelector('.co-thread')?.textContent ?? ''), { timeout: 15000 }).catch(() => {});
     const asked = await page.evaluate(() => document.querySelector('.co-thread')?.textContent ?? '');
     check('out in the corridor, the Concierge asks whether she was home', (await save(page))?.scene === 'floor9' && /Was Athena at home/.test(asked), `${(await save(page))?.scene} | ${asked.slice(0, 60)}`);
-    await page.evaluate(() => [...document.querySelectorAll('.co-choices button')].find((b) => /rather not/.test(b.textContent))?.click());
+    const answers = await page.$$eval('.co-choices button', (bs) => bs.map((b) => b.textContent));
+    await page.evaluate(() => document.querySelector('.co-choices button')?.click());
     await wait(2500);
-    check('she keeps it to herself: her word recorded, the opening done', /"athena_report":\s*"\^private"/.test(await ink(page)) && /"prologue_complete":\s*true/.test(await ink(page)));
+    check('she covers for Athena, the one thing she can say: the opening done', answers.length === 1 && /music was loud/.test(answers[0]) && /"athena_report":\s*"\^covered"/.test(await ink(page)) && /"prologue_complete":\s*true/.test(await ink(page)), answers.join(' / '));
     await page.close();
   },
 

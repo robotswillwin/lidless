@@ -432,7 +432,15 @@ export class Game {
    * conversation goes on there.
    */
   private async travel(exit: { scene: string } & Arrival, story = false, through = false): Promise<void> {
-    if (this.travelling) return;
+    if (this.travelling || (!story && this.talk.open)) return;
+    // a place she will not leave yet (her messages first): she says why, and stays
+    const held = this.scene.file.stay;
+    if (!story && held && this.dialogue.test(held.when)) {
+      this.letGo();
+      this.world.stop();
+      this.releaseKeys();
+      return this.say(pick(held.say, this.raw));
+    }
     this.travelling = true;
     this.letGo();
     this.world.stop();
@@ -680,6 +688,7 @@ export class Game {
     closeup: (name) => this.hud.showCloseup(name),
     terminal: (id) => this.terminal(id),
     call: () => { this.callAfter = true; },
+    read: (name) => this.hud.readCloseup(name),
   };
 
   /**

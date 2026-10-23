@@ -255,7 +255,12 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .hud-closeup.dark img { max-width: min(86vw, 1400px); max-height: 86vh; border: 0; border-radius: 0; box-shadow: none; }
 /* a paper's words, over its blank paper: in her hand, or typed */
 .hud-closeup .words { position: absolute; margin: 0; white-space: pre-line; overflow: hidden; color: var(--pencil); line-height: 1.32; transform-origin: 50% 50%; }
-.hud-closeup .words.hand { font-family: var(--hand); font-weight: 400; color: #1f2a4a; }
+/* her hand: a quick pen whose ink sinks into the paper, each line a little its own */
+.hud-closeup .words.hand { font-family: 'Caveat', var(--hand); font-weight: 500; line-height: 1.08; color: #17204a; mix-blend-mode: multiply; }
+.hud-closeup .words .ln { display: block; transform-origin: 0 60%; }
+/* a paper read: it stays until she puts it down */
+.hud-closeup.reading { pointer-events: auto; cursor: pointer; }
+.hud-closeup .put-down { position: absolute; left: 0; right: 0; bottom: 1.2vh; margin: 0; text-align: center; font: 500 calc(12px * var(--ts, 1))/1 var(--ui); color: rgba(245, 243, 239, .72); text-shadow: 0 1px 4px rgba(0, 0, 0, .8); }
 .hud-closeup .words.typed { font-family: 'VT323', ui-monospace, Menlo, monospace; line-height: 1.15; color: #2b2622; letter-spacing: .02em; }
 @media (prefers-reduced-motion: reduce) { .hud-closeup { animation: none; } }
 
