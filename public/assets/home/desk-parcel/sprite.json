@@ -1,0 +1,25 @@
+{
+  "name": "desk-parcel",
+  "x": 780,
+  "y": 201,
+  "w": 141,
+  "h": 66.5,
+  "maps": [
+    "albedo.concierge",
+    "albedo.raw",
+    "glow.concierge",
+    "glow.raw"
+  ],
+  "depth": 3,
+  "parallax": 1,
+  "occluder": 0,
+  "reflectivity": 0,
+  "object": 0,
+  "anchor": [
+    71,
+    66.5
+  ],
+  "exists": "both",
+  "kind": "prop",
+  "res": 2
+}

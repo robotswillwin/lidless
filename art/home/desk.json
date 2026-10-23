@@ -1,0 +1,32 @@
+{
+  "scene": "home",
+  "kind": "background",
+  "interior": true,
+  "exists": "both",
+  "look": "vector",
+  "res": 2,
+  "size": "1936x1088",
+  "height": 540,
+  "position": [
+    480,
+    540
+  ],
+  "depth": 3,
+  "glow": {
+    "raw": "auto",
+    "concierge": "auto",
+    "machine": true
+  },
+  "palette": 0,
+  "name": "desk",
+  "material": "wood",
+  "framing": "A close-up of a desk seen from the front and a little from above, at the eye height of a person standing at it, filling the frame from edge to edge: the wall behind it at the top, the desk's top across the middle with its surface showing, its front edge, and under it a pedestal of three drawers on the right and a leg on the left, down to the floor at the bottom. Lit dimly. No text, no captions, no border.",
+  "prompt": "Luna's desk up close, in her small flat in a decaying apartment block: a plain grey metal office desk, worn. On it, from left to right: a framed photograph standing on the left, its glass and frame old, the picture inside it empty, only a pale mount; an old boxy computer terminal with a small screen of green text too small to read, its keyboard in front, letters worn off its keys; a dented tin pencil cup; her old transistor radio with its back off, its insides showing, a dead radio valve lying beside it; a spare radio valve standing on its pins, a small glass tube, its filament faintly warm; at the right end a small notebook bound in faded pale beige cloth, an elastic band around it and a pencil under the band, standing upright against the wall; in front of it a small parcel, a cardboard box sealed with brown tape and tied with string, a handwritten label. Under the desk top on the right a metal pedestal of three drawers, shut, each with a handle. The same flat-shaded style: two or three flat tones per surface, crisp edges. No people. No legible writing anywhere.",
+  "concierge": "The city AI's version of the same desk, every object in the same place and the same size: the desk sleek warm wood, the photograph a softly glowing frame showing a smiling young woman alone against a sunny sky, the terminal a glossy slim monitor with a soft blue interface, the pencil cup brass, the radio a decorative retro speaker, the valves a glass curio on a small stand, the notebook neat dark blue cloth, the parcel a clean white box with a soft grey ribbon; the drawers smooth with slim handles. Warm amber evening light. No people. No signs, no symbols, no writing.",
+  "references": [
+    "art/home/cutaway/raw.png"
+  ],
+  "conciergeReferences": [
+    "art/home/cutaway/concierge.png"
+  ]
+}

@@ -65,6 +65,8 @@ VAR prologue_complete = false
 VAR parcel_delivered = false
 // her radio, mended: what she heard under the static
 VAR radio_heard = false
+// her desk, up close (scene home-desk): its top drawer open
+VAR luna_drawer_open = false
 // Felix, at the cocktail bar (bar.ink): met, and what he told her of the levels
 VAR met_felix = false
 VAR knows_levels = false

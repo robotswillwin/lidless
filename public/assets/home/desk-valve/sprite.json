@@ -1,0 +1,25 @@
+{
+  "name": "desk-valve",
+  "x": 730,
+  "y": 173,
+  "w": 32,
+  "h": 97.5,
+  "maps": [
+    "albedo.concierge",
+    "albedo.raw",
+    "glow.concierge",
+    "glow.raw"
+  ],
+  "depth": 3,
+  "parallax": 1,
+  "occluder": 0,
+  "reflectivity": 0,
+  "object": 0,
+  "anchor": [
+    16,
+    97.5
+  ],
+  "exists": "both",
+  "kind": "prop",
+  "res": 2
+}

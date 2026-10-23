@@ -123,14 +123,32 @@ interior, a privacy zone. Arrivals: `door`, `bed`.
 | `bed` | Bed |  |  |
 | `window` | Window |  |  |
 | `book` | Book |  |  |
-| `photo` | Photograph | `photo` |  |
+| `desk` | Your desk / My desk |  |  |
 | `screen` | The Concierge's screen / Wall screen |  |  |
+| `water` | Water / Water tap |  |  |
+
+### home-desk: Your desk (raw view: My desk)
+
+interior, a privacy zone. Arrivals: .
+
+| Spot | Name | Story | Notes |
+| --- | --- | --- | --- |
+| `photo` | Photograph | `photo` |  |
 | `terminal` | Terminal |  |  |
-| `valve` | Curio / Radio valve |  | item `valve` |
+| `pencils` | Pencils |  |  |
 | `radio` | Retro speaker / Transistor radio | `radio` |  |
+| `dead-valve` | Valve / Dead valve |  |  |
+| `lower-drawers` | Drawers |  |  |
+| `drawer` | Drawer / Top drawer | `luna_drawer` | when `not luna_drawer_open` |
+| `drawer-open` | Drawer / Top drawer | `luna_drawer` | when `luna_drawer_open` |
+| `torch` | Torch |  | when `luna_drawer_open` |
+| `tape` | Tape |  | when `luna_drawer_open` |
+| `fuses` | Fuses |  | when `luna_drawer_open` |
+| `screwdrivers` | Screwdrivers |  | when `luna_drawer_open` |
+| `buttons` | Buttons |  | when `luna_drawer_open` |
+| `valve` | Curio / Radio valve |  | item `valve` |
 | `notebook` | Notebook | `notebook` | item `paper_notebook` |
 | `parcel` | Parcel |  | item `parcel` |
-| `water` | Water / Water tap |  |  |
 
 ### lobby: Entrance 3
 
@@ -256,6 +274,7 @@ Speaker tags in the story so far: `#concierge`, `#door`, `#felix`, `#fixer`, `#g
 | `prologue_complete` | `false` | what she told the Concierge leaving Athena's flat: "not_asked", then "covered", as Athena asked (the opening does not branch here: decision 40). Her word, not a fact about Athena |
 | `parcel_delivered` | `false` | the errand the game begins with: the parcel on her desk, to the radio repair by ten |
 | `radio_heard` | `false` | her radio, mended: what she heard under the static |
+| `luna_drawer_open` | `false` | her desk, up close (scene home-desk): its top drawer open |
 | `met_felix` | `false` | Felix, at the cocktail bar (bar.ink): met, and what he told her of the levels |
 | `knows_levels` | `false` | Felix, at the cocktail bar (bar.ink): met, and what he told her of the levels |
 | `relay7_root` | `false` | what she found on the old machine, Relay 7 (public/assets/terminals/relay7.json, `# terminal: relay7`): placeholders, until the story has the machine. Root's password found, the handover read, the night operator's notes read |
@@ -266,7 +285,7 @@ Lists: `Things` (parcel, matches, cigarettes, map, valve, paper_notebook, athena
 
 ## Knots
 
-`fixer`, `station`, `guardian`, `opening`, `concierge_home`, `radio`, `photo`, `notebook`, `concierge`, `bar_prices`, `bar_counter`, `bar_order`, `felix`, `lift`, `athena_door`, `athena_bell`, `athena_asked`, `athena_bench`, `athena_gap`, `athena_radio`, `athena_lamp`, `athena_drawer`, `athena_valves`, `athena_letters`, `athenas_note`, `athena_timetable`, `athena_receipt`, `good`, `meal`.
+`fixer`, `station`, `guardian`, `opening`, `concierge_home`, `radio`, `photo`, `luna_drawer`, `notebook`, `concierge`, `bar_prices`, `bar_counter`, `bar_order`, `felix`, `lift`, `athena_door`, `athena_bell`, `athena_asked`, `athena_bench`, `athena_gap`, `athena_radio`, `athena_lamp`, `athena_drawer`, `athena_valves`, `athena_letters`, `athenas_note`, `athena_timetable`, `athena_receipt`, `good`, `meal`.
 
 ## Outfits
 

@@ -91,6 +91,25 @@ It warms. Static, a long hiss, and then, under it, almost, a voice. Not the Conc
 }
 -> END
 
+=== luna_drawer ===
+// her desk's top drawer, up close (scene home-desk): her tools, mostly for the radio
+= look
+{ luna_drawer_open:
+    Your tools. Mostly for the radio.
+- else:
+    Your top drawer.
+}
+-> END
+= use
+{ luna_drawer_open:
+    ~ luna_drawer_open = false
+    You push the drawer shut.
+- else:
+    ~ luna_drawer_open = true
+    The drawer sticks, then gives.
+}
+-> END
+
 === notebook ===
 // her paper notebook, on the end of her desk: hers, never on CO-net. Taken, her notebook opens in a privacy zone
 = look

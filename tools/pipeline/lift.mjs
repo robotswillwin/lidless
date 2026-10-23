@@ -112,8 +112,12 @@ function convexHull(m, w, h) {
  * level pixels a texel of the picture is, across and down. A picture is drawn to the scene's height, so a texel is a
  * little more or less than half a pixel.
  */
+/** Whether a scene's layer is the picture's own: the picture, or one of the layers it is split into (not a prop lifted
+ * out of it, whose name may start the same way: desk-parcel out of desk). */
+const ownLayer = (r) => (a) => a === `${r.scene}/${r.name}` || (r.split?.layers ?? []).some((l) => a === `${r.scene}/${r.name}-${l.name}`);
+
 async function placing(r, sceneFile, picture) {
-  const scene = JSON.parse(await readFile(sceneFile, 'utf8')), mine = (a) => a === `${r.scene}/${r.name}` || a.startsWith(`${r.scene}/${r.name}-`);
+  const scene = JSON.parse(await readFile(sceneFile, 'utf8')), mine = ownLayer(r);
   const at = scene.layers.map((l, i) => [l, i]).filter(([l]) => mine(l.asset)).pop();
   if (!at) throw new Error(`${rel(sceneFile)} has no layer of ${r.scene}/${r.name}`);
   const [layer, index] = at, sprite = JSON.parse(await readFile(join(ROOT, 'public/assets', layer.asset, 'sprite.json'), 'utf8'));
@@ -160,7 +164,7 @@ export async function cmdLift([file], opt) {
     const had = scene.layers.findIndex((l) => l.asset === asset);
     if (had >= 0) scene.layers[had] = { ...scene.layers[had], ...entry };
     else {
-      const mine = (a) => a === `${r.scene}/${r.name}` || a.startsWith(`${r.scene}/${r.name}-`);
+      const mine = ownLayer(r);
       const last = scene.layers.map((l, i) => (mine(l.asset) ? i : -1)).filter((i) => i >= 0).pop() ?? scene.layers.length - 1;
       scene.layers.splice(last + 1, 0, entry);
     }

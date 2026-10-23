@@ -501,16 +501,23 @@
    }
   },
   {
-   "id": "photo",
-   "name": "Photograph",
+   "id": "desk",
+   "name": {
+    "concierge": "Your desk",
+    "raw": "My desk"
+   },
    "rect": [
-    580,
-    284,
-    17,
-    20
+    574,
+    272,
+    132,
+    66
    ],
-   "stand": 590,
-   "story": "photo"
+   "stand": 640,
+   "zoom": "home-desk",
+   "look": {
+    "concierge": "Your desk.",
+    "raw": "My desk."
+   }
   },
   {
    "id": "screen",
@@ -532,98 +539,6 @@
    },
    "ask": "Good evening, Luna. You called? Your parcel is due at Radio Repair by 22:00.",
    "kind": "machine"
-  },
-  {
-   "id": "terminal",
-   "name": "Terminal",
-   "rect": [
-    600,
-    278,
-    36,
-    30
-   ],
-   "stand": 618,
-   "look": {
-    "concierge": "Your terminal: credits, messages, the news, a game you never finish.",
-    "raw": "Your terminal. The letters are worn off its keys, under your fingers."
-   },
-   "use": {
-    "concierge": "Nothing new. Your credits are where you left them.",
-    "raw": "The screen hums. Nothing new."
-   },
-   "kind": "machine"
-  },
-  {
-   "id": "valve",
-   "name": {
-    "concierge": "Curio",
-    "raw": "Radio valve"
-   },
-   "rect": [
-    641,
-    285,
-    12,
-    21
-   ],
-   "stand": 646,
-   "look": {
-    "concierge": "A vintage ornament, the Concierge calls it. It glows a little.",
-    "raw": "An old radio valve in a jar. You don't know why you bought it, or why you keep looking at it."
-   },
-   "item": "valve",
-   "take": {
-    "concierge": "You pocket the curio.",
-    "raw": "The valve. The radio's been waiting for one."
-   }
-  },
-  {
-   "id": "radio",
-   "name": {
-    "concierge": "Retro speaker",
-    "raw": "Transistor radio"
-   },
-   "rect": [
-    657,
-    289,
-    24,
-    17
-   ],
-   "stand": 669,
-   "story": "radio",
-   "kind": "machine"
-  },
-  {
-   "id": "notebook",
-   "name": "Notebook",
-   "rect": [
-    684,
-    288,
-    16,
-    20
-   ],
-   "stand": 690,
-   "item": "paper_notebook",
-   "story": "notebook"
-  },
-  {
-   "id": "parcel",
-   "name": "Parcel",
-   "rect": [
-    674,
-    299,
-    17,
-    10
-   ],
-   "stand": 682,
-   "look": {
-    "concierge": "A neat white box with the Concierge's mark. Due at Radio Repair by 22:00.",
-    "raw": "Brown paper and string, no address on the outside. Due at Radio Repair by 22:00."
-   },
-   "item": "parcel",
-   "take": {
-    "concierge": "Delivery 4471: in your things. Due at Radio Repair by 22:00.",
-    "raw": "The parcel. For the radio man. Don't open it."
-   }
   },
   {
    "id": "water",

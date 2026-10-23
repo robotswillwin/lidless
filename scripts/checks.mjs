@@ -222,19 +222,26 @@ const checks = {
   /** The story drives the world: things taken off her desk, the radio mended with one, the parcel delivered. */
   async story() {
     const page = await fresh('scene=home&spawn=door');
-    await verb(page, 'take');
-    await tap(page, 682, 304);
-    await wait(3500);
+    // her desk, up close: tapped, she goes up to it and the view goes in close
+    await tap(page, 640, 300);
+    await wait(4500);
+    check('her desk, up close', (await page.evaluate(() => !document.querySelector('.hud-back')?.hidden)) === true);
+    await tap(page, 850, 236);
+    await wait(1500);
     check('the parcel taken into her pockets', /Things\.parcel/.test(await ink(page)));
-    await verb(page, 'take');
-    await tap(page, 646, 296);
-    await wait(3000);
+    await tap(page, 745, 212);
+    await wait(1500);
     check('the valve taken', /Things\.valve/.test(await ink(page)));
+    await tap(page, 700, 330);
+    await wait(1200);
+    check('her top drawer opens', /"luna_drawer_open":\s*true/.test(await ink(page)));
     await holdThing(page, 'valve');
     check('the valve in her hand', ((await page.$eval('.hud-ball.verbs', (b) => b.getAttribute('aria-label'))) ?? '').includes('put it back'));
-    await tap(page, 669, 297);
+    await tap(page, 637, 198);
     await talkThrough(page);
     check('the radio mended, a voice under the static', /"radio_heard":\s*true/.test(await ink(page)));
+    await page.click('.hud-back');
+    await wait(1500);
     await panel(page, 'journal');
     const done = await page.$$eval('.hud-panel.journal .entry.done .name', (es) => es.map((e) => e.textContent));
     check('her journal crosses out the radio', done.includes('My radio') && !done.includes('Parcel 4471'), done.join(', '));
@@ -500,13 +507,16 @@ const checks = {
     check('Athena\'s invitation read', /"athena_invitation_read":\s*true/.test(await ink(page)) && /walk in/.test(await page.$eval('.co-inbox li.open .whole', (e) => e.textContent).catch(() => '')));
     await page.evaluate(() => document.querySelector('.co-close')?.click());
     await wait(300);
-    // her notebook: no button for it until she has it
+    // her notebook: no button for it until she has it; it is on her desk, up close
     const before = await page.evaluate(() => document.querySelector('.hud-btn.notebook')?.hidden);
-    await verb(page, 'take');
-    await tap(page, 692, 298);
+    await tap(page, 640, 300);
+    await wait(4500);
+    await tap(page, 825, 170);
     await talkThrough(page);
     const after = await page.evaluate(() => document.querySelector('.hud-btn.notebook')?.hidden);
     check('her notebook taken from her desk: now she has one to open', before === true && after === false && /Things\.paper_notebook/.test(await ink(page)), `${before} → ${after}`);
+    await page.click('.hud-back');
+    await wait(1500);
     await tap(page, 812, 300);
     await wait(4500);
     check('dressed, out of her door, her coat on', (await save(page))?.scene === 'floor14' && (await save(page))?.outfit === 'coat', `${(await save(page))?.scene} ${(await save(page))?.outfit}`);

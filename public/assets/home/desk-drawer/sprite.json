@@ -1,0 +1,25 @@
+{
+  "name": "desk-drawer",
+  "x": 571,
+  "y": 296,
+  "w": 308,
+  "h": 139,
+  "maps": [
+    "albedo.concierge",
+    "albedo.raw",
+    "glow.concierge",
+    "glow.raw"
+  ],
+  "depth": 3,
+  "parallax": 1,
+  "occluder": 0,
+  "reflectivity": 0,
+  "object": 0,
+  "anchor": [
+    154,
+    139
+  ],
+  "exists": "both",
+  "kind": "prop",
+  "res": 2
+}

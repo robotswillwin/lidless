@@ -1,0 +1,386 @@
+{
+ "id": "home-desk",
+ "name": {
+  "concierge": "Your desk",
+  "raw": "My desk"
+ },
+ "closeup": "home",
+ "greeting": "Welcome home, Luna. I'll leave you to yourself.",
+ "assist": "Your parcel is due at Radio Repair by 22:00, Luna.",
+ "kind": "interior",
+ "private": true,
+ "home": true,
+ "size": [
+  960,
+  540
+ ],
+ "layers": [
+  {
+   "asset": "home/desk"
+  },
+  {
+   "asset": "home/desk-drawer",
+   "x": 570.84,
+   "y": 295.81,
+   "when": "luna_drawer_open"
+  },
+  {
+   "asset": "home/desk-valve",
+   "x": 729.68,
+   "y": 172.72,
+   "when": "!(taken has valve)"
+  },
+  {
+   "asset": "home/desk-notebook",
+   "x": 790.24,
+   "y": 124.08,
+   "when": "!(taken has paper_notebook)"
+  },
+  {
+   "asset": "home/desk-parcel",
+   "x": 780.32,
+   "y": 200.51,
+   "when": "!(taken has parcel)"
+  }
+ ],
+ "lights": [
+  {
+   "x": 330,
+   "y": 110,
+   "z": 16,
+   "r": 200,
+   "c": [
+    0.55,
+    0.9,
+    0.7
+   ],
+   "i": 0.35,
+   "zone": 0,
+   "layer": 1,
+   "own": 1,
+   "raw": 1
+  },
+  {
+   "x": 330,
+   "y": 110,
+   "z": 16,
+   "r": 200,
+   "c": [
+    0.45,
+    0.7,
+    1
+   ],
+   "i": 0.4,
+   "zone": 0,
+   "layer": 1,
+   "own": 1,
+   "ar": 1
+  },
+  {
+   "x": 745,
+   "y": 215,
+   "z": 10,
+   "r": 120,
+   "c": [
+    1,
+    0.7,
+    0.35
+   ],
+   "i": 0.45,
+   "zone": 0,
+   "layer": 1,
+   "own": 1
+  },
+  {
+   "x": 480,
+   "y": 60,
+   "z": 30,
+   "r": 420,
+   "c": [
+    1,
+    0.85,
+    0.6
+   ],
+   "i": 0.35,
+   "zone": 0,
+   "layer": 1,
+   "own": 1
+  }
+ ],
+ "ambient": {
+  "raw": 1.2,
+  "concierge": 1.3
+ },
+ "baked": 1,
+ "hotspots": [
+  {
+   "id": "photo",
+   "name": "Photograph",
+   "rect": [
+    77,
+    126,
+    103,
+    114
+   ],
+   "story": "photo"
+  },
+  {
+   "id": "terminal",
+   "name": "Terminal",
+   "rect": [
+    223,
+    60,
+    218,
+    198
+   ],
+   "kind": "machine",
+   "look": {
+    "concierge": "Your terminal: credits, messages, the news, a game you never finish.",
+    "raw": "Your terminal. The letters are worn off its keys, under your fingers."
+   },
+   "use": {
+    "concierge": "Nothing new. Your credits are where you left them.",
+    "raw": "The screen hums. Nothing new."
+   }
+  },
+  {
+   "id": "pencils",
+   "name": {
+    "concierge": "Pencils",
+    "raw": "Pencils"
+   },
+   "rect": [
+    470,
+    144,
+    46,
+    89
+   ],
+   "look": {
+    "concierge": "Pencils in a brass cup. You still like to write things down.",
+    "raw": "Pencils, chewed. A tin cup."
+   }
+  },
+  {
+   "id": "radio",
+   "name": {
+    "concierge": "Retro speaker",
+    "raw": "Transistor radio"
+   },
+   "rect": [
+    556,
+    144,
+    162,
+    108
+   ],
+   "story": "radio",
+   "kind": "machine"
+  },
+  {
+   "id": "dead-valve",
+   "name": {
+    "concierge": "Valve",
+    "raw": "Dead valve"
+   },
+   "rect": [
+    647,
+    221,
+    58,
+    29
+   ],
+   "look": {
+    "concierge": "A glass ornament, lying on its side.",
+    "raw": "The dead valve, the left one. Its filament snapped."
+   }
+  },
+  {
+   "id": "lower-drawers",
+   "name": {
+    "concierge": "Drawers",
+    "raw": "Drawers"
+   },
+   "rect": [
+    581,
+    366,
+    285,
+    150
+   ],
+   "look": {
+    "concierge": "Your clothes, folded neatly.",
+    "raw": "Socks, darned twice. Two shirts."
+   }
+  },
+  {
+   "id": "drawer",
+   "name": {
+    "concierge": "Drawer",
+    "raw": "Top drawer"
+   },
+   "rect": [
+    581,
+    303,
+    285,
+    62
+   ],
+   "story": "luna_drawer",
+   "when": "not luna_drawer_open"
+  },
+  {
+   "id": "drawer-open",
+   "name": {
+    "concierge": "Drawer",
+    "raw": "Top drawer"
+   },
+   "rect": [
+    572,
+    408,
+    304,
+    24
+   ],
+   "story": "luna_drawer",
+   "when": "luna_drawer_open"
+  },
+  {
+   "id": "torch",
+   "name": {
+    "concierge": "Torch",
+    "raw": "Torch"
+   },
+   "rect": [
+    598,
+    354,
+    53,
+    49
+   ],
+   "when": "luna_drawer_open",
+   "look": {
+    "concierge": "A slim torch.",
+    "raw": "A torch. The battery's nearly flat."
+   }
+  },
+  {
+   "id": "tape",
+   "name": {
+    "concierge": "Tape",
+    "raw": "Tape"
+   },
+   "rect": [
+    625,
+    317,
+    49,
+    40
+   ],
+   "when": "luna_drawer_open",
+   "look": {
+    "concierge": "A roll of insulating tape.",
+    "raw": "Tape. Half the flat is held together with it."
+   }
+  },
+  {
+   "id": "fuses",
+   "name": {
+    "concierge": "Fuses",
+    "raw": "Fuses"
+   },
+   "rect": [
+    655,
+    354,
+    43,
+    46
+   ],
+   "when": "luna_drawer_open",
+   "look": {
+    "concierge": "Spare fuses.",
+    "raw": "Fuses, for the radio. Two good, one blown."
+   }
+  },
+  {
+   "id": "screwdrivers",
+   "name": {
+    "concierge": "Screwdrivers",
+    "raw": "Screwdrivers"
+   },
+   "rect": [
+    698,
+    321,
+    79,
+    86
+   ],
+   "when": "luna_drawer_open",
+   "look": {
+    "concierge": "A set of little screwdrivers.",
+    "raw": "Screwdrivers small enough for the radio's screws."
+   }
+  },
+  {
+   "id": "buttons",
+   "name": {
+    "concierge": "Buttons",
+    "raw": "Buttons"
+   },
+   "rect": [
+    773,
+    327,
+    70,
+    80
+   ],
+   "when": "luna_drawer_open",
+   "look": {
+    "concierge": "A tin of buttons.",
+    "raw": "Buttons from coats you no longer have."
+   }
+  },
+  {
+   "id": "valve",
+   "name": {
+    "concierge": "Curio",
+    "raw": "Radio valve"
+   },
+   "rect": [
+    733,
+    177,
+    25,
+    71
+   ],
+   "item": "valve",
+   "look": {
+    "concierge": "A vintage ornament, the Concierge calls it. It glows a little.",
+    "raw": "An old radio valve. You don't know why you bought it, or why you keep looking at it."
+   },
+   "take": {
+    "concierge": "You pocket the curio.",
+    "raw": "The valve. The radio's been waiting for one."
+   }
+  },
+  {
+   "id": "notebook",
+   "name": "Notebook",
+   "rect": [
+    796,
+    130,
+    58,
+    80
+   ],
+   "item": "paper_notebook",
+   "story": "notebook"
+  },
+  {
+   "id": "parcel",
+   "name": "Parcel",
+   "rect": [
+    782,
+    208,
+    136,
+    56
+   ],
+   "item": "parcel",
+   "look": {
+    "concierge": "A neat white box, a grey ribbon round it. Due at Radio Repair by 22:00.",
+    "raw": "Brown paper and string, no address on the outside. Due at Radio Repair by 22:00."
+   },
+   "take": {
+    "concierge": "Delivery 4471: in your things. Due at Radio Repair by 22:00.",
+    "raw": "The parcel. For the radio man. Don't open it."
+   }
+  }
+ ]
+}

@@ -1,0 +1,24 @@
+{
+  "name": "desk-notebook",
+  "scene": "home",
+  "kind": "prop",
+  "exists": "both",
+  "look": "vector",
+  "res": 2,
+  "frame": "keep",
+  "prompt": "her paper notebook standing upright, a pencil under its band: lifted out of home/desk (lift), cut from its pictures where they changed as it was painted out.",
+  "height": 121.1,
+  "position": [
+    826.98,
+    245.18
+  ],
+  "depth": 3,
+  "occluder": false,
+  "material": "wood",
+  "glow": {
+    "raw": "auto",
+    "concierge": "auto"
+  },
+  "palette": 0,
+  "references": []
+}
