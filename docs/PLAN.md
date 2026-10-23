@@ -53,6 +53,10 @@ The design: https://claude.ai/artifact/X65FknT3sqWZBgJaHgHboZ. In code: `src/gam
   Only it calls her Luna; every other machine says "guest". At the top right: the view switch with its attention,
   the map, her journal (on her device, anywhere), her notebook (paper, privacy zones only) and the menu with her
   saves.
+- **The wait is an eye.** Behind the fade, while a scene loads (and under the game's name as it first opens), the
+  privacy sign's closed eye in its ring slowly opens, its lashes turning from down to up, and a red pupil kindles in
+  it: someone is watching (src/game/eye.ts). Once it shows, it is seen whole: the fade lifts only after it has opened
+  (3.2 s; a test's `?fast` address does not wait). With less motion it is shut, then open, nothing moving between.
 - **Ways in and out are marked, once found.** The end of a street always carries a small marker to the next place;
   a door that leads somewhere, or a lift, carries one once she knows it: she has looked at it, tried it, or come out
   of it (kept in her save), so she finds the ways in herself. The Concierge's light in its view, her own glass in raw

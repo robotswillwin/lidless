@@ -18,6 +18,7 @@ import { clearSave, loadSave } from './game/save';
 import { loadWorld } from './game/scenefile';
 import { loadSettings, READING, TEXT_SCALE, type Settings } from './game/settings';
 import { showTitle, titleAtStart } from './game/title';
+import { waitingEye } from './game/eye';
 
 const params = new URLSearchParams(location.search);
 const canvas = document.getElementById('game') as HTMLCanvasElement;
@@ -37,6 +38,8 @@ function pickTier(): Tier {
 /** The settings as the game takes them: the graphics tier (the address's ?q first), and whether motion is reduced. */
 const tierOf = (s: Settings): Tier => (params.has('q') || s.quality === 'auto' ? pickTier() : s.quality);
 const reducedOf = (s: Settings): boolean => (s.motion === 'auto' ? matchMedia('(prefers-reduced-motion: reduce)').matches : s.motion === 'reduced');
+// the wait under the game's name, as the page opens: the eye opens while the game loads (with the player's motion setting)
+waitingEye(() => (document.documentElement.dataset.motion ?? (reducedOf(loadSettings()) ? 'reduced' : 'full')) === 'reduced')?.play();
 
 async function boot(): Promise<void> {
   if (params.has('new')) clearSave();
@@ -104,9 +107,12 @@ async function boot(): Promise<void> {
     if (!stats.hidden) stats.textContent = `${renderer.quality.tier} · ${fps.toFixed(0)} fps · ${canvas.width}×${canvas.height}`;
   };
   draw();
+  // the first scene drawn: the eye under the name finishes opening (a test's address does not wait for it), then the
+  // fade the page opened with lifts; the title screen over the scene
+  if (!params.has('fast') && fixedT === null) await waitingEye()?.opened();
   document.documentElement.dataset.ready = '1';
-  // the first scene drawn: the fade the page opened with, its name over it, lifts; the title screen over the scene
   document.getElementById('fade')?.classList.remove('on', 'boot');
+  setTimeout(() => { if (!document.getElementById('fade')?.classList.contains('wait')) waitingEye()?.stop(); }, 400);
   const machine = params.get('terminal');
   if (machine) void game.terminal(machine);
   else if (titleAtStart(params)) title();

@@ -11,6 +11,7 @@ import { Camera, cameraTarget } from './camera';
 import { holds } from './conditions';
 import { Dialogue, STITCH } from './dialogue';
 import { direct, type Stage } from './direct';
+import { waitingEye } from './eye';
 import { heroDrawing, heroGaits, holdPace, paceFor } from './hero';
 import { Hud, type Action, type Item, type Mark, type Notebook, type Way } from './hud';
 import { inView, pick, placeIn, type Hotspot } from './level';
@@ -422,8 +423,8 @@ export class Game {
     if (story) this.partner = null;
     this.s.fade.classList.add('on');
     await new Promise((r) => setTimeout(r, this.s.reduceMotion ? 0 : 260));
-    // a scene not ready once the fade is dark: after a moment a small ring turning. One fetched ahead never shows it
-    const waiting = setTimeout(() => this.s.fade.classList.add('wait'), 300);
+    // a scene not ready once the fade is dark: after a moment the eye, opening (eye.ts). One fetched ahead never shows it
+    const waiting = setTimeout(() => { this.s.fade.classList.add('wait'); waitingEye()?.play(); }, 300);
     try {
       await this.enter(exit.scene, exit);
       this.arrive();
@@ -442,7 +443,11 @@ export class Game {
       this.ui.showCaption(`That way is not built yet (${err instanceof Error ? err.message : String(err)}).`);
     }
     clearTimeout(waiting);
+    const waited = this.s.fade.classList.contains('wait');
+    // the eye, once it shows, is seen whole: it finishes opening before the fade lifts
+    if (waited && !this.s.fast) await waitingEye()?.opened();
     this.s.fade.classList.remove('wait', 'on');
+    if (waited) setTimeout(() => { if (!this.s.fade.classList.contains('wait')) waitingEye()?.stop(); }, 400);
     this.travelling = false;
   }
 
