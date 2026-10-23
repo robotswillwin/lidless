@@ -1,0 +1,28 @@
+{
+  "scene": "cast",
+  "kind": "character",
+  "exists": "both",
+  "height": 240,
+  "material": "leather",
+  "glow": {
+    "raw": "none",
+    "concierge": "auto",
+    "machine": false
+  },
+  "look": "vector",
+  "res": 1.25,
+  "referenceNote": "character",
+  "name": "hero-front",
+  "prompt": "This is Luna, the real woman under the city AI's version of her: about 27, tall and slim, with adult proportions and long legs. Her hair is straight, dull ash blonde, pulled back into a plain, fairly thin high ponytail, a few strands over her forehead. Her face is pale and tired, with plain lips and no make-up. A long, worn rust-brown coat reaching below her calves, with a high stand-up collar and wide flared sleeves, open at the front. Under it a plain fitted black top tucked into her trousers, covering her stomach completely, a black belt, and dark charcoal-grey baggy cargo trousers with a pocket on the thigh, tucked into scuffed black lace-up combat boots with thick soles. The same flat-shaded style: two or three flat tones per surface, crisp edges, no texture. Seen from the front: over her right eye only, which is on the viewer's left, an old goggle: one round lens of glowing amber-orange glass in a dark bronze metal frame with a few rivets, on a thin dark strap around her head. Her left eye, on the viewer's right, is bare: a plain tired grey-green eye with no lens, no device and nothing over it. Her ponytail is behind her head, out of sight but for a little hair at the sides.",
+  "concierge": "Luna as the city AI shows her, seen from the front: a beautiful woman of about 27 with perfect upright posture and a curvy hourglass figure with a full bust. Glossy black hair pulled back into a high ponytail with hot-pink and teal streaks, tied with a pink band, a few strands at the sides of her face. Over her right eye only, which is on the viewer's left, a sleek visor of glowing ice-blue light covers that one eye and nothing else; her left eye, on the viewer's right, is uncovered and made up. Bold make-up and glossy red lips. The coat becomes a long, glossy bright red coat with a high stand-up collar, wide flared sleeves and a deep crimson shadow side, open over a fitted black top with a low neckline, tucked into slim black trousers and covering her stomach completely, and black heeled ankle boots.",
+  "framing": "One full-length figure seen straight from the front, facing the viewer, standing in a relaxed neutral pose: arms hanging at her sides, slightly away from the body, hands empty and open, legs straight and a little apart, the coat open and hanging straight down. Feet at the bottom of the frame. Even, soft, frontal lighting with no cast shadows and no rim light. Transparent background, the whole figure in frame with a little space around it, no ground, no text, no border.",
+  "references": [
+    "art/cast/hero/raw.png",
+    "art/cast/hero/blink/raw-open.png"
+  ],
+  "conciergeReferences": [
+    "art/cast/hero/concierge.png",
+    "art/cast/hero/blink/concierge-open.png",
+    "art/reference/luna/v2/ar-head.png"
+  ]
+}

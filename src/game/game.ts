@@ -7,6 +7,7 @@ import { fitCanvas, NH, NW, type Renderer } from '../engine/renderer';
 import { createLookPanel, type LookPanel } from '../look-panel';
 import { actionFor, actionsFor, defaultOf, itemActionFor, verbsIn, type Verb } from './actions';
 import { frameFor } from './anim';
+import { isDoor, poseAt, poseFrame } from './pose';
 import { Camera, cameraTarget } from './camera';
 import { holds } from './conditions';
 import { Dialogue, STITCH } from './dialogue';
@@ -124,6 +125,10 @@ export class Game {
   private chasing = false;
   /** Who she is talking to: their lines go over their head. */
   private partner: Hotspot | null = null;
+  /** Her turns (pose.ts): going in at a door, facing us out of one (or changed) until she moves, still since stillSince. */
+  private going = false;
+  private out = false;
+  private stillSince = 0;
   /** A thing she holds, out of her pockets, to use on the next thing her finger lights up. */
   private inHand: string | null = null;
   /** A story's line is having the game do something (walk, change): she moves though a conversation is open. */
@@ -362,7 +367,7 @@ export class Game {
   /**
    * She changes clothes where she stands, behind a moment's fade, held for `hold` ms more where a while passes: into her
    * own clothes, or a projection put on or (null) taken off over them. Where a while passes (the shower), the projection
-   * comes off with her clothes.
+   * comes off with her clothes. The fade lifts on her facing us.
    */
   private async change(key: string | null, hold = 0): Promise<void> {
     this.s.fade.classList.add('on');
@@ -381,6 +386,8 @@ export class Game {
       }
       this.fitGaits(this.scene);
       this.persist();
+      // changed, out of the shower or dressed, she faces us until she moves
+      this.out = true;
     } catch (err) {
       this.ui.showCaption(`Those clothes are not made yet (${err instanceof Error ? err.message : String(err)}).`);
     }
@@ -397,7 +404,7 @@ export class Game {
    * scene, arriving at one of its places or at x, fade in. For the story (`story`), whatever she wears, and the
    * conversation goes on there.
    */
-  private async travel(exit: { scene: string } & Arrival, story = false): Promise<void> {
+  private async travel(exit: { scene: string } & Arrival, story = false, through = false): Promise<void> {
     if (this.travelling) return;
     this.travelling = true;
     this.letGo();
@@ -414,6 +421,8 @@ export class Game {
     }
     this.setVerb(null);
     this.hud.closeAll();
+    // through a door where she stands, her back to us as the screen fades
+    this.going = through && this.doorHere();
     // coming out of a privacy room with its door in sight: a long stay, or coming too often, is noticed
     const left = this.scene.file, seen = left.noticed ? noticedOnLeaving(left.noticed, this.clock() - this.enteredAt, this.visits[left.id] ?? [], this.arrived) : null;
     // what she was looking at, and who she was talking to, stay behind
@@ -428,11 +437,10 @@ export class Game {
     try {
       await this.enter(exit.scene, exit);
       this.arrive();
-      // the way she came out of is known: a door, a lift, wherever she stands now
-      for (const h of this.scene.file.hotspots) {
-        const [rx, , rw] = placeIn(h, this.raw).rect;
-        if ((h.go || h.kind === 'way') && this.world.heroX >= rx - 20 && this.world.heroX <= rx + rw + 20) this.findWay(h);
-      }
+      // the way she came out of is known: a door, a lift, wherever she stands now; out of a door she faces us as the
+      // screen lifts, and from an end of the street she walks in side on
+      for (const h of this.waysHere()) this.findWay(h);
+      this.out = this.doorHere();
       this.syncKeys();
       if (seen && left.noticed) {
         this.raiseAttention(1);
@@ -443,12 +451,27 @@ export class Game {
       this.ui.showCaption(`That way is not built yet (${err instanceof Error ? err.message : String(err)}).`);
     }
     clearTimeout(waiting);
+    this.going = false;
     const waited = this.s.fade.classList.contains('wait');
     // the eye, once it shows, is seen whole: it finishes opening before the fade lifts
     if (waited && !this.s.fast) await waitingEye()?.opened();
     this.s.fade.classList.remove('wait', 'on');
+    this.stillSince = this.clock();
     if (waited) setTimeout(() => { if (!this.s.fade.classList.contains('wait')) waitingEye()?.stop(); }, 400);
     this.travelling = false;
+  }
+
+  /** The ways out where she stands: a door, a lift, an end of the street. */
+  private waysHere(): Hotspot[] {
+    return this.scene.file.hotspots.filter((h) => {
+      const [rx, , rw] = placeIn(h, this.raw).rect;
+      return (h.go || h.kind === 'way') && this.world.heroX >= rx - 20 && this.world.heroX <= rx + rw + 20;
+    });
+  }
+
+  /** Whether she stands at a door, which she goes in at and comes out of turned (pose.ts). */
+  private doorHere(): boolean {
+    return this.waysHere().some((h) => isDoor(placeIn(h, this.raw).rect, this.scene.file.size[0]));
   }
 
   /**
@@ -599,7 +622,7 @@ export class Game {
     },
     face: (dir) => { this.world.facing = dir; },
     wear: (outfit) => this.change(outfit),
-    go: async (scene, spawn) => this.travel({ scene, spawn: spawn ?? Object.keys((await this.scenes.file(scene)).spawns)[0] }, true),
+    go: async (scene, spawn) => this.travel({ scene, spawn: spawn ?? Object.keys((await this.scenes.file(scene)).spawns)[0] }, true, true),
     fade: async (seconds) => {
       this.s.fade.classList.add('on');
       await this.stage.sleep(260 + seconds * 1000);
@@ -634,7 +657,7 @@ export class Game {
     const raw = this.raw;
     // a way she has looked at or tried is known from now on: its marker shows
     if (h.go || h.kind === 'way') this.findWay(h);
-    if (a.kind === 'feet' && h.go) return void this.travel(h.go);
+    if (a.kind === 'feet' && h.go) return void this.travel(h.go, false, true);
     // a thing she holds, used on this one: the story's use_<thing>, or nothing comes of it
     if (a.kind === 'item') {
       const id = this.inHand;
@@ -668,7 +691,7 @@ export class Game {
     else if (a.kind === 'hands' && h.wear) void this.change(h.wear, 900).then(() => { if (h.use) this.hud.note(h, pick(h.use, raw), this.boxOf(h)); });
     else if (a.kind === 'hands' && h.use) this.hud.note(h, pick(h.use, raw), this.boxOf(h));
     // using a door is going through it
-    else if (a.kind === 'hands' && h.go) void this.travel(h.go);
+    else if (a.kind === 'hands' && h.go) void this.travel(h.go, false, true);
     else if (a.kind === 'take' && h.take) this.hud.note(h, pick(h.take, raw), this.boxOf(h));
     else if (a.kind === 'ask' && h.ask) this.hud.toast(h.ask);
     // nothing of its own for this verb: a standard reply for what it is
@@ -1068,7 +1091,11 @@ export class Game {
     // emitter follows her cigarette, or goes off screen when she has none
     const hero = this.shown, sc = file.actorScale ?? 1, bob = (hero.def.anims?.walk ? 0 : world.bob) * sc, hs = this.s.world.hero.smoke;
     const smoke: [number, number] = hs ? [world.heroX + hs[0] * sc * world.facing, file.walk.y + hs[1] * sc + bob] : [-1000, -1000];
-    const her = heroDrawing(hero, { x: world.heroX, walkY: file.walk.y, cam: this.cam, scale: sc, facing: world.facing, bob, frame: frameFor(hero.def, world.moving, world.phase, t, world.facing, world.gait) });
+    // turned to us or away from us (pose.ts), never mirrored: her eyepiece is on her right eye
+    if (world.moving || this.talk.open) this.stillSince = t;
+    if (world.moving) this.out = false;
+    const turned = poseFrame(hero.def, poseAt(t, { going: this.going, moving: world.moving, talking: this.talk.open, out: this.out, stillSince: this.stillSince }));
+    const her = heroDrawing(hero, { x: world.heroX, walkY: file.walk.y, cam: this.cam, scale: sc, facing: turned === null ? world.facing : 1, bob, frame: turned ?? frameFor(hero.def, world.moving, world.phase, t, world.facing, world.gait) });
     // what a verb lights up, and what she found, stay on the thing as the camera follows her
     if (this.marked) { this.marked.box = this.boxOf(this.marked.h); this.hud.mark(this.marked); }
     const noted = this.hud.noteFor;

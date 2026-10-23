@@ -7,6 +7,7 @@ import { cmdCloseups } from './closeups.mjs';
 import { cmdItems } from './items.mjs';
 import { cmdWindows } from './windows.mjs';
 import { cmdBlink } from './blink.mjs';
+import { cmdTurns } from './turns.mjs';
 import { cmdLift } from './lift.mjs';
 import { resolve } from 'node:path';
 import { ROOT } from './recipe.mjs';
@@ -71,12 +72,16 @@ const HELP = `Asset pipeline: generate art with an image AI, clean it and turn i
       Rig the character's parts in Blender: one skeleton for both outfits and sides, the walk keyed with the coat and
       the arms following through, frames rendered into anims/ for build. Saves art/<scene>/<name>/rig/<name>.blend, the
       file to change the walk in by hand; --render-only renders that file as it is. Needs Blender on the PATH.
-      Where the head has a shut eye (blink/), her blink is made from the frames after (see blink).
+      Where the head has a shut eye (blink/), her blink is made from the frames after (see blink), and her turns too.
   npm run asset -- blink <recipe> [more...]
       Her blink: her left eye shut in each frame she stands in facing left, into anims/blinkLeft/, for build. The eye
       was shut once by touch, in blink/<view>-shut.png beside the frame it was touched from (<view>-open.png), in the
       folder of the character whose head the outfit shares (parts.same); each frame's head is found where it moved to
       and the lid set over the eye there. Free.
+  npm run asset -- turns <recipe> [more...]
+      Her front and back: the pictures the recipe's "turns" names (each a recipe of its own, drawn from her profile, in
+      both views) set into her frames as she stands in them, her height, her soles on its ground, her middle on its hip,
+      into anims/front/ and anims/back/, for build. Free.
   npm run asset -- erase <recipe> --file <image> --poly "x,y x,y x,y ..."
       Make everything inside the polygon transparent, to clear stray bits off cut-out art. Free; the old image is kept.
   npm run asset -- paint <recipe> --file <image> --box x,y,w,h --like x,y,w,h [--skin]
@@ -156,6 +161,6 @@ function parse(argv) {
 }
 
 const [cmd, ...rest] = process.argv.slice(2), { pos, opt } = parse(rest);
-const run = { closeups: cmdCloseups, items: cmdItems, windows: cmdWindows, blink: cmdBlink, lift: cmdLift, new: cmdNew, rig: cmdRig, zoom: cmdZoom, extend: cmdExtend, generate: cmdGenerate, variant: cmdVariant, redress: cmdRedress, reframe: cmdReframe, blockout: cmdBlockout, pick: cmdPick, import: cmdImport, sheet: cmdSheet, touch: cmdTouch, split: cmdSplit, ground: cmdGround, erase: cmdErase, paint: cmdPaint, parts: cmdParts, widen: cmdWiden, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
+const run = { closeups: cmdCloseups, items: cmdItems, windows: cmdWindows, blink: cmdBlink, turns: cmdTurns, lift: cmdLift, new: cmdNew, rig: cmdRig, zoom: cmdZoom, extend: cmdExtend, generate: cmdGenerate, variant: cmdVariant, redress: cmdRedress, reframe: cmdReframe, blockout: cmdBlockout, pick: cmdPick, import: cmdImport, sheet: cmdSheet, touch: cmdTouch, split: cmdSplit, ground: cmdGround, erase: cmdErase, paint: cmdPaint, parts: cmdParts, widen: cmdWiden, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
 if (!run) console.log(HELP);
 else run(pos, opt).catch((e) => { console.error(`error: ${e.message}`); process.exit(1); });

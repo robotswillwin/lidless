@@ -1,0 +1,28 @@
+{
+  "scene": "cast",
+  "kind": "character",
+  "exists": "both",
+  "height": 240,
+  "material": "leather",
+  "glow": {
+    "raw": "none",
+    "concierge": "auto",
+    "machine": false
+  },
+  "look": "vector",
+  "res": 1.25,
+  "referenceNote": "character",
+  "name": "hero-back",
+  "prompt": "This is Luna, the real woman under the city AI's version of her: about 27, tall and slim, with adult proportions and long legs. Her hair is straight, dull ash blonde, pulled back into a plain, fairly thin high ponytail, a few strands over her forehead. Her face is pale and tired, with plain lips and no make-up. A long, worn rust-brown coat reaching below her calves, with a high stand-up collar and wide flared sleeves, open at the front. Under it a plain fitted black top tucked into her trousers, covering her stomach completely, a black belt, and dark charcoal-grey baggy cargo trousers with a pocket on the thigh, tucked into scuffed black lace-up combat boots with thick soles. The same flat-shaded style: two or three flat tones per surface, crisp edges, no texture. Seen from behind, her back to the viewer: the back of her head with the ponytail hanging down the middle of her back close to her body, the thin dark strap of her goggle across the back of her head, and the back of the long coat with its tails hanging straight down to below her calves. Her face is not seen.",
+  "concierge": "Luna as the city AI shows her, seen from behind, her back to the viewer: glossy black hair in a long, voluminous high ponytail with bold hot-pink and teal streaks, tied with a pink band, hanging down her back; the back of a long, glossy bright red coat with a high stand-up collar, wide flared sleeves and a deep crimson shadow side, its tails hanging straight down to below her calves; slim black trousers and black heeled ankle boots. Her face is not seen; only the edge of the ice-blue visor's light shows at the side of her head.",
+  "framing": "One full-length figure seen straight from behind, her back to the viewer, standing in a relaxed neutral pose: arms hanging at her sides, slightly away from the body, hands empty, legs straight and a little apart. Feet at the bottom of the frame. Even, soft lighting with no cast shadows and no rim light. Transparent background, the whole figure in frame with a little space around it, no ground, no text, no border.",
+  "references": [
+    "art/cast/hero/raw.png",
+    "art/cast/hero/blink/raw-open.png"
+  ],
+  "conciergeReferences": [
+    "art/cast/hero/concierge.png",
+    "art/cast/hero/blink/concierge-open.png",
+    "art/reference/luna/v2/ar-head.png"
+  ]
+}

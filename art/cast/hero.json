@@ -117,5 +117,9 @@
   "conciergeReferences": [
     "art/cast/hero/concierge.png",
     "art/reference/luna/v2/ar-head.png"
-  ]
+  ],
+  "turns": {
+    "front": "art/cast/hero-front",
+    "back": "art/cast/hero-back"
+  }
 }
