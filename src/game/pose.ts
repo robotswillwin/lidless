@@ -32,3 +32,20 @@ export function poseFrame(def: SpriteDef, pose: Pose | null, t = 0): number | nu
   if (!anim) return null;
   return blink && blinking(t) ? blink.from : anim.from;
 }
+
+/**
+ * How she stands, as a session keeps it: going in at a door (`going`), come out of one or changed (`out`, until she
+ * moves), still since `stillSince`. Each frame it gives her frame turned to us or away, or null to stand side on.
+ */
+export class Turns {
+  going = false;
+  out = false;
+  stillSince = 0;
+
+  /** Her frame at `t`, turned, or null side on; moving or talking, she is not standing still, and moving, not out. */
+  frame(def: SpriteDef, t: number, moving: boolean, talking: boolean): number | null {
+    if (moving || talking) this.stillSince = t;
+    if (moving) this.out = false;
+    return poseFrame(def, poseAt(t, { going: this.going, moving, talking, out: this.out, stillSince: this.stillSince }), t);
+  }
+}

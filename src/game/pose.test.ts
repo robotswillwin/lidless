@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { SpriteDef } from '../engine/assets';
 import { blinking } from './anim';
-import { isDoor, poseAt, poseFrame, TURN_AFTER } from './pose';
+import { isDoor, poseAt, poseFrame, TURN_AFTER, Turns } from './pose';
 
 const still = { going: false, moving: false, talking: false, out: false, stillSince: 0 };
 
@@ -43,4 +43,18 @@ describe('her front and back', () => {
     expect(poseFrame(blinks, 'front', open)).toBe(160);
     expect(poseFrame(blinks, 'back', shut)).toBe(161);
   });
+
+  it('kept as she plays: out of a door until she moves, still from when she stops moving or talking', () => {
+    const def = { anims: { idle: { from: 0, count: 16 }, front: { from: 160, count: 1 }, back: { from: 161, count: 1 } } } as unknown as SpriteDef;
+    const turns = new Turns();
+    turns.out = true;
+    expect(turns.frame(def, 1, false, false)).toBe(160);
+    expect(turns.frame(def, 2, true, false)).toBe(null);
+    // she stopped at 2: side on until she has stood still a while
+    expect(turns.frame(def, 2 + TURN_AFTER - 0.5, false, false)).toBe(null);
+    expect(turns.frame(def, 2 + TURN_AFTER, false, false)).toBe(160);
+    turns.going = true;
+    expect(turns.frame(def, 20, false, false)).toBe(161);
+  });
 });
+

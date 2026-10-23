@@ -148,6 +148,9 @@ holds**. Each decision is the director's, in plain words; what is still open say
     lift), each lived in its own way, and dimmed, as the neighbours' flats around her home are. On floor nine nothing
     stands open: flat 9-06's door is shut, and the delivery box and the cleaning robot, which had no part to play, are
     gone.
+42. **Close-ups to explore.** A thing worth a closer look (a desk, a workbench) is a close-up of its own: tapped, Luna
+    goes up to it and the view goes in close, where its things can be looked at, used, opened and taken one by one;
+    Step back returns her to where she stood. Her own desk and Athena's workbench are the first; each has a drawer.
 
 ## Open, for the director
 

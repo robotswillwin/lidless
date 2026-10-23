@@ -22,12 +22,12 @@ export function bindInput(canvas: HTMLCanvasElement, game: Game, extras: InputEx
   canvas.addEventListener('pointerdown', (e) => {
     if (e.button !== 0 && e.button !== 2) return;
     canvas.setPointerCapture?.(e.pointerId);
-    game.pointerDown(e.clientX, e.clientY, e.button);
+    game.controls.pointerDown(e.clientX, e.clientY, e.button);
   });
-  canvas.addEventListener('pointermove', (e) => game.pointerMove(e.clientX, e.clientY));
-  canvas.addEventListener('pointerup', () => game.pointerUp());
-  canvas.addEventListener('pointercancel', () => game.pointerCancel());
-  canvas.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse' && e.buttons === 0) game.pointerCancel(); });
+  canvas.addEventListener('pointermove', (e) => game.controls.pointerMove(e.clientX, e.clientY));
+  canvas.addEventListener('pointerup', () => game.controls.pointerUp());
+  canvas.addEventListener('pointercancel', () => game.controls.pointerCancel());
+  canvas.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse' && e.buttons === 0) game.controls.pointerCancel(); });
   canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 
   document.addEventListener('keydown', (e) => {
@@ -38,14 +38,14 @@ export function bindInput(canvas: HTMLCanvasElement, game: Game, extras: InputEx
     if (game.talk.key(e.key)) return e.preventDefault();
     if (!game.talk.open && game.hud.key(e.key)) return e.preventDefault();
     const dir = walkDir(e.key);
-    if (dir && !game.talk.open) { game.walkKey(dir, true, e.shiftKey); return e.preventDefault(); }
+    if (dir && !game.talk.open) { game.controls.walkKey(dir, true, e.shiftKey); return e.preventDefault(); }
     if (e.key === 'e' || e.key === 'E') game.toggleView(extras.forceView);
     if (e.key === 'q' || e.key === 'Q') extras.cycleQuality();
     if ((e.key === '`' || e.code === 'Backquote') && extras.openEditor) { e.preventDefault(); extras.openEditor(); }
   });
   document.addEventListener('keyup', (e) => {
     const dir = walkDir(e.key);
-    if (dir) game.walkKey(dir, false, e.shiftKey);
+    if (dir) game.controls.walkKey(dir, false, e.shiftKey);
   });
-  window.addEventListener('blur', () => game.releaseKeys());
+  window.addEventListener('blur', () => game.controls.releaseKeys());
 }
