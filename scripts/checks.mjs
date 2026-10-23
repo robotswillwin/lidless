@@ -549,6 +549,12 @@ const checks = {
     await tap(page, 480, 365);
     await wait(1200);
     check('its drawer opens', /"athena_drawer_open":\s*true/.test(await ink(page)));
+    // her oscilloscope: its dial turns the line, which the engine draws live on its screen
+    await verb(page, 'hands');
+    await tap(page, 800, 190);
+    await wait(1200);
+    const click = await page.evaluate(() => [...document.querySelectorAll('.hud-note')].map((n) => n.textContent).join(' '));
+    check('her oscilloscope\'s dial: the line squares off', /"athena_scope_wave":\s*"\^square"/.test(await ink(page)) && /squares off/.test(click), click.slice(0, 80));
     await verb(page, 'eyes');
     await tap(page, 345, 215);
     await page.waitForFunction(() => !!document.querySelector('.hud-closeup.reading .words'), { timeout: 8000 }).catch(() => {});

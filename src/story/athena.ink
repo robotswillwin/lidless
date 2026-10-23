@@ -127,3 +127,23 @@ Her portable computer. Still at Radio Repair? #luna
 ~ taken += athena_repair_slip
 You slide the receipt from under the paperweight.
 -> END
+
+=== athena_scope ===
+// her oscilloscope, still on: its big dial turns the line through its shapes (athena_scope_wave), and the game draws
+// the line live on its screen. A bonus: nothing waits on it
+= use
+{ athena_scope_wave:
+- "square":
+    ~ athena_scope_wave = "triangle"
+    Click. The steps sharpen into peaks.
+- "triangle":
+    ~ athena_scope_wave = "saw"
+    Click. It climbs, drops, and climbs again.
+- "saw":
+    ~ athena_scope_wave = "sine"
+    Click. Back to the slow wave.
+- else:
+    ~ athena_scope_wave = "square"
+    You turn the big dial. Click: the wave squares off.
+}
+-> END

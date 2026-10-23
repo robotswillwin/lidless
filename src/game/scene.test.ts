@@ -170,3 +170,29 @@ describe('a pulsing light', () => {
     expect(pulseAt(p, 0.35)).toBe(0);
   });
 });
+
+describe('an oscilloscope', () => {
+  const withScope = (scopes: NonNullable<LoadedScene['def']['scopes']>) => { const sc = scene([sprite('bench')]); sc.def.scopes = scopes; return sc; };
+
+  it('shows the shape its dial is at in the story, turning into it over a moment', () => {
+    let dial = 'sine';
+    const r = new SceneRunner(withScope([{ x: 800, y: 180, r: 48, wave: 'scope_wave' }]));
+    r.read = () => dial;
+    let f = r.frame(1, view, [0, 0]);
+    expect(f.nScopes).toBe(1);
+    expect([...f.scopes!.slice(0, 6)]).toEqual([800, 180, 48, 1, 1, 1]);
+    dial = 'saw';
+    f = r.frame(2, view, [0, 0]);
+    expect([f.scopes![3], f.scopes![4], f.scopes![5]]).toEqual([4, 1, 0]);
+    f = r.frame(2.35, view, [0, 0]);
+    expect(f.scopes![5]).toBeCloseTo(1);
+  });
+
+  it('keeps its own shape without a dial; one in the other view, or not there yet, is not drawn', () => {
+    const r = new SceneRunner(withScope([{ x: 1, y: 2, r: 3, shape: 'triangle' }, { x: 5, y: 5, r: 5, only: 'raw' }, { x: 9, y: 9, r: 9, when: 'has_raw' }]));
+    r.shown = () => false;
+    const f = r.frame(0, view, [0, 0]);
+    expect(f.nScopes).toBe(1);
+    expect(f.scopes![3]).toBe(3);
+  });
+});

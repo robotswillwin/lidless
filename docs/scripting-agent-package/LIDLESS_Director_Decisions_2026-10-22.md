@@ -154,6 +154,9 @@ holds**. Each decision is the director's, in plain words; what is still open say
 43. **Nothing is locked for the sake of it.** A drawer, a cupboard, a box opens, and may hold nothing of value; or Luna
     says there is nothing there for her, or no reason to (a neighbour's door: "No reason to knock"); or it is not a
     thing she can do anything with at all. No locked drawers, nothing that will not open.
+44. **What moves on a screen is drawn live**, in code, not painted, so it is alive: an oscilloscope's line creeps and
+    breathes, and its dial changes its shape. Athena's oscilloscope is the first: Luna can turn its dial, a bonus that
+    nothing waits on.
 
 ## Open, for the director
 

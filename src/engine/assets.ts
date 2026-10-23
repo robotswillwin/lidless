@@ -145,6 +145,15 @@ export interface SteamDef { x: number; y: number; height: number; width: number;
  */
 export interface GodrayDef { x: number; y: number; strength: number; zone: number; ar?: number; only?: Only; parallax?: number; views?: Views<GodrayDef> }
 export interface BeaconDef { x: number; y: number; phase: number; parallax?: number; only?: Only; views?: Views<BeaconDef> }
+/** The shapes an oscilloscope's line takes, in the order its dial turns through them. */
+export const WAVES = ['sine', 'square', 'triangle', 'saw'] as const;
+export type Wave = (typeof WAVES)[number];
+/**
+ * An oscilloscope's screen, its line drawn live by the engine: it creeps along and breathes, with a little noise on it in
+ * raw view. Where the glass's middle is and its radius inside the rim; the shape it shows, as placed (`shape`) or as a
+ * story variable has it (`wave`: its dial, which the story turns); only in one view, or while a condition holds.
+ */
+export interface ScopeDef { x: number; y: number; r: number; shape?: Wave; wave?: string; when?: string; only?: Only; parallax?: number }
 
 /**
  * The ground below the reflection line, drawn by the engine over a painted floor that was smoothed for it (asset ground
@@ -173,6 +182,8 @@ export interface SceneDef {
   beacons: BeaconDef[];
   steam: SteamDef[];
   godrays: GodrayDef[];
+  /** Oscilloscopes' screens, their lines drawn live: two at most. */
+  scopes?: ScopeDef[];
   drips?: { x0: number; x1: number; top: number; bottom: number };
   /** World y of the line wet surfaces reflect around. */
   mirror: number;

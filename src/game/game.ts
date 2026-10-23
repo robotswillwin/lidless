@@ -271,6 +271,7 @@ export class Game {
     if (!next.file.closeup) this.progress.been.add(id);
     // the scene's own things by the story, the city's conditions by the address when it asks for a variant (?variant=)
     this.runner.shown = (when) => holds(when, (n) => (n === 'conditions' && this.setup.variant ? this.setup.variant : this.dialogue.read(n)));
+    this.runner.read = (name) => this.dialogue.read(name);
     this.camera.jump(this.cameraTarget());
     this.cam[0] = this.setup.fixedCam ?? this.camera.x;
     // the scene she left and this one stay on the GPU, where she can go next is fetched, the rest let go

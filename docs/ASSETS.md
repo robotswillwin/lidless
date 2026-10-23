@@ -296,7 +296,7 @@ preset**. The main street's lights are all of a kind.
 ## Scenes
 
 A scene folder holds the sprite sets plus `scene.json` (sprite order back to front, lights, beacons,
-steam and smoke, light shafts, drips, the reflection line, traffic) and `zone.png`, a level-sized map of
+steam and smoke, light shafts, drips, oscilloscopes, the reflection line, traffic) and `zone.png`, a level-sized map of
 where it is inside (R), outside (G) and how much static shadow there is (B). A scene with `private` is a privacy zone
 (her home, the public restroom; approved meeting rooms): the Concierge neither sees nor hears her there, and it
 answers only when she asks it. A privacy room whose door it sees (the restroom) has `noticed`: a stay longer than
@@ -325,6 +325,11 @@ Characters walk in front of the set, so lights and characters need to know which
   picture rather than on it.
 - A scene's `ambient` and `exposure` (stops) can each be one number or one per view: a dark raw room can be a white
   apartment to the Concierge.
+- What moves on a screen is drawn live, not painted: an oscilloscope (`scopes`, two at most) is the middle of its
+  glass and its radius inside the rim, `x`, `y`, `r`, and its line's shape, `sine`, `square`, `triangle` or `saw`, as
+  placed (`shape`) or as a story variable has it (`wave`: its dial, which the story turns). The engine draws the line
+  over the glass, which is painted empty: it creeps along, breathes a little, carries a real signal's noise in raw view,
+  and changes shape over a moment when the dial turns. Cyan in the Concierge's view, phosphor green in raw view.
 - Anything placed can be in one view only, `"only": "raw"` or `"only": "concierge"`: a hotspot, a layer (a hologram
   over the street in the Concierge's view, a scrawl only raw view shows), steam, a light shaft, a beacon, a mover. A
   light says it with its flags, `"ar": 1` or `"raw": 1`; an older light shaft's `"ar": 1` still means the Concierge's.

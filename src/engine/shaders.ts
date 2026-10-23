@@ -347,6 +347,9 @@ uniform vec4 uRefl;       // the look: reflections' strength; how far up the set
 uniform vec4 uSteam[4];
 uniform vec4 uSteamFar;   // 1 for each emitter on a far layer: its plume only where a far layer is in front
 uniform vec4 uDrips;      // world x0, x1, top, bottom of the drip curtain; z <= 0 turns it off
+uniform vec4 uScope[4];   // oscilloscopes, two vec4 each: the glass's middle (world) and its radius inside the rim, the
+                          // line's shape (1 sine, 2 square, 3 triangle, 4 saw); the shape before, how far it has turned
+uniform int uNScope;
 uniform float uMirror;    // world y of the reflection line
 uniform vec4 uGnd;        // the ground the engine draws over a painted floor: the horizon's world y; the kerb's distance in
                           // front of the walk line (0: none); how much of it holds puddles when wet; 1 when there is one
@@ -432,6 +435,20 @@ Ground groundAt(vec2 p, float GY) {
   float n = vn(g * vec2(0.010, 0.016) + 4.2) * 0.667 + vn(g * vec2(0.0203, 0.0325) + vec2(10.2, 17.7)) * 0.333, thr = 0.76 - 0.52 * amt;
   o.pud = smoothstep(thr, thr + 0.01, n) * smoothstep(0.3, 0.8, uState.x) * step(0.001, uGnd.z);
   return o;
+}
+// an oscilloscope's line at phase ph, in cycles: its height, -1 to 1, and its slope, per cycle
+vec2 waveAt(float s, float ph) {
+  float f = fract(ph);
+  if (s < 1.5) return vec2(sin(6.2831853 * ph), 6.2831853 * cos(6.2831853 * ph));
+  if (s < 2.5) return vec2(f < 0.5 ? 1.0 : -1.0, 0.0);
+  if (s < 3.5) { float g = fract(ph + 0.75); return vec2(4.0 * abs(g - 0.5) - 1.0, g < 0.5 ? -4.0 : 4.0); }
+  return vec2(2.0 * fract(ph + 0.5) - 1.0, 2.0);
+}
+// how far q is from the nearest step a square or a saw jumps down or up: the beam crosses it too fast to light it much
+float waveStep(float s, vec2 q, float ph, float span, float amp, float drift) {
+  if (s < 1.5 || (s > 2.5 && s < 3.5)) return 1e3;
+  float pj = s < 2.5 ? floor(ph * 2.0 + 0.5) * 0.5 : floor(ph) + 0.5, xj = (2.0 * (pj - drift) - 1.0) * span;
+  return abs(xj) > span ? 1e3 : length(vec2(q.x - xj, max(abs(q.y) - amp, 0.0)));
 }
 float rainL(vec2 p, float t, float sc, float sp, float ln, float dens) {
   vec2 q = p / sc; q.x += q.y * 0.28; q.y -= t * sp;
@@ -616,6 +633,27 @@ void main() {
     float dx = mod(w.x, 37.0), id = floor(w.x / 37.0), ph = fract(uTime * (0.45 + hash(vec2(id, 1.0)) * 0.5) + hash(vec2(id, 2.0)));
     float yy = uDrips.z + ph * ph * (uDrips.w - uDrips.z);
     if (abs(dx - 18.0) < 0.8 && abs(w.y - yy) < 2.5) c += vec3(0.5, 0.42, 0.35) * (0.4 + lum(near) * 2.0);
+  }
+  // an oscilloscope's line, drawn live: it creeps along (the trigger never quite holds) and breathes a little, and in raw
+  // view carries a real signal's noise; its dial turned, it changes shape over a moment. Never over someone in front of it
+  for (int i = 0; i < 2; i++) {
+    if (i >= uNScope) break;
+    vec4 A = uScope[i * 2], B = uScope[i * 2 + 1];
+    vec2 q = w - A.xy;
+    if (dot(q, q) > A.z * A.z || isActor(g3.a) > 0.5) continue;
+    float span = A.z * 0.92, amp = A.z * 0.44 * (1.0 + 0.03 * sin(uTime * 0.9 + float(i) * 1.7));
+    float drift = uTime * 0.05 + float(i) * 0.37, ph = (clamp(q.x / span, -1.0, 1.0) + 1.0) * 0.5 + drift, k = smoothstep(0.0, 1.0, B.y);
+    vec2 v = mix(waveAt(B.x, ph), waveAt(A.w, ph), k);
+    // its line as fine as its screen is small: set for one 48 pixels across, up close
+    float sc = A.z / 48.0, px = 1.0 / uRS, hw = max(0.6, 1.55 * sc);
+    float yc = -amp * v.x + (vn(vec2(w.x * 0.9 / sc, uTime * 30.0)) - 0.5) * 0.6 * sc * raw;
+    float sl = amp * v.y / (2.0 * span), past = abs(q.x) - span;
+    float d = past > 0.0 ? length(vec2(past, q.y - yc)) : abs(q.y - yc) / sqrt(1.0 + sl * sl);
+    float steps = (cover(waveStep(B.x, q, ph, span, amp, drift), hw * 0.5, px) * (1.0 - k) + cover(waveStep(A.w, q, ph, span, amp, drift), hw * 0.5, px) * k) * 0.35;
+    vec3 col = mix(vec3(0.36, 0.95, 0.42), vec3(0.27, 0.9, 0.97), uView) * (0.96 + 0.04 * sin(uTime * 7.0 + float(i)));
+    float line = max(cover(d, hw, px), steps);
+    c = mix(c, col, line);
+    c += col * (exp(-d * d / (12.0 * sc * sc)) * 0.4 + exp(-d / (7.0 * sc)) * 0.1) * 0.5 * (1.0 - line);
   }
   o = vec4(c, 1.0);
 }`;

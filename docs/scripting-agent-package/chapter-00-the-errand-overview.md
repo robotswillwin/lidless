@@ -243,6 +243,10 @@ variables:
     new: false
     start: false
     means: Athena's workbench, up close; its drawer open
+  - name: athena_scope_wave
+    new: false
+    start: sine
+    means: the shape of the line on Athena's oscilloscope, as its dial is turned ("sine", "square", "triangle", "saw")
   - name: athena_report
     new: false
     start: not_asked

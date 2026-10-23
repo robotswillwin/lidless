@@ -1,6 +1,6 @@
 // Turns a loaded scene plus the current state into a frame for the renderer.
 
-import { asIn, inViewOf, smoothSampled, type LoadedScene, type MoverDef, type SpriteDef } from '../engine/assets';
+import { asIn, inViewOf, smoothSampled, WAVES, type LoadedScene, type MoverDef, type SpriteDef } from '../engine/assets';
 import { resolveLight } from '../engine/presets';
 import type { DrawSprite, Frame } from '../engine/renderer';
 import { frameFor, hasLeft } from './anim';
@@ -109,6 +109,12 @@ export class SceneRunner {
 
   /** Whether a condition on the story holds: a layer or a light with one is there only while it does. */
   shown: (when: string) => boolean = () => true;
+  /** A story variable's value: an oscilloscope's dial (its `wave`). */
+  read: (name: string) => unknown = () => undefined;
+
+  /** Each oscilloscope's line: two vec4 for each; its shape now, the one before, and when its dial turned. */
+  private scopes = new Float32Array(16);
+  private readonly dials: { now: number; was: number; at: number }[] = [];
 
   /** Sprites named in `dynamic` are left out; the game draws them itself (the hero). */
   constructor(readonly scene: LoadedScene, private dynamic = new Set<string>()) {
@@ -260,6 +266,17 @@ export class SceneRunner {
     this.godrays.fill(0);
     d.godrays.slice(0, 4).forEach((g0, i) => { const g = asIn(g0, viewName); this.godrays.set([g.x + along(g.parallax), g.y, inViewOf(g.only ?? (g.ar ? 'concierge' : undefined), view) ? g.strength : 0, g.zone], i * 4); });
     this.beaconDefs.slice(0, 32).forEach((b, i) => { this.beacons[i * 4] = b.x + along(b.parallax); });
+    // an oscilloscope's line: the shape its dial is at, turning into it from the one before
+    this.scopes.fill(0);
+    let nScopes = 0;
+    (d.scopes ?? []).forEach((sc, i) => {
+      if (nScopes >= 2 || !inViewOf(sc.only, view) || (sc.when && !this.shown(sc.when))) return;
+      const dial = sc.wave === undefined ? undefined : this.read(sc.wave);
+      const shape = 1 + Math.max(0, WAVES.indexOf((WAVES as readonly unknown[]).includes(dial) ? (dial as (typeof WAVES)[number]) : sc.shape ?? 'sine'));
+      const at = (this.dials[i] ??= { now: shape, was: shape, at: -10 });
+      if (at.now !== shape) { at.was = at.now; at.now = shape; at.at = t; }
+      this.scopes.set([sc.x + along(sc.parallax), sc.y, sc.r, shape, at.was, Math.min(1, Math.max(0, (t - at.at) / 0.35)), 0, 0], nScopes++ * 8);
+    });
     const dr = d.drips;
     return {
       t,
@@ -287,6 +304,8 @@ export class SceneRunner {
       steam: this.steam,
       steamFar: this.steamFar,
       godrays: this.godrays,
+      scopes: this.scopes,
+      nScopes,
       drips: dr ? [dr.x0, dr.x1, dr.top, dr.bottom] : [0, 0, 0, 0],
       mirror: d.mirror,
       ground: d.ground,

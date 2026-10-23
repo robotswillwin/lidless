@@ -408,5 +408,13 @@
       "item": "athena_patrol_sheet",
       "story": "athena_timetable"
     }
+  ],
+  "scopes": [
+    {
+      "x": 814.5,
+      "y": 284.9,
+      "r": 8.4,
+      "wave": "athena_scope_wave"
+    }
   ]
 }

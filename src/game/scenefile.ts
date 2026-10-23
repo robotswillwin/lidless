@@ -3,7 +3,7 @@
 // (built assets, placed), lights, its inside and outside areas, the walk line, places to arrive and hotspots, some of
 // which lead to other scenes.
 
-import { fetchSprite, imageFromBlob, loadBlob, makeSprite, spriteDefaults, type FetchedSprite, type GodrayDef, type GroundDef, type LoadedScene, type Only, type Views, type MoverDef, type SceneDef, type Sprite, type SteamDef } from '../engine/assets';
+import { fetchSprite, imageFromBlob, loadBlob, makeSprite, spriteDefaults, WAVES, type FetchedSprite, type GodrayDef, type GroundDef, type LoadedScene, type Only, type Views, type MoverDef, type SceneDef, type ScopeDef, type Sprite, type SteamDef } from '../engine/assets';
 import { presets, type PlacedLight } from '../engine/presets';
 import { conditionProblem } from './conditions';
 import { textureFromImage, type GL } from '../engine/gl';
@@ -154,6 +154,7 @@ export interface SceneFile {
   beacons?: SceneDef['beacons'];
   steam?: SteamDef[];
   godrays?: GodrayDef[];
+  scopes?: ScopeDef[];
   drips?: SceneDef['drips'];
   traffic?: SceneDef['traffic'];
 }
@@ -338,6 +339,11 @@ export function checkSceneFile(data: unknown, id?: string): string[] {
   });
   effects('godrays', 4, ['x', 'y', 'strength', 'zone']);
   effects('beacons', 32, ['x', 'y', 'phase']);
+  effects('scopes', 2, ['x', 'y', 'r'], (e, name) => {
+    if (e?.shape !== undefined && !(WAVES as readonly unknown[]).includes(e.shape)) out.push(`${name}.shape must be one of ${WAVES.join(', ')}`);
+    if (e?.wave !== undefined && (!isStr(e.wave) || !/^[a-z_][a-z0-9_]*$/.test(e.wave))) out.push(`${name}.wave must name a story variable`);
+    if (e?.when !== undefined) { const p = isStr(e.when) ? conditionProblem(e.when) : 'it must be text'; if (p) out.push(`${name}: when: ${p}`); }
+  });
   if (f.drips !== undefined) {
     const d = f.drips as Record<string, unknown>;
     if (!d || !['x0', 'x1', 'top', 'bottom'].every((k) => isNum(d[k]))) out.push('drips needs x0, x1, top and bottom');
@@ -401,7 +407,7 @@ export async function makeScene(gl: GL, fetched: FetchedScene, world: WorldFile)
   const zone = fetched.zone ? textureFromImage(gl, await imageFromBlob(await fetched.zone, file.zoneMap), false) : zoneTexture(gl, file);
   const def: SceneDef = {
     name: file.id, size: file.size, sprites: sprites.map((s) => s.def.name), zone: file.zoneMap ?? '',
-    lights: file.lights, beacons: file.beacons ?? [], steam: file.steam ?? [], godrays: file.godrays ?? [],
+    lights: file.lights, beacons: file.beacons ?? [], steam: file.steam ?? [], godrays: file.godrays ?? [], scopes: file.scopes ?? [],
     drips: file.drips, mirror: file.mirror ?? file.walk.y - 8, ground: file.ground, traffic: file.traffic, ambient: file.ambient, exposure: file.exposure, baked: file.baked, actorScale: file.actorScale,
   };
   const level: LevelDef = {

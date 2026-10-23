@@ -15,7 +15,8 @@
 //   Close-ups     the words on a paper (public/assets/closeups.json); a new one's prompts (art/closeups/closeups.json)
 //   Machines      public/assets/terminals/<id>.json
 //   People        a new person's art recipe (art/cast/<id>.json)
-//   Script        each knot: in place of the game's of its name, else into src/story/<the chapter file>.ink
+//   Script        each knot: in place of the game's of its name; a new one beside its chapter file's other knots in the
+//                 story, or in src/story/<the chapter file>.ink
 //
 // What is already drawn keeps its picture: a look written for a place, a thing, a person or a close-up the game has is
 // a description, not an order to draw it again.
@@ -286,11 +287,17 @@ export function importChapter(p: Parsed, game: GameKnots, dry: boolean): void {
     toMake.push(`draw ${id} (art/cast/${id}.json) at ${String(v.height ?? '?')} against Luna's 1.7 m`);
   }
 
-  // ----- Script: each knot in place of the game's of its name, else into the chapter file's own story file
+  // ----- Script: each knot in place of the game's of its name, else beside its chapter file's other knots
   const inks = new Map<string, string>(), readInk = (f: string) => { if (!inks.has(f)) inks.set(f, existsSync(join(STORY, f)) ? readFileSync(join(STORY, f), 'utf8') : ''); return inks.get(f)!; };
   /** A knot's lines without what trails it (blank lines, and comments that belong to what comes next). */
   const body = (lines: string[]) => { const out = [...lines]; while (out.length && /^\s*(\/\/.*)?$/.test(out[out.length - 1])) out.pop(); return out; };
   const added = new Map<string, string[]>(), replaced = new Map<string, { start: number; count: number; lines: string[] }[]>();
+  // a new knot goes where the game keeps most of its chapter file's other knots; failing that, a file of the chapter's own
+  const homeOf = (mdFile: string) => {
+    const count = new Map<string, number>();
+    for (const [n, k] of p.knots) { const g = game.knots.get(n); if (k.file === mdFile && g) count.set(g.file, (count.get(g.file) ?? 0) + 1); }
+    return [...count].sort((x, y) => y[1] - x[1])[0]?.[0] ?? `${basename(mdFile, '.md').replace(/^overview$/, `chapter-${basename(p.dir).split('-')[0]}`)}.ink`;
+  };
   for (const [name, k] of p.knots) {
     const mine = body(k.lines), theirs = game.knots.get(name);
     if (theirs) {
@@ -299,7 +306,7 @@ export function importChapter(p: Parsed, game: GameKnots, dry: boolean): void {
       replaced.set(theirs.file, [...(replaced.get(theirs.file) ?? []), { start: theirs.line - 1, count: old.length, lines: mine }]);
       note(join(STORY, theirs.file), `knot ${name}`);
     } else {
-      const file = `${basename(k.file, '.md').replace(/^overview$/, `chapter-${basename(p.dir).split('-')[0]}`)}.ink`;
+      const file = homeOf(k.file);
       added.set(file, [...(added.get(file) ?? []), ...mine, '']);
       note(join(STORY, file), `knot ${name} (new)`);
     }

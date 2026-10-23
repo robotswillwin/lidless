@@ -56,6 +56,8 @@ VAR athena_patrol_sheet_seen = false
 VAR athena_repair_slip_seen = false
 // her workbench, up close (scene athena-bench): its drawer open
 VAR athena_drawer_open = false
+// her oscilloscope on it: the shape of its line, as its dial is turned ("sine", "square", "triangle", "saw")
+VAR athena_scope_wave = "sine"
 // what she told the Concierge leaving Athena's flat: "not_asked", then "covered", as Athena asked (the opening does not
 // branch here: decision 40). Her word, not a fact about Athena
 VAR athena_report = "not_asked"
