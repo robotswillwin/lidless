@@ -1,0 +1,24 @@
+{
+  "name": "timetable",
+  "scene": "tower",
+  "kind": "prop",
+  "exists": "both",
+  "look": "vector",
+  "res": 2,
+  "frame": "keep",
+  "prompt": "a sheet of paper pinned to the wall with a red pin: lifted out of tower/athena (lift), cut from its pictures where they changed as it was painted out.",
+  "height": 35.74,
+  "position": [
+    776.84,
+    250.15
+  ],
+  "depth": 3,
+  "occluder": false,
+  "material": "wood",
+  "glow": {
+    "raw": "auto",
+    "concierge": "auto"
+  },
+  "palette": 0,
+  "references": []
+}

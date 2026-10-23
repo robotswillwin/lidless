@@ -30,13 +30,13 @@
   "size": 0.034
  },
  "athena-receipt": {
-  "text": "RADIO REPAIR\nSERVICE 218\nPortable computer —\nbattery and data\nconnector\nStatus: bench test\ncomplete; awaiting\ncollection\nCustomer: Athena",
+  "text": "RADIO REPAIR\nSERVICE 218\n\nPortable computer —\nbattery and data connector\n\nStatus: bench test complete;\nawaiting collection\n\nCustomer: Athena",
   "area": [
-   0.415,
-   0.29,
-   0.17,
-   0.55
+   0.31,
+   0.24,
+   0.38,
+   0.64
   ],
-  "size": 0.0165
+  "size": 0.032
  }
 }

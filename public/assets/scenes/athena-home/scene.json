@@ -15,26 +15,44 @@
   "layers": [
     {
       "asset": "tower/athena"
+    },
+    {
+      "asset": "tower/timetable",
+      "x": 759.47,
+      "y": 214.41,
+      "when": "!(taken has athena_patrol_sheet)"
+    },
+    {
+      "asset": "tower/note",
+      "x": 771.88,
+      "y": 278.93,
+      "when": "!(taken has athena_note)"
+    },
+    {
+      "asset": "tower/receipt",
+      "x": 756.49,
+      "y": 295.81,
+      "when": "!(taken has athena_repair_slip)"
     }
   ],
   "walk": {
-    "y": 354,
-    "x0": 282,
+    "y": 352,
+    "x0": 276,
     "x1": 835
   },
-  "mirror": 354,
+  "mirror": 352,
   "spawns": {
     "door": {
-      "x": 300,
+      "x": 290,
       "facing": 1
     }
   },
   "lights": [
     {
-      "x": 524,
+      "x": 712,
       "y": 252,
       "z": 16,
-      "r": 170,
+      "r": 160,
       "c": [
         1,
         0.8,
@@ -46,8 +64,8 @@
       "own": 1
     },
     {
-      "x": 745,
-      "y": 222,
+      "x": 782,
+      "y": 212,
       "z": 16,
       "r": 150,
       "c": [
@@ -61,8 +79,8 @@
       "own": 1
     },
     {
-      "x": 790,
-      "y": 282,
+      "x": 804,
+      "y": 276,
       "z": 10,
       "r": 90,
       "c": [
@@ -76,8 +94,23 @@
       "own": 1
     },
     {
-      "x": 597,
+      "x": 440,
       "y": 262,
+      "z": 12,
+      "r": 110,
+      "c": [
+        1,
+        0.86,
+        0.66
+      ],
+      "i": 0.5,
+      "zone": 0,
+      "layer": 1,
+      "own": 1
+    },
+    {
+      "x": 576,
+      "y": 256,
       "z": 16,
       "r": 150,
       "c": [
@@ -92,8 +125,8 @@
       "ar": 1
     },
     {
-      "x": 597,
-      "y": 262,
+      "x": 576,
+      "y": 256,
       "z": 16,
       "r": 140,
       "c": [
@@ -135,12 +168,12 @@
       "id": "door",
       "name": "Door",
       "rect": [
-        268,
-        222,
-        64,
-        130
+        257,
+        226,
+        66,
+        126
       ],
-      "stand": 300,
+      "stand": 290,
       "go": {
         "scene": "floor9",
         "spawn": "from-athena"
@@ -157,51 +190,114 @@
         "raw": "Coat stand"
       },
       "rect": [
-        338,
-        232,
-        26,
-        120
+        326,
+        243,
+        21,
+        109
       ],
-      "stand": 352,
+      "stand": 336,
       "look": {
         "concierge": "A felt hat and a red scarf. Hers.",
         "raw": "Her hat, her red scarf. She went out without them?"
       }
     },
     {
-      "id": "books",
-      "name": {
-        "concierge": "Bookcase",
-        "raw": "Books"
-      },
+      "id": "shower",
+      "name": "Shower",
       "rect": [
-        371,
-        224,
-        78,
-        128
+        351,
+        214,
+        63,
+        138
       ],
-      "stand": 410,
+      "stand": 382,
       "look": {
-        "concierge": "Books, beautifully kept.",
-        "raw": "Manuals, radio catalogues, poetry. Tapes in shoeboxes."
+        "concierge": "A sleek glass shower.",
+        "raw": "An old shower, its curtain mended with tape."
       }
     },
     {
-      "id": "keepsake",
+      "id": "basin",
       "name": {
-        "concierge": "Picture",
-        "raw": "Picture"
+        "concierge": "Basin",
+        "raw": "Basin"
       },
       "rect": [
-        461,
-        240,
-        32,
-        34
+        414,
+        241,
+        36,
+        90
       ],
-      "stand": 476,
+      "stand": 432,
       "look": {
-        "concierge": "A small framed print of an old city.",
-        "raw": "A pressed flower behind cracked glass. Older than me."
+        "concierge": "A neat basin under a glowing mirror.",
+        "raw": "A chipped basin. Her comb, her toothbrush."
+      }
+    },
+    {
+      "id": "kitchen",
+      "name": {
+        "concierge": "Kitchenette",
+        "raw": "Kitchen"
+      },
+      "rect": [
+        452,
+        219,
+        57,
+        130
+      ],
+      "stand": 480,
+      "look": {
+        "concierge": "A glossy little kitchenette.",
+        "raw": "A hot plate, a red kettle, two cups upside down to dry."
+      }
+    },
+    {
+      "id": "window",
+      "name": "Window",
+      "rect": [
+        520,
+        219,
+        106,
+        74
+      ],
+      "stand": 576,
+      "look": {
+        "concierge": "The city glitters below.",
+        "raw": "The city under its smog."
+      }
+    },
+    {
+      "id": "books",
+      "name": {
+        "concierge": "Books",
+        "raw": "Books"
+      },
+      "rect": [
+        514,
+        199,
+        124,
+        21
+      ],
+      "stand": 576,
+      "look": {
+        "concierge": "Books, beautifully kept.",
+        "raw": "Manuals, radio catalogues, poetry."
+      }
+    },
+    {
+      "id": "bed",
+      "name": "Bed",
+      "rect": [
+        517,
+        295,
+        118,
+        50
+      ],
+      "stand": 576,
+      "look": {
+        "concierge": "Crisp linen, neatly made.",
+        "raw": "Her bed, made in a hurry, the quilt folded back."
       }
     },
     {
@@ -211,48 +307,15 @@
         "raw": "Her chair"
       },
       "rect": [
-        452,
-        290,
-        70,
+        642,
+        281,
+        58,
         63
       ],
-      "stand": 488,
+      "stand": 670,
       "look": {
         "concierge": "Deep green velvet. Inviting.",
         "raw": "The seat still holds her shape."
-      }
-    },
-    {
-      "id": "lamp",
-      "name": {
-        "concierge": "Floor lamp",
-        "raw": "Lamp"
-      },
-      "rect": [
-        509,
-        238,
-        32,
-        114
-      ],
-      "stand": 524,
-      "look": {
-        "concierge": "Brass, warm light.",
-        "raw": "The fringe is mended with thread."
-      }
-    },
-    {
-      "id": "window",
-      "name": "Window",
-      "rect": [
-        546,
-        220,
-        104,
-        76
-      ],
-      "stand": 598,
-      "look": {
-        "concierge": "The city glitters below.",
-        "raw": "The city under its smog."
       }
     },
     {
@@ -262,15 +325,33 @@
         "raw": "Records"
       },
       "rect": [
-        553,
-        298,
-        92,
-        55
+        647,
+        256,
+        41,
+        15
       ],
-      "stand": 598,
+      "stand": 668,
       "look": {
-        "concierge": "A glossy turntable and a stack of records.",
+        "concierge": "A glossy turntable.",
         "raw": "Records, real ones. She lets me borrow them."
+      }
+    },
+    {
+      "id": "lamp",
+      "name": {
+        "concierge": "Floor lamp",
+        "raw": "Lamp"
+      },
+      "rect": [
+        693,
+        236,
+        26,
+        116
+      ],
+      "stand": 706,
+      "look": {
+        "concierge": "Brass, warm light.",
+        "raw": "The fringe is mended with thread."
       }
     },
     {
@@ -280,12 +361,12 @@
         "raw": "Radios"
       },
       "rect": [
-        660,
+        726,
         232,
-        180,
-        28
+        118,
+        18
       ],
-      "stand": 750,
+      "stand": 780,
       "look": {
         "concierge": "Restored radios, like a museum.",
         "raw": "More radios, half of them in pieces."
@@ -298,10 +379,10 @@
         "raw": "Workbench"
       },
       "rect": [
-        657,
-        268,
-        190,
-        86
+        720,
+        280,
+        130,
+        72
       ],
       "stand": 760,
       "story": "athena_bench"
@@ -313,12 +394,12 @@
         "raw": "Workbench"
       },
       "rect": [
-        770,
+        790,
         296,
-        26,
-        58
+        16,
+        42
       ],
-      "stand": 780,
+      "stand": 790,
       "story": "athena_gap"
     },
     {
@@ -328,12 +409,12 @@
         "raw": "Oscilloscope"
       },
       "rect": [
-        800,
-        276,
-        40,
-        30
+        809,
+        272,
+        32,
+        34
       ],
-      "stand": 790,
+      "stand": 805,
       "look": {
         "concierge": "Its green line rises and falls.",
         "raw": "Still on. She left in a hurry."
@@ -343,12 +424,12 @@
       "id": "timetable",
       "name": "Timetable",
       "rect": [
-        748,
-        214,
-        29,
-        37
+        761,
+        216,
+        30,
+        34
       ],
-      "stand": 762,
+      "stand": 774,
       "item": "athena_patrol_sheet",
       "story": "athena_timetable"
     },
@@ -356,12 +437,12 @@
       "id": "note",
       "name": "Note",
       "rect": [
-        731,
-        283,
-        20,
+        772,
+        280,
+        22,
         27
       ],
-      "stand": 742,
+      "stand": 780,
       "item": "athena_note",
       "story": "athenas_note"
     },
@@ -369,12 +450,12 @@
       "id": "receipt",
       "name": "Receipt",
       "rect": [
-        751,
-        291,
-        14,
-        18
+        755,
+        293,
+        22,
+        14
       ],
-      "stand": 758,
+      "stand": 764,
       "item": "athena_repair_slip",
       "story": "athena_receipt"
     }

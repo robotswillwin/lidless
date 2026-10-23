@@ -1,0 +1,25 @@
+{
+  "name": "receipt",
+  "x": 756,
+  "y": 296,
+  "w": 21,
+  "h": 10,
+  "maps": [
+    "albedo.concierge",
+    "albedo.raw",
+    "glow.concierge",
+    "glow.raw"
+  ],
+  "depth": 3,
+  "parallax": 1,
+  "occluder": 0,
+  "reflectivity": 0,
+  "object": 0,
+  "anchor": [
+    11,
+    10
+  ],
+  "exists": "both",
+  "kind": "prop",
+  "res": 2
+}

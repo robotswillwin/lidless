@@ -14,12 +14,15 @@ interior, a privacy zone. Arrivals: `door`.
 | --- | --- | --- | --- |
 | `door` | Door |  | to `floor9/from-athena` |
 | `coats` | Coat stand |  |  |
-| `books` | Bookcase / Books |  |  |
-| `keepsake` | Picture |  |  |
-| `armchair` | Armchair / Her chair |  |  |
-| `lamp` | Floor lamp / Lamp |  |  |
+| `shower` | Shower |  |  |
+| `basin` | Basin |  |  |
+| `kitchen` | Kitchenette / Kitchen |  |  |
 | `window` | Window |  |  |
+| `books` | Books |  |  |
+| `bed` | Bed |  |  |
+| `armchair` | Armchair / Her chair |  |  |
 | `records` | Record player / Records |  |  |
+| `lamp` | Floor lamp / Lamp |  |  |
 | `shelf` | Radios |  |  |
 | `bench` | Workbench | `athena_bench` |  |
 | `gap` | Workbench | `athena_gap` |  |

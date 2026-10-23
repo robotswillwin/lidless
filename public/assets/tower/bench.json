@@ -3,7 +3,10 @@
     "athena",
     "floor14",
     "floor9",
-    "lobby"
+    "lobby",
+    "note",
+    "receipt",
+    "timetable"
   ],
   "backgrounds": [
     "athena",

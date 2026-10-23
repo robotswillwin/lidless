@@ -43,11 +43,11 @@
   ]
  },
  "athena-receipt": {
-  "concierge": "A narrow paper receipt slip lying on a polished wooden workbench, seen from above, close: the slip runs upright down the middle of the frame, clean white, completely blank with no print on it; a small round glass paperweight sits on its very top edge. Warm lamplight.",
+  "concierge": "A paper receipt seen from above, very close: a wide slip of clean white paper filling the middle of the frame from its top edge to its bottom edge and about half of its width, completely blank with no print on it; a small round glass paperweight on its very top corner; at the sides only a little of a polished walnut bench in warm lamplight. Nothing else.",
   "references": [
    "art/tower/athena/concierge.png"
   ],
-  "raw": "The same receipt on a scarred bench: yellowing paper curled at one corner, still blank with no legible print; a scratched glass paperweight; dim yellow light.",
+  "raw": "The same receipt on a scarred bench: yellowing paper, one corner curled, still blank with no legible print; a scratched glass paperweight; dim yellow light.",
   "rawReferences": [
    "art/tower/athena/raw.png"
   ]

@@ -1,0 +1,24 @@
+{
+  "name": "receipt",
+  "scene": "tower",
+  "kind": "prop",
+  "exists": "both",
+  "look": "vector",
+  "res": 2,
+  "frame": "keep",
+  "prompt": "receipt: lifted out of tower/athena (lift), cut from its pictures where they changed as it was painted out.",
+  "height": 9.93,
+  "position": [
+    766.91,
+    305.74
+  ],
+  "depth": 3,
+  "occluder": false,
+  "material": "wood",
+  "glow": {
+    "raw": "auto",
+    "concierge": "auto"
+  },
+  "palette": 0,
+  "references": []
+}

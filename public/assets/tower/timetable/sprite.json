@@ -1,0 +1,25 @@
+{
+  "name": "timetable",
+  "x": 760,
+  "y": 215,
+  "w": 34.5,
+  "h": 35.5,
+  "maps": [
+    "albedo.concierge",
+    "albedo.raw",
+    "glow.concierge",
+    "glow.raw"
+  ],
+  "depth": 3,
+  "parallax": 1,
+  "occluder": 0,
+  "reflectivity": 0,
+  "object": 0,
+  "anchor": [
+    17,
+    35.5
+  ],
+  "exists": "both",
+  "kind": "prop",
+  "res": 2
+}

@@ -515,12 +515,12 @@ const checks = {
     const door = await talkThrough(page);
     check('her invitation opens 9-07: its reader says guest', (await save(page))?.scene === 'athena-home' && door.some((l) => /guest/.test(l)) && /"athena_flat_entered":\s*true/.test(await ink(page)), `${(await save(page))?.scene} | ${door.join(' / ').slice(0, 80)}`);
     await verb(page, 'eyes');
-    await tap(page, 741, 296);
+    await tap(page, 783, 293);
     await page.waitForFunction(() => !!document.querySelector('.hud-closeup .words'), { timeout: 8000 }).catch(() => {});
     const words = await page.$eval('.hud-closeup .words', (e) => e.textContent).catch(() => '');
     await talkThrough(page);
     check('her note, close up, its words set over the blank paper', /I'm fine/.test(words) && /"athena_note_read":\s*true/.test(await ink(page)), words.slice(0, 40));
-    await tap(page, 300, 290);
+    await tap(page, 290, 290);
     await page.waitForFunction(() => /Was Athena at home/.test(document.querySelector('.co-thread')?.textContent ?? ''), { timeout: 15000 }).catch(() => {});
     const asked = await page.evaluate(() => document.querySelector('.co-thread')?.textContent ?? '');
     check('out in the corridor, the Concierge asks whether she was home', (await save(page))?.scene === 'floor9' && /Was Athena at home/.test(asked), `${(await save(page))?.scene} | ${asked.slice(0, 60)}`);
