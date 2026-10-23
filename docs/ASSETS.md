@@ -489,6 +489,17 @@ scale (0.44, 124 px a metre), the middle floor a corridor and the floors above a
 at the same place on every floor, so its shaft runs through. Each Concierge's view was redressed from its guide and
 raw view from that (`redress --from`), with no signs, screens or number plates in raw view.
 
+**A building is as wide as its rooms** (decision 28). The street's fronts of the radio repair and the cocktail bar
+were widened to 8 m (1180 street px), the width of their cutaways, the new part windowless wall (a guide of flat
+shapes, `touch --guide`, then raw view `--from concierge`), and the radio repair's street door moved to the left end,
+where its cutaway has it. The layer maps mark the new walls as the near layer, so the far city and the viaduct slide
+behind them. **Windows show their rooms** (`npm run asset -- windows art/street/vista.json`, free): the recipe's
+`windows` lists each window's glass, where its room's street door and floor are on the street and in the room's own
+picture, and the room's picture is cropped and scaled (from the cutaways' 169 px a metre to the street's 146) into the
+glass, both views; run it again whenever a room's picture changes, then split the street. The cutaways' upper storeys
+are at true scale too: the bar's restaurant was painted again with its tables 0.75 m high, its ceiling above the
+frame.
+
 **The ground is cut away beside a cutaway** (the director, 22 October): where a cutaway shows a basement, the street
 outside it is cut along the same plane, so under its pavement there are gravel, earth, a sewer, a water main and
 cables, down to the bottom of the frame, not a wet street running on below the floor. The radio repair's and the

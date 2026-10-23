@@ -349,7 +349,7 @@ const checks = {
     await tap(p2, 230, 330);
     await wait(4000);
     const first = await ink(p2);
-    await tap(p2, 304, 350);
+    await tap(p2, 65, 350);
     await wait(4000);
     await tap(p2, 230, 330);
     await wait(4000);
@@ -451,7 +451,7 @@ const checks = {
     const first = await marks();
     check('at first only the way to the next place is marked, not the doors', first.some((m) => /^left:/.test(m)) && !first.some((m) => /^in:/.test(m)), first.join(' | '));
     await verb(page, 'eyes');
-    await tap(page, 304, 340);
+    await tap(page, 65, 340);
     await wait(2500);
     const looked = await marks();
     check('a door looked at gets its marker', looked.includes('in:Radio repair'), looked.join(' | '));

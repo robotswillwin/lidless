@@ -121,8 +121,9 @@ export function mapNow(layout: MapLayout, scenes: Record<string, MapScene>, been
       if (!kind || !inView(h, raw) || !shown(h) || !seen(p.id, h.id)) continue;
       const { rect } = placeIn(h, raw), to = h.go?.scene, tb = to ? boxes[to] : undefined;
       let at = pointIn(p.id, rect[0] + rect[2] / 2);
-      // a room's door back out is at its foot, where the line to the door it opens from leaves it
+      // a room's door to a place below it is at its foot, to a place above it at its top, where the line leaves it
       if (kind === 'door' && !p.street && tb && tb.box[1] > pb[1]) at = [at[0], pb[1] + pb[3]];
+      else if (kind === 'door' && !p.street && tb && tb.box[1] + tb.box[3] <= pb[1]) at = [at[0], pb[1]];
       spots.push({ scene: p.id, id: h.id, name: pick(h.name, raw), at, kind, named: !tb, street: p.street, to: tb ? to : undefined, go: { scene: p.id, at: h.id } });
       // where a door leads: the place there, or one sketched in, as its door says, until she has been through it
       if (!to || !tb) continue;
@@ -197,12 +198,12 @@ export function drawMap(body: HTMLElement, now: MapNow, go: (t: Travel, name: st
     y.setAttribute('style', pct(now.you[0], now.you[1]));
     y.setAttribute('aria-label', 'You are here');
   }
-  // as large as the panel allows, at the map's own shape
-  const fit = () => {
-    const k = Math.min(body.clientWidth / bw, body.clientHeight / bh);
+  // as large as the panel allows, at the map's own shape, with room under it for the rows of names under the roads
+  const layout = (k: number): number => {
     chart.style.width = `${bw * k}px`;
     chart.style.height = `${bh * k}px`;
     chart.style.setProperty('--road', `${ROAD * k}px`);
+    let most = 0;
     for (const labels of under.values()) {
       const rows: number[] = [];
       for (const n of [...labels].sort((a, b) => a.at - b.at)) {
@@ -212,7 +213,16 @@ export function drawMap(body: HTMLElement, now: MapNow, go: (t: Travel, name: st
         rows[row] = left + w;
         n.label.style.setProperty('--row', String(row));
       }
+      most = Math.max(most, rows.length);
     }
+    return most;
+  };
+  const fit = () => {
+    const W = body.clientWidth, H = body.clientHeight, first = Math.min(W / bw, H / bh);
+    // the names' rows reach this far below the lowest road: what the bounds leave under it is not always enough
+    const room = (rows: number, k: number) => Math.max(0, rows * 17 + 10 - UNDER * k);
+    const k = Math.min(W / bw, (H - room(layout(first), first)) / bh), rows = layout(k);
+    chart.style.marginBottom = `${room(rows, k)}px`;
   };
   requestAnimationFrame(fit);
   new ResizeObserver(fit).observe(body);

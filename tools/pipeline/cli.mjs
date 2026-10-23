@@ -5,6 +5,7 @@
 
 import { cmdCloseups } from './closeups.mjs';
 import { cmdItems } from './items.mjs';
+import { cmdWindows } from './windows.mjs';
 import { cmdLift } from './lift.mjs';
 import { resolve } from 'node:path';
 import { ROOT } from './recipe.mjs';
@@ -104,6 +105,9 @@ const HELP = `Asset pipeline: generate art with an image AI, clean it and turn i
   npm run asset -- items --concierge [--only parcel] [--n 1]
       Edit each thing's picture in the game into the Concierge's view, as art/items/items.json's "concierge" describes
       it: the same thing in the same pose, made over. --pick-concierge parcel=1 puts it in as <id>.concierge.webp.
+  npm run asset -- windows <street recipe>
+      Set each room into the street windows that look into it, as the recipe's "windows" lists them: the room's own
+      picture cropped where the window stands and scaled to the street, in both views. Then split the street again.
   npm run asset -- ground <recipe> --from <y> [--smooth 20]
       Take the painted reflections out of a picture's wet ground, below the reflection line y (level pixels), in both
       views, so the engine's live ones (the look's "Mirror the set") are the only ones: painted reflections stay put
@@ -145,6 +149,6 @@ function parse(argv) {
 }
 
 const [cmd, ...rest] = process.argv.slice(2), { pos, opt } = parse(rest);
-const run = { closeups: cmdCloseups, items: cmdItems, lift: cmdLift, new: cmdNew, rig: cmdRig, zoom: cmdZoom, extend: cmdExtend, generate: cmdGenerate, variant: cmdVariant, redress: cmdRedress, reframe: cmdReframe, blockout: cmdBlockout, pick: cmdPick, import: cmdImport, sheet: cmdSheet, touch: cmdTouch, split: cmdSplit, ground: cmdGround, erase: cmdErase, paint: cmdPaint, parts: cmdParts, widen: cmdWiden, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
+const run = { closeups: cmdCloseups, items: cmdItems, windows: cmdWindows, lift: cmdLift, new: cmdNew, rig: cmdRig, zoom: cmdZoom, extend: cmdExtend, generate: cmdGenerate, variant: cmdVariant, redress: cmdRedress, reframe: cmdReframe, blockout: cmdBlockout, pick: cmdPick, import: cmdImport, sheet: cmdSheet, touch: cmdTouch, split: cmdSplit, ground: cmdGround, erase: cmdErase, paint: cmdPaint, parts: cmdParts, widen: cmdWiden, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
 if (!run) console.log(HELP);
 else run(pos, opt).catch((e) => { console.error(`error: ${e.message}`); process.exit(1); });

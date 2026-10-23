@@ -108,12 +108,16 @@ holds**. Each decision is the director's, in plain words; what is still open say
 
 27. **Ways to the next place are always marked; a door only once she knows it**: a marker at the end of a street
     always; a door's marker once she has looked at it or tried it, so not every way in shows at once.
+28. **A building is as wide on the street as the rooms inside it.** Its windows show the part of its rooms behind
+    them; the rest of its front is wall without windows. The radio repair and the cocktail bar are 8 m wide, their
+    street doors at the left as inside. Every room is at true scale, upper storeys too: the restaurant's tables are
+    0.75 m high, as the bar's below.
 
 ## Production
 
-28. **Music** is the director's: one composition in a digital and an analogue arrangement, blended as the view
+29. **Music** is the director's: one composition in a digital and an analogue arrangement, blended as the view
     switches. No sound effects yet.
-29. **English only**, for now.
+30. **English only**, for now.
 
 ## Open, for the director
 
