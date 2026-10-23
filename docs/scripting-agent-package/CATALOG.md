@@ -6,6 +6,26 @@ Names are the Concierge's / raw view's where they differ.
 
 ## Places
 
+### athena-bench: Athena's workbench (raw view: Her workbench)
+
+interior, a privacy zone. Arrivals: .
+
+| Spot | Name | Story | Notes |
+| --- | --- | --- | --- |
+| `tools` | Soldering iron |  |  |
+| `radio` | Radio | `athena_radio` |  |
+| `gap` | Workbench | `athena_gap` |  |
+| `cable` | Cable | `athena_gap` |  |
+| `lamp` | Lamp | `athena_lamp` |  |
+| `scope` | Oscilloscope |  |  |
+| `drawer` | Drawer | `athena_drawer` | when `not athena_drawer_open` |
+| `drawer-open` | Drawer | `athena_drawer` | when `athena_drawer_open` |
+| `valves` | Valves | `athena_valves` | when `athena_drawer_open` |
+| `wire` | Wire |  | when `athena_drawer_open` |
+| `letters` | Letters | `athena_letters` | when `athena_drawer_open` |
+| `note` | Note | `athenas_note` | item `athena_note` |
+| `receipt` | Receipt | `athena_receipt` | item `athena_repair_slip` |
+
 ### athena-home: Flat 9-07 (raw view: Athena's flat)
 
 interior, a privacy zone. Arrivals: `door`.
@@ -24,12 +44,8 @@ interior, a privacy zone. Arrivals: `door`.
 | `records` | Record player / Records |  |  |
 | `lamp` | Floor lamp / Lamp |  |  |
 | `shelf` | Radios |  |  |
-| `bench` | Workbench | `athena_bench` |  |
-| `gap` | Workbench | `athena_gap` |  |
-| `scope` | Oscilloscope |  |  |
+| `bench` | Workbench |  |  |
 | `timetable` | Timetable | `athena_timetable` | item `athena_patrol_sheet` |
-| `note` | Note | `athenas_note` | item `athena_note` |
-| `receipt` | Receipt | `athena_receipt` | item `athena_repair_slip` |
 
 ### backstreet: Backstreet
 
@@ -235,6 +251,7 @@ Speaker tags in the story so far: `#concierge`, `#door`, `#felix`, `#fixer`, `#g
 | `athena_note_read` | `false` | The opening, "The Invitation" (docs/chapters/00-the-errand): her morning, Athena's invitation, the visit to 9-07. The waking ran and she is standing at home; she read the delivery message; she read Athena's (floor nine is hers to go to); she rang Athena's bell; she went into Athena's flat; read Athena's note; looked at the timetable; looked at the receipt |
 | `athena_patrol_sheet_seen` | `false` | The opening, "The Invitation" (docs/chapters/00-the-errand): her morning, Athena's invitation, the visit to 9-07. The waking ran and she is standing at home; she read the delivery message; she read Athena's (floor nine is hers to go to); she rang Athena's bell; she went into Athena's flat; read Athena's note; looked at the timetable; looked at the receipt |
 | `athena_repair_slip_seen` | `false` | The opening, "The Invitation" (docs/chapters/00-the-errand): her morning, Athena's invitation, the visit to 9-07. The waking ran and she is standing at home; she read the delivery message; she read Athena's (floor nine is hers to go to); she rang Athena's bell; she went into Athena's flat; read Athena's note; looked at the timetable; looked at the receipt |
+| `athena_drawer_open` | `false` | her workbench, up close (scene athena-bench): its drawer open |
 | `athena_report` | `"not_asked"` | what she told the Concierge leaving Athena's flat: "not_asked", then "covered", as Athena asked (the opening does not branch here: decision 40). Her word, not a fact about Athena |
 | `prologue_complete` | `false` | what she told the Concierge leaving Athena's flat: "not_asked", then "covered", as Athena asked (the opening does not branch here: decision 40). Her word, not a fact about Athena |
 | `parcel_delivered` | `false` | the errand the game begins with: the parcel on her desk, to the radio repair by ten |
@@ -249,7 +266,7 @@ Lists: `Things` (parcel, matches, cigarettes, map, valve, paper_notebook, athena
 
 ## Knots
 
-`fixer`, `station`, `guardian`, `opening`, `concierge_home`, `radio`, `photo`, `notebook`, `concierge`, `bar_prices`, `bar_counter`, `bar_order`, `felix`, `lift`, `athena_door`, `athena_bell`, `athena_asked`, `athena_bench`, `athena_gap`, `athenas_note`, `athena_timetable`, `athena_receipt`, `good`, `meal`.
+`fixer`, `station`, `guardian`, `opening`, `concierge_home`, `radio`, `photo`, `notebook`, `concierge`, `bar_prices`, `bar_counter`, `bar_order`, `felix`, `lift`, `athena_door`, `athena_bell`, `athena_asked`, `athena_bench`, `athena_gap`, `athena_radio`, `athena_lamp`, `athena_drawer`, `athena_valves`, `athena_letters`, `athenas_note`, `athena_timetable`, `athena_receipt`, `good`, `meal`.
 
 ## Outfits
 

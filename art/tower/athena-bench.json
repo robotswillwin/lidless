@@ -1,0 +1,33 @@
+{
+  "scene": "tower",
+  "kind": "background",
+  "interior": true,
+  "exists": "both",
+  "look": "vector",
+  "res": 2,
+  "size": "1936x1088",
+  "height": 540,
+  "position": [
+    480,
+    540
+  ],
+  "depth": 3,
+  "glow": {
+    "raw": "auto",
+    "concierge": "auto",
+    "machine": true
+  },
+  "palette": 0,
+  "rawAir": "yellow-green",
+  "material": "wood",
+  "name": "athena-bench",
+  "framing": "A close-up of a workbench seen from the front and a little from above, at the eye height of a person standing at it, filling the frame from edge to edge: the wall behind it at the top, the bench's top across the middle with its surface showing, the front edge of the top, a shallow drawer under it and the trestle legs down to the floor at the bottom. Warm lamplight. No text, no captions, no border.",
+  "prompt": "Athena's workbench up close, in her flat in Luna's tower at night, a lived-in place full of loved old technology: on the left an old valve radio of brown bakelite with a cream dial, its back off; propped against its right side a folded sheet of plain white paper, blank, nothing written on it; lying in front a narrow plain paper receipt slip, blank, curling at one end, a small dark glass paperweight on its near end; in the middle of the bench top a clean rectangle in the dust, sharp-edged, where something portable stood until recently, and its power cable, unplugged, running to the front edge and hanging down over it; an angled desk lamp on a jointed arm, lit; on the right an old oscilloscope with a round screen showing a green wave; under the bench top a shallow wooden drawer, shut, with a brass pull; solder, wire clippings, a screwdriver. Repairs everywhere: taped cables, mismatched knobs. The same flat-shaded style: two or three flat tones per surface, crisp edges. No people. No writing, no signs.",
+  "concierge": "The city AI's version of the same workbench, every object in the same place and the same size: the bench handsome polished walnut, the radio restored like a museum piece with a warm glowing dial, the paper and the receipt clean and white, nothing written on them, the paperweight clear glass; the clean rectangle and the unplugged cable as they are; the lamp brass; the oscilloscope gleaming, its trace cyan; the drawer polished with a brass pull. Warm evening light. No people. No signs, no symbols, no writing.",
+  "references": [
+    "art/tower/athena/raw.png"
+  ],
+  "conciergeReferences": [
+    "art/tower/athena/concierge.png"
+  ]
+}

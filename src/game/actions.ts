@@ -41,10 +41,10 @@ export function actionFor(h: Hotspot, v: Verb, raw: boolean, stitches: Stitches 
   if (v === 'eyes') {
     // looking closely at what the Concierge shows otherwise: plain texts that differ (the story says itself)
     const closely = raw && !st && typeof h.look === 'object' && h.look.raw !== h.look.concierge;
-    return { kind: 'eyes', label: raw ? (closely ? 'look closely' : 'look') : 'Look', own: !!h.look || st };
+    return { kind: 'eyes', label: raw ? (closely ? 'look closely' : 'look') : 'Look', own: !!h.look || !!h.zoom || st };
   }
   if (v === 'heart') return { kind: 'heart', label: verbName(v, raw), own: !!h.talk || !!h.reply || st };
-  if (v === 'hands') return { kind: 'hands', label: verbName(v, raw), own: !!(h.use || h.wardrobe || h.wear || h.go) || st };
+  if (v === 'hands') return { kind: 'hands', label: verbName(v, raw), own: !!(h.use || h.wardrobe || h.wear || h.go || h.zoom) || st };
   if (v === 'take') return { kind: 'take', label: verbName(v, raw), own: !!(h.take || h.item) || st };
   return raw ? null : { kind: 'ask', label: 'Ask the Concierge', own: !!h.ask || st };
 }
@@ -54,7 +54,8 @@ export const itemActionFor = (name: string, raw: boolean): Action => ({ kind: 'i
 
 /** Everything that can be done with a thing in the view on screen: going through it first, then the verbs in order. */
 export function actionsFor(h: Hotspot, raw: boolean, stitches: Stitches = () => false): Action[] {
-  const out: Action[] = h.go ? [{ kind: 'feet', label: raw ? 'go' : 'Go' }] : [];
+  // a door, and a thing seen close up (zoom), are gone up to and into with a tap
+  const out: Action[] = h.go || h.zoom ? [{ kind: 'feet', label: raw ? 'go' : 'Go' }] : [];
   for (const v of verbsIn(raw)) {
     const a = actionFor(h, v, raw, stitches);
     if (a) out.push(a);

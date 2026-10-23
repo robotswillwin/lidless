@@ -162,6 +162,8 @@ export class Game {
   /** When she came into the scene she is in, and her visits to privacy rooms whose doors the Concierge sees. */
   private enteredAt = 0;
   private visits: Record<string, number[]>;
+  /** In a close-up (a desk, a workbench seen close): where she stood in the place, to go back to. */
+  private zoomedFrom: { scene: string; x: number; facing: 1 | -1 } | null = null;
   /** On a call to the Concierge from a home: it hears her, its privacy sign open, until the conversation ends. */
   private calling = false;
   /** A story's line asked for the call once its conversation is over (the opening's "Good morning, CO."). */
@@ -261,6 +263,7 @@ export class Game {
     co.onEnd = () => this.endTalk();
     co.run = (commands) => direct(commands, this.stage);
     co.onCall = () => this.call();
+    this.hud.onBack = () => this.back();
     co.onRead = (id) => this.readMessage(id);
     this.hud.onPanel = () => this.ui.hideCaption();
     this.hud.onWay = (id) => this.takeWay(id);
@@ -306,12 +309,14 @@ export class Game {
 
   private async enter(id: string, at: Arrival): Promise<void> {
     const next = await this.scenes.get(id), sp = at.spawn ? next.file.spawns[at.spawn] : undefined, from = this.scene?.file.id;
-    // at home's door she changes: out of her coat coming in, into it going out
-    const outfits = this.s.world.hero.outfits;
-    if (outfits) await this.wear(outfitAfter(outfits, this.outfit, !!this.scene?.file.wardrobe, !!next.file.wardrobe) ?? this.outfit);
+    // at home's door she changes: out of her coat coming in, into it going out; not going up close to her desk, or back
+    const outfits = this.s.world.hero.outfits, close = !!next.file.closeup || !!this.scene?.file.closeup;
+    if (outfits && !close) await this.wear(outfitAfter(outfits, this.outfit, !!this.scene?.file.wardrobe, !!next.file.wardrobe) ?? this.outfit);
     this.scene = next;
-    // where she is, for the story: a lift offers every floor but this one
-    this.dialogue.set('scene_now', next.file.id);
+    // where she is, for the story (a lift offers every floor but this one): in a close-up, the place it is of
+    this.dialogue.set('scene_now', next.file.closeup ?? next.file.id);
+    if (!next.file.closeup) this.zoomedFrom = null;
+    this.hud.setBack(!!next.file.closeup);
     this.runner = new SceneRunner(next.loaded);
     this.heldMover = null;
     this.enteredAt = this.clock();
@@ -320,7 +325,7 @@ export class Game {
     this.world.raw = this.raw;
     // what is there depends on the story: a thing only while a condition holds, a thing she took gone for good
     this.world.shown = this.there;
-    this.been.add(id);
+    if (!next.file.closeup) this.been.add(id);
     // the scene's own things by the story, the city's conditions by the address when it asks for a variant (?variant=)
     this.runner.shown = (when) => holds(when, (n) => (n === 'conditions' && this.s.variant ? this.s.variant : this.dialogue.read(n)));
     this.camera.jump(this.cameraTarget());
@@ -500,6 +505,42 @@ export class Game {
     this.travelling = false;
   }
 
+  /** Up close to a thing, its close-up a scene of its own; where she stood is kept, to step back to. */
+  private zoomInto(h: Hotspot): void {
+    if (!h.zoom || this.travelling) return;
+    if (!this.scene.file.closeup) this.zoomedFrom = { scene: this.scene.file.id, x: this.world.heroX, facing: this.world.facing };
+    void this.zoom({ scene: h.zoom, spawn: 'in' });
+  }
+
+  /** Back from a close-up to where she stood, facing it. */
+  private back(): void {
+    const f = this.zoomedFrom;
+    if (!f || this.talk.open || this.travelling) return;
+    void this.zoom({ scene: f.scene, x: f.x, facing: f.facing });
+  }
+
+  /** In close, or back: a quick fade, and nothing else happens on the way (no arrival, nothing noticed). */
+  private async zoom(to: { scene: string } & Arrival): Promise<void> {
+    this.travelling = true;
+    this.letGo();
+    this.world.stop();
+    this.releaseKeys();
+    this.setVerb(null);
+    this.hud.closeAll();
+    this.ui.hideCaption();
+    this.s.fade.classList.add('on');
+    await new Promise((r) => setTimeout(r, this.s.reduceMotion ? 0 : 200));
+    try {
+      await this.enter(to.scene, to);
+      this.stillSince = this.clock();
+      this.persist();
+    } catch (err) {
+      this.ui.showCaption(`That is not built yet (${err instanceof Error ? err.message : String(err)}).`);
+    }
+    this.s.fade.classList.remove('on');
+    this.travelling = false;
+  }
+
   /**
    * A knot the place runs as she arrives: the Concierge's, in its card (in raw view, where it has none, as any
    * conversation).
@@ -556,7 +597,8 @@ export class Game {
     const files = await Promise.all(ids.map((id) => this.scenes.file(id).catch(() => null)));
     const scenes: Record<string, MapScene> = {};
     ids.forEach((id, i) => { const f = files[i]; if (f) scenes[id] = f; });
-    return mapNow(layout, scenes, this.been, (sc, id) => !!this.seen.get(sc)?.has(id), { scene: this.scene.file.id, x: this.world.heroX }, this.raw, this.there);
+    const here = this.zoomedFrom ?? { scene: this.scene.file.id, x: this.world.heroX };
+    return mapNow(layout, scenes, this.been, (sc, id) => !!this.seen.get(sc)?.has(id), { scene: here.scene, x: here.x }, this.raw, this.there);
   }
 
   /** What is on screen now of what goes on the map (ways out, people): seen, for the map. */
@@ -714,6 +756,8 @@ export class Game {
     // a way she has looked at or tried is known from now on: its marker shows
     if (h.go || h.kind === 'way') this.findWay(h);
     if (a.kind === 'feet' && h.go) return void this.travel(h.go, false, true);
+    // a thing seen close up: tapped, looked at or used, the view goes in close
+    if (h.zoom && (a.kind === 'feet' || a.kind === 'eyes' || a.kind === 'hands')) return void this.zoomInto(h);
     // a thing she holds, used on this one: the story's use_<thing>, or nothing comes of it
     if (a.kind === 'item') {
       const id = this.inHand;
@@ -779,7 +823,7 @@ export class Game {
       this.pending = a;
       return this.goTo(cx + side * (rect[2] / 2 + 12), h);
     }
-    if (a.kind === 'eyes' || a.kind === 'ask' || stand === undefined) {
+    if ((a.kind === 'eyes' && !h.zoom) || a.kind === 'ask' || stand === undefined) {
       if (!this.world.moving) this.world.facing = rect[0] + rect[2] / 2 >= this.world.heroX ? 1 : -1;
       return this.act(h, a);
     }
@@ -888,7 +932,7 @@ export class Game {
    * id a `_`, as Ink names go), else its own (`concierge`). Not where it cannot hear her.
    */
   private talkToConcierge(): void {
-    const knot = [`concierge_${this.scene.file.id.replace(/-/g, '_')}`, 'concierge'].find((k) => this.dialogue.has(k));
+    const knot = [`concierge_${(this.scene.file.closeup ?? this.scene.file.id).replace(/-/g, '_')}`, 'concierge'].find((k) => this.dialogue.has(k));
     if (!knot || !this.watched || this.raw) return;
     this.lockedBeforeTalk = !this.canSwitch();
     this.partner = null;
@@ -918,6 +962,7 @@ export class Game {
   private speakerAt(speaker: string): [number, number] | null {
     // over a close-up every line is said at the top, clear of the picture
     if (this.hud.closeupOpen) return null;
+    if (speaker === 'luna' && this.scene.file.closeup) return null;
     if (speaker === 'luna') {
       const c = this.s.canvas.getBoundingClientRect(), hud = this.hud.root.getBoundingClientRect(), k = c.width / NW;
       const head = this.scene.file.walk.y - this.shown.def.h * (this.scene.file.actorScale ?? 1);
@@ -1018,11 +1063,18 @@ export class Game {
     this.holding = this.chasing = false;
     if (this.verb || this.inHand) return this.scan(clientX, clientY);
     const [x, y] = this.toLevel(clientX, clientY), h = this.world.hotspotAt(x, y, this.raw, this.cam[0]);
+    // in a close-up nothing is walked to: a tap on a thing does what it is mostly for
+    if (this.scene.file.closeup) {
+      const a = h ? defaultOf(actionsFor(h, this.raw, this.stitches)) : null;
+      if (h && a) this.perform(h, a);
+      return;
+    }
     // on her, with nothing there to go to (a door she stands in front of is still gone through)
     if (!h && !this.world.moving && this.onHer(x, y)) { this.out = true; return; }
-    this.pending = h?.go ? { kind: 'feet', label: '' } : null;
+    const goes = !!(h?.go || h?.zoom);
+    this.pending = goes ? { kind: 'feet', label: '' } : null;
     const stand = h ? placeIn(h, this.raw).stand : undefined;
-    this.goTo(h?.go || stand === undefined ? x : stand, h?.go ? h : null);
+    this.goTo(h?.go || stand === undefined ? x : stand, goes ? h : null);
   }
 
   /** Whether a point in the level is on her: her figure about her middle, from her feet to the top of her head. */
@@ -1090,6 +1142,7 @@ export class Game {
 
   /** The arrows walk her; with Shift she speeds up through a jog into a run. */
   walkKey(dir: 'left' | 'right', down: boolean, run = false): void {
+    if (this.scene?.file.closeup) return;
     if (down) this.held.add(dir);
     else this.held.delete(dir);
     this.world.keyRun = run;
@@ -1111,7 +1164,7 @@ export class Game {
   /** Where she is and what has happened, as a save. */
   private saveData(): SaveData {
     return {
-      v: 2, scene: this.scene.file.id, heroX: Math.round(this.world.heroX), facing: this.world.facing, view: this.state.view, ink: this.dialogue.save(),
+      v: 2, scene: this.zoomedFrom?.scene ?? this.scene.file.id, heroX: Math.round(this.zoomedFrom?.x ?? this.world.heroX), facing: this.zoomedFrom?.facing ?? this.world.facing, view: this.state.view, ink: this.dialogue.save(),
       attention: this.attention, outfit: this.outfit || undefined, projection: this.projection ?? undefined, savedAt: Date.now(), where: pick(this.scene.file.name, this.raw),
       visited: [...this.been], seen: Object.fromEntries([...this.seen].map(([k, v]) => [k, [...v]])),
       found: Object.fromEntries([...this.found].map(([k, v]) => [k, [...v]])), read: [...this.notesRead],
@@ -1231,6 +1284,7 @@ export class Game {
     this.hud.ways(this.waysNow());
     this.talk.place();
     fitCanvas(this.s.canvas);
-    this.s.renderer.render(this.runner.frame(t, this.state, this.cam, [her], smoke));
+    // in a close-up she is not drawn: it is what she sees
+    this.s.renderer.render(this.runner.frame(t, this.state, this.cam, file.closeup ? [] : [her], file.closeup ? [-1000, -1000] : smoke));
   }
 }

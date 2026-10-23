@@ -532,8 +532,15 @@ const checks = {
     await tap(page, 709, 300);
     const door = await talkThrough(page);
     check('her invitation opens 9-07: its reader says guest', (await save(page))?.scene === 'athena-home' && door.some((l) => /guest/.test(l)) && /"athena_flat_entered":\s*true/.test(await ink(page)), `${(await save(page))?.scene} | ${door.join(' / ').slice(0, 80)}`);
+    // her workbench, up close: tapped, she goes up to it and the view goes in close
+    await tap(page, 786, 312);
+    await wait(5000);
+    check('her workbench, up close: she is not drawn, Step back is there', (await page.evaluate(() => !document.querySelector('.hud-back')?.hidden)) === true, String(await page.evaluate(() => document.querySelector('.hud')?.hasAttribute('data-closeup'))));
+    await tap(page, 480, 365);
+    await wait(1200);
+    check('its drawer opens', /"athena_drawer_open":\s*true/.test(await ink(page)));
     await verb(page, 'eyes');
-    await tap(page, 783, 293);
+    await tap(page, 345, 215);
     await page.waitForFunction(() => !!document.querySelector('.hud-closeup.reading .words'), { timeout: 8000 }).catch(() => {});
     const words = await page.$eval('.hud-closeup .words', (e) => e.textContent).catch(() => '');
     await wait(4000);
@@ -542,6 +549,9 @@ const checks = {
     await wait(500);
     const reaction = await talkThrough(page);
     check('her note, close up, its words over the blank paper, until she puts it down', /I'm fine/.test(words) && stays && reaction.some((l) => /What are you up to/.test(l)) && /"athena_note_read":\s*true/.test(await ink(page)), `${words.slice(0, 30)} | stays ${stays} | ${reaction.join(' / ').slice(0, 60)}`);
+    await page.click('.hud-back');
+    await wait(1500);
+    check('stepped back: in her flat, where she stood', (await save(page))?.scene === 'athena-home' && (await page.evaluate(() => document.querySelector('.hud-back')?.hidden)) === true, (await save(page))?.scene);
     await tap(page, 290, 290);
     await page.waitForFunction(() => /Was Athena at home/.test(document.querySelector('.co-thread')?.textContent ?? ''), { timeout: 15000 }).catch(() => {});
     const asked = await page.evaluate(() => document.querySelector('.co-thread')?.textContent ?? '');

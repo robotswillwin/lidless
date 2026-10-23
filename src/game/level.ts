@@ -38,6 +38,11 @@ export interface Hotspot {
   /** A door or the end of the street: using it goes to this scene, arriving at this place there. */
   go?: { scene: string; spawn: string };
   /**
+   * A close-up of it, a scene of its own (scenes/<id>, `closeup`): tapping it, or looking at or using it, she goes up to
+   * it and the view goes in close, where its things can be looked at, used, opened and taken one by one.
+   */
+  zoom?: string;
+  /**
    * Only there in one view. A generated person is gone in raw view ("concierge"); someone the Concierge edits
    * out can only be found in raw view ("raw"). Raw view is the only way to tell who is real.
    */

@@ -380,44 +380,15 @@
       },
       "rect": [
         720,
-        280,
-        130,
-        72
-      ],
-      "stand": 760,
-      "story": "athena_bench"
-    },
-    {
-      "id": "gap",
-      "name": {
-        "concierge": "Workbench",
-        "raw": "Workbench"
-      },
-      "rect": [
-        790,
-        296,
-        16,
-        42
-      ],
-      "stand": 790,
-      "story": "athena_gap"
-    },
-    {
-      "id": "scope",
-      "name": {
-        "concierge": "Oscilloscope",
-        "raw": "Oscilloscope"
-      },
-      "rect": [
-        809,
         272,
-        32,
-        34
+        132,
+        80
       ],
-      "stand": 805,
+      "stand": 768,
+      "zoom": "athena-bench",
       "look": {
-        "concierge": "Its green line rises and falls.",
-        "raw": "Still on. She left in a hurry."
+        "concierge": "Her workbench.",
+        "raw": "Her workbench."
       }
     },
     {
@@ -432,32 +403,6 @@
       "stand": 774,
       "item": "athena_patrol_sheet",
       "story": "athena_timetable"
-    },
-    {
-      "id": "note",
-      "name": "Note",
-      "rect": [
-        772,
-        280,
-        22,
-        27
-      ],
-      "stand": 780,
-      "item": "athena_note",
-      "story": "athenas_note"
-    },
-    {
-      "id": "receipt",
-      "name": "Receipt",
-      "rect": [
-        755,
-        293,
-        22,
-        14
-      ],
-      "stand": 764,
-      "item": "athena_repair_slip",
-      "story": "athena_receipt"
     }
   ]
 }

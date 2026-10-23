@@ -102,6 +102,9 @@ export class Hud {
   private closeupFit: ResizeObserver | null = null;
   /** A paper being read: puts it down (readCloseup). */
   private putDown: (() => void) | null = null;
+  /** In a close-up: back to where she stood. */
+  onBack: () => void = () => {};
+  private readonly backBtn: HTMLButtonElement;
   /** The player's settings, and changing them (from the menu's settings); back to the title screen. */
   settings: () => Settings | null = () => null;
   onSettings: (s: Settings) => void = () => {};
@@ -168,6 +171,11 @@ export class Hud {
     this.journalBtn.innerHTML = icon('journal', 22);
     this.notebookBtn = button('hud-btn notebook', 'Her notebook (N)', top, () => this.togglePanel('notebook'));
     button('hud-btn menu', 'Menu: saves, settings, help', top, () => this.togglePanel('menu')).innerHTML = icon('menu', 22);
+
+    // in a close-up, back to where she stood: at the bottom, between the balls
+    this.backBtn = button('hud-back', 'Step back (Esc)', root, () => this.onBack());
+    this.backBtn.innerHTML = `${icon('back', 18)}<span>Step back</span>`;
+    this.backBtn.hidden = true;
 
     // the two balls: her things on the left, what she can do on the right, the verb chosen named beside it
     this.thingsBall = button('hud-ball things', 'Her things (I)', root, () => this.toggleTray());
@@ -304,6 +312,12 @@ export class Hud {
         this.putDown = end;
       });
     });
+  }
+
+  /** In a close-up (a desk, a workbench, seen close), or not: its Back. */
+  setBack(on: boolean): void {
+    this.backBtn.hidden = !on;
+    this.root.toggleAttribute('data-closeup', on);
   }
 
   /** Her notebook taken or put down: its button shows or goes. */
@@ -776,6 +790,7 @@ export class Hud {
     if (k === 'Escape' && (this.menu || this.panelOpen)) { this.closeAll(); return true; }
     if (k === 'Escape' && this.held) { this.onHold(null); return true; }
     if (k === 'Escape' && this.verb) { this.onVerb(null); return true; }
+    if ((k === 'Escape' || k === 'Backspace') && !this.backBtn.hidden) { this.onBack(); return true; }
     if (k === 'n' || k === 'N') { this.togglePanel('notebook'); return true; }
     if (k === 'i' || k === 'I') { this.toggleTray(); return true; }
     if (k === 'm' || k === 'M') { this.openJournal(PLACES); return true; }

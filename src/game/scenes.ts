@@ -7,7 +7,7 @@ import type { GL } from '../engine/gl';
 import { fetchScene, freeScene, loadSceneFile, makeScene, type FetchedScene, type Scene, type SceneFile, type WorldFile } from './scenefile';
 
 /** The scenes a scene's ways out lead to: its doors and the ends of its street. */
-export const neighbours = (file: SceneFile): string[] => [...new Set(file.hotspots.flatMap((h) => (h.go && h.go.scene !== file.id ? [h.go.scene] : [])))];
+export const neighbours = (file: SceneFile): string[] => [...new Set(file.hotspots.flatMap((h) => [...(h.go && h.go.scene !== file.id ? [h.go.scene] : []), ...(h.zoom ? [h.zoom] : [])]))];
 
 /** What is kept as she arrives in `here` from `from`: those two on the GPU, and the files of where she can go next. */
 export function keepFor(here: SceneFile, from?: string): { gpu: Set<string>; files: Set<string> } {

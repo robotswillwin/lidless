@@ -28,6 +28,7 @@ const ICONS: Record<string, string> = {
   // a ribbon marking a page: her saves
   saves: '<path d="M7 3h10v18l-5-4-5 4z"/>',
   close: '<path d="M6 6l12 12M18 6L6 18"/>',
+  back: '<path d="M15 5l-7 7 7 7"/>',
 };
 
 /** Its own graphics, on a 64 grid: what exists only in its eye, and how it draws a thing it has no picture of. */

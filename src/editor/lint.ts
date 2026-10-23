@@ -5,7 +5,7 @@
 
 import { resolveLight } from '../engine/presets';
 import { inView, placeIn, type Hotspot, type ViewText } from '../game/level';
-import { checkSceneFile, type SceneFile } from '../game/scenefile';
+import { checkSceneFile, withCloseupDefaults, type SceneFile } from '../game/scenefile';
 import type { Selection } from './state';
 
 export interface Problem {
@@ -60,7 +60,9 @@ function selFor(msg: string, file: SceneFile): Selection | undefined {
   return undefined;
 }
 
-export function lintScene(file: SceneFile, ctx: LintContext): Problem[] {
+export function lintScene(given: SceneFile, ctx: LintContext): Problem[] {
+  // a close-up's walk and places to arrive at are filled in, as the game does
+  const file = withCloseupDefaults(given) as SceneFile;
   const out: Problem[] = [];
   // a problem found in both views is said once
   const said = new Set<string>();

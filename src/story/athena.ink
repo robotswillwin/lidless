@@ -18,6 +18,68 @@ Better not touch her work. She knows where everything is. #luna
 = look
 A clean rectangle in the dust, and a lead, unplugged. Something portable stood here.
 -> END
+= use
+The lead goes nowhere now. Whatever it fed, she took it, or someone did.
+-> END
+
+// Her workbench up close (scene athena-bench): her radio, her lamp, a drawer to open
+=== athena_radio ===
+= look
+{ raw_view:
+    Its back is off. Valves glowing, half of them new.
+- else:
+    Restored like a museum piece, its dial glowing.
+}
+-> END
+= use
+Better not touch her work. She knows where everything is. #luna
+-> END
+
+=== athena_lamp ===
+= look
+Her lamp, still on.
+-> END
+= use
+You leave it on. She'll be back. #luna
+-> END
+
+=== athena_drawer ===
+= look
+{ athena_drawer_open:
+    Valves, wire, fuses. And letters, tied with string.
+- else:
+    A shallow drawer under the bench, a brass pull.
+}
+-> END
+= use
+{ athena_drawer_open:
+    ~ athena_drawer_open = false
+    You push the drawer shut.
+- else:
+    ~ athena_drawer_open = true
+    The drawer slides out.
+}
+-> END
+
+=== athena_valves ===
+= look
+Spare valves for her radios, each standing in its place.
+-> END
+= use
+-> take
+= take
+Not mine to take. She counts them. #luna
+-> END
+
+=== athena_letters ===
+= look
+Old letters, tied with string. Hers.
+-> END
+= use
+Not mine to read. #luna
+-> END
+= take
+-> use
 
 === athenas_note ===
 // her note: reading it is what the opening turns on. It stays close up until she puts it down. Taken, she keeps it; it

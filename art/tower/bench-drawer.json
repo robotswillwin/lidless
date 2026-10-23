@@ -1,0 +1,24 @@
+{
+  "name": "bench-drawer",
+  "scene": "tower",
+  "kind": "prop",
+  "exists": "both",
+  "look": "vector",
+  "res": 2,
+  "frame": "keep",
+  "prompt": "the drawer pulled open: valves, wire, fuses and letters: lifted out of tower/athena-bench (lift), cut from its pictures where they changed as it was painted out.",
+  "height": 133.01,
+  "position": [
+    476.53,
+    448.68
+  ],
+  "depth": 3,
+  "occluder": false,
+  "material": "wood",
+  "glow": {
+    "raw": "auto",
+    "concierge": "auto"
+  },
+  "palette": 0,
+  "references": []
+}

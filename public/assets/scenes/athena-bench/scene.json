@@ -1,0 +1,302 @@
+{
+ "id": "athena-bench",
+ "name": {
+  "concierge": "Athena's workbench",
+  "raw": "Her workbench"
+ },
+ "closeup": "athena-home",
+ "greeting": "A private home, Luna.",
+ "assist": "This is Athena's home, Luna. I cannot see or hear you in here.",
+ "kind": "interior",
+ "private": true,
+ "size": [
+  960,
+  540
+ ],
+ "layers": [
+  {
+   "asset": "tower/athena-bench"
+  },
+  {
+   "asset": "tower/bench-drawer",
+   "x": 327.61,
+   "y": 315.66,
+   "when": "athena_drawer_open"
+  },
+  {
+   "asset": "tower/bench-note",
+   "x": 292.87,
+   "y": 152.87,
+   "when": "!(taken has athena_note)"
+  },
+  {
+   "asset": "tower/bench-receipt",
+   "x": 323.64,
+   "y": 247.17,
+   "when": "!(taken has athena_repair_slip)"
+  }
+ ],
+ "lights": [
+  {
+   "x": 660,
+   "y": 70,
+   "z": 20,
+   "r": 260,
+   "c": [
+    1,
+    0.82,
+    0.55
+   ],
+   "i": 0.8,
+   "zone": 0,
+   "layer": 1,
+   "own": 1
+  },
+  {
+   "x": 210,
+   "y": 170,
+   "z": 12,
+   "r": 160,
+   "c": [
+    1,
+    0.7,
+    0.4
+   ],
+   "i": 0.35,
+   "zone": 0,
+   "layer": 1,
+   "own": 1
+  },
+  {
+   "x": 810,
+   "y": 180,
+   "z": 12,
+   "r": 150,
+   "c": [
+    0.5,
+    1,
+    0.6
+   ],
+   "i": 0.25,
+   "zone": 0,
+   "layer": 1,
+   "own": 1,
+   "raw": 1
+  },
+  {
+   "x": 810,
+   "y": 180,
+   "z": 12,
+   "r": 150,
+   "c": [
+    0.4,
+    0.9,
+    1
+   ],
+   "i": 0.3,
+   "zone": 0,
+   "layer": 1,
+   "own": 1,
+   "ar": 1
+  }
+ ],
+ "ambient": {
+  "raw": 1.2,
+  "concierge": 1.3
+ },
+ "baked": 1,
+ "hotspots": [
+  {
+   "id": "tools",
+   "name": {
+    "concierge": "Soldering iron",
+    "raw": "Soldering iron"
+   },
+   "rect": [
+    70,
+    258,
+    110,
+    36
+   ],
+   "look": {
+    "concierge": "A soldering iron, cold, on its stand.",
+    "raw": "Her soldering iron. Cold. She always switches it off."
+   }
+  },
+  {
+   "id": "radio",
+   "name": {
+    "concierge": "Radio",
+    "raw": "Radio"
+   },
+   "rect": [
+    92,
+    98,
+    243,
+    157
+   ],
+   "story": "athena_radio"
+  },
+  {
+   "id": "gap",
+   "name": {
+    "concierge": "Workbench",
+    "raw": "Workbench"
+   },
+   "rect": [
+    480,
+    244,
+    170,
+    42
+   ],
+   "story": "athena_gap"
+  },
+  {
+   "id": "cable",
+   "name": {
+    "concierge": "Cable",
+    "raw": "Cable"
+   },
+   "rect": [
+    640,
+    268,
+    46,
+    200
+   ],
+   "story": "athena_gap"
+  },
+  {
+   "id": "lamp",
+   "name": {
+    "concierge": "Lamp",
+    "raw": "Lamp"
+   },
+   "rect": [
+    624,
+    0,
+    150,
+    240
+   ],
+   "story": "athena_lamp"
+  },
+  {
+   "id": "scope",
+   "name": {
+    "concierge": "Oscilloscope",
+    "raw": "Oscilloscope"
+   },
+   "rect": [
+    708,
+    105,
+    210,
+    170
+   ],
+   "look": {
+    "concierge": "Its line rises and falls, calm as breathing.",
+    "raw": "Still on. Whatever it was listening to, it still is."
+   }
+  },
+  {
+   "id": "drawer",
+   "name": {
+    "concierge": "Drawer",
+    "raw": "Drawer"
+   },
+   "rect": [
+    348,
+    336,
+    264,
+    58
+   ],
+   "story": "athena_drawer",
+   "when": "not athena_drawer_open"
+  },
+  {
+   "id": "drawer-open",
+   "name": {
+    "concierge": "Drawer",
+    "raw": "Drawer"
+   },
+   "rect": [
+    330,
+    422,
+    300,
+    30
+   ],
+   "story": "athena_drawer",
+   "when": "athena_drawer_open"
+  },
+  {
+   "id": "valves",
+   "name": {
+    "concierge": "Valves",
+    "raw": "Valves"
+   },
+   "rect": [
+    331,
+    337,
+    140,
+    80
+   ],
+   "story": "athena_valves",
+   "when": "athena_drawer_open"
+  },
+  {
+   "id": "wire",
+   "name": {
+    "concierge": "Wire",
+    "raw": "Wire"
+   },
+   "rect": [
+    471,
+    334,
+    66,
+    90
+   ],
+   "when": "athena_drawer_open",
+   "look": {
+    "concierge": "Coils of copper wire, wound neatly.",
+    "raw": "Copper wire, wound tight. She wastes nothing."
+   }
+  },
+  {
+   "id": "letters",
+   "name": {
+    "concierge": "Letters",
+    "raw": "Letters"
+   },
+   "rect": [
+    545,
+    347,
+    85,
+    83
+   ],
+   "story": "athena_letters",
+   "when": "athena_drawer_open"
+  },
+  {
+   "id": "note",
+   "name": "Note",
+   "rect": [
+    300,
+    160,
+    90,
+    110
+   ],
+   "item": "athena_note",
+   "story": "athenas_note"
+  },
+  {
+   "id": "receipt",
+   "name": "Receipt",
+   "rect": [
+    328,
+    252,
+    128,
+    34
+   ],
+   "item": "athena_repair_slip",
+   "story": "athena_receipt"
+  }
+ ]
+}

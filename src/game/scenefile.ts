@@ -55,6 +55,12 @@ export interface SceneFile {
   name: ViewText;
   /** Exterior: outside air, the sky's cold ambient, rain in raw view. Interior: inside. Areas of the other kind go in zones. */
   kind: 'exterior' | 'interior';
+  /**
+   * A close-up of a place (the place's id): a desk, a workbench, seen close. She is not drawn in it and nothing is walked
+   * to: a tap on a thing does what it is for, the verbs as anywhere; Back returns her to where she stood. It needs no walk
+   * or places to arrive at. Not on the map; for the story she is still in the place (scene_now).
+   */
+  closeup?: string;
   /** In level pixels; wider than 960 scrolls. */
   size: [number, number];
   layers: LayerDef[];
@@ -200,9 +206,17 @@ const getJSON = async <T>(url: string): Promise<T> => {
 export const loadWorld = (assets: string) => getJSON<WorldFile>(`${assets}/world.json`);
 /** A scene file, checked: a mistake in it is reported by name, with every other mistake found, before anything uses it. */
 export async function loadSceneFile(assets: string, id: string): Promise<SceneFile> {
-  const data = await getJSON<unknown>(`${assets}/scenes/${id}/scene.json`), problems = checkSceneFile(data, id);
+  const data = withCloseupDefaults(await getJSON<unknown>(`${assets}/scenes/${id}/scene.json`)), problems = checkSceneFile(data, id);
   if (problems.length) throw new Error(`scenes/${id}/scene.json: ${problems.join('; ')}`);
   return data as SceneFile;
+}
+
+/** A close-up has no walk and no places to arrive at of its own: the whole of it, and its middle. */
+export function withCloseupDefaults(data: unknown): unknown {
+  const f = data as Partial<SceneFile> | null;
+  if (!f || typeof f !== 'object' || typeof f.closeup !== 'string' || !Array.isArray(f.size)) return data;
+  const [w, h] = f.size;
+  return { ...f, walk: f.walk ?? { y: h - 1, x0: 0, x1: w }, spawns: f.spawns ?? { in: { x: w / 2, facing: 1 } }, lights: f.lights ?? [] };
 }
 
 const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
@@ -217,7 +231,7 @@ const viewText = (v: unknown) => isStr(v) || (!!v && typeof v === 'object' && is
 export function checkSceneFile(data: unknown, id?: string): string[] {
   const out: string[] = [];
   if (!data || typeof data !== 'object') return ['it is not a JSON object'];
-  const f = data as Record<string, unknown>;
+  const f = withCloseupDefaults(data) as Record<string, unknown>;
   if (!isStr(f.id)) out.push('id is missing');
   else if (id !== undefined && f.id !== id) out.push(`its id is ${f.id}, not ${id}`);
   if (f.name !== undefined && !viewText(f.name)) out.push('name must be text, or { concierge, raw }');

@@ -1,0 +1,24 @@
+{
+  "name": "bench-note",
+  "scene": "tower",
+  "kind": "prop",
+  "exists": "both",
+  "look": "vector",
+  "res": 2,
+  "frame": "keep",
+  "prompt": "a folded white note propped against the radio: lifted out of tower/athena-bench (lift), cut from its pictures where they changed as it was painted out.",
+  "height": 117.13,
+  "position": [
+    343,
+    270
+  ],
+  "depth": 3,
+  "occluder": false,
+  "material": "wood",
+  "glow": {
+    "raw": "auto",
+    "concierge": "auto"
+  },
+  "palette": 0,
+  "references": []
+}

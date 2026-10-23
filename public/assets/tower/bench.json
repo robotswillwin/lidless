@@ -1,6 +1,10 @@
 {
   "assets": [
     "athena",
+    "athena-bench",
+    "bench-drawer",
+    "bench-note",
+    "bench-receipt",
     "floor14",
     "floor9",
     "lobby",
@@ -10,6 +14,7 @@
   ],
   "backgrounds": [
     "athena",
+    "athena-bench",
     "floor14",
     "floor9",
     "lobby"
