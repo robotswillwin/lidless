@@ -104,11 +104,14 @@ holds**. Each decision is the director's, in plain words; what is still open say
     floors (9 and 14 so far), each a corridor of flat doors; her flat is off the corridor of floor 14. The lift is a
     machine of the city and calls her "guest".
 
+27. **Ways to the next place are always marked; a door only once she knows it**: a marker at the end of a street
+    always; a door's marker once she has looked at it or tried it, so not every way in shows at once.
+
 ## Production
 
-27. **Music** is the director's: one composition in a digital and an analogue arrangement, blended as the view
+28. **Music** is the director's: one composition in a digital and an analogue arrangement, blended as the view
     switches. No sound effects yet.
-28. **English only**, for now.
+29. **English only**, for now.
 
 ## Open, for the director
 

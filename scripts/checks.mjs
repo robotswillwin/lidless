@@ -435,7 +435,10 @@ const checks = {
     await page.close();
   },
 
-  /** Where she can go is plain: a marker over each door that leads somewhere and at the street's end; tapped, she goes. */
+  /**
+   * Where she can go: the way to the next place, at the street's end, always marked; a door marked once she knows it
+   * (looked at, tried, come out of), so she finds the ways in herself; a marker tapped, she goes.
+   */
   async ways() {
     const page = await browser.newPage();
     page.on('pageerror', (e) => errors.push(String(e)));
@@ -444,11 +447,20 @@ const checks = {
     await page.evaluateOnNewDocument(() => { if (sessionStorage.getItem('seeded')) return; sessionStorage.setItem('seeded', '1'); localStorage.setItem('lidless.save.v1', JSON.stringify({ v: 2, scene: 'street', heroX: 300, facing: 1, view: 1, ink: null })); });
     await page.goto(`${url}?notitle&fast`);
     await ready(page);
-    const marked = await page.$$eval('.hud-way', (bs) => bs.map((b) => `${b.dataset.edge}:${b.textContent}`));
-    check('the ways in sight are marked: the radio repair door, the end of the street', marked.includes('in:Radio repair') && marked.some((m) => /^left:/.test(m)), marked.join(' | '));
+    const marks = () => page.$$eval('.hud-way', (bs) => bs.map((b) => `${b.dataset.edge}:${b.textContent}`));
+    const first = await marks();
+    check('at first only the way to the next place is marked, not the doors', first.some((m) => /^left:/.test(m)) && !first.some((m) => /^in:/.test(m)), first.join(' | '));
+    await verb(page, 'eyes');
+    await tap(page, 304, 340);
+    await wait(2500);
+    const looked = await marks();
+    check('a door looked at gets its marker', looked.includes('in:Radio repair'), looked.join(' | '));
     await page.evaluate(() => [...document.querySelectorAll('.hud-way')].find((b) => b.textContent === 'Radio repair')?.click());
     await wait(4500);
-    check('a marker tapped: she goes there, and in', (await save(page))?.scene === 'radio', (await save(page))?.scene);
+    check('its marker tapped: she goes there, and in', (await save(page))?.scene === 'radio', (await save(page))?.scene);
+    const inside = await marks();
+    check('inside, the door she came in by is marked', inside.some((m) => /^in:/.test(m)), inside.join(' | '));
+    check('what she knows is kept in her save', JSON.stringify((await save(page))?.found ?? {}).includes('radio-door'), JSON.stringify((await save(page))?.found));
     await page.close();
   },
 

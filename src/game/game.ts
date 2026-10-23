@@ -138,6 +138,8 @@ export class Game {
   /** The places she has been, and what she has seen in each (its ways out, people): what the map shows (see map.ts). */
   private readonly been: Set<string>;
   private readonly seen: Map<string, Set<string>>;
+  /** In each scene, the ways in and out she knows (looked at, tried, come out of): their markers show. */
+  private readonly found: Map<string, Set<string>>;
   /** What she has read in her notebook: the rest is marked new. */
   private readonly notesRead: Set<string>;
   /** How many times she has gone from one scene to another, and how far each scene's rotations have turned (rotate.ts). */
@@ -160,6 +162,7 @@ export class Game {
     this.hud.known = (cond) => this.dialogue.test(cond);
     this.been = new Set(s.save?.visited ?? []);
     this.seen = new Map(Object.entries(s.save?.seen ?? {}).map(([k, v]) => [k, new Set(v)]));
+    this.found = new Map(Object.entries(s.save?.found ?? {}).map(([k, v]) => [k, new Set(v)]));
     this.notesRead = new Set(s.save?.read ?? []);
     this.arrived = s.save?.arrived ?? 0;
     this.rotations = { ...(s.save?.rotations ?? {}) };
@@ -424,6 +427,11 @@ export class Game {
     try {
       await this.enter(exit.scene, exit);
       this.arrive();
+      // the way she came out of is known: a door, a lift, wherever she stands now
+      for (const h of this.scene.file.hotspots) {
+        const [rx, , rw] = placeIn(h, this.raw).rect;
+        if ((h.go || h.kind === 'way') && this.world.heroX >= rx - 20 && this.world.heroX <= rx + rw + 20) this.findWay(h);
+      }
       this.syncKeys();
       if (seen && left.noticed) {
         this.raiseAttention(1);
@@ -619,6 +627,8 @@ export class Game {
 
   private act(h: Hotspot, a: Action): void {
     const raw = this.raw;
+    // a way she has looked at or tried is known from now on: its marker shows
+    if (h.go || h.kind === 'way') this.findWay(h);
     if (a.kind === 'feet' && h.go) return void this.travel(h.go);
     // a thing she holds, used on this one: the story's use_<thing>, or nothing comes of it
     if (a.kind === 'item') {
@@ -779,19 +789,29 @@ export class Game {
     return [x + w / 2, y - 6];
   }
 
+  /** A way in or out she now knows: its marker shows, in this scene, from now on. */
+  private findWay(h: Hotspot): void {
+    const id = this.scene.file.id, known = this.found.get(id) ?? new Set<string>();
+    if (known.has(h.id)) return;
+    known.add(h.id);
+    this.found.set(id, known);
+  }
+
   /**
-   * The ways in and out on screen, for their markers: every door that leads somewhere (`go`) and every way she uses to
-   * get about (a lift: `kind` way), over its top; a way off the end of the street at that edge, while it is in sight.
-   * None while she travels or talks.
+   * The ways in and out on screen, for their markers. A way off the end of the street, to the next place, is always
+   * marked, at that edge, while it is in sight. A door that leads somewhere (`go`), or a way she uses to get about (a
+   * lift: `kind` way), is marked over its top once she knows it: she has looked at it, tried it, or come out of it.
+   * So she finds the ways in herself. None while she travels or talks.
    */
   private waysNow(): Way[] {
     if (this.travelling || this.talk.open || this.hud.concierge.talking || this.directing) return [];
-    const f = this.scene.file, W = this.hud.root.clientWidth, out: Way[] = [];
+    const f = this.scene.file, W = this.hud.root.clientWidth, out: Way[] = [], known = this.found.get(f.id);
     for (const h of f.hotspots) {
       if (!(h.go || h.kind === 'way') || !inView(h, this.raw) || !this.world.shown(h)) continue;
       const [x, y, w, hh] = this.boxOf(h), [rx, , rw] = placeIn(h, this.raw).rect;
       if (x + w < 0 || x > W) continue;
       const edge = h.go && rx <= 2 ? 'left' : h.go && rx + rw >= f.size[0] - 2 ? 'right' : 'in', label = pick(h.name, this.raw);
+      if (edge === 'in' && !known?.has(h.id)) continue;
       out.push(edge === 'in' ? { id: h.id, label, x: x + w / 2, y: y - 6, edge } : { id: h.id, label, x: edge === 'left' ? Math.max(12, x) : Math.min(W - 12, x + w), y: y + hh / 2, edge });
     }
     return out;
@@ -942,7 +962,8 @@ export class Game {
     return {
       v: 2, scene: this.scene.file.id, heroX: Math.round(this.world.heroX), facing: this.world.facing, view: this.state.view, ink: this.dialogue.save(),
       attention: this.attention, outfit: this.outfit || undefined, projection: this.projection ?? undefined, savedAt: Date.now(), where: pick(this.scene.file.name, this.raw),
-      visited: [...this.been], seen: Object.fromEntries([...this.seen].map(([k, v]) => [k, [...v]])), read: [...this.notesRead],
+      visited: [...this.been], seen: Object.fromEntries([...this.seen].map(([k, v]) => [k, [...v]])),
+      found: Object.fromEntries([...this.found].map(([k, v]) => [k, [...v]])), read: [...this.notesRead],
       arrived: this.arrived, rotations: this.rotations, visits: this.visits,
     };
   }

@@ -709,7 +709,7 @@ export class Hud {
 export function drawHelp(p: HTMLElement): void {
   const box = el('div', 'help', p);
   const rows: [string, string][] = [
-    ['Walk', 'Tap where she should go. Every door that leads somewhere, and the end of the street, has a marker: tap it, or the door, and she goes through. Outdoors, hold a finger far ahead of her to run.'],
+    ['Walk', 'Tap where she should go. The end of a street always has a marker to the next place; a door gets one once she has looked at it or tried it. Tap a marker, or the door, and she goes through. Outdoors, hold a finger far ahead of her to run.'],
     ['Do', 'The ball at the bottom right: choose Look, Talk, Use or Take, then tap what to do it to (or slide over the scene and let go on what lights up). Anything can be tried; not everything answers.'],
     ['Concierge', 'Its light at the top left, in its view. Tap it: it says what it would have you do here, what you have to do, and how you are. Talk to it there, or Ask about something, then tap a thing. Talk at the ball is Luna speaking to someone herself.'],
     ['Her things', 'The ball at the bottom left. Tap a thing to see it close up; Use takes it out, then tap what to use it on.'],

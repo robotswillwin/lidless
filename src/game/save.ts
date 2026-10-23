@@ -24,6 +24,8 @@ export interface SaveData {
   /** The places she has been, and in each what she has seen of what goes on the map (ways out, people): see map.ts. */
   visited?: string[];
   seen?: Record<string, string[]>;
+  /** In each scene, the ways in and out she knows: looked at, tried, or come out of. Their markers show. */
+  found?: Record<string, string[]>;
   /** What she has read in her notebook (see notebook.ts). */
   read?: string[];
   /** How many times she has gone from one scene to another, and how far each scene's rotations have turned (rotate.ts). */
