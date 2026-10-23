@@ -130,6 +130,11 @@ export class CO {
     return minuteAt(this.clockStart, t);
   }
 
+  /** The time of day, seconds after midnight: a clock's second hand. */
+  secondOfDay(t = this.g.clock()): number {
+    return (((this.clockStart * 60 + t) % 86400) + 86400) % 86400;
+  }
+
   /**
    * Each frame, `t` seconds into the session and `dt` since the last: in its view, with nothing to stare at, its
    * attention slowly settles; its greeting and its line of the day (the clock, the weather: it never says it is

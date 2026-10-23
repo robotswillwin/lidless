@@ -145,19 +145,27 @@ export interface SteamDef { x: number; y: number; height: number; width: number;
  */
 export interface GodrayDef { x: number; y: number; strength: number; zone: number; ar?: number; only?: Only; parallax?: number; views?: Views<GodrayDef> }
 export interface BeaconDef { x: number; y: number; phase: number; parallax?: number; only?: Only; views?: Views<BeaconDef> }
-/** The shapes an oscilloscope's line takes, in the order its knob turns through them. */
-export const WAVES = ['sine', 'square', 'triangle', 'saw'] as const;
+/** The shapes an oscilloscope's line takes, in the order a knob turns through them; and a voice, coming and going. */
+export const WAVES = ['sine', 'square', 'triangle', 'saw', 'voice'] as const;
 export type Wave = (typeof WAVES)[number];
 /** Its speeds, in the order its other knob turns through them: how many waves cross its screen, and how fast they creep. */
 export const SPEEDS = { slow: { waves: 1, creep: 0.05 }, medium: { waves: 2, creep: 0.25 }, fast: { waves: 4, creep: 0.9 } } as const;
 export type Speed = keyof typeof SPEEDS;
 /**
  * An oscilloscope's screen, its line drawn live by the engine: it creeps along and breathes, with a little noise on it in
- * raw view. Where the glass's middle is and its radius inside the rim; its shape and its speed, as placed (`shape`,
- * `pace`) or as story variables have them (`wave`, `speed`: its knobs, which the story turns); only in one view, or
- * while a condition holds.
+ * raw view. Where its middle is, and its glass's radius inside the rim (`r`) or, a screen with corners, its width and
+ * height (`w`, `h`); its shape and its speed, as placed (`shape`, `pace`) or as story variables have them (`wave`,
+ * `speed`: its knobs, which the story turns); its line's colour in each view (cyan to the Concierge, phosphor green in
+ * raw view, unless it says); only in one view, or while a condition holds.
  */
-export interface ScopeDef { x: number; y: number; r: number; shape?: Wave; wave?: string; pace?: Speed; speed?: string; when?: string; only?: Only; parallax?: number }
+export interface ScopeDef {
+  x: number; y: number; r?: number; w?: number; h?: number;
+  shape?: Wave; wave?: string; pace?: Speed; speed?: string;
+  colours?: Partial<Record<Only, [number, number, number]>>;
+  when?: string; only?: Only; parallax?: number;
+}
+/** A clock's face, its hands drawn live at the game's time: where its middle is, and its radius inside the hour marks. */
+export interface ClockDef { x: number; y: number; r: number; when?: string; only?: Only; parallax?: number }
 
 /**
  * The ground below the reflection line, drawn by the engine over a painted floor that was smoothed for it (asset ground
@@ -188,6 +196,8 @@ export interface SceneDef {
   godrays: GodrayDef[];
   /** Oscilloscopes' screens, their lines drawn live: two at most. */
   scopes?: ScopeDef[];
+  /** Clocks, their hands drawn live: two at most. */
+  clocks?: ClockDef[];
   drips?: { x0: number; x1: number; top: number; bottom: number };
   /** World y of the line wet surfaces reflect around. */
   mirror: number;

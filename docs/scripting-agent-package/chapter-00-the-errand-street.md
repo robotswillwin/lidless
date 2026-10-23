@@ -84,6 +84,19 @@
         raw: Hollow cheeks, burn marks on his hands. The iron never stops.
       tag: { concierge: "Guest · repairs", raw: the radio man }
       ask: He repairs old radios, Luna. A charming pastime.
+    - id: monitor
+      name: Monitor
+      look:
+        concierge: An amber line on an old screen, coming and going, soft as a lullaby.
+        raw: A green line rising and falling, like something breathing on the other end.
+      kind: machine
+    - id: clock
+      name: Clock
+      where: the round clock on the wall, between the shelf of radios and the staff door
+      look:
+        concierge: A wall clock. It keeps the real time, whatever the sky says.
+        raw: A wall clock, ticking. He keeps it right.
+      kind: thing
 ```
 
 ## Script

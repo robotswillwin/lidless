@@ -177,7 +177,7 @@
       ],
       "stand": 590,
       "look": {
-        "concierge": "Green text scrolling on an old screen, soft as a lullaby.",
+        "concierge": "An amber line on an old screen, coming and going, soft as a lullaby.",
         "raw": "A green line rising and falling, like something breathing on the other end."
       },
       "kind": "machine"
@@ -265,6 +265,21 @@
         "concierge": "A delivery, received and logged.",
         "raw": "Parcel 4471, on his bench where he set it down. He hasn't opened it. He hasn't needed to."
       }
+    },
+    {
+      "id": "clock",
+      "name": "Clock",
+      "rect": [
+        764,
+        215,
+        27,
+        28
+      ],
+      "look": {
+        "concierge": "A wall clock. It keeps the real time, whatever the sky says.",
+        "raw": "A wall clock, ticking. He keeps it right."
+      },
+      "kind": "thing"
     }
   ],
   "lights": [
@@ -546,5 +561,34 @@
         "power": 0
       }
     }
-  }
+  },
+  "scopes": [
+    {
+      "x": 587.25,
+      "y": 313,
+      "w": 27,
+      "h": 19,
+      "shape": "voice",
+      "pace": "slow",
+      "colours": {
+        "concierge": [
+          1,
+          0.66,
+          0.2
+        ],
+        "raw": [
+          0.5,
+          0.85,
+          0.42
+        ]
+      }
+    }
+  ],
+  "clocks": [
+    {
+      "x": 777.5,
+      "y": 229,
+      "r": 11.8
+    }
+  ]
 }

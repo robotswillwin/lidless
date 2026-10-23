@@ -186,6 +186,7 @@ interior. Arrivals: `door`.
 | `side-door` | Staff door / Side door |  |  |
 | `fixer` | The fixer | `fixer` |  |
 | `parcel` | Delivery / Your parcel |  | when `parcel_delivered` |
+| `clock` | Clock |  |  |
 
 ### restroom: Public restroom
 

@@ -46,12 +46,23 @@ describe('checkSceneFile', () => {
     f.scopes = [{ x: 1, y: 1, r: 10, shape: 'zigzag', pace: 'warp' }, { x: 1, y: 1, wave: 'Not a name', speed: 3 }, { x: 1, y: 1, r: 4, when: 'has_raw and' }];
     const problems = checkSceneFile(f, 'street');
     expect(problems).toContain('scopes: at most 2 are drawn, this scene has 3');
-    expect(problems).toContain('scopes[0].shape must be one of sine, square, triangle, saw');
-    expect(problems.some((p) => p.startsWith('scopes[1] needs r'))).toBe(true);
+    expect(problems).toContain('scopes[0].shape must be one of sine, square, triangle, saw, voice');
+    expect(problems).toContain('scopes[1] needs r (a round glass) or w and h (a screen with corners)');
     expect(problems).toContain('scopes[1].wave must name a story variable');
     expect(problems).toContain('scopes[0].pace must be one of slow, medium, fast');
     expect(problems).toContain('scopes[1].speed must name a story variable');
     expect(problems.some((p) => p.startsWith('scopes[2]: when:'))).toBe(true);
+  });
+
+  it('checks a clock and a screen with corners: where they are, how big, in what colours', () => {
+    const f = read('street');
+    f.scopes = [{ x: 1, y: 1, w: 20, h: 14, colours: { raw: [1, 0.5] } }];
+    f.clocks = [{ x: 1, y: 1 }, { x: 1, y: 1, r: 5, when: 'and' }];
+    const problems = checkSceneFile(f, 'street');
+    expect(problems).toContain('scopes[0].colours.raw must be [r, g, b], 0 to 1');
+    expect(problems.some((p) => p.startsWith('clocks[0] needs r'))).toBe(true);
+    expect(problems.some((p) => p.startsWith('clocks[1]: when:'))).toBe(true);
+    expect(problems.some((p) => p.startsWith('scopes[0] needs'))).toBe(false);
   });
 
   it('checks the ground: its eye above the reflection line, its slabs, kerb and puddles', () => {

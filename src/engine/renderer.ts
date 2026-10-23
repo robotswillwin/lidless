@@ -88,12 +88,18 @@ export interface Frame {
   steamFar?: Float32Array;
   godrays: Float32Array;
   /**
-   * Oscilloscopes' lines, two vec4 each: the glass's middle (world) and radius, its shape now (1 sine, 2 square, 3
-   * triangle, 4 saw); the shape before, how far it has turned into this one (0 to 1), how far its waves have crept (in
-   * waves), how many cross the screen. Two at most.
+   * Oscilloscopes' lines, four vec4 each: the screen's middle (world) and half its width, its shape now (1 sine, 2 square,
+   * 3 triangle, 4 saw, 5 voice); the shape before, how far it has turned into this one (0 to 1), how far its waves have
+   * crept (in waves), how many cross the screen; half its height, 1 for a round glass, and its line's colour in raw view
+   * and in the Concierge's. Two at most.
    */
   scopes?: Float32Array;
   nScopes?: number;
+  /** Clocks, a vec4 each: the face's middle (world) and its radius. Two at most. */
+  clocks?: Float32Array;
+  nClocks?: number;
+  /** The time of day, seconds after midnight: a clock's hands. */
+  daySeconds?: number;
   drips: [number, number, number, number];
   mirror: number;
   /** The ground the engine draws below the reflection line, if the scene has one. */
@@ -115,8 +121,9 @@ const GLOSSY = 16;
 const NO_FAR = new Float32Array(4);
 /** No movers' trails. */
 const NO_TRAILS = new Float32Array(16);
-/** No oscilloscopes. */
-const NO_SCOPES = new Float32Array(16);
+/** No oscilloscopes, no clocks. */
+const NO_SCOPES = new Float32Array(32);
+const NO_CLOCKS = new Float32Array(8);
 
 const MAP_ORDER: [MapName, string][] = [
   ['albedo.raw', 'tAlbR'], ['albedo.concierge', 'tAlbC'], ['normal', 'tNrm'], ['normal.concierge', 'tNrmC'], ['material', 'tMat'],
@@ -376,7 +383,7 @@ export class Renderer {
       }
     }
 
-    // composite: reflections, steam, rain, drips, oscilloscopes
+    // composite: reflections, steam, rain, drips, oscilloscopes, clocks
     this.pass(this.prog.comp, t.fb, (pr) => {
       this.bind(pr, 'tA', t.fa.tex[0], 0); this.bind(pr, 'tG3', t.gbuf.tex[3], 1); this.bind(pr, 'tDof', t.d1.tex[0], 2);
       this.bind(pr, 'tRefl', reflBlur ? refl.tex[0] : this.black, 7); gl.uniform1f(pr.u.uReflBlur, reflBlur ? 1 : 0);
@@ -385,6 +392,7 @@ export class Renderer {
       gl.uniform1f(pr.u.uTime, f.t); gl.uniform1f(pr.u.uDof, dof ? 1 : 0); gl.uniform1f(pr.u.uView, f.view);
       gl.uniform4fv(pr.u.uSteam, f.steam); gl.uniform4fv(pr.u.uSteamFar, f.steamFar ?? NO_FAR); gl.uniform4f(pr.u.uDrips, ...f.drips); gl.uniform1f(pr.u.uMirror, f.mirror);
       gl.uniform4fv(pr.u.uScope, f.scopes ?? NO_SCOPES); gl.uniform1i(pr.u.uNScope, f.nScopes ?? 0);
+      gl.uniform4fv(pr.u.uClock, f.clocks ?? NO_CLOCKS); gl.uniform1i(pr.u.uNClock, f.nClocks ?? 0); gl.uniform1f(pr.u.uDaySec, f.daySeconds ?? 0);
       gl.uniform1f(pr.u.uRawFog, k.rawFog); gl.uniform1f(pr.u.uWrap, k.charWrap); gl.uniform1f(pr.u.uRain, k.rain); gl.uniform1f(pr.u.uFog, k.fog); gl.uniform1f(pr.u.uBakedC, baked);
       gl.uniform4f(pr.u.uRefl, k.reflect, k.reflectReach, k.reflectStreak, k.mirrorSet);
       gl.uniform2f(pr.u.uReflSoft, k.reflectDiffuse, k.reflectStreak); gl.uniform1f(pr.u.uSmudge, smudge ? 1 : 0);

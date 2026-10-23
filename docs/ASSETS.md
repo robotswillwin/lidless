@@ -325,13 +325,16 @@ Characters walk in front of the set, so lights and characters need to know which
   picture rather than on it.
 - A scene's `ambient` and `exposure` (stops) can each be one number or one per view: a dark raw room can be a white
   apartment to the Concierge.
-- What moves on a screen is drawn live, not painted: an oscilloscope (`scopes`, two at most) is the middle of its
-  glass and its radius inside the rim, `x`, `y`, `r`; its line's shape, `sine`, `square`, `triangle` or `saw`, and its
-  speed, `slow`, `medium` or `fast`, each as placed (`shape`, `pace`) or as a story variable has it (`wave`, `speed`:
-  its knobs, which the story turns). The engine draws the line over the glass, which is painted empty: it creeps along,
-  breathes a little, carries a real signal's noise in raw view, changes shape over a moment when a knob turns, and
-  eases to a new speed (more waves across the glass, creeping faster). Cyan in the Concierge's view, phosphor green in
-  raw view.
+- What moves is drawn live, not painted (decision 44). An oscilloscope (`scopes`, two at most) is the middle of its
+  screen, `x`, `y`, and its glass's radius inside the rim, `r`, or a screen with corners, `w` and `h`; its line's shape,
+  `sine`, `square`, `triangle`, `saw` or `voice` (quick waves in bursts, coming and going), and its speed, `slow`,
+  `medium` or `fast`, each as placed (`shape`, `pace`) or as a story variable has it (`wave`, `speed`: its knobs, which
+  the story turns); its line's colour, `colours` (`raw` and `concierge`, each [r, g, b] from 0 to 1; cyan to the
+  Concierge and phosphor green in raw view unless it says). The engine draws the line over the screen, which is
+  painted empty: it creeps along, breathes a little, carries a real signal's noise in raw view, changes shape over a
+  moment when a knob turns, and eases to a new speed (more waves across the glass, creeping faster).
+- A clock (`clocks`, two at most) is the middle of its face and its radius inside the hour marks, `x`, `y`, `r`; its
+  face is painted without hands, and the engine draws them at the game's time of day, the second hand ticking.
 - Anything placed can be in one view only, `"only": "raw"` or `"only": "concierge"`: a hotspot, a layer (a hologram
   over the street in the Concierge's view, a scrawl only raw view shows), steam, a light shaft, a beacon, a mover. A
   light says it with its flags, `"ar": 1` or `"raw": 1`; an older light shaft's `"ar": 1` still means the Concierge's.

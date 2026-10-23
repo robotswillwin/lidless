@@ -347,10 +347,14 @@ uniform vec4 uRefl;       // the look: reflections' strength; how far up the set
 uniform vec4 uSteam[4];
 uniform vec4 uSteamFar;   // 1 for each emitter on a far layer: its plume only where a far layer is in front
 uniform vec4 uDrips;      // world x0, x1, top, bottom of the drip curtain; z <= 0 turns it off
-uniform vec4 uScope[4];   // oscilloscopes, two vec4 each: the glass's middle (world) and its radius inside the rim, the
-                          // line's shape (1 sine, 2 square, 3 triangle, 4 saw); the shape before, how far it has turned,
-                          // how far its waves have crept, how many cross the screen
+uniform vec4 uScope[8];   // oscilloscopes, four vec4 each: the screen's middle (world) and half its width, the line's
+                          // shape (1 sine, 2 square, 3 triangle, 4 saw, 5 voice); the shape before, how far it has
+                          // turned, how far its waves have crept, how many cross the screen; half its height, 1 for a
+                          // round glass, and the line's colour in raw view, then in the Concierge's
 uniform int uNScope;
+uniform vec4 uClock[2];   // clocks: a face's middle (world) and its radius inside the hour marks
+uniform int uNClock;
+uniform float uDaySec;    // the time of day, seconds after midnight
 uniform float uMirror;    // world y of the reflection line
 uniform vec4 uGnd;        // the ground the engine draws over a painted floor: the horizon's world y; the kerb's distance in
                           // front of the walk line (0: none); how much of it holds puddles when wet; 1 when there is one
@@ -443,11 +447,23 @@ vec2 waveAt(float s, float ph) {
   if (s < 1.5) return vec2(sin(6.2831853 * ph), 6.2831853 * cos(6.2831853 * ph));
   if (s < 2.5) return vec2(f < 0.5 ? 1.0 : -1.0, 0.0);
   if (s < 3.5) { float g = fract(ph + 0.75); return vec2(4.0 * abs(g - 0.5) - 1.0, g < 0.5 ? -4.0 : 4.0); }
-  return vec2(2.0 * fract(ph + 0.5) - 1.0, 2.0);
+  if (s < 4.5) return vec2(2.0 * fract(ph + 0.5) - 1.0, 2.0);
+  // a voice: quick waves in bursts that swell and fade as it goes on
+  float th = 6.2831853 * ph * 0.6 + uTime * 1.1, e0 = 0.5 + 0.5 * sin(th), e = 0.25 + 0.75 * e0 * e0;
+  float de = 0.75 * e0 * cos(th) * 6.2831853 * 0.6, a3 = 6.2831853 * ph * 3.0, a7 = 6.2831853 * ph * 7.0 + 1.3;
+  float wv = 0.7 * sin(a3) + 0.3 * sin(a7), dw = 6.2831853 * (2.1 * cos(a3) + 2.1 * cos(a7));
+  return vec2(wv * e, dw * e + wv * de);
+}
+// how far p is from the segment from a to b
+float segAt(vec2 p, vec2 a, vec2 b) { vec2 ab = b - a; return length(p - a - ab * clamp(dot(p - a, ab) / max(dot(ab, ab), 1e-6), 0.0, 1.0)); }
+// how far q is from a clock's hand at angle a (clockwise from twelve), reaching len, with a tail behind the middle
+float handAt(vec2 q, float a, float len, float tail) {
+  vec2 d = vec2(sin(a), -cos(a));
+  return length(q - d * clamp(dot(q, d), -tail, len));
 }
 // how far q is from the nearest step a square or a saw jumps down or up: the beam crosses it too fast to light it much
 float waveStep(float s, vec2 q, float ph, float span, float amp, float drift, float waves) {
-  if (s < 1.5 || (s > 2.5 && s < 3.5)) return 1e3;
+  if (s < 1.5 || (s > 2.5 && s < 3.5) || s > 4.5) return 1e3;
   float pj = s < 2.5 ? floor(ph * 2.0 + 0.5) * 0.5 : floor(ph) + 0.5, xj = (2.0 * (pj - drift) / waves - 1.0) * span;
   return abs(xj) > span ? 1e3 : length(vec2(q.x - xj, max(abs(q.y) - amp, 0.0)));
 }
@@ -640,22 +656,53 @@ void main() {
   // in front of it
   for (int i = 0; i < 2; i++) {
     if (i >= uNScope) break;
-    vec4 A = uScope[i * 2], B = uScope[i * 2 + 1];
+    vec4 A = uScope[i * 4], B = uScope[i * 4 + 1], C = uScope[i * 4 + 2], D = uScope[i * 4 + 3];
     vec2 q = w - A.xy;
-    if (dot(q, q) > A.z * A.z || isActor(g3.a) > 0.5) continue;
-    float span = A.z * 0.92, amp = A.z * 0.44 * (1.0 + 0.03 * sin(uTime * 0.9 + float(i) * 1.7));
+    bool round = C.y > 0.5;
+    if ((round ? dot(q, q) > A.z * A.z : abs(q.x) > A.z || abs(q.y) > C.x) || isActor(g3.a) > 0.5) continue;
+    float span = A.z * (round ? 0.92 : 0.86), amp = C.x * (round ? 0.44 : 0.5) * (1.0 + 0.03 * sin(uTime * 0.9 + float(i) * 1.7));
     float waves = max(B.w, 0.25), drift = B.z, ph = (clamp(q.x / span, -1.0, 1.0) + 1.0) * 0.5 * waves + drift, k = smoothstep(0.0, 1.0, B.y);
     vec2 v = mix(waveAt(B.x, ph), waveAt(A.w, ph), k);
-    // its line as fine as its screen is small: set for one 48 pixels across, up close
-    float sc = A.z / 48.0, px = 1.0 / uRS, hw = max(0.6, 1.55 * sc);
+    // its line as fine as its screen is small: set for a glass 48 pixels in radius, up close
+    float sc = C.x / 48.0, px = 1.0 / uRS, hw = max(0.6, 1.55 * sc);
     float yc = -amp * v.x + (vn(vec2(w.x * 0.9 / sc, uTime * 30.0)) - 0.5) * 0.6 * sc * raw;
     float sl = amp * v.y * waves / (2.0 * span), past = abs(q.x) - span;
     float d = past > 0.0 ? length(vec2(past, q.y - yc)) : abs(q.y - yc) / sqrt(1.0 + sl * sl);
+    // a line with no jumps in it, steep or not: how far from a few short pieces of it either side of this pixel (the
+    // slope alone, where it is steep, lights the whole column)
+    bool jumps = abs(A.w - 2.0) < 0.5 || abs(A.w - 4.0) < 0.5 || (k < 1.0 && (abs(B.x - 2.0) < 0.5 || abs(B.x - 4.0) < 0.5));
+    if (!jumps) {
+      d = 1e3;
+      vec2 last = vec2(0.0);
+      for (int j = -3; j <= 3; j++) {
+        float xs = clamp(q.x + float(j) * 0.8, -span, span), pj = (xs / span + 1.0) * 0.5 * waves + drift;
+        vec2 pt = vec2(xs, -amp * mix(waveAt(B.x, pj).x, waveAt(A.w, pj).x, k) + (vn(vec2((A.x + xs) * 0.9 / sc, uTime * 30.0)) - 0.5) * 0.6 * sc * raw);
+        if (j > -3) d = min(d, segAt(q, last, pt));
+        last = pt;
+      }
+    }
     float steps = (cover(waveStep(B.x, q, ph, span, amp, drift, waves), hw * 0.5, px) * (1.0 - k) + cover(waveStep(A.w, q, ph, span, amp, drift, waves), hw * 0.5, px) * k) * 0.35;
-    vec3 col = mix(vec3(0.36, 0.95, 0.42), vec3(0.27, 0.9, 0.97), uView) * (0.96 + 0.04 * sin(uTime * 7.0 + float(i)));
+    vec3 col = mix(vec3(C.z, C.w, D.x), D.yzw, uView) * (0.96 + 0.04 * sin(uTime * 7.0 + float(i)));
     float line = max(cover(d, hw, px), steps);
     c = mix(c, col, line);
     c += col * (exp(-d * d / (12.0 * sc * sc)) * 0.4 + exp(-d / (7.0 * sc)) * 0.1) * 0.5 * (1.0 - line);
+  }
+  // a clock's hands, live, at the game's time of day: the second hand ticks, and settles with a little bounce. Never
+  // over someone in front of it
+  for (int i = 0; i < 2; i++) {
+    if (i >= uNClock) break;
+    vec4 K = uClock[i];
+    vec2 q = w - K.xy;
+    float R = K.z, f = fract(uDaySec), tau = 6.2831853, px = 1.0 / uRS;
+    if (dot(q, q) > R * R || isActor(g3.a) > 0.5) continue;
+    float sec = floor(mod(uDaySec, 60.0)) - exp(-f * 22.0) * cos(f * 38.0);
+    float dh = handAt(q, tau * mod(uDaySec / 3600.0, 12.0) / 12.0, R * 0.5, R * 0.08);
+    float dm = handAt(q, tau * mod(uDaySec / 60.0, 60.0) / 60.0, R * 0.74, R * 0.08);
+    float ds = handAt(q, tau * sec / 60.0, R * 0.8, R * 0.2);
+    vec3 ink = mix(vec3(0.03), vec3(0.03, 0.035, 0.07), uView), red = mix(vec3(0.42, 0.1, 0.06), vec3(0.7, 0.18, 0.1), uView);
+    c = mix(c, ink, max(cover(dh, R * 0.06, px), cover(dm, R * 0.045, px)));
+    c = mix(c, red, cover(ds, max(R * 0.016, 0.3), px) * 0.9);
+    c = mix(c, ink, cover(length(q), R * 0.08, px));
   }
   o = vec4(c, 1.0);
 }`;

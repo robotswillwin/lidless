@@ -181,6 +181,7 @@ describe('an oscilloscope', () => {
     let f = r.frame(1, view, [0, 0]);
     expect(f.nScopes).toBe(1);
     expect([...f.scopes!.slice(0, 6)]).toEqual([800, 180, 48, 1, 1, 1]);
+    expect([f.scopes![8], f.scopes![9]]).toEqual([48, 1]);
     dial = 'saw';
     f = r.frame(2, view, [0, 0]);
     expect([f.scopes![3], f.scopes![4], f.scopes![5]]).toEqual([4, 1, 0]);
@@ -202,6 +203,24 @@ describe('an oscilloscope', () => {
     expect(Math.abs(f.scopes![6] - before)).toBeLessThan(0.05);
     for (let t = 1.1; t < 3; t += 0.05) f = r.frame(t, view, [0, 0]);
     expect(f.scopes![7]).toBeCloseTo(4, 1);
+  });
+
+  it('a screen with corners: half its width and height, and its own colours', () => {
+    const r = new SceneRunner(withScope([{ x: 10, y: 20, w: 30, h: 16, shape: 'voice', colours: { concierge: [1, 0.6, 0.2] } }]));
+    const f = r.frame(0, view, [0, 0]);
+    expect([f.scopes![2], f.scopes![3], f.scopes![8], f.scopes![9]]).toEqual([15, 5, 8, 0]);
+    expect([...f.scopes!.slice(13, 16)].map((v) => Math.round(v * 100) / 100)).toEqual([1, 0.6, 0.2]);
+  });
+
+  it('a clock: where it is, and the time of day', () => {
+    const sc = scene([sprite('shop')]);
+    sc.def.clocks = [{ x: 777, y: 229, r: 12 }];
+    const r = new SceneRunner(sc);
+    r.daySeconds = (t) => 7 * 3600 + 12 * 60 + t;
+    const f = r.frame(30, view, [0, 0]);
+    expect(f.nClocks).toBe(1);
+    expect([...f.clocks!.slice(0, 4)]).toEqual([777, 229, 12, 1]);
+    expect(f.daySeconds).toBe(7 * 3600 + 12 * 60 + 30);
   });
 
   it('keeps its own shape without a dial; one in the other view, or not there yet, is not drawn', () => {

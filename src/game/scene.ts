@@ -112,11 +112,16 @@ export class SceneRunner {
   /** A story variable's value: an oscilloscope's knobs (its `wave` and `speed`). */
   read: (name: string) => unknown = () => undefined;
 
+  /** The time of day, in seconds after midnight, at the scene's time t: a clock's hands. */
+  daySeconds: (t: number) => number = (t) => t;
+
   /**
-   * Each oscilloscope's line: two vec4 for each. Its shape now, the one before and when its knob turned; how many waves
+   * Each oscilloscope's line: four vec4 for each. Its shape now, the one before and when its knob turned; how many waves
    * cross its screen and how fast they creep, easing to its speed's; and how far they have crept, so a turn never jumps.
    */
-  private scopes = new Float32Array(16);
+  private scopes = new Float32Array(32);
+  /** Each clock: where it is and how big. */
+  private clocks = new Float32Array(8);
   private readonly dials: { now: number; was: number; at: number; waves: number; creep: number; crept: number; t: number }[] = [];
 
   /** Sprites named in `dynamic` are left out; the game draws them itself (the hero). */
@@ -284,8 +289,21 @@ export class SceneRunner {
       at.waves += (pace.waves - at.waves) * ease;
       at.creep += (pace.creep - at.creep) * ease;
       at.crept = (at.crept + at.creep * dt) % 1;
-      this.scopes.set([sc.x + along(sc.parallax), sc.y, sc.r, shape, at.was, Math.min(1, Math.max(0, (t - at.at) / 0.35)), at.crept, at.waves], nScopes++ * 8);
+      // a round glass, or a screen with corners; its line's colour in each view
+      const round = sc.w === undefined || sc.h === undefined, hw = round ? sc.r ?? 0 : sc.w! / 2, hh = round ? sc.r ?? 0 : sc.h! / 2;
+      const raw = sc.colours?.raw ?? [0.36, 0.95, 0.42], conc = sc.colours?.concierge ?? [0.27, 0.9, 0.97];
+      this.scopes.set([
+        sc.x + along(sc.parallax), sc.y, hw, shape, at.was, Math.min(1, Math.max(0, (t - at.at) / 0.35)), at.crept, at.waves,
+        hh, round ? 1 : 0, raw[0], raw[1], raw[2], conc[0], conc[1], conc[2],
+      ], nScopes++ * 16);
     });
+    // a clock's hands: where it is, and the time of day
+    this.clocks.fill(0);
+    let nClocks = 0;
+    for (const ck of d.clocks ?? []) {
+      if (nClocks >= 2 || !inViewOf(ck.only, view) || (ck.when && !this.shown(ck.when))) continue;
+      this.clocks.set([ck.x + along(ck.parallax), ck.y, ck.r, 1], nClocks++ * 4);
+    }
     const dr = d.drips;
     return {
       t,
@@ -315,6 +333,9 @@ export class SceneRunner {
       godrays: this.godrays,
       scopes: this.scopes,
       nScopes,
+      clocks: this.clocks,
+      nClocks,
+      daySeconds: this.daySeconds(t),
       drips: dr ? [dr.x0, dr.x1, dr.top, dr.bottom] : [0, 0, 0, 0],
       mirror: d.mirror,
       ground: d.ground,
