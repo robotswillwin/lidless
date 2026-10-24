@@ -4,11 +4,20 @@
 // was loaded from the menu, which reloads the page into it.
 
 import { button, el } from './dom';
-import { Eye } from './eye';
+import { Eye, eyeMark } from './eye';
 import { drawHelp } from './hud';
 import { icon } from './icons';
 import { clearSave, listSaves, loadSave, loadThumb, writeSave, writeThumb, type Slot } from './save';
 import { drawSettings, type Settings } from './settings';
+
+/** When a game was saved, as a player says it: today at 13:24, yesterday at 9:05, or 24 Oct at 13:24. */
+export function savedWhen(t: number, now = Date.now()): string {
+  const d = new Date(t), day = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const time = d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }), days = Math.round((day(new Date(now)) - day(d)) / 86400000);
+  if (days === 0) return `Today at ${time}`;
+  if (days === 1) return `Yesterday at ${time}`;
+  return `${d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' })} at ${time}`;
+}
 
 /** Set before a reload that goes straight into the game: the title is not shown once. */
 const SKIP = 'lidless.skipTitle';
@@ -49,16 +58,6 @@ export interface TitleHooks {
   onContinue: () => void;
 }
 
-/** Its mark: the eye from the wait, in its ring (its parts named as Eye draws them; ids its own). */
-const MARK = `<svg class="mark" viewBox="-60 -44 120 88" aria-hidden="true"><defs>
-<clipPath id="title-eye-opening"><path class="opening" d="M-34 0Q0 30 34 0Q0 30 -34 0Z"/></clipPath>
-<radialGradient id="title-eye-ball"><stop offset="0" stop-color="#1c1622"/><stop offset="1" stop-color="#060509"/></radialGradient>
-<radialGradient id="title-eye-glow"><stop offset="0" stop-color="#ff2b3d" stop-opacity=".9"/><stop offset=".4" stop-color="#ff2b3d" stop-opacity=".3"/><stop offset="1" stop-color="#ff2b3d" stop-opacity="0"/></radialGradient>
-</defs><circle class="ring" r="38"/><g transform="translate(0 -5)"><path class="lashes" d=""/><g clip-path="url(#title-eye-opening)">
-<rect x="-34" y="-15" width="68" height="30" fill="url(#title-eye-ball)"/><g class="look"><circle class="glow" r="18" fill="url(#title-eye-glow)" opacity="0"/>
-<circle class="iris" r="10" opacity="0"/><circle class="pupil" r="0"/><circle class="glint" cx="-2" cy="-2.2" r="1.3" opacity="0"/></g></g>
-<path class="lid" d="M-34 0Q0 30 34 0"/><path class="lid upper" d="M-34 0Q0 30 34 0"/></g></svg>`;
-
 /**
  * The title over the stage: its mark, the eye from the wait, open and looking about; the name; and the ways in, down
  * the left over a shade, the scene moving on the right. Continue goes on with the game in progress (or begins the game,
@@ -70,7 +69,7 @@ export function showTitle(stage: HTMLElement, hooks: TitleHooks): () => void {
   box.setAttribute('aria-label', 'Lidless');
   stage.dataset.title = '';
   const brand = el('header', 'brand', box);
-  brand.innerHTML = MARK;
+  brand.innerHTML = eyeMark('title-eye');
   // as the wait left it: open, its pupil lit, looking about and blinking now and then
   const eye = new Eye(brand.querySelector('svg')!, () => document.documentElement.dataset.motion === 'reduced');
   eye.play(3.4);
@@ -91,6 +90,16 @@ export function showTitle(stage: HTMLElement, hooks: TitleHooks): () => void {
     if (title) panel.querySelector<HTMLElement>('.back')?.focus({ preventScroll: true });
   };
   box.addEventListener('keydown', (e) => { if (e.key === 'Escape' && box.classList.contains('sub')) { e.stopPropagation(); view(main); } });
+  // the game in progress, at the foot of the screen: its picture, where she is and when it was; a tap goes on with it
+  const auto = loadSave('auto');
+  if (auto) {
+    const card = button('continue-card', `Continue from ${auto.where ?? 'where you were'}`, box, () => { close(); hooks.onContinue(); });
+    const thumb = loadThumb('auto');
+    if (thumb) { const img = el('img', 'shot', card) as HTMLImageElement; img.src = thumb; img.alt = ''; }
+    const words = el('span', 'words', card);
+    el('span', 'where', words, auto.where ?? 'Your game');
+    if (auto.savedAt) el('span', 'when', words, savedWhen(auto.savedAt));
+  }
   const main = (panel: HTMLElement) => {
     const saved = !!loadSave('auto'), menu = el('nav', 'menu', panel);
     menu.setAttribute('aria-label', 'Lidless');

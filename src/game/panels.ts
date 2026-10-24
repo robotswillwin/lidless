@@ -1,10 +1,12 @@
-// The panels over the frame: her journal (with the map), her notebook, and the menu with her saves, the settings and how
-// to play; and their buttons at the top right, a dot on the journal's and the notebook's while there is something in them
-// she has not read. Her notebook opens only where the Concierge cannot see her, and only if she has it with her.
+// The panels over the frame: her journal (with the map), her notebook, and the menu, which pauses the game, with her
+// saves, the settings and how to play; and their buttons at the top right, a dot on the journal's and the notebook's
+// while there is something in them she has not read. Her notebook opens only where the Concierge cannot see her, and
+// only if she has it with her.
 
 import { button, el } from './dom';
+import { Eye, eyeMark } from './eye';
 import type { Hud } from './hud';
-import { icon } from './icons';
+import { howTo, icon } from './icons';
 import { drawJournal, PLACES } from './journal';
 import { drawMap } from './map';
 import { drawNotebook, notebookNow, type Notebook } from './notebook';
@@ -24,6 +26,9 @@ export class Panels {
   private journalTab: string | null = null;
   /** The menu's tab: her saves, the settings, how to play. */
   private menuTab: 'saves' | 'settings' | 'help' = 'saves';
+  /** The menu's page, at the right, drawn again when another tab is chosen; and its eye, watching even now. */
+  private menuPage: HTMLElement | null = null;
+  private eye: Eye | null = null;
 
   /** Their buttons, after the view switch at the top right: the map, her journal, her notebook, the menu. */
   constructor(private readonly hud: Hud, top: HTMLElement) {
@@ -85,6 +90,10 @@ export class Panels {
     if (kind === 'notebook' && !hud.hasNotebook()) return;
     if (kind === 'notebook' && !hud.unseen) return hud.onShut();
     this.panel?.remove();
+    this.eye?.stop();
+    // the menu pauses the game; any other panel lets it go on
+    if (kind === 'menu') hud.onPause(true);
+    else if (this.kind === 'menu') hud.onPause(false);
     hud.concierge.close();
     hud.balls.closeVerbs();
     hud.balls.closeTray();
@@ -106,6 +115,9 @@ export class Panels {
 
   /** A panel and the tray close. */
   closeSheet(): void {
+    if (this.kind === 'menu') this.hud.onPause(false);
+    this.eye?.stop();
+    this.eye = null;
     // it fades as it goes (with less motion, it goes at once); one opened again at once is a new one
     const p = this.panel;
     if (p && document.documentElement.dataset.motion !== 'reduced') { p.classList.add('leaving'); p.removeAttribute('aria-label'); window.setTimeout(() => p.remove(), 150); }
@@ -150,24 +162,44 @@ export class Panels {
   }
 
   /**
-   * The menu: her saves (where she is now, saved as she goes, and three slots she saves into and goes back to), the
-   * settings, how to play, and the title screen.
+   * The menu: the game paused, the scene still behind it. Down the left the game's mark (the eye, watching even now)
+   * and its ways: back to the game, her saves, the settings, how to play, and the title screen; the page chosen at the
+   * right, drawn again alone when another is chosen.
    */
   private drawMenu(p: HTMLElement): void {
     const hud = this.hud;
-    p.setAttribute('aria-label', 'Menu');
-    const head = el('div', 'head', p), tabs = el('nav', 'tabs', head);
-    tabs.setAttribute('aria-label', 'Menu');
+    p.setAttribute('aria-label', 'Paused');
+    const side = el('div', 'side', p), brand = el('div', 'brand', side);
+    brand.innerHTML = eyeMark('pause-eye');
+    this.eye = new Eye(brand.querySelector('svg')!, () => document.documentElement.dataset.motion === 'reduced');
+    this.eye.play(3.4);
+    el('div', 'paused', brand, 'Paused');
+    const ways = el('nav', 'ways', side);
+    ways.setAttribute('aria-label', 'Menu');
+    button('resume', 'Back to the game (Esc)', ways, () => this.close()).textContent = 'Resume';
     const settings = hud.settings();
     for (const [id, title] of [['saves', 'Saves'], ['settings', 'Settings'], ['help', 'How to play']] as const) {
       if (id === 'settings' && !settings) continue;
-      const t = button(`tab${this.menuTab === id ? ' on' : ''}`, title, tabs, () => { this.menuTab = id; this.openPanel('menu'); });
+      const t = button('tab', title, ways, () => { this.menuTab = id; this.drawMenuPage(); });
       t.textContent = title;
-      t.setAttribute('aria-current', String(this.menuTab === id));
+      t.dataset.tab = id;
     }
-    button('to-title', 'To the title screen', head, () => { this.close(); hud.onTitle(); }).textContent = 'Title screen';
-    button('hud-close', 'Close', head, () => this.close()).innerHTML = icon('close', 18);
-    const body = el('div', 'body', p);
+    button('to-title', 'To the title screen', ways, () => { this.close(); hud.onTitle(); }).textContent = 'Title screen';
+    this.menuPage = el('div', 'page', p);
+    this.drawMenuPage();
+  }
+
+  /**
+   * The menu's page: her saves (where she is now, saved as she goes, and three slots she saves into and goes back to),
+   * the settings, or how to play.
+   */
+  private drawMenuPage(): void {
+    const hud = this.hud, page = this.menuPage, settings = hud.settings();
+    if (!page || this.kind !== 'menu') return;
+    this.panel?.querySelectorAll<HTMLElement>('.ways .tab').forEach((t) => { const on = t.dataset.tab === this.menuTab; t.classList.toggle('on', on); t.setAttribute('aria-current', String(on)); });
+    page.replaceChildren();
+    el('h2', 'title', page, { saves: 'Saves', settings: 'Settings', help: 'How to play' }[this.menuTab]);
+    const body = el('div', 'body', page);
     if (this.menuTab === 'settings' && settings) return drawSettings(body, settings, (s) => hud.onSettings(s));
     if (this.menuTab === 'help') return drawHelp(body);
     const list = el('div', 'saves', body), all = hud.saves();
@@ -182,26 +214,27 @@ export class Panels {
       el('div', 'when', words, s ? [s.where, when(s.savedAt)].filter(Boolean).join(' · ') || 'Saved' : 'Empty');
       const row = el('div', 'row', card);
       if (slot === 'auto') el('div', 'quiet', row, 'Saved as you play');
-      if (slot !== 'auto') button(s ? '' : 'primary', `Save in slot ${slot}`, row, () => { hud.onSave(slot); this.openPanel('menu'); }).textContent = s ? 'Save over' : 'Save here';
+      if (slot !== 'auto') button(s ? '' : 'primary', `Save in slot ${slot}`, row, () => { hud.onSave(slot); this.drawMenuPage(); }).textContent = s ? 'Save over' : 'Save here';
       if (s && slot !== 'auto') button('primary', `Go back to slot ${slot}`, row, () => hud.onLoad(slot)).textContent = 'Load';
     }
   }
 }
 
-/** How to play: the controls, by touch and by keyboard, each on a card under the HUD's own icon for it. */
+/** How to play: the controls, by touch and by keyboard, each on a card with a drawing of what the hand does. */
 export function drawHelp(p: HTMLElement): void {
   const box = el('div', 'help', p);
   const rows: [string, string, string][] = [
-    ['feet', 'Walk', 'Tap where she should go. The end of a street always has a marker to the next place; a door gets one once she has looked at it or tried it. Tap a marker, or the door, and she goes through. Outdoors, hold a finger far ahead of her to run.'],
-    ['hands', 'Do', 'Tap a thing and she looks at it. To do more, the ball at the bottom right: choose Talk, Use or Take, then tap what to do it to (or slide over the scene and let go on what lights up). Anything can be tried; not everything answers.'],
+    ['walk', 'Walk', 'Tap where she should go. The end of a street always has a marker to the next place; a door gets one once she has looked at it or tried it. Tap a marker, or the door, and she goes through. Outdoors, hold a finger far ahead of her to run.'],
+    ['do', 'Do', 'Tap a thing and she looks at it. To do more, the ball at the bottom right: choose Talk, Use or Take, then tap what to do it to (or slide over the scene and let go on what lights up). Anything can be tried; not everything answers.'],
     ['co', 'Concierge', 'Its light at the top left, in its view. Tap it: it says what it would have you do here, what you have to do, and how you are. Talk to it there, or Ask about something, then tap a thing. Talk at the ball is Luna speaking to someone herself.'],
-    ['satchel', 'Her things', 'The ball at the bottom left. Tap a thing to see it close up; Use takes it out, then tap what to use it on.'],
-    ['menu', 'Top right', 'The view switch once she has it, the map, her journal (anywhere) and her notebook (only where it cannot see her), and this menu.'],
+    ['things', 'Her things', 'The ball at the bottom left. Tap a thing to see it close up; Use takes it out, then tap what to use it on.'],
+    ['top', 'Top right', 'The view switch once she has it, the map, her journal (anywhere) and her notebook (only where it cannot see her), and this menu.'],
     ['keys', 'Keys', 'Arrows or A and D walk, with Shift she runs. E switches view, I her things, M the map, J her journal, N her notebook, Esc closes. Numbers pick an answer.'],
   ];
-  for (const [ic, name, text] of rows) {
+  for (const [how, name, text] of rows) {
     const r = el('div', 'row-help', box);
-    el('div', 'name', r, name).insertAdjacentHTML('afterbegin', icon(ic, 18));
+    r.insertAdjacentHTML('afterbegin', howTo(how));
+    el('div', 'name', r, name);
     el('div', 'text', r, text);
   }
 }

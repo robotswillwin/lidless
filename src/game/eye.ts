@@ -102,6 +102,21 @@ export class Eye {
   }
 }
 
+/**
+ * The game's mark: the eye from the wait, in its ring, as an SVG with its parts named as Eye draws them, for the title
+ * screen and the pause screen. `id` keeps its clip and gradients its own, so two can be on the page at once.
+ */
+export function eyeMark(id: string): string {
+  return `<svg class="mark" viewBox="-60 -44 120 88" aria-hidden="true"><defs>
+<clipPath id="${id}-opening"><path class="opening" d="M-34 0Q0 30 34 0Q0 30 -34 0Z"/></clipPath>
+<radialGradient id="${id}-ball"><stop offset="0" stop-color="#1c1622"/><stop offset="1" stop-color="#060509"/></radialGradient>
+<radialGradient id="${id}-glow"><stop offset="0" stop-color="#ff2b3d" stop-opacity=".9"/><stop offset=".4" stop-color="#ff2b3d" stop-opacity=".3"/><stop offset="1" stop-color="#ff2b3d" stop-opacity="0"/></radialGradient>
+</defs><circle class="ring" r="38"/><g transform="translate(0 -5)"><path class="lashes" d=""/><g clip-path="url(#${id}-opening)">
+<rect x="-34" y="-15" width="68" height="30" fill="url(#${id}-ball)"/><g class="look"><circle class="glow" r="18" fill="url(#${id}-glow)" opacity="0"/>
+<circle class="iris" r="10" opacity="0"/><circle class="pupil" r="0"/><circle class="glint" cx="-2" cy="-2.2" r="1.3" opacity="0"/></g></g>
+<path class="lid" d="M-34 0Q0 30 34 0"/><path class="lid upper" d="M-34 0Q0 30 34 0"/></g></svg>`;
+}
+
 /** The page's one eye, behind its fade. */
 let eye: Eye | null = null;
 export function waitingEye(reduced: () => boolean = () => matchMedia('(prefers-reduced-motion: reduce)').matches): Eye | null {

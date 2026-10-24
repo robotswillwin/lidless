@@ -104,7 +104,7 @@ export function drawInspect(root: HTMLElement, t: Thing, assets: string, held: b
   card.setAttribute('aria-label', t.name);
   card.addEventListener('pointerdown', (e) => e.stopPropagation());
   const pic = el('div', 'picture', card);
-  pic.innerHTML = pictureOf(t, 112, assets);
+  pic.innerHTML = pictureOf(t, 152, assets);
   const words = el('div', 'words', card);
   el('h2', '', words, t.name);
   if (t.tag) el('div', 'tag', words, t.tag);

@@ -184,6 +184,7 @@ export class Game {
     this.hud.onVerb = (v) => this.controls.setVerb(v);
     this.hud.onHold = (id) => this.controls.hold(id);
     this.hud.saves = () => listSaves();
+    this.hud.onPause = (on) => this.pause(on);
     this.hud.onSave = (slot) => this.saveTo(slot);
     this.hud.onLoad = (slot) => this.loadFrom(slot);
     this.hud.onView = () => this.toggleView();
@@ -234,10 +235,22 @@ export class Game {
     return this.state.view < 0.5;
   }
 
-  /** Seconds since the session started, or the held time. */
+  /** Seconds since the session started, less the time it was paused; or the held time. */
   clock(): number {
-    return this.setup.fixedT ?? (performance.now() - this.t0) / 1000;
+    return this.setup.fixedT ?? (this.pausedAt ?? (performance.now() - this.t0) / 1000) - this.pausedFor;
   }
+
+  /**
+   * The game paused (the menu open) or going on: its clock stops, so she, the city and the time of day hold still
+   * behind the menu, and go on from there.
+   */
+  pause(on: boolean): void {
+    const now = (performance.now() - this.t0) / 1000;
+    if (on && this.pausedAt === null) this.pausedAt = now;
+    else if (!on && this.pausedAt !== null) { this.pausedFor += now - this.pausedAt; this.pausedAt = null; }
+  }
+  private pausedAt: number | null = null;
+  private pausedFor = 0;
 
   /** After the tab was hidden: the next frame does not catch up on the time away. */
   resume(): void {

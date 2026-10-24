@@ -170,7 +170,7 @@ export function mapNow(layout: MapLayout, scenes: Record<string, MapScene>, been
  * beside the map: its picture larger, who and what she knows there, and the way there. Nothing travels at one tap.
  */
 export function drawMap(body: HTMLElement, now: MapNow, go: (t: Travel, name: string) => void): void {
-  const map = el('div', 'map', body), area = el('div', 'area', map), chart = el('div', 'chart', area), detail = el('aside', 'place-detail', map);
+  const map = el('div', 'map-view', body), area = el('div', 'area', map), chart = el('div', 'chart', area), detail = el('aside', 'place-detail', map);
   detail.setAttribute('aria-live', 'polite');
   const [bx, by, bw, bh] = now.bounds;
   const pct = (x: number, y: number) => `left:${((x - bx) / bw) * 100}%;top:${((y - by) / bh) * 100}%`;

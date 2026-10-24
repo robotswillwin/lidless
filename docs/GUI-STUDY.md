@@ -246,7 +246,9 @@ Keep. The notebook could have its margin, the paper's edge and a page turn.
 
 **P0**, about three to four hours of Claude's time:
 
-1. The tokens in `style.css` (type, colour, corners, depth, motion), and every rule using them.
+1. Done (24 October): the tokens on `:root` in `style.css` (a type scale with nothing under 11 px and a step larger on
+   big screens, three strengths of light text, corners, three timings and one easing), used by every rule of the HUD,
+   the title, the menus and the terminal.
 2. Done (24 October): her head-up display's window for the journal and the map: glass in the air, the street seen
    through it, its pages a tab bar floating beside it, one size, designed empty pages.
 3. Done (24 October): the map as picture cards. A place's picture is taken as she arrives (`lidless.place.<scene>`);
@@ -255,8 +257,11 @@ Keep. The notebook could have its margin, the paper's edge and a page turn.
 4. Partly done: the current objective large, people by their initial (portraits wait), empty pages. Evidence with
    pictures is to come.
 
-**P1**: the pause screen; the title's Continue card and its eye; a thing close up as an object view; How to play
-drawn; the verb ring tried on a phone; conversation refinements.
+**P1**: done (24 October): the pause screen (the game's clock stops; the eye, Resume, Saves, Settings, How to play
+and Title screen down the left, the page at the right); the settings grouped, each saying what it does; How to play
+drawn, a small screen for each gesture; the title's Continue card with the save's picture; a thing close up held in
+light, floating and turning a little. To come: the title's eye opening once as it first shows; the verb ring tried
+on a phone; conversation refinements.
 
 **P2**: the Concierge's motion; the paper's details; sounds for the interface, with the director; icons of the
 device's own.

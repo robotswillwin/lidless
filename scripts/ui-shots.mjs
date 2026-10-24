@@ -63,7 +63,6 @@ for (const name of devices) {
     }
   };
   const SCREENS = {
-    title: async () => { await open('', true); await shot('title'); await tab('settings'); await wait(400); await shot('title-settings'); await tab('back'); await tab('how to play'); await wait(400); await shot('title-help'); },
     hud: async () => { await open('new&scene=street&spawn=start'); await shot('hud'); await open('new&scene=street&spawn=start&view=raw'); await shot('hud-raw'); },
     verbs: async () => { await open('new&scene=street&spawn=start'); await click('.hud-ball.verbs'); await wait(400); await shot('verbs'); await verb('hands'); await click('.hud-ball.verbs'); await wait(300); await shot('verb-chosen'); },
     things: async () => { await open('new&scene=street&spawn=start'); await click('.hud-ball.things'); await wait(400); await shot('things'); await page.evaluate(() => document.querySelector('.hud-tray .slot')?.click()); await wait(400); await shot('thing-close'); },
@@ -75,6 +74,11 @@ for (const name of devices) {
     map: async () => { await walk(); await click('.hud-btn.map'); await wait(1000); await shot('map'); },
     menu: async () => { await open('new&scene=street&spawn=start'); await click('.hud-btn.menu'); await wait(500); await shot('menu-saves'); await tab('settings'); await wait(300); await shot('menu-settings'); await tab('how to play'); await wait(300); await shot('menu-help'); },
     terminal: async () => { await open('new&scene=home&terminal=relay7'); await wait(1500); await shot('terminal'); },
+    // last: the game in progress, which the others saved, is on it
+    title: async () => {
+      // a few steps on the street, so the game in progress is saved, with its picture
+      await open('new&scene=street&spawn=start'); await wait(900); await page.keyboard.down('ArrowRight'); await wait(400); await page.keyboard.up('ArrowRight'); await wait(1500);
+      await open('', true); await shot('title'); await tab('settings'); await wait(400); await shot('title-settings'); await tab('back'); await tab('how to play'); await wait(400); await shot('title-help'); },
   };
   for (const [screen, run] of Object.entries(SCREENS)) {
     if (only.length && !only.includes(screen)) continue;

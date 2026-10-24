@@ -16,6 +16,9 @@
   --r-xs: 6px; --r-chip: 9px; --r-card: 14px; --r-card-lg: 18px; --r-sheet: 22px; --r-window: 28px; --r-pill: 999px;
   --t-quick: .12s; --t-small: .18s; --t-sheet: .26s; --ease: cubic-bezier(.2, .8, .3, 1);
 }
+/* a step larger on a big screen: a game on a laptop or a monitor is read from further off than a phone in the hand */
+@media (min-width: 1280px) and (min-height: 700px) { :root { --fs-micro: 11.5px; --fs-caption: 13px; --fs-small: 14.5px; --fs-body: 16px; --fs-heading: 19px; } }
+@media (min-width: 1800px) and (min-height: 1000px) { :root { --fs-micro: 12.5px; --fs-caption: 14px; --fs-small: 15.5px; --fs-body: 17.5px; --fs-heading: 21px; } }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 /* layout rules below set display; hidden must still win */
 [hidden] { display: none !important; }
@@ -46,13 +49,13 @@ button.view:not(.hud-btn):focus-visible { outline: 2px solid #fff; outline-offse
    (src/game/eye.ts draws it) */
 .fade-wait { position: absolute; left: 50%; top: 50%; width: 120px; height: 88px; margin: -30px 0 0 -60px; overflow: visible; opacity: 0; transition: opacity .3s ease; }
 .fade.wait .fade-wait, .fade.boot .fade-wait { opacity: 1; }
-:is(.fade-wait, .title-screen .mark) .ring { fill: none; stroke: rgba(236, 232, 242, .5); stroke-width: 1.6; }
-:is(.fade-wait, .title-screen .mark) :is(.lid, .lashes) { fill: none; stroke: #ece8f2; stroke-linecap: round; stroke-linejoin: round; }
-:is(.fade-wait, .title-screen .mark) .lid { stroke-width: 2.4; }
-:is(.fade-wait, .title-screen .mark) .lashes { stroke-width: 2; }
-:is(.fade-wait, .title-screen .mark) .iris { fill: none; stroke: rgba(255, 70, 82, .5); stroke-width: 1.2; }
-:is(.fade-wait, .title-screen .mark) .pupil { fill: #ff2f3f; }
-:is(.fade-wait, .title-screen .mark) .glint { fill: #fff; }
+:is(.fade-wait, .title-screen .mark, .hud-panel .mark) .ring { fill: none; stroke: rgba(236, 232, 242, .5); stroke-width: 1.6; }
+:is(.fade-wait, .title-screen .mark, .hud-panel .mark) :is(.lid, .lashes) { fill: none; stroke: #ece8f2; stroke-linecap: round; stroke-linejoin: round; }
+:is(.fade-wait, .title-screen .mark, .hud-panel .mark) .lid { stroke-width: 2.4; }
+:is(.fade-wait, .title-screen .mark, .hud-panel .mark) .lashes { stroke-width: 2; }
+:is(.fade-wait, .title-screen .mark, .hud-panel .mark) .iris { fill: none; stroke: rgba(255, 70, 82, .5); stroke-width: 1.2; }
+:is(.fade-wait, .title-screen .mark, .hud-panel .mark) .pupil { fill: #ff2f3f; }
+:is(.fade-wait, .title-screen .mark, .hud-panel .mark) .glint { fill: #fff; }
 .fade-title { position: absolute; left: 0; right: 0; top: 50%; margin: -64px 0 0; text-align: center; font: 400 22px/1 var(--ui); letter-spacing: .6em; text-indent: .6em; text-transform: uppercase; color: var(--ink); opacity: 0; transition: opacity .26s ease; }
 .fade.boot .fade-title { opacity: .9; }
 .error { position: absolute; z-index: 5; inset: auto 16px 16px 16px; margin: 0; padding: 12px 14px; background: #200; color: #fbb; font: 14px/1.4 var(--ui); }
@@ -321,13 +324,21 @@ button.view:not(.hud-btn):focus-visible { outline: 2px solid #fff; outline-offse
 .hud-tray .stand-in svg .accent, .hud-inspect .stand-in svg .accent { stroke: currentColor; }
 /* a thing close up, over the tray */
 .hud-inspect {
-  position: absolute; z-index: 2; width: min(380px, calc(100% - 2 * var(--m))); display: grid; grid-template-columns: auto 1fr; gap: 14px; padding: 14px 16px 16px 14px;
+  position: absolute; z-index: 2; width: min(440px, calc(100% - 2 * var(--m))); display: grid; grid-template-columns: auto 1fr; gap: 16px; padding: 12px 18px 16px 12px;
   background: rgba(12, 13, 18, .9); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border: 1px solid var(--edge); border-radius: var(--r-card-lg); box-shadow: 0 12px 34px rgba(0, 0, 0, .55); animation: hud-fade var(--t-quick) ease-out both;
 }
-.hud-inspect .picture { width: 112px; height: 112px; display: grid; place-items: center; border-radius: var(--r-card); background: radial-gradient(closest-side, rgba(255, 255, 255, .1), rgba(255, 255, 255, 0)); }
-.hud-inspect .picture :is(img, svg) { width: 100%; height: 100%; object-fit: contain; }
+/* the thing itself, held up to look at: larger, in a pool of light, its shadow under it, turning a little as it floats */
+.hud-inspect .picture { position: relative; width: clamp(112px, 12cqw, 152px); aspect-ratio: 1; display: grid; place-items: center; border-radius: var(--r-card);
+  background: radial-gradient(closest-side, rgba(255, 255, 255, .16), rgba(255, 255, 255, .04) 60%, rgba(255, 255, 255, 0)); }
+.hud-inspect .picture::after { content: ""; position: absolute; left: 22%; right: 22%; bottom: 4%; height: 9%; border-radius: 50%; background: radial-gradient(closest-side, rgba(0, 0, 0, .55), transparent);
+  animation: hud-held-shadow 6s ease-in-out infinite; }
+.hud-inspect .picture :is(img, svg) { position: relative; z-index: 1; width: 88%; height: 88%; object-fit: contain; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .45));
+  transform-origin: 50% 62%; animation: hud-held 6s ease-in-out infinite; }
+@keyframes hud-held { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-5px) rotate(2.5deg); } }
+@keyframes hud-held-shadow { 0%, 100% { opacity: 1; transform: scaleX(1); } 50% { opacity: .7; transform: scaleX(.86); } }
+@media (prefers-reduced-motion: reduce) { .hud-inspect .picture :is(img, svg), .hud-inspect .picture::after { animation: none; } }
 .hud-inspect.ghost .picture { border: 1.5px dashed rgba(255, 255, 255, .28); background: none; }
-.hud-inspect .words { display: grid; align-content: start; gap: 8px; min-width: 0; }
+.hud-inspect .words { display: grid; align-content: center; gap: 8px; min-width: 0; }
 .hud-inspect h2 { margin: 0 28px 0 0; font: 500 var(--fs-heading)/1.2 var(--ui); }
 .hud-inspect.ghost h2 { text-decoration: line-through; color: var(--dim); }
 .hud-inspect .tag { font: 500 var(--fs-micro)/1.2 var(--ui); letter-spacing: .14em; text-transform: uppercase; color: var(--co-warn); }
@@ -391,7 +402,7 @@ button.view:not(.hud-btn):focus-visible { outline: 2px solid #fff; outline-offse
 /* panels over the street: the map and the menu on glass, her notebook on paper; the rest of the HUD steps back */
 .hud-panel { position: absolute; z-index: 3; }
 .hud[data-panel] :is(.co-layer, .hud-top, .hud-ball, .hud-ball-label, .hud-note, .hud-mark) { visibility: hidden; }
-.hud-panel:is(.journal, .menu) { background: rgba(13, 14, 19, .9); border: 1px solid var(--edge); border-radius: var(--r-sheet); box-shadow: 0 0 0 1px rgba(0, 0, 0, .4), 0 24px 60px rgba(0, 0, 0, .65);
+.hud-panel.journal { background: rgba(13, 14, 19, .9); border: 1px solid var(--edge); border-radius: var(--r-sheet); box-shadow: 0 0 0 1px rgba(0, 0, 0, .4), 0 24px 60px rgba(0, 0, 0, .65);
   -webkit-backdrop-filter: blur(16px) saturate(1.1); backdrop-filter: blur(16px) saturate(1.1); animation: hud-sheet var(--t-small) var(--ease) both; }
 @keyframes hud-sheet { from { opacity: 0; scale: .975; } }
 @media (prefers-reduced-motion: reduce) { .hud-panel { animation: none !important; } }
@@ -400,18 +411,41 @@ button.view:not(.hud-btn):focus-visible { outline: 2px solid #fff; outline-offse
 .hud-panel .head .hint { flex: 1; font: 400 clamp(12px, 1cqw, 14px)/1.2 var(--ui); color: var(--dim); }
 .hud-panel .head .hud-close { align-self: center; }
 
-/* the menu: her saves, the settings, how to play; and the way to the title screen */
-/* her journal and the menu: one sheet, the same size whatever is open in it and whichever it is, so nothing jumps;
-   what is in it scrolls */
-.hud-panel:is(.journal, .menu) { left: 50%; top: 50%; translate: -50% -50%; width: min(940px, calc(100% - var(--el) - var(--er))); height: min(600px, calc(100% - var(--et) - var(--eb)));
+/* her journal: one window, the same size whatever page is open in it, so nothing jumps; what is in it scrolls */
+.hud-panel.journal { left: 50%; top: 50%; translate: -50% -50%; width: min(940px, calc(100% - var(--el) - var(--er))); height: min(600px, calc(100% - var(--et) - var(--eb)));
   display: flex; flex-direction: column; gap: 14px; padding: 14px 18px 18px; }
-.hud-panel.menu .body { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; }
-.hud-panel.menu .head { align-items: center; flex-wrap: wrap; row-gap: 8px; }
-.hud-panel.menu .tabs { flex: 1; display: flex; gap: 2px; padding: 3px; border-radius: var(--r-card); background: rgba(255, 255, 255, .06); width: max-content; max-width: max-content; }
-.hud-panel.menu .tab { padding: 7px 13px; border: 0; border-radius: var(--r-chip); background: none; color: var(--dim); font: 500 clamp(12px, 1.05cqw, 14px)/1 var(--ui); }
-.hud-panel.menu .tab.on { background: rgba(255, 255, 255, .15); color: #fff; }
-.hud-panel.menu .to-title { margin-left: auto; min-height: 30px; padding: 0 12px; border: 1px solid var(--edge); border-radius: var(--r-pill); background: none; color: var(--dim); font: 500 var(--fs-caption)/1 var(--ui); }
-.hud-panel.menu .to-title:hover { color: var(--text); border-color: var(--edge-strong); }
+
+/* the menu: the game paused. Over the whole screen, out into the bars, the scene still and blurred behind it; down the
+   left the game's mark, the eye, watching even now, and its ways, as on the title screen; the page chosen at the
+   right, on glass, the same size whatever is open */
+.hud-panel.menu {
+  inset: calc(-1 * var(--by)) calc(-1 * var(--bx)); z-index: 4; display: grid; grid-template-columns: minmax(150px, 22%) minmax(0, 1fr); align-items: center; gap: clamp(18px, 4vw, 64px);
+  padding: max(18px, env(safe-area-inset-top) + 10px) max(18px, env(safe-area-inset-right) + 12px) max(18px, env(safe-area-inset-bottom) + 10px) max(28px, env(safe-area-inset-left) + 20px);
+  background: linear-gradient(90deg, rgba(4, 5, 9, .9), rgba(4, 5, 9, .72) 34%, rgba(4, 5, 9, .5)); -webkit-backdrop-filter: blur(16px) saturate(.8); backdrop-filter: blur(16px) saturate(.8);
+  animation: hud-fade var(--t-sheet) ease-out both;
+}
+.hud-panel.menu .side { display: grid; align-content: center; gap: clamp(14px, 4vh, 30px); min-height: 0; animation: title-in .5s var(--ease) both; }
+.hud-panel.menu .brand { display: grid; justify-items: start; gap: 4px; }
+.hud-panel.menu .mark { width: clamp(56px, 10vh, 84px); height: auto; margin-left: -8px; overflow: visible; }
+.hud-panel.menu .paused { font: 300 clamp(22px, 4.6vh, 30px)/1 var(--ui); letter-spacing: .04em; color: var(--text); }
+.hud-panel.menu .ways { display: grid; justify-items: start; gap: 0; }
+.hud-panel.menu .ways button { position: relative; display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px 0 22px; border: 0; background: none; text-align: left;
+  color: var(--text-2); font: 400 clamp(16px, 2.6vh, 19px)/1 var(--ui); letter-spacing: .04em; transition: color var(--t-small) ease, transform var(--t-small) ease; }
+/* the way the finger or the keys are on, and the page open: the eye's red pupil beside it */
+.hud-panel.menu .ways button::before { content: ""; position: absolute; left: 2px; top: 50%; width: 7px; height: 7px; margin-top: -3.5px; border-radius: 50%; background: #ff2f3f;
+  box-shadow: 0 0 2px #ff2f3f, 0 0 12px rgba(255, 47, 63, .9); opacity: 0; transform: scale(.3); transition: opacity var(--t-small) ease, transform var(--t-small) ease; }
+.hud-panel.menu .ways button:is(:hover, :focus-visible, .on) { color: #fff; outline: none; }
+.hud-panel.menu .ways button:is(:hover, :focus-visible) { transform: translateX(3px); }
+.hud-panel.menu .ways button:is(:hover, :focus-visible, .on)::before { opacity: 1; transform: scale(1); }
+.hud-panel.menu .ways .resume { color: #fff; font-weight: 500; }
+.hud-panel.menu .ways .to-title { margin-top: 8px; font-size: var(--fs-body); color: var(--text-3); }
+.hud-panel.menu .page { display: flex; flex-direction: column; gap: 14px; height: min(560px, 100%); min-height: 0; padding: 18px 22px 20px; border-radius: var(--r-window);
+  background: linear-gradient(180deg, rgba(255, 255, 255, .07), rgba(255, 255, 255, .02) 30%), rgba(12, 13, 18, .62); border: 1px solid rgba(255, 255, 255, .12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14), 0 30px 80px rgba(0, 0, 0, .45); animation: title-in .5s .06s var(--ease) both; }
+.hud-panel.menu .page .title { flex: none; margin: 0 2px; font: 400 clamp(19px, 3.4vh, 24px)/1.1 var(--ui); letter-spacing: .02em; }
+.hud-panel.menu .page .body { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; }
+@media (prefers-reduced-motion: reduce) { .hud-panel.menu :is(.side, .page), .hud-panel.menu .ways button, .hud-panel.menu .ways button::before { animation: none; transition: none; } }
+@media (max-height: 500px) { .hud-panel.menu .page { padding: 13px 16px 16px; gap: 10px; } .hud-panel.menu .ways button { min-height: 40px; } }
 /* her saves: four cards, each with its picture of the scene as it was saved */
 .hud-panel.menu .saves { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 .hud-panel.menu .save { display: grid; grid-template-rows: auto auto 1fr; gap: 10px; padding: 7px 7px 12px; border: 1px solid var(--edge); border-radius: var(--r-card-lg); background: rgba(255, 255, 255, .035); }
@@ -498,8 +532,8 @@ button.view:not(.hud-btn):focus-visible { outline: 2px solid #fff; outline-offse
    room is a card over its door with its picture as she last saw it and its name on it; a place she has only seen the
    door of is dashed, with a question mark; people and things are dots; where she is, lit. Beside it, the place picked:
    its picture, who and what she knows there, and the way there */
-.map { display: grid; grid-template-columns: minmax(0, 1fr) clamp(180px, 26cqw, 260px); gap: 14px; height: 100%; }
-.map .area { display: grid; place-items: safe center; min-width: 0; min-height: 0; overflow: auto; overscroll-behavior: contain; scrollbar-width: none; border-radius: var(--r-card-lg);
+.map-view { display: grid; grid-template-columns: minmax(0, 1fr) clamp(180px, 26cqw, 260px); gap: 14px; height: 100%; }
+.map-view .area { display: grid; place-items: safe center; min-width: 0; min-height: 0; overflow: auto; overscroll-behavior: contain; scrollbar-width: none; border-radius: var(--r-card-lg);
   background: radial-gradient(circle, rgba(255, 255, 255, .08) 1px, transparent 1.6px) 0 0 / 24px 24px, rgba(0, 0, 0, .14); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .06); }
 .chart { position: relative; margin: 12px; }
 .chart svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
@@ -557,7 +591,7 @@ button.view:not(.hud-btn):focus-visible { outline: 2px solid #fff; outline-offse
 .place-detail .go { margin-top: auto; min-height: 42px; border: 0; border-radius: var(--r-pill); background: #f5f3ef; color: #121318; font: 500 calc(var(--fs-small) * var(--ts, 1))/1 var(--ui); }
 .place-detail .go:hover { background: #fff; }
 /* a phone held sideways: the place picked narrower, its list short */
-@container (max-width: 760px) { .map { grid-template-columns: minmax(0, 1fr) 190px; gap: 10px; } .place-detail .name { font-size: 15px; } }
+@container (max-width: 760px) { .map-view { grid-template-columns: minmax(0, 1fr) 190px; gap: 10px; } .place-detail .name { font-size: 15px; } }
 
 /* her notebook: paper and pencil, its pages as tabs along its top edge, what she has not read yet dotted in red */
 /* put away, a sheet fades as it goes */
@@ -827,20 +861,31 @@ button.view:not(.hud-btn):focus-visible { outline: 2px solid #fff; outline-offse
 .editor .look { top: 12px; right: 12px; }
 
 /* the settings and how to play: in the menu and on the title screen */
-.settings { display: grid; gap: 12px; }
-.settings .setting { display: grid; grid-template-columns: 110px 1fr; align-items: center; gap: 12px; }
-.settings .name { font: 500 var(--fs-small)/1.2 var(--ui); color: var(--text-2); }
+.settings { display: grid; gap: 4px; }
+.settings .group { margin: 10px 0 2px; font: 500 var(--fs-caption)/1.2 var(--ui); letter-spacing: .02em; color: var(--text-3); }
+.settings .group:first-child { margin-top: 0; }
+.settings .setting { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px 20px; padding: 10px 0; border-bottom: 1px solid rgba(255, 255, 255, .07); }
+.settings .words { display: grid; gap: 3px; min-width: 0; }
+.settings .name { font: 500 var(--fs-body)/1.2 var(--ui); color: var(--text); }
+.settings .about { font: 400 var(--fs-caption)/1.4 var(--ui); color: var(--text-3); }
 .settings .choices { display: flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: var(--r-card); background: rgba(255, 255, 255, .07); width: max-content; max-width: 100%; }
 .settings .choice { padding: 8px 12px; border: 0; border-radius: var(--r-chip); background: none; color: var(--text-2); font: 500 var(--fs-small)/1 var(--ui); cursor: pointer; }
 .settings .choice:hover { color: #fff; }
 .settings .choice.on { background: rgba(255, 255, 255, .17); color: #fff; }
-.settings .note { margin: 2px 0 0; font: 400 var(--fs-caption)/1.4 var(--ui); color: var(--text-3); }
+.settings .note { margin: 12px 0 0; font: 400 var(--fs-caption)/1.4 var(--ui); color: var(--text-3); }
 .help { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr)); gap: 10px; }
-.help .row-help { display: grid; align-content: start; gap: 7px; padding: 13px 15px 15px; border: 1px solid rgba(255, 255, 255, .12); border-radius: var(--r-card); background: rgba(255, 255, 255, .035); }
-.help .name { display: flex; align-items: center; gap: 9px; font: 500 var(--fs-body)/1.3 var(--ui); color: #f5f3ef; }
-.help .name svg { flex: none; padding: 5px; width: 28px; height: 28px; border-radius: 50%; background: rgba(255, 255, 255, .08); }
+.help .row-help { display: grid; align-content: start; gap: 7px; padding: 12px 15px 15px; border: 1px solid rgba(255, 255, 255, .12); border-radius: var(--r-card); background: rgba(255, 255, 255, .035); }
+.help .name { font: 500 var(--fs-body)/1.3 var(--ui); color: #f5f3ef; }
+/* the drawing of what the hand does: a small screen, what is shown lit */
+.help .how { width: 100%; max-width: 168px; height: auto; margin-bottom: 4px; color: rgba(245, 243, 239, .78); }
+.help .how .screen { stroke: rgba(255, 255, 255, .22); fill: rgba(0, 0, 0, .18); }
+.help .how .frame { stroke: rgba(255, 255, 255, .32); }
+.help .how .lit { stroke: #fff; }
+.help .how .fill { fill: #fff; stroke: #fff; }
+.help .how .fill-soft { fill: rgba(255, 255, 255, .28); stroke: #fff; }
+.help .how text { fill: #fff; stroke: none; font: 500 7px var(--ui); text-anchor: middle; }
 .help .text { font: 400 var(--fs-small)/1.5 var(--ui); color: var(--text-2); }
-@media (max-width: 640px) { .settings .setting { grid-template-columns: 1fr; gap: 6px; } }
+@media (max-width: 640px) { .settings .setting { grid-template-columns: 1fr; } }
 
 /* the title screen: its mark and name, and the ways in, down the left over a shade; the first scene drawn and moving
    behind it on the right. Its pages (settings, how to play, a saved game) open in the same place, under their name */
@@ -884,6 +929,18 @@ button.view:not(.hud-btn):focus-visible { outline: 2px solid #fff; outline-offse
 .title-screen .menu.slots button { display: grid; justify-items: start; gap: 5px; padding-top: 9px; padding-bottom: 9px; }
 .title-screen .slots .where { font-size: 13px; letter-spacing: .02em; color: var(--text-3); }
 .title-screen button:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+/* the game in progress, at the foot of the screen: its picture, where and when; a tap goes on with it */
+.title-screen .continue-card { position: absolute; right: max(24px, env(safe-area-inset-right) + 16px); bottom: max(22px, env(safe-area-inset-bottom) + 14px); display: grid; gap: 9px; width: clamp(168px, 22vw, 260px);
+  padding: 7px 7px 12px; border: 1px solid rgba(255, 255, 255, .14); border-radius: var(--r-card-lg); background: rgba(12, 13, 18, .6); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  color: var(--text); text-align: left; cursor: pointer; box-shadow: 0 18px 50px rgba(0, 0, 0, .45); animation: title-in .9s .25s var(--ease) both; transition: scale var(--t-quick) ease, border-color var(--t-small) ease; }
+.title-screen .continue-card:hover { border-color: rgba(255, 255, 255, .34); }
+.title-screen .continue-card:active { scale: .97; }
+.title-screen .continue-card .shot { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--r-chip); }
+.title-screen .continue-card .words { display: grid; gap: 3px; padding: 0 5px; }
+.title-screen .continue-card .where { font: 500 var(--fs-body)/1.2 var(--ui); }
+.title-screen .continue-card .when { font: 400 var(--fs-caption)/1.3 var(--ui); color: var(--text-3); }
+.title-screen.sub .continue-card { display: none; }
+@media (max-height: 500px) { .title-screen .continue-card { width: 170px; padding-bottom: 9px; } }
 @keyframes title-in { from { opacity: 0; transform: translateY(10px); } }
 /* a phone held sideways: a smaller name; a page has the height, the name gone */
 @media (max-height: 560px) {

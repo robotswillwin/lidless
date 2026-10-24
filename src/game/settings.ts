@@ -47,33 +47,40 @@ export function saveSettings(s: Settings): void {
   try { localStorage.setItem(KEY, JSON.stringify(s)); } catch { /* kept for the session only */ }
 }
 
-const LABELS: { [K in keyof Settings]: { title: string; names: Record<Settings[K], string> } } = {
-  quality: { title: 'Graphics', names: { auto: 'Auto', low: 'Low', medium: 'Medium', high: 'High' } },
-  text: { title: 'Text size', names: { small: 'Small', normal: 'Normal', large: 'Large' } },
-  speed: { title: 'Text speed', names: { slow: 'Slow', normal: 'Normal', fast: 'Fast' } },
-  motion: { title: 'Motion', names: { auto: 'As the system', reduced: 'Reduced', full: 'Full' } },
+/** Each setting's name, what it does in a line, and its choices' names. */
+const LABELS: { [K in keyof Settings]: { title: string; about: string; names: Record<Settings[K], string> } } = {
+  quality: { title: 'Graphics', about: "How much of the city's light, rain and reflections is worked out. Auto suits your device.", names: { auto: 'Auto', low: 'Low', medium: 'Medium', high: 'High' } },
+  text: { title: 'Text size', about: 'Lines, notes and answers, her journal and her notebook.', names: { small: 'Small', normal: 'Normal', large: 'Large' } },
+  speed: { title: 'Text speed', about: 'How long lines and notes stay before they move on by themselves.', names: { slow: 'Slow', normal: 'Normal', fast: 'Fast' } },
+  motion: { title: 'Motion', about: "The camera's lean, the view switch's glitch, slides and fades.", names: { auto: 'As the system', reduced: 'Reduced', full: 'Full' } },
 };
+/** The settings in groups, under a name each. */
+const GROUPS: [string, (keyof Settings)[]][] = [['Picture', ['quality', 'motion']], ['Reading', ['text', 'speed']]];
 
-/** The settings as rows of choices, each change kept and handed on at once. */
+/** The settings as rows of choices in their groups, each saying what it does; each change kept and handed on at once. */
 export function drawSettings(p: HTMLElement, now: Settings, onChange: (s: Settings) => void): void {
   const box = el('div', 'settings', p);
   let s = { ...now };
-  for (const k of Object.keys(CHOICES) as (keyof Settings)[]) {
-    const row = el('div', 'setting', box);
-    const name = el('div', 'name', row, LABELS[k].title);
-    const group = el('div', 'choices', row);
-    group.setAttribute('role', 'radiogroup');
-    group.setAttribute('aria-label', name.textContent ?? '');
-    for (const v of CHOICES[k] as string[]) {
-      const b = button(`choice${s[k] === v ? ' on' : ''}`, `${LABELS[k].title}: ${(LABELS[k].names as Record<string, string>)[v]}`, group, () => {
-        s = { ...s, [k]: v };
-        saveSettings(s);
-        onChange(s);
-        group.querySelectorAll('.choice').forEach((c) => { c.classList.toggle('on', c === b); c.setAttribute('aria-checked', String(c === b)); });
-      });
-      b.textContent = (LABELS[k].names as Record<string, string>)[v];
-      b.setAttribute('role', 'radio');
-      b.setAttribute('aria-checked', String(s[k] === v));
+  for (const [title, keys] of GROUPS) {
+    el('h3', 'group', box, title);
+    for (const k of keys) {
+      const row = el('div', 'setting', box), words = el('div', 'words', row);
+      const name = el('div', 'name', words, LABELS[k].title);
+      el('div', 'about', words, LABELS[k].about);
+      const group = el('div', 'choices', row);
+      group.setAttribute('role', 'radiogroup');
+      group.setAttribute('aria-label', name.textContent ?? '');
+      for (const v of CHOICES[k] as string[]) {
+        const b = button(`choice${s[k] === v ? ' on' : ''}`, `${LABELS[k].title}: ${(LABELS[k].names as Record<string, string>)[v]}`, group, () => {
+          s = { ...s, [k]: v };
+          saveSettings(s);
+          onChange(s);
+          group.querySelectorAll('.choice').forEach((c) => { c.classList.toggle('on', c === b); c.setAttribute('aria-checked', String(c === b)); });
+        });
+        b.textContent = (LABELS[k].names as Record<string, string>)[v];
+        b.setAttribute('role', 'radio');
+        b.setAttribute('aria-checked', String(s[k] === v));
+      }
     }
   }
   el('p', 'note', box, 'Sound comes with the soundtrack.');

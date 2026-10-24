@@ -175,6 +175,10 @@ const checks = {
     const verbs = await page.$$eval('.hud-menu.verbs [data-verb]', (bs) => bs.map((b) => b.dataset.verb));
     check('her four verbs at the ball, asking at the Concierge', verbs.join() === 'eyes,heart,hands,take', verbs.join());
     await page.evaluate(() => document.querySelector('.hud-ball.verbs')?.click());
+    // the buttons at the top right and the balls are round, each as wide as it is tall: a rule meant for something
+    // else of the same name (a map, a menu) has not caught them
+    const round = await page.$$eval('.hud-top .hud-btn:not([hidden]), .hud-ball', (bs) => bs.map((b) => { const r = b.getBoundingClientRect(); return `${b.className.split(' ')[1]}:${Math.round(r.width)}x${Math.round(r.height)}`; }));
+    check('the buttons at the top right and the balls are round', round.length >= 5 && round.every((x) => { const [w, h] = x.split(':')[1].split('x').map(Number); return w === h && w >= 44; }), round.join(' '));
     // at home it cannot hear her: its card says so, with no talking to it and no asking
     await coCard(page);
     const home = await page.$eval('.co-card', (c) => ({ quiet: c.querySelector('.co-foot .quiet')?.textContent ?? '', buttons: c.querySelectorAll('.co-foot > button').length })).catch(() => null);

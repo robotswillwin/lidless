@@ -73,6 +73,8 @@ export class Hud {
   settings: () => Settings | null = () => null;
   onSettings: (s: Settings) => void = () => {};
   onTitle: () => void = () => {};
+  /** The menu opened (the game paused) or closed. */
+  onPause: (on: boolean) => void = () => {};
   /** How long notes stay, times the normal (the text speed setting). */
   noteSpeed = 1;
 

@@ -49,6 +49,34 @@ const AR: Record<string, string> = {
   valve: '<path d="M22 46V22a10 10 0 0 1 20 0v24z"/><path d="M20 46h24v6H20zM26 52v6M32 52v6M38 52v6"/><path class="accent" d="M28 40V28l4 6 4-6v12"/>',
 };
 
+/**
+ * How to play, drawn: each a small screen with what the hand does on it, on a 120 by 68 grid. `frame` is the screen and
+ * what stays (dim), `lit` what is being shown, `fill` a point filled.
+ */
+const HOW: Record<string, string> = {
+  walk: '<path class="frame" d="M8 52h104"/><circle cx="26" cy="29" r="3.2"/><path d="M26 32.5v11M26 43.5l-3.5 8M26 43.5l3.5 8M26 36l-4.5 5M26 36l4.5 5"/>'
+    + '<path class="lit" d="M35 47.5h42" stroke-dasharray="3 3"/><path class="lit" d="M74 44.5l4 3-4 3"/><circle class="fill" cx="88" cy="47.5" r="2.4"/><circle class="lit" cx="88" cy="47.5" r="6.5"/>',
+  do: '<rect x="50" y="18" width="16" height="13" rx="2"/><rect class="lit" x="45.5" y="13.5" width="25" height="22" rx="3.5" stroke-dasharray="3 3"/>'
+    + '<circle class="frame" cx="52" cy="54" r="4.5"/><circle class="frame" cx="64" cy="54" r="4.5"/><circle class="fill" cx="76" cy="54" r="4.5"/><circle class="frame" cx="88" cy="54" r="4.5"/><circle cx="104" cy="54" r="7"/>'
+    + '<path class="lit" d="M76 47.5c0-6 -8-6 -14-11"/>',
+  co: '<rect class="lit" x="8" y="8" width="52" height="11" rx="5.5"/><path class="lit" d="M17.4 11.4a3.2 3.2 0 1 0 0 4.2M22.5 13.5h30"/>'
+    + '<rect x="8" y="23" width="52" height="36" rx="4.5"/><path class="frame" d="M14 31h38M14 37h30M14 43h34"/><rect class="frame" x="14" y="49" width="13" height="5.5" rx="2.75"/><rect class="frame" x="30" y="49" width="21" height="5.5" rx="2.75"/>',
+  things: '<circle cx="16" cy="54" r="7"/><rect x="27" y="44.5" width="51" height="19" rx="4.5"/><rect class="frame" x="30.5" y="48" width="13" height="12" rx="2"/>'
+    + '<rect class="fill-soft" x="47" y="48" width="13" height="12" rx="2"/><rect class="frame" x="63.5" y="48" width="13" height="12" rx="2"/>'
+    + '<rect class="lit" x="38" y="9" width="52" height="27" rx="4.5"/><rect class="lit" x="42.5" y="13.5" width="14" height="14" rx="2"/><path class="frame" d="M61 16h24M61 22h18"/><path class="lit" d="M53.5 44.5v-6"/>',
+  top: '<circle class="lit" cx="70" cy="13" r="5"/><circle class="lit" cx="83" cy="13" r="5"/><circle class="lit" cx="96" cy="13" r="5"/><circle class="lit" cx="109" cy="13" r="5"/>'
+    + '<path class="frame" d="M66.5 22h7"/><circle class="frame" cx="16" cy="54" r="7"/><circle class="frame" cx="104" cy="54" r="7"/>',
+  keys: '<rect x="20.5" y="16" width="11" height="11" rx="2"/><rect x="8.5" y="29" width="11" height="11" rx="2"/><rect x="20.5" y="29" width="11" height="11" rx="2"/><rect x="32.5" y="29" width="11" height="11" rx="2"/>'
+    + '<path class="frame" d="M26 24.5v-5M24 21.5l2-2 2 2"/>'
+    + '<rect class="lit" x="52" y="16" width="11" height="11" rx="2"/><rect class="lit" x="66" y="16" width="11" height="11" rx="2"/><rect class="lit" x="80" y="16" width="11" height="11" rx="2"/><rect class="lit" x="94" y="16" width="11" height="11" rx="2"/>'
+    + '<rect class="lit" x="52" y="29" width="18" height="11" rx="2"/><rect x="8.5" y="46" width="35" height="11" rx="2"/>'
+    + '<text x="57.5" y="24.6">E</text><text x="71.5" y="24.6">I</text><text x="85.5" y="24.6">M</text><text x="99.5" y="24.6">J</text><text x="61" y="37.6">Esc</text><text x="26" y="54.6">Shift</text>',
+};
+
+/** A drawing of how to play, on its small screen. */
+export const howTo = (name: string) =>
+  `<svg class="how" viewBox="0 0 120 68" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect class="screen" x="1.5" y="1.5" width="117" height="65" rx="7"/>${HOW[name] ?? ''}</svg>`;
+
 export const icon = (name: string, size: number) =>
   `<svg width="${size}" height="${size}" viewBox="0 0 24 24" stroke-width="1.6" ${SVG_ATTRS}>${ICONS[name] ?? ''}</svg>`;
 
