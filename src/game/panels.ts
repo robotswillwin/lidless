@@ -106,7 +106,10 @@ export class Panels {
 
   /** A panel and the tray close. */
   closeSheet(): void {
-    this.panel?.remove();
+    // it fades as it goes (with less motion, it goes at once); one opened again at once is a new one
+    const p = this.panel;
+    if (p && document.documentElement.dataset.motion !== 'reduced') { p.classList.add('leaving'); p.removeAttribute('aria-label'); window.setTimeout(() => p.remove(), 150); }
+    else p?.remove();
     this.panel = null;
     this.kind = null;
     delete this.hud.root.dataset.panel;

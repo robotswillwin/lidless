@@ -10,10 +10,13 @@
   --panel: rgba(7, 7, 12, 0.86);
   color-scheme: dark;
 }
-* { box-sizing: border-box; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 /* layout rules below set display; hidden must still win */
 [hidden] { display: none !important; }
-html, body { height: 100%; margin: 0; background: var(--bg); }
+html, body { height: 100%; margin: 0; background: var(--bg); overscroll-behavior: none; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+/* a game, not a page: nothing of it is selected by a long press, nor called up as a link's menu */
+.hud, .title-screen, .turn { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.hud :is(.hud-panel, .help, .co-body) { scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, .22) transparent; }
 .stage { position: fixed; inset: 0; display: grid; place-items: center; container-type: size; }
 /* the frame keeps 16:9 and fills the screen on one axis */
 #game { display: block; width: min(100cqw, 177.78cqh); height: min(56.25cqw, 100cqh); touch-action: none; -webkit-user-select: none; user-select: none; }
@@ -95,7 +98,7 @@ button.view:not(.hud-btn):focus-visible { outline: 2px solid #fff; outline-offse
 .hud :is(.hud-ball, .hud-btn, .hud-slot, .hud-back, .hud-way, .co-foot > button, .hud-tray .slot):active { scale: .93; }
 .hud .talk-choice:active { scale: .985; }
 @media (prefers-reduced-motion: reduce) { .hud :is(.hud-ball, .hud-btn, .hud-slot, .hud-back, .hud-way, .co-foot > button, .talk-choice, .hud-tray .slot) { transition: none; } }
-.hud-close { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; flex: none; padding: 0; border: 0; background: none; color: var(--dim); }
+.hud-close { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; flex: none; padding: 0; border: 0; background: none; color: var(--dim); }
 .hud-close:hover { color: var(--text); background: var(--lit); }
 /* glass: the HUD's buttons, chips and cards */
 :is(.hud-ball, .hud-btn, .hud-slot, .hud-tray) { border: 1px solid var(--edge); background: var(--glass); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: 0 2px 12px rgba(0, 0, 0, .35); }
@@ -302,7 +305,7 @@ button.view:not(.hud-btn):focus-visible { outline: 2px solid #fff; outline-offse
 .hud-tray .slot .stand-in { display: contents; color: var(--text); }
 .hud-tray .slot.held { border-color: var(--edge-strong); background: rgba(255, 255, 255, .18); box-shadow: 0 0 16px rgba(255, 255, 255, .3); }
 .hud-tray .slot.open { border-color: var(--edge-strong); background: rgba(255, 255, 255, .13); }
-.hud-tray .slot .label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 500 calc(10.5px * var(--ts, 1))/1.25 var(--ui); color: var(--text); opacity: .86; pointer-events: none; }
+.hud-tray .slot .label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 500 calc(11.5px * var(--ts, 1))/1.25 var(--ui); color: var(--text); opacity: .86; pointer-events: none; }
 .hud-tray .slot .flag { position: absolute; right: 5px; top: 5px; width: 7px; height: 7px; border-radius: 50%; background: var(--co-warn); box-shadow: 0 0 6px var(--co-warn); }
 /* what exists only in its eye: its own graphic in its view, an empty place in her pocket in raw view */
 .hud-tray .slot.projected svg.ar, .hud-inspect.projected svg.ar { color: var(--co); filter: drop-shadow(0 0 6px rgba(143, 240, 234, .7)); }
@@ -484,6 +487,9 @@ button.view:not(.hud-btn):focus-visible { outline: 2px solid #fff; outline-offse
 @media (prefers-reduced-motion: reduce) { .chart .you { animation: none; } }
 
 /* her notebook: paper and pencil, its pages as tabs along its top edge, what she has not read yet dotted in red */
+/* put away, a sheet fades as it goes */
+.hud-panel.leaving { opacity: 0; scale: .985; transition: opacity .14s ease-in, scale .14s ease-in; pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { .hud-panel.leaving { transition: none; } }
 .hud-panel.notebook {
   left: 50%; top: var(--et); bottom: var(--eb); transform: translateX(-50%); width: min(840px, calc(100% - var(--el) - var(--er))); display: flex; flex-direction: column;
   padding: 10px 12px 12px; background: #3a2a1e; border-radius: 12px; box-shadow: 0 18px 40px rgba(0, 0, 0, .7); font-family: var(--hand); color: var(--pencil); animation: hud-fade .18s ease-out both;
