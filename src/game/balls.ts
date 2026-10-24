@@ -189,6 +189,7 @@ export class Balls {
       inspect: (id) => (this.inspecting === id ? this.closeInspect() : this.inspect(id)),
     });
     if (wasOpen) this.trayEl.classList.add('still');
+    hud.root.dataset.tray = '';
     this.draw();
   }
 
@@ -196,6 +197,7 @@ export class Balls {
     if (!this.trayEl) return;
     this.trayEl.remove();
     this.trayEl = null;
+    delete this.hud.root.dataset.tray;
     this.closeInspect();
     this.draw();
   }

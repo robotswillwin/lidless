@@ -28,7 +28,7 @@ import { outfitAfter } from './outfits';
 import { Turns } from './pose';
 import { Progress } from './progress';
 import type { Replies } from './replies';
-import { listSaves, loadSave, writeSave, type SaveData, type Slot } from './save';
+import { listSaves, loadSave, loadThumb, writeSave, writeThumb, type SaveData, type Slot } from './save';
 import { SceneRunner, type ViewState } from './scene';
 import type { Scene, WorldFile } from './scenefile';
 import { Scenes } from './scenes';
@@ -411,6 +411,8 @@ export class Game {
   /** Answers to pick from that are not a conversation's (what to wear), and a way out: the one picked is done. */
   offer(choices: { label: string; pick: () => void }[]): void {
     this.picker = (i) => choices[i]?.pick();
+    // what the HUD had out goes in, as for a conversation: the verbs, her things, what a verb lit
+    this.hud.closeAll();
     this.talk.show([], [...choices.map((c) => c.label), 'Never mind']);
   }
 
@@ -508,12 +510,27 @@ export class Game {
   persist(): void {
     if (this.talk.open || this.directing || this.hud.concierge.talking) return;
     writeSave(this.saveData());
+    writeThumb('auto', this.thumbnail());
   }
 
   /** Saving into one of her slots. */
   private saveTo(slot: Slot): void {
     if (this.talk.open || this.directing) return;
     writeSave(this.saveData(), slot);
+    writeThumb(slot, this.thumbnail());
+  }
+
+  /** The scene as it is on screen, small, for a save's picture: the canvas keeps what it drew, and the HUD is not on it. */
+  private thumbnail(): string | null {
+    try {
+      const t = document.createElement('canvas');
+      t.width = 256;
+      t.height = 144;
+      t.getContext('2d')?.drawImage(this.setup.canvas, 0, 0, t.width, t.height);
+      return t.toDataURL('image/jpeg', 0.72);
+    } catch {
+      return null;
+    }
   }
 
   /**
@@ -524,6 +541,7 @@ export class Game {
     const d = loadSave(slot);
     if (!d) return;
     writeSave(d);
+    writeThumb('auto', loadThumb(slot));
     reloadIntoGame();
   }
 

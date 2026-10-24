@@ -61,12 +61,12 @@ export class Eye {
     this.part = { ring: q('ring'), upper: q('upper'), lashes: q('lashes'), opening: q('opening'), look: q('look'), pupil: q('pupil'), glow: q('glow'), iris: q('iris'), glint: q('glint') };
   }
 
-  /** From the start, shut, for as long as the wait lasts. */
-  play(): void {
+  /** From the start, shut, for as long as the wait lasts; or from `from` seconds in (open already, on the title screen). */
+  play(from = 0): void {
     this.stop();
     this.playing = true;
-    this.t0 = performance.now();
-    this.draw(0);
+    this.t0 = performance.now() - from * 1000;
+    this.draw(from);
     const tick = (now: number) => {
       const t = (now - this.t0) / 1000;
       this.draw(t);

@@ -28,13 +28,20 @@ export function drawJournal(p: HTMLElement, pages: ShownPage[], tab: string | nu
     b.textContent = t.title;
     b.setAttribute('aria-current', String(t === current));
   }
-  el('div', 'hint', head, current.id === PLACES ? 'Tap a place to go there' : 'On your device. The Concierge can read it.');
+  // on her device: the Concierge reads it too, and the journal says so
+  if (current.id === PLACES) el('div', 'hint', head, 'Tap a place to go there');
+  else {
+    const read = el('div', 'hint read', head);
+    read.innerHTML = `${icon('eyes', 15)}<span>On your device. The Concierge can read it.</span>`;
+    read.title = 'On your device. The Concierge can read it.';
+  }
   button('hud-close', 'Close', head, on.close).innerHTML = icon('close', 18);
   const body = el('div', `body${current.id === PLACES ? ' places' : ''}`, p);
+  body.dataset.page = current.id;
   if (current.id === PLACES) return on.map(body);
   const page = pages.find((x) => x.id === current.id);
   if (!page) return;
-  if (!page.entries.length) el('p', 'empty', body, page.empty ?? '');
+  if (!page.entries.length) el('p', 'empty', body, page.empty || 'Nothing written here yet.');
   const list = el('div', 'entries', body);
   for (const e of page.entries) {
     const d = el('div', `entry${e.done ? ' done' : ''}`, list);

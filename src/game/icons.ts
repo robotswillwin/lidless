@@ -28,6 +28,10 @@ const ICONS: Record<string, string> = {
   // a ribbon marking a page: her saves
   saves: '<path d="M7 3h10v18l-5-4-5 4z"/>',
   close: '<path d="M6 6l12 12M18 6L6 18"/>',
+  // the Concierge's mark: a ring of light with a gap
+  co: '<path d="M18.4 7.4a7.5 7.5 0 1 0 0 9.2"/>',
+  // a keyboard: what the keys do
+  keys: '<rect x="2.5" y="6" width="19" height="12" rx="2.2"/><path d="M6.5 10h.01M10 10h.01M13.5 10h.01M17 10h.01M7.5 14h9"/>',
   back: '<path d="M15 5l-7 7 7 7"/>',
 };
 

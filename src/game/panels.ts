@@ -170,26 +170,35 @@ export class Panels {
     const list = el('div', 'saves', body), all = hud.saves();
     const when = (t?: number) => (t ? new Date(t).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '');
     for (const slot of ['auto', 1, 2, 3] as const) {
-      const s = all.find((x) => x.slot === slot), card = el('div', 'save', list);
-      el('div', 'name', card, slot === 'auto' ? 'Now' : `Slot ${slot}`);
-      el('div', 'when', card, s ? [s.where, when(s.savedAt)].filter(Boolean).join(' · ') || 'Saved' : 'Empty');
+      // each with its picture, the scene as it was saved; an empty slot its number
+      const s = all.find((x) => x.slot === slot), card = el('div', `save${s ? '' : ' empty'}`, list), shot = el('div', 'shot', card);
+      if (s?.thumb) { const img = el('img', '', shot) as HTMLImageElement; img.src = s.thumb; img.alt = ''; }
+      else if (slot !== 'auto') el('span', 'nothing', shot, String(slot));
+      const words = el('div', 'words', card);
+      el('div', 'name', words, slot === 'auto' ? 'Now' : `Slot ${slot}`);
+      el('div', 'when', words, s ? [s.where, when(s.savedAt)].filter(Boolean).join(' · ') || 'Saved' : 'Empty');
       const row = el('div', 'row', card);
-      if (slot !== 'auto') button('', `Save in slot ${slot}`, row, () => { hud.onSave(slot); this.openPanel('menu'); }).textContent = 'Save here';
+      if (slot === 'auto') el('div', 'quiet', row, 'Saved as you play');
+      if (slot !== 'auto') button(s ? '' : 'primary', `Save in slot ${slot}`, row, () => { hud.onSave(slot); this.openPanel('menu'); }).textContent = s ? 'Save over' : 'Save here';
       if (s && slot !== 'auto') button('primary', `Go back to slot ${slot}`, row, () => hud.onLoad(slot)).textContent = 'Load';
     }
   }
 }
 
-/** How to play: the controls, by touch and by keyboard. */
+/** How to play: the controls, by touch and by keyboard, each on a card under the HUD's own icon for it. */
 export function drawHelp(p: HTMLElement): void {
   const box = el('div', 'help', p);
-  const rows: [string, string][] = [
-    ['Walk', 'Tap where she should go. The end of a street always has a marker to the next place; a door gets one once she has looked at it or tried it. Tap a marker, or the door, and she goes through. Outdoors, hold a finger far ahead of her to run.'],
-    ['Do', 'Tap a thing and she looks at it. To do more, the ball at the bottom right: choose Talk, Use or Take, then tap what to do it to (or slide over the scene and let go on what lights up). Anything can be tried; not everything answers.'],
-    ['Concierge', 'Its light at the top left, in its view. Tap it: it says what it would have you do here, what you have to do, and how you are. Talk to it there, or Ask about something, then tap a thing. Talk at the ball is Luna speaking to someone herself.'],
-    ['Her things', 'The ball at the bottom left. Tap a thing to see it close up; Use takes it out, then tap what to use it on.'],
-    ['Top right', 'The view switch once she has it, the map, her journal (anywhere) and her notebook (only where it cannot see her), and this menu.'],
-    ['Keys', 'Arrows or A and D walk, with Shift she runs. E switches view, I her things, M the map, J her journal, N her notebook, Esc closes. Numbers pick an answer.'],
+  const rows: [string, string, string][] = [
+    ['feet', 'Walk', 'Tap where she should go. The end of a street always has a marker to the next place; a door gets one once she has looked at it or tried it. Tap a marker, or the door, and she goes through. Outdoors, hold a finger far ahead of her to run.'],
+    ['hands', 'Do', 'Tap a thing and she looks at it. To do more, the ball at the bottom right: choose Talk, Use or Take, then tap what to do it to (or slide over the scene and let go on what lights up). Anything can be tried; not everything answers.'],
+    ['co', 'Concierge', 'Its light at the top left, in its view. Tap it: it says what it would have you do here, what you have to do, and how you are. Talk to it there, or Ask about something, then tap a thing. Talk at the ball is Luna speaking to someone herself.'],
+    ['satchel', 'Her things', 'The ball at the bottom left. Tap a thing to see it close up; Use takes it out, then tap what to use it on.'],
+    ['menu', 'Top right', 'The view switch once she has it, the map, her journal (anywhere) and her notebook (only where it cannot see her), and this menu.'],
+    ['keys', 'Keys', 'Arrows or A and D walk, with Shift she runs. E switches view, I her things, M the map, J her journal, N her notebook, Esc closes. Numbers pick an answer.'],
   ];
-  for (const [name, text] of rows) { const r = el('div', 'row-help', box); el('div', 'name', r, name); el('div', 'text', r, text); }
+  for (const [ic, name, text] of rows) {
+    const r = el('div', 'row-help', box);
+    el('div', 'name', r, name).insertAdjacentHTML('afterbegin', icon(ic, 18));
+    el('div', 'text', r, text);
+  }
 }

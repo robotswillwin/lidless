@@ -77,15 +77,38 @@ export function writeSave(d: SaveData, slot: Slot = 'auto'): void {
 export function clearSave(slot: Slot = 'auto'): void {
   try {
     localStorage.removeItem(key(slot));
+    localStorage.removeItem(thumbKey(slot));
   } catch {
     // nothing to clear
   }
 }
 
-/** Every save there is, the autosave first: when and where each was made. */
-export function listSaves(): { slot: Slot; savedAt?: number; where?: string }[] {
+const thumbKey = (slot: Slot) => `lidless.thumb.${slot}`;
+
+/** A save's picture: the scene as it was on screen, small, a JPEG as a data URL (null: none). Kept beside the save. */
+export function writeThumb(slot: Slot, url: string | null): void {
+  try {
+    if (url) localStorage.setItem(thumbKey(slot), url);
+    else localStorage.removeItem(thumbKey(slot));
+  } catch {
+    // too little room for a picture: the save keeps its words
+  }
+}
+
+export function loadThumb(slot: Slot): string | null {
+  try {
+    return localStorage.getItem(thumbKey(slot));
+  } catch {
+    return null;
+  }
+}
+
+export interface SaveInfo { slot: Slot; savedAt?: number; where?: string; thumb?: string }
+
+/** Every save there is, the autosave first: when and where each was made, and its picture. */
+export function listSaves(): SaveInfo[] {
   return (['auto', ...SLOTS] as Slot[]).flatMap((slot) => {
     const d = loadSave(slot);
-    return d ? [{ slot, savedAt: d.savedAt, where: d.where }] : [];
+    return d ? [{ slot, savedAt: d.savedAt, where: d.where, thumb: loadThumb(slot) ?? undefined }] : [];
   });
 }

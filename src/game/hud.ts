@@ -25,6 +25,7 @@ import { notebookNow, type Notebook } from './notebook';
 import { Notes } from './notes';
 import { Panels, type PanelKind } from './panels';
 import { PLACES } from './journal';
+import type { SaveInfo } from './save';
 import type { Settings } from './settings';
 import type { Item } from './tray';
 
@@ -49,7 +50,7 @@ export class Hud {
   /** She takes a thing out of her pockets to use it on something (null: puts it back). */
   onHold: (id: string | null) => void = () => {};
   /** Her saves: what there is (the autosave first), saving into a slot, and going back to one. */
-  saves: () => { slot: 'auto' | 1 | 2 | 3; savedAt?: number; where?: string }[] = () => [];
+  saves: () => SaveInfo[] = () => [];
   onSave: (slot: 1 | 2 | 3) => void = () => {};
   onLoad: (slot: 'auto' | 1 | 2 | 3) => void = () => {};
   /** The map as she knows it now, and going somewhere on it. */

@@ -37,13 +37,13 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
    (src/game/eye.ts draws it) */
 .fade-wait { position: absolute; left: 50%; top: 50%; width: 120px; height: 88px; margin: -30px 0 0 -60px; overflow: visible; opacity: 0; transition: opacity .3s ease; }
 .fade.wait .fade-wait, .fade.boot .fade-wait { opacity: 1; }
-.fade-wait .ring { fill: none; stroke: rgba(236, 232, 242, .5); stroke-width: 1.6; }
-.fade-wait :is(.lid, .lashes) { fill: none; stroke: #ece8f2; stroke-linecap: round; stroke-linejoin: round; }
-.fade-wait .lid { stroke-width: 2.4; }
-.fade-wait .lashes { stroke-width: 2; }
-.fade-wait .iris { fill: none; stroke: rgba(255, 70, 82, .5); stroke-width: 1.2; }
-.fade-wait .pupil { fill: #ff2f3f; }
-.fade-wait .glint { fill: #fff; }
+:is(.fade-wait, .title-screen .mark) .ring { fill: none; stroke: rgba(236, 232, 242, .5); stroke-width: 1.6; }
+:is(.fade-wait, .title-screen .mark) :is(.lid, .lashes) { fill: none; stroke: #ece8f2; stroke-linecap: round; stroke-linejoin: round; }
+:is(.fade-wait, .title-screen .mark) .lid { stroke-width: 2.4; }
+:is(.fade-wait, .title-screen .mark) .lashes { stroke-width: 2; }
+:is(.fade-wait, .title-screen .mark) .iris { fill: none; stroke: rgba(255, 70, 82, .5); stroke-width: 1.2; }
+:is(.fade-wait, .title-screen .mark) .pupil { fill: #ff2f3f; }
+:is(.fade-wait, .title-screen .mark) .glint { fill: #fff; }
 .fade-title { position: absolute; left: 0; right: 0; top: 50%; margin: -64px 0 0; text-align: center; font: 400 22px/1 var(--ui); letter-spacing: .6em; text-indent: .6em; text-transform: uppercase; color: var(--ink); opacity: 0; transition: opacity .26s ease; }
 .fade.boot .fade-title { opacity: .9; }
 .error { position: absolute; z-index: 5; inset: auto 16px 16px 16px; margin: 0; padding: 12px 14px; background: #200; color: #fbb; font: 14px/1.4 var(--ui); }
@@ -66,9 +66,19 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 /* ---------- the HUD over the frame: hers, the same in both views; the Concierge's voice only in its view; her notebook
    on paper ---------- */
 .stage > #game, .stage > .hud { grid-area: 1 / 1; }
+/* a screen of another shape than the frame has bars beside it (a phone) or above and below it (a tablet): how wide, each
+   side, worked out where the HUD is sized (against the stage), then carried down as lengths */
+@property --bx { syntax: '<length>'; inherits: true; initial-value: 0px; }
+@property --by { syntax: '<length>'; inherits: true; initial-value: 0px; }
 .hud {
   position: relative; z-index: 1; width: min(100cqw, 177.78cqh); height: min(56.25cqw, 100cqh); pointer-events: none; container-type: size;
-  --m: clamp(12px, 2.4cqw, 34px); --slot: clamp(42px, 3.6cqw, 56px); --btn: clamp(38px, 3.1cqw, 46px);
+  --m: clamp(12px, 2.4cqw, 34px); --slot: clamp(44px, 3.6cqw, 64px); --btn: clamp(44px, 3.1cqw, 54px);
+  --bx: calc((100cqw - min(100cqw, 177.78cqh)) / 2); --by: calc((100cqh - min(56.25cqw, 100cqh)) / 2);
+  /* where what is hers and the game's sits, the balls, the buttons, the Concierge's presence, from the frame's edges: out
+     in the bars as far as the screen's safe area lets it, so the scene stays clear; on a screen the frame fills, the
+     margin. The scene's own things (what she found, the ways, what a verb lights) stay on the frame */
+  --el: calc(max(var(--m), env(safe-area-inset-left) + 8px) - var(--bx)); --er: calc(max(var(--m), env(safe-area-inset-right) + 8px) - var(--bx));
+  --et: calc(max(var(--m), env(safe-area-inset-top) + 8px) - var(--by)); --eb: calc(max(var(--m), env(safe-area-inset-bottom) + 8px) - var(--by));
   --glass: rgba(15, 16, 21, .6); --glass-strong: rgba(15, 16, 21, .9); --edge: rgba(255, 255, 255, .16); --edge-strong: rgba(255, 255, 255, .5);
   --text: #f5f3ef; --dim: rgba(245, 243, 239, .62); --lit: rgba(255, 255, 255, .16);
   /* the Concierge's own colours: only where it speaks, and on what it alone makes */
@@ -80,6 +90,11 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 /* no weight of its own, so each button's own colour wins */
 :where(.hud button) { font: inherit; color: inherit; cursor: pointer; }
 .hud button:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+/* pressed, a button gives a little under the finger; lit, it eases into it */
+.hud :is(.hud-ball, .hud-btn, .hud-slot, .hud-back, .hud-way, .co-foot > button, .talk-choice, .hud-tray .slot) { transition: scale .12s ease, background-color .15s ease, border-color .15s ease, box-shadow .2s ease, color .15s ease; }
+.hud :is(.hud-ball, .hud-btn, .hud-slot, .hud-back, .hud-way, .co-foot > button, .hud-tray .slot):active { scale: .93; }
+.hud .talk-choice:active { scale: .985; }
+@media (prefers-reduced-motion: reduce) { .hud :is(.hud-ball, .hud-btn, .hud-slot, .hud-back, .hud-way, .co-foot > button, .talk-choice, .hud-tray .slot) { transition: none; } }
 .hud-close { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; flex: none; padding: 0; border: 0; background: none; color: var(--dim); }
 .hud-close:hover { color: var(--text); background: var(--lit); }
 /* glass: the HUD's buttons, chips and cards */
@@ -98,7 +113,7 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
   --co-veil: linear-gradient(155deg, rgba(9, 38, 46, .74), rgba(16, 20, 46, .68));
   --co-glow: 0 0 0 1px rgba(183, 168, 255, .14) inset, 0 0 26px rgba(143, 240, 234, .18), 0 10px 30px rgba(0, 0, 0, .4);
 }
-.co-layer { position: absolute; left: var(--m); top: var(--m); z-index: 2; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; max-height: calc(100% - 2 * var(--m)); pointer-events: none; }
+.co-layer { position: absolute; left: var(--el); top: var(--et); z-index: 2; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; max-height: calc(100% - var(--et) - var(--eb)); pointer-events: none; }
 .co, .co-say { pointer-events: auto; color: var(--co-ink); background: var(--co-veil); border: 1px solid var(--co-edge); box-shadow: var(--co-glow); -webkit-backdrop-filter: blur(10px) saturate(1.25); backdrop-filter: blur(10px) saturate(1.25); }
 .co { position: relative; display: flex; flex-direction: column; flex: 0 1 auto; min-height: 0; max-width: min(560px, 62cqw); border-radius: 26px; }
 /* open, its card grows down out of its presence */
@@ -204,7 +219,7 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .hud[data-view="raw"] .co-layer { display: none; }
 
 /* at the top right: the view switch (with her sense of being watched under it), the map, her journal, her notebook, the menu */
-.hud-top { position: absolute; right: var(--m); top: var(--m); display: flex; gap: 8px; }
+.hud-top { position: absolute; right: var(--er); top: var(--et); display: flex; gap: 8px; }
 .hud-btn { position: relative; width: var(--btn); height: var(--btn); padding: 0; border-radius: 50%; display: grid; place-items: center; }
 .hud-btn.notebook.shut { color: var(--dim); }
 /* out of its sight, her notebook opens: it says so once */
@@ -226,24 +241,25 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 @keyframes hud-fade { from { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .hud-menu :is(.hud-slot, .hud-slot-label), .hud-tray, .hud-tray .slot { animation: none !important; } }
 .hud-slot { position: absolute; width: var(--slot); height: var(--slot); margin: calc(var(--slot) / -2) 0 0 calc(var(--slot) / -2); padding: 0; border-radius: 50%; display: grid; place-items: center; }
-.hud-slot-label { position: absolute; white-space: nowrap; font: 500 clamp(10px, .82cqw, 12px)/1 var(--ui); letter-spacing: .14em; text-transform: uppercase; text-shadow: 0 1px 3px rgba(0, 0, 0, .95); color: var(--dim); }
-.hud-slot.default + .hud-slot-label { color: #fff; }
+.hud-slot-label { position: absolute; white-space: nowrap; padding: 4px 8px; border-radius: 8px; background: rgba(10, 11, 16, .66); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  font: 500 clamp(10px, .82cqw, 12px)/1 var(--ui); letter-spacing: .12em; text-transform: uppercase; color: rgba(245, 243, 239, .8); }
+.hud-slot.default + .hud-slot-label { color: #121318; background: #f5f3ef; }
 
 /* the two balls, made for thumbs: her things on the left, what she can do on the right */
-.hud-ball { position: absolute; bottom: var(--m); width: calc(var(--slot) * 1.15); aspect-ratio: 1; padding: 0; border-radius: 50%; display: grid; place-items: center; }
-.hud-ball.things { left: var(--m); }
+.hud-ball { position: absolute; bottom: var(--eb); width: calc(var(--slot) * 1.15); aspect-ratio: 1; padding: 0; border-radius: 50%; display: grid; place-items: center; }
+.hud-ball.things { left: var(--el); }
 /* in a close-up: back to where she stood, between the balls */
-.hud-back { position: absolute; left: 50%; bottom: calc(var(--m) + var(--slot) * .2); transform: translateX(-50%); display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 18px 0 12px; border-radius: 20px; border: 1px solid var(--edge); background: var(--glass); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: 0 2px 12px rgba(0, 0, 0, .35); color: var(--text); font: 500 calc(13px * var(--ts, 1))/1 var(--ui); }
+.hud-back { position: absolute; left: 50%; bottom: calc(var(--eb) + var(--slot) * .2); transform: translateX(-50%); display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 18px 0 12px; border-radius: 20px; border: 1px solid var(--edge); background: var(--glass); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: 0 2px 12px rgba(0, 0, 0, .35); color: var(--text); font: 500 calc(13px * var(--ts, 1))/1 var(--ui); }
 .hud-back:hover { background: rgba(40, 42, 50, .72); }
 .hud-back[hidden] { display: none; }
 .hud[data-talking] .hud-back { display: none; }
 /* in a close-up its things sit close together: a tap on a note goes through to what is under it (the tap puts the note away) */
 .hud[data-closeup] .hud-note { pointer-events: none; }
-.hud-ball.verbs { right: var(--m); }
+.hud-ball.verbs { right: var(--er); }
 .hud-ball img { width: 72%; height: 72%; object-fit: contain; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .6)); }
 .hud-ball .badge { position: absolute; right: -3px; top: -3px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: #f5f3ef; color: #121318; font: 500 10px/18px var(--ui); text-align: center; }
 /* the verb chosen, beside its ball until it is used or put down */
-.hud-ball-label { position: absolute; right: calc(var(--m) + var(--slot) * 1.15 + 14px); bottom: calc(var(--m) + var(--slot) * .575); transform: translateY(50%); display: grid; justify-items: end; gap: 3px; text-align: right; white-space: nowrap; text-shadow: 0 1px 3px rgba(0, 0, 0, .95); pointer-events: none; }
+.hud-ball-label { position: absolute; right: calc(var(--er) + var(--slot) * 1.15 + 14px); bottom: calc(var(--eb) + var(--slot) * .575); transform: translateY(50%); display: grid; justify-items: end; gap: 3px; text-align: right; white-space: nowrap; text-shadow: 0 1px 3px rgba(0, 0, 0, .95); pointer-events: none; }
 .hud-ball-label .verb { font: 500 clamp(15px, 1.35cqw, 19px)/1.1 var(--ui); }
 .hud-ball-label .hint { font: 400 clamp(9px, .75cqw, 11px)/1.3 var(--ui); letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
 /* while she talks the balls stay where they are, resting; what they had out goes in */
@@ -327,7 +343,7 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .hud-way[data-edge="right"] { transform: translate(var(--x), var(--y)) translate(-100%, -50%); padding: 4px 6px 4px 11px; }
 .hud[data-view="raw"] .hud-way { color: var(--text); background: var(--glass); border-color: var(--edge); box-shadow: 0 2px 10px rgba(0, 0, 0, .35); }
 .hud[data-view="raw"] .hud-way svg { color: var(--text); }
-.hud[data-panel] .hud-way, .hud[data-talking] .hud-way { visibility: hidden; }
+.hud[data-panel] .hud-way, .hud[data-talking] .hud-way, .hud[data-tray] :is(.hud-way, .hud-note, .hud-mark) { visibility: hidden; }
 .hud-mark { position: absolute; pointer-events: none; }
 .hud-mark::before { content: ""; position: absolute; inset: -10%; border-radius: 18%; background: radial-gradient(closest-side, rgba(255, 255, 255, .16), rgba(255, 255, 255, 0)); animation: hud-glow 1.3s ease-in-out infinite; }
 @keyframes hud-glow { 50% { opacity: .55; } }
@@ -353,50 +369,80 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .talk-line[data-voice="other"] { color: #e3c6ff; }
 .talk-line.top { top: calc(var(--m) + 64px); max-width: min(560px, 62cqw); padding: 8px 16px; border-radius: 12px; background: rgba(15, 16, 21, .7);
   font: italic 500 calc(clamp(14px, 1.35cqw, 18px) * var(--ts, 1))/1.4 var(--serif); color: rgba(244, 241, 234, .9); text-shadow: none; }
-.talk-choices { position: absolute; z-index: 2; left: 50%; bottom: var(--m); transform: translateX(-50%); width: min(600px, calc(100% - 2 * var(--m) - 2 * var(--slot) * 1.15 - 32px));
+.talk-choices { position: absolute; z-index: 2; left: 50%; bottom: var(--m); transform: translateX(-50%); width: min(600px, calc(100% - 2 * max(var(--m), var(--el) + var(--slot) * 1.15 + 16px, var(--er) + var(--slot) * 1.15 + 16px)));
   margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; pointer-events: auto; animation: hud-fade .15s ease-out both; }
-.talk-choice { width: 100%; display: flex; gap: 10px; align-items: baseline; padding: 8px 14px; border: 1px solid var(--edge); border-radius: 12px; text-align: left; cursor: pointer;
-  background: var(--glass-strong); color: var(--text); font: 400 calc(clamp(14px, 1.35cqw, 18px) * var(--ts, 1))/1.3 var(--ui); }
-.talk-choice .key { min-width: 1ch; font: 500 12px/1 var(--ui); color: var(--dim); }
-.talk-choice:is(:hover, :focus-visible) { border-color: var(--edge-strong); background: rgba(40, 42, 50, .92); outline: none; }
+.talk-choice { width: 100%; display: flex; gap: 12px; align-items: center; min-height: 40px; padding: 8px 16px 8px 10px; border: 1px solid var(--edge); border-radius: 14px; text-align: left; cursor: pointer;
+  background: rgba(12, 13, 18, .86); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); color: var(--text); font: 400 calc(clamp(14px, 1.35cqw, 18px) * var(--ts, 1))/1.3 var(--ui); }
+/* its number, for the keys: a small key of its own, lit with the answer the finger or the keys are on */
+.talk-choice .key { flex: none; display: grid; place-items: center; min-width: 22px; height: 22px; border-radius: 7px; background: rgba(255, 255, 255, .08); font: 600 11px/1 var(--ui); color: var(--dim); }
+.talk-choice:is(:hover, :focus-visible) { border-color: var(--edge-strong); background: rgba(34, 36, 44, .94); outline: none; }
+.talk-choice:is(:hover, :focus-visible) .key { background: #f5f3ef; color: #121318; }
 
 /* panels over the street: the map and the menu on glass, her notebook on paper; the rest of the HUD steps back */
 .hud-panel { position: absolute; z-index: 3; }
 .hud[data-panel] :is(.co-layer, .hud-top, .hud-ball, .hud-ball-label, .hud-note, .hud-mark) { visibility: hidden; }
-.hud-panel:is(.journal, .menu) { background: var(--glass-strong); border: 1px solid var(--edge); border-radius: 18px; box-shadow: 0 18px 40px rgba(0, 0, 0, .6); animation: hud-fade .18s ease-out both; }
+.hud-panel:is(.journal, .menu) { background: rgba(13, 14, 19, .9); border: 1px solid var(--edge); border-radius: 20px; box-shadow: 0 0 0 1px rgba(0, 0, 0, .4), 0 24px 60px rgba(0, 0, 0, .65);
+  -webkit-backdrop-filter: blur(16px) saturate(1.1); backdrop-filter: blur(16px) saturate(1.1); animation: hud-sheet .22s cubic-bezier(.2, .8, .3, 1) both; }
+@keyframes hud-sheet { from { opacity: 0; scale: .975; } }
+@media (prefers-reduced-motion: reduce) { .hud-panel { animation: none !important; } }
 .hud-panel .head { display: flex; align-items: baseline; gap: 14px; }
 .hud-panel .head h2 { margin: 0; font: 500 clamp(16px, 1.5cqw, 21px)/1 var(--ui); letter-spacing: .02em; }
 .hud-panel .head .hint { flex: 1; font: 400 clamp(12px, 1cqw, 14px)/1.2 var(--ui); color: var(--dim); }
 .hud-panel .head .hud-close { align-self: center; }
 
 /* the menu: her saves, the settings, how to play; and the way to the title screen */
-.hud-panel.menu { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(720px, calc(100% - 2 * var(--m))); max-height: calc(100% - 2 * var(--m)); overflow: auto; display: grid; gap: 14px; padding: 12px 16px 18px 18px; }
+.hud-panel.menu { left: 50%; top: 50%; translate: -50% -50%; width: min(760px, calc(100% - var(--el) - var(--er))); max-height: calc(100% - var(--et) - var(--eb)); overflow: auto; overscroll-behavior: contain; display: grid; gap: 16px; padding: 14px 18px 20px; }
 .hud-panel.menu .head { align-items: center; flex-wrap: wrap; row-gap: 8px; }
 .hud-panel.menu .tabs { flex: 1; display: flex; gap: 2px; padding: 3px; border-radius: 12px; background: rgba(255, 255, 255, .06); width: max-content; max-width: max-content; }
 .hud-panel.menu .tab { padding: 7px 13px; border: 0; border-radius: 9px; background: none; color: var(--dim); font: 500 clamp(12px, 1.05cqw, 14px)/1 var(--ui); }
 .hud-panel.menu .tab.on { background: rgba(255, 255, 255, .15); color: #fff; }
 .hud-panel.menu .to-title { margin-left: auto; min-height: 30px; padding: 0 12px; border: 1px solid var(--edge); border-radius: 15px; background: none; color: var(--dim); font: 500 12px/1 var(--ui); }
 .hud-panel.menu .to-title:hover { color: var(--text); border-color: var(--edge-strong); }
-.hud-panel.menu .saves { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(190px, 100%), 1fr)); gap: 10px; }
-.hud-panel.menu .save { display: grid; gap: 6px; align-content: start; padding: 12px 14px 14px; border: 1px solid var(--edge); border-radius: 14px; background: rgba(255, 255, 255, .04); }
+/* her saves: four cards, each with its picture of the scene as it was saved */
+.hud-panel.menu .saves { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.hud-panel.menu .save { display: grid; grid-template-rows: auto auto 1fr; gap: 10px; padding: 7px 7px 12px; border: 1px solid var(--edge); border-radius: 16px; background: rgba(255, 255, 255, .035); }
+.hud-panel.menu .save .shot { aspect-ratio: 16 / 9; display: grid; place-items: center; overflow: hidden; border-radius: 10px; background: rgba(255, 255, 255, .05); }
+.hud-panel.menu .save .shot img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.hud-panel.menu .save.empty .shot { background: none; border: 1px dashed rgba(255, 255, 255, .16); }
+.hud-panel.menu .save .nothing { font: 300 26px/1 var(--ui); color: rgba(255, 255, 255, .2); }
+.hud-panel.menu .save .words { display: grid; gap: 3px; min-width: 0; padding: 0 5px; }
 .hud-panel.menu .save .name { font: 500 15px/1.2 var(--ui); }
-.hud-panel.menu .save .when { font: 400 12px/1.3 var(--ui); color: var(--dim); }
-.hud-panel.menu .save .row { margin-top: 4px; }
+.hud-panel.menu .save .when { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 400 12px/1.3 var(--ui); color: var(--dim); }
+.hud-panel.menu .save.empty .when { color: rgba(245, 243, 239, .4); }
+.hud-panel.menu .save .row { align-self: end; gap: 6px; padding: 0 4px; }
+.hud-panel.menu .save .row button { min-height: 32px; padding: 0 13px; font-size: 12.5px; }
+.hud-panel.menu .save .quiet { font: 400 12px/32px var(--ui); color: rgba(245, 243, 239, .45); }
+@container (max-width: 560px) { .hud-panel.menu .saves { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 /* her journal: on her device, its pages as tabs, the map among them; what she has not read yet has a dot */
-.hud-panel.journal { inset: var(--m); background: rgba(15, 16, 21, .96); display: flex; flex-direction: column; gap: 12px; padding: 12px 16px 16px 18px; }
+.hud-panel.journal { left: 50%; top: 50%; translate: -50% -50%; width: min(940px, calc(100% - var(--el) - var(--er))); max-height: min(620px, calc(100% - var(--et) - var(--eb)));
+  min-height: min(240px, calc(100% - var(--et) - var(--eb))); display: flex; flex-direction: column; gap: 14px; padding: 14px 18px 18px; }
+/* the map wants the room, whatever is on it */
+.hud-panel.journal:has(.body.places) { height: min(620px, calc(100% - var(--et) - var(--eb))); }
 .hud-panel.journal .head { align-items: center; flex-wrap: wrap; row-gap: 8px; }
 .hud-panel.journal .tabs { display: flex; gap: 2px; padding: 3px; border-radius: 12px; background: rgba(255, 255, 255, .06); }
 .hud-panel.journal .tab { position: relative; padding: 7px 13px; border: 0; border-radius: 9px; background: none; color: var(--dim); font: 500 clamp(12px, 1.05cqw, 14px)/1 var(--ui); }
 .hud-panel.journal .tab:hover { color: var(--text); }
 .hud-panel.journal .tab.on { background: rgba(255, 255, 255, .15); color: #fff; }
 .hud-panel.journal .tab.fresh::after { content: ""; position: absolute; right: 4px; top: 4px; width: 5px; height: 5px; border-radius: 50%; background: #fff; }
-.hud-panel.journal .body { flex: 1; min-height: 0; overflow: auto; }
-.hud-panel.journal .body.places { display: grid; place-items: center; overflow: hidden; }
-.hud-panel.journal .empty { margin: 0; font: 400 14px/1.4 var(--ui); color: var(--dim); }
-.hud-panel.journal .entries { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 10px; align-content: start; }
-.hud-panel.journal .entry { display: grid; gap: 4px; align-content: start; padding: 12px 14px; border: 1px solid var(--edge); border-radius: 14px; background: rgba(255, 255, 255, .04); }
-.hud-panel.journal .entry .name { display: flex; align-items: center; gap: 6px; font: 500 calc(15px * var(--ts, 1))/1.25 var(--ui); }
+.hud-panel.journal .body { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; }
+.hud-panel.journal .hint.read { flex: 0 1 auto; display: inline-flex; align-items: center; gap: 7px; min-width: 0; margin-left: auto; padding: 6px 11px; border-radius: 14px;
+  background: rgba(143, 240, 234, .07); border: 1px solid rgba(143, 240, 234, .2); color: var(--co-soft); }
+.hud-panel.journal .hint.read span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hud-panel.journal .hint.read svg { flex: none; color: var(--co); }
+.hud[data-view="raw"] .hud-panel.journal .hint.read { background: rgba(255, 255, 255, .05); border-color: var(--edge); color: var(--dim); }
+.hud[data-view="raw"] .hud-panel.journal .hint.read svg { color: var(--dim); }
+@container (max-width: 720px) { .hud-panel.journal .hint.read span { display: none; } }
+.hud-panel.journal .body.places { display: grid; place-items: center; overflow: hidden; border-radius: 14px; border: 1px solid rgba(255, 255, 255, .06);
+  background: radial-gradient(circle, rgba(255, 255, 255, .07) 1px, transparent 1.6px) 0 0 / 24px 24px, rgba(255, 255, 255, .015); }
+.hud-panel.journal .empty { margin: 0; padding: 40px 16px; text-align: center; font: italic 400 15px/1.5 var(--ui); color: var(--dim); }
+.hud-panel.journal .entries { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); gap: 10px; align-content: start; }
+.hud-panel.journal .entry { position: relative; display: grid; gap: 5px; align-content: start; padding: 14px 16px 15px; border: 1px solid var(--edge); border-radius: 16px; background: rgba(255, 255, 255, .035); }
+.hud-panel.journal .entry .name { display: flex; align-items: center; gap: 7px; font: 500 calc(15.5px * var(--ts, 1))/1.25 var(--ui); }
+/* what she has to do: a ring until it is done, then its tick */
+.hud-panel.journal [data-page="objectives"] .entry { padding-left: 42px; }
+.hud-panel.journal [data-page="objectives"] .entry:not(.done)::before { content: ""; position: absolute; left: 16px; top: 17px; width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid rgba(245, 243, 239, .7); }
+.hud-panel.journal [data-page="objectives"] .entry.done .tick { position: absolute; left: 15px; top: 16px; }
 .hud-panel.journal .entry .note { font: 400 calc(14px * var(--ts, 1))/1.4 var(--ui); color: var(--dim); }
 .hud-panel.journal .entry.done { opacity: .62; }
 .hud-panel.journal .entry.done .name { text-decoration: line-through; text-decoration-thickness: 1px; }
@@ -438,7 +484,7 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 
 /* her notebook: paper and pencil, its pages as tabs along its top edge, what she has not read yet dotted in red */
 .hud-panel.notebook {
-  left: 50%; top: var(--m); bottom: var(--m); transform: translateX(-50%); width: min(840px, calc(100% - 2 * var(--m))); display: flex; flex-direction: column;
+  left: 50%; top: var(--et); bottom: var(--eb); transform: translateX(-50%); width: min(840px, calc(100% - var(--el) - var(--er))); display: flex; flex-direction: column;
   padding: 10px 12px 12px; background: #3a2a1e; border-radius: 12px; box-shadow: 0 18px 40px rgba(0, 0, 0, .7); font-family: var(--hand); color: var(--pencil); animation: hud-fade .18s ease-out both;
 }
 .hud-panel.notebook .tabs { order: -1; display: flex; gap: 4px; padding: 0 18px; }
@@ -709,43 +755,68 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .settings .choice:hover { color: #fff; }
 .settings .choice.on { background: rgba(255, 255, 255, .17); color: #fff; }
 .settings .note { margin: 2px 0 0; font: 400 12px/1.4 var(--ui); color: rgba(245, 243, 239, .5); }
-.help { display: grid; gap: 10px; max-width: 660px; }
-.help .row-help { display: grid; grid-template-columns: 96px 1fr; gap: 12px; }
-.help .name { font: 500 14px/1.4 var(--ui); color: #f5f3ef; }
-.help .text { font: 400 14px/1.45 var(--ui); color: rgba(245, 243, 239, .72); }
-@media (max-width: 640px) { .settings .setting, .help .row-help { grid-template-columns: 1fr; gap: 6px; } }
+.help { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr)); gap: 10px; }
+.help .row-help { display: grid; align-content: start; gap: 7px; padding: 13px 15px 15px; border: 1px solid rgba(255, 255, 255, .12); border-radius: 14px; background: rgba(255, 255, 255, .035); }
+.help .name { display: flex; align-items: center; gap: 9px; font: 500 14.5px/1.3 var(--ui); color: #f5f3ef; }
+.help .name svg { flex: none; padding: 5px; width: 28px; height: 28px; border-radius: 50%; background: rgba(255, 255, 255, .08); }
+.help .text { font: 400 13.5px/1.5 var(--ui); color: rgba(245, 243, 239, .72); }
+@media (max-width: 640px) { .settings .setting { grid-template-columns: 1fr; gap: 6px; } }
 
-/* the title screen: the name over the first scene, drawn and moving behind it, and the ways in */
+/* the title screen: its mark and name, and the ways in, down the left over a shade; the first scene drawn and moving
+   behind it on the right. Its pages (settings, how to play, a saved game) open in the same place, under their name */
 .stage[data-title] .hud { visibility: hidden; }
-.title-screen { position: absolute; inset: 0; z-index: 5; display: grid; place-content: safe center; justify-items: center; gap: 8px; padding: 16px; overflow: auto;
-  background: radial-gradient(ellipse at 50% 45%, rgba(6, 7, 12, .3), rgba(4, 5, 9, .9)); color: #f5f3ef; animation: hud-fade .6s ease-out both; }
+.title-screen {
+  position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: clamp(18px, 5vh, 46px);
+  padding: max(24px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(clamp(28px, 7vw, 132px), env(safe-area-inset-left) + 20px);
+  overflow: auto; color: #f5f3ef; animation: hud-fade .6s ease-out both;
+  background: linear-gradient(90deg, rgba(4, 5, 9, .94), rgba(4, 5, 9, .8) 28%, rgba(4, 5, 9, .36) 58%, rgba(4, 5, 9, .08)), radial-gradient(ellipse 120% 95% at 72% 48%, transparent 55%, rgba(0, 0, 0, .5));
+}
 .title-screen.out { opacity: 0; transition: opacity .35s ease-in; }
+.title-screen .brand { display: grid; justify-items: start; gap: 10px; animation: title-in .9s cubic-bezier(.2, .8, .3, 1) both; }
+.title-screen .mark { width: clamp(84px, 15vh, 150px); height: auto; margin: 0 0 2px -12px; overflow: visible; filter: drop-shadow(0 0 18px rgba(0, 0, 0, .6)); }
 /* the logo and its line have names of their own: the settings and help rows inside the title screen have a .name too */
-.title-screen .logo { margin: 0; font: 300 clamp(38px, 7vw, 92px)/1 var(--ui); letter-spacing: .5em; text-indent: .5em; text-transform: uppercase; }
-.title-screen .tagline { margin: 0 0 22px; font: 400 clamp(11px, 1vw, 13px)/1 var(--ui); letter-spacing: .32em; text-indent: .32em; text-transform: uppercase; color: rgba(245, 243, 239, .6); }
-.title-screen .panel { display: grid; gap: 16px; justify-items: center; width: min(560px, calc(100vw - 32px)); padding: 16px 18px; border-radius: 18px; }
-.title-screen .panel:has(.settings, .help) { background: rgba(15, 16, 21, .78); border: 1px solid rgba(255, 255, 255, .14); justify-items: stretch; }
-.title-screen .menu { display: grid; gap: 8px; width: min(300px, 80vw); }
-.title-screen .menu button, .title-screen .back { min-height: 44px; padding: 0 20px; border: 1px solid rgba(255, 255, 255, .22); border-radius: 22px; background: rgba(15, 16, 21, .55);
-  color: #f5f3ef; font: 500 15px/1 var(--ui); letter-spacing: .05em; cursor: pointer; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
-.title-screen .menu button:hover, .title-screen .back:hover { border-color: rgba(255, 255, 255, .5); }
-.title-screen .menu button.primary { background: #f5f3ef; border-color: #f5f3ef; color: #121318; }
-.title-screen .back { justify-self: center; }
-.title-screen .ask { margin: 0; max-width: 360px; text-align: center; font: 400 15px/1.45 var(--ui); color: rgba(245, 243, 239, .85); }
+.title-screen .logo { margin: 0 -.34em 0 0; font: 300 clamp(40px, 10vh, 96px)/.92 var(--ui); letter-spacing: .34em; text-transform: uppercase; text-shadow: 0 0 40px rgba(0, 0, 0, .6); }
+.title-screen .tagline { margin: 0; font: 400 clamp(11px, 1.6vh, 13px)/1 var(--ui); letter-spacing: .36em; text-transform: uppercase; color: rgba(245, 243, 239, .55); }
+.title-screen .panel { display: grid; gap: 14px; width: min(440px, 100%); animation: title-in .9s .12s cubic-bezier(.2, .8, .3, 1) both; }
+.title-screen .menu { display: grid; justify-items: start; gap: 2px; }
+.title-screen .menu button {
+  position: relative; display: inline-flex; align-items: center; min-height: 46px; padding: 0 12px 0 28px; border: 0; background: none; cursor: pointer; text-align: left;
+  color: rgba(245, 243, 239, .58); font: 400 clamp(17px, 2.8vh, 21px)/1 var(--ui); letter-spacing: .06em; transition: color .18s ease, transform .18s ease;
+}
+/* the way the finger or the keys are on: the eye's red pupil beside it; the first way, until another is */
+.title-screen .menu button::before { content: ""; position: absolute; left: 6px; top: 50%; width: 7px; height: 7px; margin-top: -3.5px; border-radius: 50%; background: #ff2f3f; box-shadow: 0 0 2px #ff2f3f, 0 0 12px rgba(255, 47, 63, .9); opacity: 0; transform: scale(.3); transition: opacity .18s ease, transform .18s ease; }
+.title-screen .menu button:is(:hover, :focus-visible) { color: #fff; transform: translateX(4px); outline: none; }
+.title-screen .menu button:is(:hover, :focus-visible)::before { opacity: 1; transform: scale(1); }
+.title-screen .menu button.primary { color: #fff; font-weight: 500; }
+.title-screen .menu:not(:has(button:is(:hover, :focus-visible))) button.primary::before { opacity: 1; transform: scale(1); }
+/* a page of it: on glass, its name and Back over what scrolls */
+.title-screen.sub .panel { width: min(660px, 100%); max-height: 100%; min-height: 0; display: flex; flex-direction: column; gap: 14px; padding: 14px 20px 20px; border-radius: 18px;
+  background: rgba(12, 13, 18, .84); border: 1px solid rgba(255, 255, 255, .12); box-shadow: 0 20px 50px rgba(0, 0, 0, .5); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+.title-screen.sub .panel > :not(.head) { min-height: 0; overflow: auto; overscroll-behavior: contain; }
+.title-screen .panel .head { display: flex; align-items: center; gap: 14px; flex: none; }
+.title-screen .panel .head h2 { margin: 0; font: 400 clamp(17px, 2.6vh, 20px)/1 var(--ui); letter-spacing: .06em; }
+.title-screen .back { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 14px 0 10px; border: 1px solid rgba(255, 255, 255, .18); border-radius: 18px;
+  background: rgba(255, 255, 255, .04); color: rgba(245, 243, 239, .85); font: 500 13px/1 var(--ui); cursor: pointer; }
+.title-screen .back:hover { background: rgba(255, 255, 255, .1); color: #fff; }
+.title-screen .ask { margin: 0; max-width: 420px; font: 400 15px/1.5 var(--ui); color: rgba(245, 243, 239, .8); }
+.title-screen.sub .menu button { padding-left: 22px; font-size: clamp(16px, 2.5vh, 19px); }
+.title-screen.sub .menu button::before { left: 2px; }
+.title-screen .menu.slots button { display: grid; justify-items: start; gap: 5px; padding-top: 9px; padding-bottom: 9px; }
+.title-screen .slots .where { font-size: 13px; letter-spacing: .02em; color: rgba(245, 243, 239, .5); }
 .title-screen button:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
-/* a phone held sideways: a smaller logo and tighter buttons; settings or help take the logo's place, scrolling within
-   their panel, Back always in reach at its foot */
+@keyframes title-in { from { opacity: 0; transform: translateY(10px); } }
+/* a phone held sideways: a smaller name; a page has the height, the name gone */
 @media (max-height: 560px) {
-  .title-screen { gap: 4px; padding: 10px 16px; }
-  .title-screen .logo { font-size: clamp(26px, 9vh, 52px); }
-  .title-screen .tagline { margin-bottom: 12px; }
-  .title-screen .menu { gap: 6px; }
-  .title-screen .menu button { min-height: 38px; }
-  .title-screen:has(.panel :is(.settings, .help)) :is(.logo, .tagline) { display: none; }
-  .title-screen .panel:has(.settings, .help) { max-height: calc(100dvh - 20px); overflow: auto; padding-bottom: 0; gap: 10px; }
-  .title-screen .panel:has(.settings, .help) .back { position: sticky; bottom: 0; margin-bottom: 10px; background: rgba(15, 16, 21, .94); }
+  .title-screen { gap: 14px; padding-top: max(14px, env(safe-area-inset-top)); padding-bottom: max(14px, env(safe-area-inset-bottom)); }
+  .title-screen .brand { gap: 7px; }
+  .title-screen .mark { width: 64px; margin: 0 0 -2px -8px; }
+  .title-screen .logo { font-size: clamp(30px, 11vh, 52px); }
+  .title-screen .menu button { min-height: 42px; font-size: 17px; }
+  .title-screen.sub .brand { display: none; }
+  .title-screen.sub .panel { padding: 12px 16px 16px; gap: 10px; }
   .settings { gap: 8px; }
 }
+@media (prefers-reduced-motion: reduce) { .title-screen, .title-screen :is(.brand, .panel) { animation: none; } .title-screen .menu button, .title-screen .menu button::before { transition: none; } }
 /* an old machine's screen (game/terminal.ts): green phosphor on dark glass, scanlines over it, a little flicker */
 .stage[data-terminal] .hud { visibility: hidden; }
 .terminal { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
