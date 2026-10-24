@@ -263,7 +263,9 @@ export function drawMap(body: HTMLElement, now: MapNow, go: (t: Travel, name: st
     const room = (rows: number, k: number) => Math.max(0, rows * 17 + 10 - UNDER * k);
     const k = Math.max(LEAST, Math.min(W / bw, (H - room(layout(first), first)) / bh, MOST)), rows = layout(k);
     chart.style.marginBottom = `${room(rows, k)}px`;
-    // too big for the page: it scrolls, and opens on where she is
+    // too big for the page: it scrolls, its edges fading where there is more, and opens on where she is
+    area.classList.toggle('scrolls-x', bw * k + 24 > W);
+    area.classList.toggle('scrolls-y', bh * k + room(rows, k) + 24 > H);
     const you = now.you ?? now.places.find((q) => q.here)?.box.slice(0, 2) as [number, number] | undefined;
     if (you) { area.scrollLeft = (you[0] - bx) * k - W / 2; area.scrollTop = (you[1] - by) * k - H / 2; }
   };

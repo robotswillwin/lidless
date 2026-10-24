@@ -554,6 +554,9 @@ button.view:not(.hud-btn):focus-visible { outline: 2px solid #fff; outline-offse
 .map-view .area { display: grid; place-items: safe center; min-width: 0; min-height: 0; overflow: auto; overscroll-behavior: contain; scrollbar-width: none; border-radius: var(--r-card-lg);
   background: radial-gradient(circle, rgba(255, 255, 255, .08) 1px, transparent 1.6px) 0 0 / 24px 24px, rgba(0, 0, 0, .14); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .06); }
 .chart { position: relative; margin: 12px; }
+/* a map bigger than its window: its edges fade where there is more to scroll to */
+.map-view .area.scrolls-x { -webkit-mask-image: linear-gradient(90deg, transparent, #000 32px, #000 calc(100% - 32px), transparent); mask-image: linear-gradient(90deg, transparent, #000 32px, #000 calc(100% - 32px), transparent); }
+.map-view .area.scrolls-y:not(.scrolls-x) { -webkit-mask-image: linear-gradient(transparent, #000 24px, #000 calc(100% - 24px), transparent); mask-image: linear-gradient(transparent, #000 24px, #000 calc(100% - 24px), transparent); }
 .chart svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .chart svg * { vector-effect: non-scaling-stroke; }
 .chart rect.road { fill: rgba(255, 255, 255, .16); stroke: rgba(255, 255, 255, .55); stroke-width: 1.2; }
@@ -921,7 +924,7 @@ button.view:not(.hud-btn):focus-visible { outline: 2px solid #fff; outline-offse
   position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; justify-content: safe center; align-items: flex-start; gap: clamp(18px, 5vh, 46px);
   padding: max(24px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(clamp(28px, 7vw, 132px), env(safe-area-inset-left) + 20px);
   overflow: auto; color: #f5f3ef; animation: hud-fade .6s ease-out both;
-  background: linear-gradient(90deg, rgba(4, 5, 9, .94), rgba(4, 5, 9, .8) 28%, rgba(4, 5, 9, .36) 58%, rgba(4, 5, 9, .08)), radial-gradient(ellipse 120% 95% at 72% 48%, transparent 55%, rgba(0, 0, 0, .5));
+  background: linear-gradient(90deg, rgba(4, 5, 9, .95), rgba(4, 5, 9, .86) 30%, rgba(4, 5, 9, .5) 56%, rgba(4, 5, 9, .1) 82%), radial-gradient(ellipse 120% 95% at 72% 48%, transparent 55%, rgba(0, 0, 0, .5));
 }
 .title-screen.out { opacity: 0; transition: opacity .35s ease-in; }
 .title-screen .brand { display: grid; justify-items: start; gap: 10px; animation: title-in .9s var(--ease) both; }
