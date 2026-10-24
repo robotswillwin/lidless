@@ -7,8 +7,20 @@
 // uses it and does not hold it against her, so looking costs nothing. A tap with no verb looks, or talks with someone
 // she can, or goes through a door: it never takes or uses a thing.
 
-import type { Action } from './hud';
 import type { Hotspot } from './level';
+
+/** `item`: using a thing she holds on it. */
+export type ActionKind = 'feet' | 'hands' | 'take' | 'eyes' | 'heart' | 'ask' | 'item';
+
+export interface Action {
+  kind: ActionKind;
+  /** What the action is called here, in the view's own words. */
+  label: string;
+  /** Steps of the Concierge's attention it costs. */
+  cost?: number;
+  /** The thing has something of its own for it (a text, a stitch of its knot), not only a standard reply. */
+  own?: boolean;
+}
 
 export type Verb = 'eyes' | 'heart' | 'hands' | 'take' | 'ask';
 

@@ -6,10 +6,10 @@
 // comes up. In a close-up nothing is walked to: a tap looks, there and then. The page's events come in through input.ts.
 
 import { NH, NW } from '../engine/renderer';
-import { actionFor, actionsFor, defaultOf, itemActionFor, type Verb } from './actions';
+import { actionFor, actionsFor, defaultOf, itemActionFor, type Action, type Verb } from './actions';
 import type { Game } from './game';
 import { holdPace, paceFor } from './hero';
-import type { Action, Mark } from './hud';
+import type { Mark } from './marks';
 import { pick, placeIn, type Hotspot } from './level';
 
 /** Seconds a finger is held down before it can run her (a tap is quicker): see holdOn. */

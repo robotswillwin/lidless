@@ -6,7 +6,7 @@
 
 import { STITCH } from './dialogue';
 import type { Game } from './game';
-import type { Action } from './hud';
+import type { Action } from './actions';
 import { pick, placeIn, type Hotspot } from './level';
 import { kindOf, replyFor, type ReplyVerb } from './replies';
 

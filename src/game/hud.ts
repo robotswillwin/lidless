@@ -5,67 +5,34 @@
 // on paper: what she keeps from the Concierge, opened only in a privacy zone, where it cannot see her.
 //
 // Made for thumbs, nothing that needs a mouse to hover. Her things on the left ball: a tray of them slides out along the
-// bottom. What she can do on the right ball (look, talk, use, take, ask), sliding out the other way. At the top right
-// the view switch with her sense of being watched, the map, her journal, her notebook and the menu with her saves. With a verb
-// chosen, what her finger is over lights up if the verb does something to it, and letting go does it; what she finds is
-// written at the thing.
+// bottom. What she can do on the right ball (look, talk, use, take, ask), sliding out the other way (balls.ts). At the
+// top right the view switch with her sense of being watched, then the map, her journal, her notebook and the menu with
+// her saves (panels.ts). With a verb chosen, what her finger is over lights up if the verb does something to it, and
+// letting go does it (marks.ts); what she finds is written at the thing (notes.ts). A moment, or a paper, shown up close
+// (closeup.ts). This is their hub: what the game asks of the HUD, and what it is told.
 
-import { HERS, verbName, verbQuestion, type Verb } from './actions';
+import { Balls } from './balls';
+import { Closeups, type CloseupDef } from './closeup';
 import { Concierge, type Readouts } from './concierge';
-import type { Inbox } from './messages';
+import type { Verb } from './actions';
 import { button, el } from './dom';
 import { icon } from './icons';
-import { note, pick, type Hotspot } from './level';
-import { drawJournal, PLACES } from './journal';
-import { drawMap, type MapNow, type Travel } from './map';
-import { drawNotebook, notebookNow, type Notebook } from './notebook';
-import { drawSettings, type Settings } from './settings';
-import { drawInspect, drawTray, picturesOf, thingsNow, type Item } from './tray';
+import type { Hotspot } from './level';
+import type { MapNow, Travel } from './map';
+import { Marks, type Mark, type Way } from './marks';
+import type { Inbox } from './messages';
+import { notebookNow, type Notebook } from './notebook';
+import { Notes } from './notes';
+import { Panels, type PanelKind } from './panels';
+import { PLACES } from './journal';
+import type { Settings } from './settings';
+import type { Item } from './tray';
 
 export type { Item } from './tray';
 export type { Notebook } from './notebook';
-
-/** `item`: using a thing she holds on it. */
-export type ActionKind = 'feet' | 'hands' | 'take' | 'eyes' | 'heart' | 'ask' | 'item';
-
-export interface Action {
-  kind: ActionKind;
-  /** What the action is called here, in the view's own words. */
-  label: string;
-  /** Steps of the Concierge's attention it costs. */
-  cost?: number;
-  /** The thing has something of its own for it (a text, a stitch of its knot), not only a standard reply. */
-  own?: boolean;
-}
-
-/**
- * A way in or out on screen: a door into a building, or a way off the end of the street. `x`, `y` in the HUD's pixels:
- * over the door's top, or at the edge it leads off.
- */
-export interface Way { id: string; label: string; x: number; y: number; edge: 'in' | 'left' | 'right' }
-
-/**
- * A close-up's own settings (closeups.json): its words, set over its blank paper in her handwriting (`hand`) or in type,
- * within `area` (x, y, w, h, as parts of the picture), tilted `tilt` degrees, `size` times the picture's width; and
- * whether it fills the dark (`dark`: her waking).
- */
-export interface CloseupDef { text?: string; hand?: boolean; area?: [number, number, number, number]; tilt?: number; size?: number; dark?: boolean }
-
-const WAY_GLYPH = {
-  in: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 14V2.8h8V14M2.5 14h11M9.6 8.4v.01" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-  left: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3.5 5.5 8l4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-  right: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-};
-
-/** What a chosen verb lights up under her finger: the thing, what the verb does to it, and where it is on screen. */
-export interface Mark {
-  h: Hotspot;
-  a: Action;
-  /** x, y, width, height in the HUD's pixels. */
-  box: [number, number, number, number];
-}
-
-type PanelKind = 'journal' | 'notebook' | 'menu';
+export type { CloseupDef } from './closeup';
+export type { Mark, Way } from './marks';
+export { drawHelp } from './panels';
 
 export class Hud {
   readonly root: HTMLElement;
@@ -95,16 +62,12 @@ export class Hud {
   /** What she has read in her journal and her notebook, and reading more of them. */
   read: () => ReadonlySet<string> = () => new Set();
   onRead: (keys: string[]) => void = () => {};
-  /** Where the assets are, for her things' pictures. */
+  /** Where the assets are, for her things' pictures and the close-ups. */
   assets = 'assets';
   /** The close-ups' own settings (closeups.json): a paper's words, and how they are set over it. */
   closeups: Record<string, CloseupDef> = {};
-  private closeupFit: ResizeObserver | null = null;
-  /** A paper being read: puts it down (readCloseup). */
-  private putDown: (() => void) | null = null;
   /** In a close-up: back to where she stood. */
   onBack: () => void = () => {};
-  private readonly backBtn: HTMLButtonElement;
   /** The player's settings, and changing them (from the menu's settings); back to the title screen. */
   settings: () => Settings | null = () => null;
   onSettings: (s: Settings) => void = () => {};
@@ -112,47 +75,19 @@ export class Hud {
   /** How long notes stay, times the normal (the text speed setting). */
   noteSpeed = 1;
 
-  private raw = false;
+  private isRaw = false;
   private unlocked = false;
   /** Out of the Concierge's sight: her notebook opens. */
-  private unseen = false;
+  private isUnseen = false;
   /** The Concierge, in its view: its presence at the top left, its card, its messages, talking to it. */
   readonly concierge: Concierge;
-  private viewBtn: HTMLButtonElement;
-  private journalBtn: HTMLButtonElement;
-  private notebookBtn: HTMLButtonElement;
-  private thingsBall: HTMLButtonElement;
-  private verbBall: HTMLButtonElement;
-  private verbLabel: HTMLElement;
-  private verb: Verb | null = null;
-  /** A thing she holds to use on something, and what it is called. */
-  private held: { id: string; name: string } | null = null;
-  private menu: HTMLElement | null = null;
-  private trayEl: HTMLElement | null = null;
-  private inspectEl: HTMLElement | null = null;
-  private inspecting: string | null = null;
-  private markEl: HTMLElement | null = null;
-  private markOf: Hotspot | null = null;
-  private noteEl: HTMLElement | null = null;
-  private noteOf: Hotspot | null = null;
-  private noteTimer = 0;
-  private panel: HTMLElement | null = null;
-  private panelKind: PanelKind | null = null;
-  /** A close-up over the scene, and which: its picture follows the view. */
-  private closeupEl: HTMLElement | null = null;
-  private closeupName: string | null = null;
-  private items: Record<string, Item> = {};
-  private carried: string[] = [];
-  private notebook: Notebook = { pages: [] };
-  private notebookTab: string | null = null;
-  private journal: Notebook = { pages: [] };
-  private journalTab: string | null = null;
-  /** The menu's tab: her saves, the settings, how to play. */
-  private menuTab: 'saves' | 'settings' | 'help' = 'saves';
-  /** Her things' pictures, fetched once. */
-  private readonly fetched = new Set<string>();
-  /** The markers over the ways in and out on screen, by hotspot. */
-  private readonly wayEls = new Map<string, HTMLButtonElement>();
+  readonly balls: Balls;
+  readonly panels: Panels;
+  private readonly closeup: Closeups;
+  private readonly marks: Marks;
+  private readonly notes: Notes;
+  private readonly viewBtn: HTMLButtonElement;
+  private readonly backBtn: HTMLButtonElement;
 
   constructor(canvas: HTMLCanvasElement) {
     const root = (this.root = el('div', 'hud'));
@@ -162,156 +97,54 @@ export class Hud {
     // the Concierge, in its view, at the top left: tapped, its card opens over the scene
     this.concierge = new Concierge(root);
 
-    // at the top right: the view and her sense of being watched, the map, her journal, her notebook, the menu
+    // at the top right: the view and her sense of being watched, then the map, her journal, her notebook, the menu
     const top = el('div', 'hud-top', root);
     this.viewBtn = button('hud-btn view', 'See it as it is (E)', top, () => this.onView());
     this.viewBtn.innerHTML = `${icon('view', 22)}<span class="ticks" aria-hidden="true"><span></span><span></span><span></span></span>`;
-    button('hud-btn map', 'Map (M)', top, () => this.openJournal(PLACES)).innerHTML = icon('map', 22);
-    this.journalBtn = button('hud-btn journal', 'Her journal (J)', top, () => this.openJournal());
-    this.journalBtn.innerHTML = icon('journal', 22);
-    this.notebookBtn = button('hud-btn notebook', 'Her notebook (N)', top, () => this.togglePanel('notebook'));
-    button('hud-btn menu', 'Menu: saves, settings, help', top, () => this.togglePanel('menu')).innerHTML = icon('menu', 22);
+    this.panels = new Panels(this, top);
 
     // in a close-up, back to where she stood: at the bottom, between the balls
     this.backBtn = button('hud-back', 'Step back (Esc)', root, () => this.onBack());
     this.backBtn.innerHTML = `${icon('back', 18)}<span>Step back</span>`;
     this.backBtn.hidden = true;
 
-    // the two balls: her things on the left, what she can do on the right, the verb chosen named beside it
-    this.thingsBall = button('hud-ball things', 'Her things (I)', root, () => this.toggleTray());
-    // holding a thing, the ball puts it back; else it slides out the verbs
-    this.verbBall = button('hud-ball verbs', 'What she can do', root, () => (this.held ? this.onHold(null) : this.toggleVerbs()));
-    this.verbLabel = el('div', 'hud-ball-label', root);
-    this.verbLabel.hidden = true;
+    // the two balls: her things on the left, what she can do on the right
+    this.balls = new Balls(this);
+    this.closeup = new Closeups(this);
+    this.marks = new Marks(this);
+    this.notes = new Notes(this);
     this.setAttention(0);
-    this.drawNotebookButton();
-    this.drawBalls();
+    this.panels.drawNotebookButton();
   }
 
-  setThings(items: Record<string, Item>, carried: string[]): void {
-    this.items = items;
-    this.carried = carried;
-    // their pictures fetched now, so the tray opens with them there
-    for (const art of carried.flatMap((id) => picturesOf(items[id]))) if (!this.fetched.has(art)) { this.fetched.add(art); new Image().src = `${this.assets}/${art}`; }
-    this.drawBalls();
-    if (this.trayEl) this.openTray();
-    if (this.inspecting && !carried.includes(this.inspecting)) this.closeInspect();
-    // the story moved on: something new written down?
-    this.drawFresh();
-  }
-
-  setNotebook(nb: Notebook): void {
-    this.notebook = nb;
-    this.drawFresh();
-  }
-
-  setJournal(j: Notebook): void {
-    this.journal = j;
-    this.drawFresh();
-  }
-
-  /** A dot on the journal's and the notebook's buttons while there is something in them she has not read. */
-  private drawFresh(): void {
-    const read = this.read();
-    this.journalBtn.classList.toggle('fresh', notebookNow(this.journal, this.known, read, 'journal:').some((p) => p.fresh));
-    this.notebookBtn.classList.toggle('fresh', notebookNow(this.notebook, this.known, read).some((p) => p.fresh));
-  }
+  /** Raw view is on screen. */
+  get raw(): boolean { return this.isRaw; }
+  /** Out of the Concierge's sight. */
+  get unseen(): boolean { return this.isUnseen; }
 
   /** Which view is on screen, and whether she can switch yet: the switch and her sense of being watched come with the biohack. */
   setView(raw: boolean, unlocked: boolean): void {
-    const changed = raw !== this.raw || unlocked !== this.unlocked;
-    this.raw = raw;
+    const changed = raw !== this.isRaw || unlocked !== this.unlocked;
+    this.isRaw = raw;
     this.unlocked = unlocked;
     this.root.dataset.view = raw ? 'raw' : 'concierge';
     this.viewBtn.hidden = !unlocked;
     this.viewBtn.setAttribute('aria-pressed', String(raw));
     this.viewBtn.setAttribute('aria-label', raw ? 'Back to its view (E)' : 'See it as it is (E)');
     if (!changed) return;
-    this.closeVerbs();
-    this.mark(null);
+    this.marks.mark(null);
     if (raw) { this.dismissToast(); this.concierge.close(); }
-    this.drawBalls();
-    if (this.held) this.setHeld(this.held.id);
-    if (this.trayEl) this.openTray();
-    if (this.inspecting) this.inspect(this.inspecting);
-    if (this.panelKind && this.panelKind !== 'notebook') this.openPanel(this.panelKind);
-    const img = this.closeupEl?.querySelector('img');
-    if (this.closeupName && img) img.src = `${this.assets}/closeups/${this.closeupName}.${raw ? 'raw' : 'concierge'}.webp`;
+    this.balls.viewChanged();
+    this.panels.viewChanged();
+    this.closeup.viewChanged();
   }
 
-  /** Whether a close-up is over the scene: lines are said at the top then, clear of it. */
-  get closeupOpen(): boolean { return this.closeupName !== null; }
-
-  /**
-   * A close-up over the dimmed scene: a moment shown up close (her wrist in the station's cuff), as the view on screen
-   * has it (`closeups/<name>.concierge.webp`, `.raw.webp`); null takes it away. Resolves once its picture is there. A
-   * paper's words are the close-up's own (closeups.json), set over the blank paper in her hand or in type, never drawn
-   * into the picture; a close-up `dark` fills the dark (her waking).
-   */
-  showCloseup(name: string | null): Promise<void> {
-    const was = this.closeupEl;
-    this.closeupName = name;
-    this.closeupFit?.disconnect();
-    // a paper being read is put down with it
-    this.putDown?.();
-    if (!name) {
-      if (was) { was.classList.add('out'); window.setTimeout(() => was.remove(), 260); }
-      this.closeupEl = null;
-      return Promise.resolve();
-    }
-    const def = this.closeups[name] ?? {};
-    const box = el('div', `hud-closeup${def.dark ? ' dark' : ''}`, this.root), frame = el('div', 'frame', box), img = el('img', '', frame);
-    img.alt = def.text ?? '';
-    img.src = `${this.assets}/closeups/${name}.${this.raw ? 'raw' : 'concierge'}.webp`;
-    if (def.text) {
-      const [x, y, w, h] = def.area ?? [0.2, 0.17, 0.6, 0.66];
-      const words = el('div', `words ${def.hand ? 'hand' : 'typed'}`, frame);
-      // in a hand, each line a little its own: not quite level, not quite where the last began
-      def.text.split('\n').forEach((line, i) => {
-        const l = el('span', 'ln', words, line || '\u00a0');
-        if (def.hand) l.style.transform = `translateX(${((i * 37) % 5) * 0.8}%) rotate(${(((i * 53) % 9) - 4) * 0.18}deg)`;
-      });
-      Object.assign(words.style, { left: `${x * 100}%`, top: `${y * 100}%`, width: `${w * 100}%`, height: `${h * 100}%`, transform: def.tilt ? `rotate(${def.tilt}deg)` : '' });
-      words.setAttribute('aria-hidden', 'true');
-      // its size follows the paper's on screen
-      const fit = () => { words.style.fontSize = `${img.clientWidth * (def.size ?? (def.hand ? 0.036 : 0.03))}px`; };
-      this.closeupFit = new ResizeObserver(fit);
-      this.closeupFit.observe(img);
-    }
-    if (was) { box.classList.add('still'); was.remove(); }
-    this.closeupEl = box;
-    return img.decode().catch(() => {});
-  }
-
-  /**
-   * A paper close up, read: it stays until she puts it down (a tap, or Space, Enter or Escape), and only then does the
-   * conversation go on. Resolves once it is put down.
-   */
-  readCloseup(name: string): Promise<void> {
-    return new Promise((done) => {
-      void this.showCloseup(name).then(() => {
-        const box = this.closeupEl;
-        if (!box || this.closeupName !== name) return done();
-        box.classList.add('reading');
-        const hint = el('p', 'put-down', box, 'Tap to put it down');
-        hint.setAttribute('role', 'status');
-        let over = false;
-        const end = () => {
-          if (over) return;
-          over = true;
-          this.putDown = null;
-          box.removeEventListener('pointerdown', tap);
-          document.removeEventListener('keydown', key, true);
-          if (this.closeupEl === box) void this.showCloseup(null);
-          done();
-        };
-        const tap = (e: Event) => { e.preventDefault(); e.stopPropagation(); end(); };
-        const key = (e: KeyboardEvent) => { if (e.key === ' ' || e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); end(); } };
-        box.addEventListener('pointerdown', tap);
-        document.addEventListener('keydown', key, true);
-        this.putDown = end;
-      });
-    });
+  /** Whether the Concierge can see her where she is: out of its sight, her notebook opens; in it, it shuts. */
+  setUnseen(unseen: boolean): void {
+    if (unseen === this.isUnseen) return;
+    this.isUnseen = unseen;
+    this.balls.unseenChanged();
+    this.panels.notebookChanged();
   }
 
   /** In a close-up (a desk, a workbench, seen close), or not: its Back. */
@@ -320,41 +153,17 @@ export class Hud {
     this.root.toggleAttribute('data-closeup', on);
   }
 
-  /** Her notebook taken or put down: its button shows or goes. */
-  notebookChanged(): void {
-    this.drawNotebookButton();
-    if (!this.hasNotebook() && this.panelKind === 'notebook') this.closePanel();
-  }
-
-  /** Whether the Concierge can see her where she is: out of its sight, her notebook opens; in it, it shuts. */
-  setUnseen(unseen: boolean): void {
-    if (unseen === this.unseen) return;
-    this.unseen = unseen;
-    this.drawNotebookButton();
-    // what it says about her things comes and goes with its sight of her
-    if (this.trayEl) this.openTray();
-    if (this.inspecting) this.inspect(this.inspecting);
-    if (!unseen && this.panelKind === 'notebook') this.closePanel();
-  }
-
-  /** A thing she holds to use on something, on the right ball in place of a verb; null puts it back. */
-  setHeld(id: string | null): void {
-    const it = id ? this.items[id] : undefined;
-    this.held = id && it ? { id, name: pick(it.name, this.raw) } : null;
-    this.drawBalls();
-    if (this.trayEl) this.trayEl.querySelectorAll<HTMLElement>('.slot').forEach((s) => s.classList.toggle('held', s.dataset.item === id));
-  }
-
-  /** The verb chosen, or none: the right ball shows it, its slot is lit, and with the verbs put away it is named beside the ball. */
-  setVerb(v: Verb | null): void {
-    this.verb = v;
-    this.menu?.querySelectorAll<HTMLElement>('[data-verb]').forEach((b) => {
-      b.classList.toggle('default', b.dataset.verb === v);
-      b.setAttribute('aria-pressed', String(b.dataset.verb === v));
-    });
-    // asking it: its presence listens, and says what it asks
-    this.concierge.setListening(v === 'ask');
-    this.drawBalls();
+  /**
+   * While she talks the conversation has the bottom of the frame: the balls step aside, and what is open closes, but
+   * the Concierge's card, where she may be talking to it.
+   */
+  setTalking(on: boolean): void {
+    if (!on) { delete this.root.dataset.talking; return; }
+    this.balls.closeVerbs();
+    this.panels.closeSheet();
+    this.marks.mark(null);
+    this.notes.dismiss();
+    this.root.dataset.talking = '';
   }
 
   /** The Concierge's greeting and its line of the day, time and weather. */
@@ -375,7 +184,7 @@ export class Hud {
   openConcierge(words: string, unheard: boolean, inbox: Inbox[] = [], call = false): void {
     this.closeAll();
     this.onPanel();
-    const objectives = notebookNow(this.journal, this.known, this.read(), 'journal:').find((p) => p.id === 'objectives');
+    const objectives = notebookNow(this.panels.journal, this.known, this.read(), 'journal:').find((p) => p.id === 'objectives');
     const reminders = (objectives?.entries ?? []).filter((e) => !e.done).map((e) => ({ name: e.name, text: e.lines[0]?.text ?? '' }));
     this.concierge.open({ words, reminders, unheard, inbox, call });
   }
@@ -388,427 +197,66 @@ export class Hud {
     this.viewBtn.title = `Its attention: ${['calm', 'noticing', 'watching', 'watching closely'][n]}`;
   }
 
-  /**
-   * The ways in and out on screen, each frame, so it is plain where she can go: a marker over each door that leads
-   * somewhere, and one at the edge of the street for a way off its end; a tap on one takes her there and through. In
-   * the Concierge's view they are its light, in raw view her own.
-   */
-  ways(list: Way[]): void {
-    const now = new Set<string>();
-    for (const w of list) {
-      now.add(w.id);
-      let b = this.wayEls.get(w.id);
-      if (!b) {
-        const id = w.id;
-        b = button('hud-way', w.label, this.root, () => this.onWay(id));
-        b.addEventListener('pointerdown', (e) => e.stopPropagation());
-        this.wayEls.set(w.id, b);
-      }
-      if (b.dataset.edge !== w.edge || b.dataset.label !== w.label) {
-        b.dataset.edge = w.edge;
-        b.dataset.label = w.label;
-        b.replaceChildren();
-        if (w.edge !== 'right') b.insertAdjacentHTML('beforeend', WAY_GLYPH[w.edge]);
-        el('span', '', b, w.label);
-        if (w.edge === 'right') b.insertAdjacentHTML('beforeend', WAY_GLYPH.right);
-        b.setAttribute('aria-label', w.edge === 'in' ? `Go in: ${w.label}` : `Go: ${w.label}`);
-      }
-      b.style.setProperty('--x', `${Math.round(w.x)}px`);
-      b.style.setProperty('--y', `${Math.round(w.y)}px`);
-    }
-    for (const [id, b] of this.wayEls) if (!now.has(id)) { b.remove(); this.wayEls.delete(id); }
-  }
-
-  /** What a chosen verb lights up under her finger, or nothing (null): corners around the thing, its name and the verb. */
-  mark(m: Mark | null): void {
-    if (!m) { this.markEl?.remove(); this.markEl = null; this.markOf = null; return; }
-    const [x, y, w, h] = m.box;
-    if (this.markOf !== m.h || !this.markEl) {
-      this.markEl?.remove();
-      const box = (this.markEl = el('div', 'hud-mark', this.root));
-      this.markOf = m.h;
-      box.insertAdjacentHTML('beforeend', '<svg class="frame" aria-hidden="true"><path/></svg>');
-      const label = el('div', 'hud-mark-label', box);
-      el('div', 'name', label, pick(m.h.name, this.raw));
-      const tag = note(m.h.tag, this.raw);
-      if (tag) el('div', 'tag', label, tag);
-      const verb = el('div', 'verb', label);
-      verb.insertAdjacentHTML('beforeend', icon(m.a.kind === 'item' ? 'hands' : m.a.kind, 15));
-      el('span', '', verb, m.a.label);
-      if (m.a.cost) verb.insertAdjacentHTML('beforeend', '<svg class="cost" width="30" height="16" viewBox="0 0 34 18" fill="none" stroke-linecap="round" aria-hidden="true"><path d="M2 9C5 4 8.5 3 12 3s7 1 10 6c-3 5-6.5 6-10 6S5 14 2 9z"/><circle cx="12" cy="9" r="2"/><path d="M26 9h6M29 6v6"/></svg>');
-    }
-    const box = this.markEl;
-    box.style.left = `${x}px`;
-    box.style.top = `${y}px`;
-    box.style.width = `${w}px`;
-    box.style.height = `${h}px`;
-    // its corners, as long as the frame allows
-    const c = Math.min(14, w / 3, h / 3), frame = box.querySelector('svg.frame');
-    if (frame) {
-      frame.setAttribute('viewBox', `0 0 ${w} ${h}`);
-      frame.querySelector('path')?.setAttribute('d', `M0 ${c}V0H${c}M${w - c} 0H${w}V${c}M${w} ${h - c}V${h}H${w - c}M${c} ${h}H0V${h - c}`);
-    }
-    // the label above it, or under it when there is no room above
-    box.classList.toggle('below', y < 70);
-  }
-
-  /**
-   * While she talks the conversation has the bottom of the frame: the balls step aside, and what is open closes, but
-   * the Concierge's card, where she may be talking to it.
-   */
-  setTalking(on: boolean): void {
-    if (!on) { delete this.root.dataset.talking; return; }
-    this.closeVerbs();
-    this.closeSheet();
-    this.mark(null);
-    this.dismissNote();
-    this.root.dataset.talking = '';
-  }
-
-  /** Something over the scene that a tap on the scene closes first: a panel, the tray, a thing close up, its card. */
-  get panelOpen(): boolean { return this.panel !== null || this.trayEl !== null || this.inspectEl !== null || this.concierge.isOpen; }
-  get menuOpen(): boolean { return this.menu !== null; }
-
-  /* ---------- the balls ---------- */
-
-  /** How many of her things there are in the view on screen. */
-  private thingCount(): number {
-    return thingsNow(this.items, this.carried, this.raw).filter((t) => !t.ghost).length;
-  }
-
-  /** The balls: her things on the left (how many), the verb chosen or the thing in her hand on the right. */
-  private drawBalls(): void {
-    const n = this.thingCount();
-    this.thingsBall.innerHTML = `${icon('satchel', 26)}${n ? `<span class="badge">${n}</span>` : ''}`;
-    this.thingsBall.setAttribute('aria-expanded', String(this.trayEl !== null));
-    const held = this.held ? thingsNow(this.items, [this.held.id], this.raw)[0] : undefined, verb = this.verb === 'ask' ? null : this.verb;
-    this.verbBall.innerHTML = held?.art ? `<img src="${this.assets}/${held.art}" alt="" width="40" height="40" draggable="false">` : icon(verb ?? (held ? 'hands' : 'verbs'), 26);
-    this.verbBall.classList.toggle('holding', !!held);
-    this.verbBall.setAttribute('aria-pressed', String(verb !== null || this.held !== null));
-    this.verbBall.setAttribute('aria-label', this.held ? `${this.held.name}: put it back` : verb ? `${verbName(verb, this.raw)}: choose another, or put it down` : 'What she can do: look, talk, use, take');
-    // with the verbs out, the lit slot names it; put away, what it asks sits beside the ball
-    this.verbLabel.hidden = (!verb && !this.held) || this.menu !== null;
-    if (this.held) {
-      this.verbLabel.replaceChildren();
-      el('div', 'verb', this.verbLabel, this.raw ? `use ${this.held.name.toLowerCase()} on what?` : `Use ${this.held.name} on what?`);
-      el('div', 'hint', this.verbLabel, 'Tap it, or slide to find it');
-    } else if (verb) {
-      this.verbLabel.replaceChildren();
-      el('div', 'verb', this.verbLabel, verbQuestion(verb, this.raw));
-      el('div', 'hint', this.verbLabel, 'Tap it, or slide to find it');
-    }
-  }
-
-  private toggleVerbs(): void {
-    if (this.menu) this.closeVerbs();
-    else this.openVerbs();
-  }
-
-  /**
-   * The verbs, slid out sideways along the bottom from the right ball so they cover little of the street, each labelled
-   * above, spaced so no two labels touch. They stay out until the ball is tapped again; the chosen verb is lit, and
-   * choosing it again puts it down.
-   */
-  private openVerbs(): void {
-    this.closeVerbs();
-    this.closeTray();
-    this.closePanel();
-    this.onPanel();
-    const ball = this.verbBall, choices = HERS.map((v) => ({ id: v, label: verbName(v, this.raw), on: v === this.verb }));
-    const root = this.root.getBoundingClientRect(), b = ball.getBoundingClientRect(), slot = b.width / 1.15;
-    const menu = (this.menu = el('div', 'hud-menu verbs', this.root));
-    ball.setAttribute('aria-expanded', 'true');
-    menu.style.left = `${b.left + b.width / 2 - root.left}px`;
-    menu.style.top = `${b.top + b.height / 2 - root.top}px`;
-    const made = choices.map((c) => {
-      const s = button(`hud-slot${c.on ? ' default' : ''}`, c.label, menu, () => this.onVerb(c.id === this.verb ? null : c.id));
-      s.dataset.verb = c.id;
-      s.setAttribute('aria-pressed', String(c.on));
-      s.innerHTML = icon(c.id, 24);
-      return { s, label: el('div', 'hud-slot-label', menu, c.label) };
-    });
-    // out from the ball, each slot as wide as its label needs, sliding out from behind it one after another
-    let x = b.width / 2 + 12;
-    made.forEach(({ s, label }, i) => {
-      const room = Math.max(slot, label.offsetWidth + 8), cx = -(x + room / 2);
-      s.style.left = `${cx}px`;
-      s.style.top = '0px';
-      s.style.setProperty('--from', `${-cx}px`);
-      s.style.animationDelay = label.style.animationDelay = `${i * 28}ms`;
-      label.style.left = `${cx}px`;
-      label.style.top = `${-slot / 2 - 7}px`;
-      x += room + 6;
-    });
-    this.drawBalls();
-  }
-
-  private closeVerbs(): void {
-    const was = this.menu;
-    this.menu?.remove();
-    this.menu = null;
-    this.verbBall.setAttribute('aria-expanded', 'false');
-    if (was) this.drawBalls();
-  }
-
-  /** Kept for the game: closes the verbs. */
-  closeMenu(): void {
-    this.closeVerbs();
-  }
-
-  /* ---------- her things ---------- */
-
-  private toggleTray(): void {
-    if (this.trayEl) this.closeTray();
-    else this.openTray();
-  }
-
-  /** Her things slide out along the bottom from the left ball. */
-  private openTray(): void {
-    const wasOpen = this.trayEl !== null;
-    this.trayEl?.remove();
-    if (!wasOpen) { this.closeVerbs(); this.closePanel(); this.onPanel(); }
-    const root = this.root.getBoundingClientRect(), b = this.thingsBall.getBoundingClientRect();
-    this.trayEl = drawTray(this.root, thingsNow(this.items, this.carried, this.raw, !this.unseen), { x: b.left + b.width / 2 - root.left, y: b.top + b.height / 2 - root.top, r: b.width / 2 }, this.held?.id ?? null, this.assets, {
-      inspect: (id) => (this.inspecting === id ? this.closeInspect() : this.inspect(id)),
-    });
-    if (wasOpen) this.trayEl.classList.add('still');
-    this.drawBalls();
-  }
-
-  private closeTray(): void {
-    if (!this.trayEl) return;
-    this.trayEl.remove();
-    this.trayEl = null;
-    this.closeInspect();
-    this.drawBalls();
-  }
-
-  /** A thing close up, over the tray. */
-  private inspect(id: string): void {
-    const t = thingsNow(this.items, this.carried, this.raw, !this.unseen).find((x) => x.id === id);
-    this.inspectEl?.remove();
-    this.inspectEl = null;
-    this.inspecting = null;
-    if (!t) return;
-    this.inspecting = id;
-    this.inspectEl = drawInspect(this.root, t, this.assets, this.held?.id === id, {
-      hold: (thing) => { this.closeInspect(); this.onHold(thing); },
-      close: () => this.closeInspect(),
-      read: (closeup) => { this.closeAll(); void this.readCloseup(closeup); },
-    });
-    const slot = this.trayEl?.querySelector<HTMLElement>(`[data-item="${id}"]`), root = this.root.getBoundingClientRect();
-    this.trayEl?.querySelectorAll('.slot').forEach((x) => x.classList.toggle('open', x === slot));
-    if (slot) {
-      const r = slot.getBoundingClientRect(), w = this.inspectEl.offsetWidth;
-      this.inspectEl.style.left = `${Math.max(8, Math.min(root.width - w - 8, r.left - root.left + r.width / 2 - w / 2))}px`;
-      this.inspectEl.style.bottom = `${root.bottom - r.top + 34}px`;
-    }
-  }
-
-  private closeInspect(): void {
-    this.inspectEl?.remove();
-    this.inspectEl = null;
-    this.inspecting = null;
-    this.trayEl?.querySelectorAll('.slot.open').forEach((x) => x.classList.remove('open'));
-  }
-
-  /* ---------- what she found, and the Concierge's messages ---------- */
-
-  /**
-   * What she found, written at the thing, where her eye already is: above it, or under it when there is no room above,
-   * kept on screen. It stays as long as it takes to read (about 15 characters a second, from 2.5 to 9 seconds), and goes
-   * sooner when she is given something else to do, or when it is tapped.
-   */
-  note(h: Hotspot, text: string, box: [number, number, number, number]): void {
-    this.dismissNote();
-    const n = (this.noteEl = el('div', 'hud-note', this.root));
-    this.noteOf = h;
-    n.setAttribute('role', 'status');
-    el('div', 'name', n, pick(h.name, this.raw));
-    el('p', 'text', n, text);
-    n.addEventListener('pointerdown', (e) => { e.stopPropagation(); this.dismissNote(); });
-    this.placeNote(box);
-    this.noteTimer = window.setTimeout(() => this.dismissNote(), Math.min(9000, Math.max(2500, 800 + text.length * 66)) * this.noteSpeed);
-  }
-
-  /** The thing the note is written at, while there is one. */
-  get noteFor(): Hotspot | null { return this.noteOf; }
-
-  /** Where the note goes for a thing at `box` (the HUD's pixels): above it, else under it, on screen and clear of the balls. */
-  placeNote(box: [number, number, number, number]): void {
-    const n = this.noteEl;
-    if (!n) return;
-    const W = this.root.clientWidth, H = this.root.clientHeight, m = Math.min(34, Math.max(12, W * 0.024)), w = n.offsetWidth, h = n.offsetHeight;
-    const [x, y, bw, bh] = box, top = m + 60, bottom = H - m - this.verbBall.offsetHeight - 40;
-    const above = y - 14 - h, below = y + bh + 14;
-    const ny = above >= top ? above : below + h <= bottom ? below : Math.max(top, Math.min(bottom - h, above));
-    n.style.left = `${Math.max(m, Math.min(W - m - w, x + bw / 2 - w / 2))}px`;
-    n.style.top = `${ny}px`;
-  }
-
-  dismissNote(): void {
-    window.clearTimeout(this.noteTimer);
-    this.noteEl?.remove();
-    this.noteEl = null;
-    this.noteOf = null;
-  }
-
   /** A message from the Concierge, under its presence. Only in its view: raw view has no Concierge to show it. */
   toast(text: string, actions: { label: string; primary?: boolean; run?: () => void }[] = [], ms = 7000): void {
-    if (!this.raw) this.concierge.say(text, actions, ms);
+    if (!this.isRaw) this.concierge.say(text, actions, ms);
   }
 
   dismissToast(): void {
     this.concierge.dismiss();
   }
 
+  /** Something over the scene that a tap on the scene closes first: a panel, the tray, a thing close up, its card. */
+  get panelOpen(): boolean { return this.panels.open || this.balls.trayOpen || this.concierge.isOpen; }
+  get menuOpen(): boolean { return this.balls.verbsOpen; }
+
   /** Close what the HUD has open: the verbs, her things, a panel, what a verb has lit, what she found. */
   closeAll(): void {
-    this.closeVerbs();
-    this.closeTray();
-    this.closePanel();
-    this.mark(null);
-    this.dismissNote();
-  }
-
-  /* ---------- panels: her journal (with the map), her notebook, the menu ---------- */
-
-  /** Her notebook's button: open where it cannot see her, its strap closed where it can. */
-  private drawNotebookButton(): void {
-    // no notebook with her, no button for it
-    this.notebookBtn.hidden = !this.hasNotebook();
-    this.notebookBtn.innerHTML = icon(this.unseen ? 'notebook' : 'locked', 22);
-    this.notebookBtn.classList.toggle('shut', !this.unseen);
-    this.notebookBtn.setAttribute('aria-label', this.unseen ? 'Her notebook (N)' : 'Her notebook: not where it can see (N)');
-  }
-
-  togglePanel(kind: PanelKind): void {
-    if (this.panelKind === kind) this.closePanel();
-    else this.openPanel(kind);
-  }
-
-  private openPanel(kind: PanelKind): void {
-    // her notebook stays shut where it can see her
-    if (kind === 'notebook' && !this.hasNotebook()) return;
-    if (kind === 'notebook' && !this.unseen) return this.onShut();
-    this.panel?.remove();
-    this.concierge.close();
-    this.closeVerbs();
-    this.closeTray();
-    this.panelKind = kind;
-    this.root.dataset.panel = kind;
-    const p = (this.panel = el('section', `hud-panel ${kind}`, this.root));
-    p.addEventListener('pointerdown', (e) => e.stopPropagation());
-    this.onPanel();
-    if (kind === 'notebook') this.drawNotebookPanel(p);
-    else if (kind === 'journal') this.drawJournalPanel(p);
-    else this.drawMenu(p);
-  }
-
-  /** What is over the scene closes: a panel, the tray, the Concierge's card. */
-  closePanel(): void {
-    this.concierge.close();
-    this.closeSheet();
-  }
-
-  /** A panel and the tray close. */
-  private closeSheet(): void {
-    this.panel?.remove();
-    this.panel = null;
-    this.panelKind = null;
-    delete this.root.dataset.panel;
-    this.closeTray();
-    this.drawFresh();
-  }
-
-  /**
-   * Her journal, open at a tab (the map's is `places`), or closed if it is open there already. Its own button opens it at
-   * the page last read, never the map.
-   */
-  private openJournal(tab?: string): void {
-    if (this.panelKind === 'journal' && (tab === undefined ? this.journalTab !== PLACES : this.journalTab === tab)) return this.closePanel();
-    this.journalTab = tab ?? (this.journalTab === PLACES ? null : this.journalTab);
-    this.openPanel('journal');
-  }
-
-  private drawNotebookPanel(p: HTMLElement): void {
-    const pages = notebookNow(this.notebook, this.known, this.read());
-    drawNotebook(p, this.notebook, pages, this.notebookTab, {
-      tab: (id) => { this.notebookTab = id; this.openPanel('notebook'); },
-      read: (keys) => this.onRead(keys),
-      close: () => this.closePanel(),
-    });
-  }
-
-  private drawJournalPanel(p: HTMLElement): void {
-    drawJournal(p, notebookNow(this.journal, this.known, this.read(), 'journal:'), this.journalTab, {
-      tab: (id) => { this.journalTab = id; this.openPanel('journal'); },
-      read: (keys) => this.onRead(keys),
-      close: () => this.closePanel(),
-      map: (body) => void this.mapNow().then((now) => {
-        if (this.panel !== p) return;
-        drawMap(body, now, (t) => { this.closePanel(); this.onTravel(t); });
-      }),
-    });
-  }
-
-  /**
-   * The menu: her saves (where she is now, saved as she goes, and three slots she saves into and goes back to), the
-   * settings, how to play, and the title screen.
-   */
-  private drawMenu(p: HTMLElement): void {
-    p.setAttribute('aria-label', 'Menu');
-    const head = el('div', 'head', p), tabs = el('nav', 'tabs', head);
-    tabs.setAttribute('aria-label', 'Menu');
-    const settings = this.settings();
-    for (const [id, title] of [['saves', 'Saves'], ['settings', 'Settings'], ['help', 'How to play']] as const) {
-      if (id === 'settings' && !settings) continue;
-      const t = button(`tab${this.menuTab === id ? ' on' : ''}`, title, tabs, () => { this.menuTab = id; this.openPanel('menu'); });
-      t.textContent = title;
-      t.setAttribute('aria-current', String(this.menuTab === id));
-    }
-    button('to-title', 'To the title screen', head, () => { this.closePanel(); this.onTitle(); }).textContent = 'Title screen';
-    button('hud-close', 'Close', head, () => this.closePanel()).innerHTML = icon('close', 18);
-    const body = el('div', 'body', p);
-    if (this.menuTab === 'settings' && settings) return drawSettings(body, settings, (s) => this.onSettings(s));
-    if (this.menuTab === 'help') return drawHelp(body);
-    const list = el('div', 'saves', body), all = this.saves();
-    const when = (t?: number) => (t ? new Date(t).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '');
-    for (const slot of ['auto', 1, 2, 3] as const) {
-      const s = all.find((x) => x.slot === slot), card = el('div', 'save', list);
-      el('div', 'name', card, slot === 'auto' ? 'Now' : `Slot ${slot}`);
-      el('div', 'when', card, s ? [s.where, when(s.savedAt)].filter(Boolean).join(' · ') || 'Saved' : 'Empty');
-      const row = el('div', 'row', card);
-      if (slot !== 'auto') button('', `Save in slot ${slot}`, row, () => { this.onSave(slot); this.openPanel('menu'); }).textContent = 'Save here';
-      if (s && slot !== 'auto') button('primary', `Go back to slot ${slot}`, row, () => this.onLoad(slot)).textContent = 'Load';
-    }
+    this.balls.closeVerbs();
+    this.balls.closeTray();
+    this.panels.close();
+    this.marks.mark(null);
+    this.notes.dismiss();
   }
 
   /** N her notebook, J her journal, M the map, I her things, Escape closes what is open or puts the verb down. Returns true if it used the key. */
   key(k: string): boolean {
     if (this.concierge.key(k)) return true;
-    if (k === 'Escape' && (this.menu || this.panelOpen)) { this.closeAll(); return true; }
-    if (k === 'Escape' && this.held) { this.onHold(null); return true; }
-    if (k === 'Escape' && this.verb) { this.onVerb(null); return true; }
+    if (k === 'Escape' && (this.balls.verbsOpen || this.panelOpen)) { this.closeAll(); return true; }
+    if (k === 'Escape' && this.balls.holding) { this.onHold(null); return true; }
+    if (k === 'Escape' && this.balls.chosen) { this.onVerb(null); return true; }
     if ((k === 'Escape' || k === 'Backspace') && !this.backBtn.hidden) { this.onBack(); return true; }
-    if (k === 'n' || k === 'N') { this.togglePanel('notebook'); return true; }
-    if (k === 'i' || k === 'I') { this.toggleTray(); return true; }
-    if (k === 'm' || k === 'M') { this.openJournal(PLACES); return true; }
-    if (k === 'j' || k === 'J') { this.openJournal(); return true; }
+    if (k === 'n' || k === 'N') { this.panels.toggle('notebook'); return true; }
+    if (k === 'i' || k === 'I') { this.balls.toggleTray(); return true; }
+    if (k === 'm' || k === 'M') { this.panels.openJournal(PLACES); return true; }
+    if (k === 'j' || k === 'J') { this.panels.openJournal(); return true; }
     return false;
   }
-}
 
-/** How to play: the controls, by touch and by keyboard. */
-export function drawHelp(p: HTMLElement): void {
-  const box = el('div', 'help', p);
-  const rows: [string, string][] = [
-    ['Walk', 'Tap where she should go. The end of a street always has a marker to the next place; a door gets one once she has looked at it or tried it. Tap a marker, or the door, and she goes through. Outdoors, hold a finger far ahead of her to run.'],
-    ['Do', 'The ball at the bottom right: choose Look, Talk, Use or Take, then tap what to do it to (or slide over the scene and let go on what lights up). Anything can be tried; not everything answers.'],
-    ['Concierge', 'Its light at the top left, in its view. Tap it: it says what it would have you do here, what you have to do, and how you are. Talk to it there, or Ask about something, then tap a thing. Talk at the ball is Luna speaking to someone herself.'],
-    ['Her things', 'The ball at the bottom left. Tap a thing to see it close up; Use takes it out, then tap what to use it on.'],
-    ['Top right', 'The view switch once she has it, the map, her journal (anywhere) and her notebook (only where it cannot see her), and this menu.'],
-    ['Keys', 'Arrows or A and D walk, with Shift she runs. E switches view, I her things, M the map, J her journal, N her notebook, Esc closes. Numbers pick an answer.'],
-  ];
-  for (const [name, text] of rows) { const r = el('div', 'row-help', box); el('div', 'name', r, name); el('div', 'text', r, text); }
+  /* ---------- what the game tells the parts ---------- */
+
+  setThings(items: Record<string, Item>, carried: string[]): void {
+    this.balls.setThings(items, carried);
+    // the story moved on: something new written down?
+    this.panels.drawFresh();
+  }
+  setNotebook(nb: Notebook): void { this.panels.setNotebook(nb); }
+  setJournal(j: Notebook): void { this.panels.setJournal(j); }
+  /** Her notebook taken or put down: its button shows or goes. */
+  notebookChanged(): void { this.panels.notebookChanged(); }
+  setHeld(id: string | null): void { this.balls.setHeld(id); }
+  setVerb(v: Verb | null): void { this.balls.setVerb(v); }
+  /** Kept for the game: closes the verbs. */
+  closeMenu(): void { this.balls.closeVerbs(); }
+  togglePanel(kind: PanelKind): void { this.panels.toggle(kind); }
+  closePanel(): void { this.panels.close(); }
+  get closeupOpen(): boolean { return this.closeup.open; }
+  showCloseup(name: string | null): Promise<void> { return this.closeup.show(name); }
+  readCloseup(name: string): Promise<void> { return this.closeup.read(name); }
+  ways(list: Way[]): void { this.marks.ways(list); }
+  mark(m: Mark | null): void { this.marks.mark(m); }
+  note(h: Hotspot, text: string, box: [number, number, number, number]): void { this.notes.note(h, text, box); }
+  get noteFor(): Hotspot | null { return this.notes.noteFor; }
+  placeNote(box: [number, number, number, number]): void { this.notes.place(box); }
+  dismissNote(): void { this.notes.dismiss(); }
 }
