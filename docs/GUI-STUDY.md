@@ -262,8 +262,9 @@ and Title screen down the left, the page at the right); the settings grouped, ea
 drawn, a small screen for each gesture; the title's Continue card with the save's picture; a thing close up held in
 light, floating and turning a little; the title's eye opening when the title is come back to from the game; her
 answers lit under the finger as it presses, coming up one after another. Kept as they are, on purpose: lines over
-the speakers' heads in their colours, with no names (the plan's Monkey Island way). To try on a phone, the director's
-call: the verbs as a ring round their ball.
+the speakers' heads in their colours, with no names (the plan's Monkey Island way). The verbs on an arc round their ball
+(the director: as Claude thinks best), from straight up to straight to its left, each the same short reach of the
+thumb.
 
 **P2**: done (24 October): the Concierge's motion (its words come as it says them, out of a blur; its light breathes
 at rest); the paper's details (its red margin, the edges of the pages under it, the page turning between tabs). To

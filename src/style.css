@@ -253,8 +253,9 @@ button.view:not(.hud-btn):focus-visible { outline: 2px solid #fff; outline-offse
 
 /* the verbs, slid out sideways along the bottom from the right ball, each labelled above */
 .hud-menu { position: absolute; width: 0; height: 0; }
-.hud-menu .hud-slot { animation: hud-slide var(--t-small) var(--ease) both; }
-.hud-menu .hud-slot-label { transform: translate(-50%, -100%); animation: hud-fade var(--t-small) ease-out both; }
+.hud-menu .hud-slot { animation: hud-arc var(--t-small) var(--ease) both; }
+.hud-menu .hud-slot-label { transform: translate(-50%, -50%); animation: hud-fade var(--t-small) ease-out both; }
+@keyframes hud-arc { from { opacity: 0; transform: translate(var(--fx, 0), var(--fy, 0)) scale(.4); } }
 @keyframes hud-slide { from { opacity: 0; transform: translateX(var(--from, 0)) scale(.5); } }
 @keyframes hud-fade { from { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .hud-menu :is(.hud-slot, .hud-slot-label), .hud-tray, .hud-tray .slot { animation: none !important; } }

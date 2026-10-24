@@ -1,5 +1,5 @@
 // The two balls at the bottom, made for thumbs: her things on the left, a tray of them sliding out along the bottom and
-// a thing close up over it; what she can do on the right (look, talk, use, take), sliding out the other way, the verb
+// a thing close up over it; what she can do on the right (look, talk, use, take), out on an arc round it, the verb
 // chosen named beside it, or the thing she holds to use on something.
 
 import { HERS, verbName, verbQuestion, type Verb } from './actions';
@@ -132,9 +132,9 @@ export class Balls {
   }
 
   /**
-   * The verbs, slid out sideways along the bottom from the right ball so they cover little of the street, each labelled
-   * above, spaced so no two labels touch. They stay out until the ball is tapped again; the chosen verb is lit, and
-   * choosing it again puts it down.
+   * The verbs, out from the right ball on an arc round it, from straight up to straight to its left: each the same short
+   * reach of the thumb from the ball, each named just beyond it. They stay out until the ball is tapped again; the
+   * chosen verb is lit, and choosing it again puts it down.
    */
   private openVerbs(): void {
     const hud = this.hud;
@@ -155,17 +155,19 @@ export class Balls {
       s.innerHTML = icon(c.id, 24);
       return { s, label: el('div', 'hud-slot-label', menu, c.label) };
     });
-    // out from the ball, each slot as wide as its label needs, sliding out from behind it one after another
-    let x = b.width / 2 + 12;
+    // on the arc, far enough out for the slots to sit apart; each sliding out from behind the ball one after another,
+    // its name beyond it, out from the ball
+    const n = made.length, step = Math.PI / 2 / Math.max(1, n - 1), r = Math.max(b.width / 2 + slot * 0.95, (slot + 8) / (2 * Math.sin(step / 2)));
     made.forEach(({ s, label }, i) => {
-      const room = Math.max(slot, label.offsetWidth + 8), cx = -(x + room / 2);
-      s.style.left = `${cx}px`;
-      s.style.top = '0px';
-      s.style.setProperty('--from', `${-cx}px`);
+      const a = Math.PI / 2 + i * step, ux = Math.cos(a), uy = -Math.sin(a), x = ux * r, y = uy * r;
+      s.style.left = `${x}px`;
+      s.style.top = `${y}px`;
+      s.style.setProperty('--fx', `${-x}px`);
+      s.style.setProperty('--fy', `${-y}px`);
       s.style.animationDelay = label.style.animationDelay = `${i * 28}ms`;
-      label.style.left = `${cx}px`;
-      label.style.top = `${-slot / 2 - 7}px`;
-      x += room + 6;
+      const out = r + slot / 2 + 8 + Math.abs(ux) * (label.offsetWidth / 2) + Math.abs(uy) * (label.offsetHeight / 2);
+      label.style.left = `${ux * out}px`;
+      label.style.top = `${uy * out}px`;
     });
     this.draw();
   }

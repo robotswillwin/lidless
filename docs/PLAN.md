@@ -72,7 +72,7 @@ The design: https://claude.ai/artifact/X65FknT3sqWZBgJaHgHboZ. In code: `src/gam
   of it (kept in her save), so she finds the ways in herself. The Concierge's light in its view, her own glass in raw
   view; a tap on one takes her there and through, as a tap on the door does.
 - **Two balls, for thumbs.** Tap to walk (further off she jogs, further still she runs, speeding up and slowing down through the gaits; a door or the street's end, she goes through). The right
-  ball slides the verbs out along the bottom, her properties: Eyes look, Heart talks, Hands use and take; they stay
+  ball brings the verbs out on an arc round it, each the same short reach of the thumb, her properties: Eyes look, Heart talks, Hands use and take; they stay
   out until a ball is tapped, and the one chosen asks beside the ball what to do it to ("Talk to whom?"). With a verb
   chosen, tapping a thing, or pressing and sliding over the scene and letting go, does it: nothing depends on a mouse
   hovering. Asked about something, the Concierge listens ("About what, Luna?") for her to tap a thing. The left ball slides out her
