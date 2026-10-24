@@ -50,18 +50,6 @@
    "raw": "items/map.webp"
   }
  },
- "valve": {
-  "icon": "valve",
-  "name": "Valve",
-  "note": {
-   "concierge": "Vintage · decorative curio",
-   "raw": "for the radio. the left one's dead."
-  },
-  "art": {
-   "concierge": "items/valve.concierge.webp",
-   "raw": "items/valve.webp"
-  }
- },
  "paper_notebook": {
   "icon": "notebook",
   "name": "Notebook",

@@ -75,6 +75,7 @@ uniform float uHaze;       // a character: how much of the set's glowing air sho
 uniform float uFoot;       // a character: the height of its feet on screen, 0 at the top to 1 at the bottom
 uniform float uSS;         // samples across each axis of a screen pixel: a sprite drawn smaller than it was made
 uniform float uBlend;      // 1: a flat layer over the set behind it, its edges blended by how much of each pixel it covers
+uniform float uOpacity;    // how much of it shows, 0 to 1: a blended layer fading
 uniform vec4 uUV;          // the frame's place in the texture, to keep the samples inside it
 layout(location = 0) out vec4 o0;
 layout(location = 1) out vec4 o1;
@@ -106,6 +107,7 @@ vec3 ssPlain(sampler2D t) {
 void main() {
   vec4 aR = ssColour(tAlbR), aC = ssColour(tAlbC);
   vec4 a = uView > 0.5 ? aC : aR;
+  a.a *= uOpacity;
   // a cut-out's edge is either drawn or not; a blended one covers its edge pixels in part, so it moves smoothly
   if (a.a < (uBlend > 0.5 ? 0.004 : 0.5)) discard;
   vec3 meta = floor(texture(tMeta, vUv).rgb * 255.0 + 0.5);
@@ -355,6 +357,11 @@ uniform int uNScope;
 uniform vec4 uClock[2];   // clocks: a face's middle (world) and its radius inside the hour marks
 uniform int uNClock;
 uniform float uDaySec;    // the time of day, seconds after midnight
+uniform vec4 uCradle[3];  // a Newton's cradle: where its first thread hangs (world), the gap between threads, their
+                          // length; its balls' radius, seconds since an end ball was let go, which end, 1 if there is
+                          // one; its front posts, from and to x, left then right (world)
+uniform vec4 uRings[2];   // a hologram of three rings: its middle (world), its size, 1 if there is one; each ring's turn
+                          // (radians, the inner first), how long since its gaps lined up (seconds; -1 while they don't)
 uniform float uMirror;    // world y of the reflection line
 uniform vec4 uGnd;        // the ground the engine draws over a painted floor: the horizon's world y; the kerb's distance in
                           // front of the walk line (0: none); how much of it holds puddles when wet; 1 when there is one
@@ -703,6 +710,69 @@ void main() {
     c = mix(c, ink, max(cover(dh, R * 0.06, px), cover(dm, R * 0.045, px)));
     c = mix(c, red, cover(ds, max(R * 0.016, 0.3), px) * 0.9);
     c = mix(c, ink, cover(length(q), R * 0.08, px));
+  }
+  // a Newton's cradle, live: its five balls on their threads. Let go, an end ball swings in, and the knock sends the other
+  // end out and back, to and fro, dying away. Lit from the upper left, as the painted frame is
+  if (uCradle[1].w > 0.5 && isActor(g3.a) < 0.5) {
+    vec4 P = uCradle[0], Q = uCradle[1], F = uCradle[2];
+    vec2 o = w - P.xy;
+    float r = Q.x, gap = P.z, L = P.w;
+    // behind the frame's front posts, the balls are hidden: an end ball swings out behind one
+    bool post = (w.x > F.x && w.x < F.y) || (w.x > F.z && w.x < F.w);
+    if (!post && o.x > -L * 0.6 - r && o.x < gap * 4.0 + L * 0.6 + r && o.y > -1.0 && o.y < L + r + 1.0) {
+      float tau = max(Q.y, 0.0), amp = 0.42 * exp(-tau / 6.5) * step(tau, 40.0), cw = cos(tau * 6.2831853 / 0.72), px = 1.0 / uRS;
+      // chrome: the room above its horizon, light; the dark below it, and the warm desk low down; a highlight, a glint
+      vec3 sky = mix(vec3(0.52, 0.49, 0.34), vec3(0.62, 0.48, 0.68), uView), sky2 = mix(vec3(0.27, 0.25, 0.17), vec3(0.3, 0.2, 0.38), uView);
+      vec3 low = mix(vec3(0.06, 0.06, 0.035), vec3(0.07, 0.04, 0.1), uView), desk = mix(vec3(0.24, 0.21, 0.12), vec3(0.55, 0.26, 0.2), uView);
+      vec3 rim = mix(vec3(0.03, 0.03, 0.02), vec3(0.04, 0.025, 0.07), uView), hi = mix(vec3(0.95, 0.92, 0.75), vec3(1.0, 0.94, 0.92), uView);
+      vec3 glint = mix(vec3(0.62, 0.52, 0.3), vec3(1.0, 0.55, 0.32), uView), thread = mix(vec3(0.5, 0.47, 0.36), vec3(0.72, 0.62, 0.78), uView);
+      for (int i = 0; i < 5; i++) {
+        // the end let go swings out on one half of each swing, the other end on the other half
+        float th = 0.0;
+        if (i == (Q.z > 0.0 ? 4 : 0)) th = Q.z * amp * max(cw, 0.0);
+        if (i == (Q.z > 0.0 ? 0 : 4)) th = Q.z * amp * min(cw, 0.0);
+        vec2 pv = vec2(gap * float(i), 0.0), cb = pv + L * vec2(sin(th), cos(th)), q = o - cb;
+        c = mix(c, thread, cover(segAt(o, pv, cb - normalize(cb - pv) * r * 0.9), 0.2, px) * 0.85);
+        float dd = length(q), cov = clamp((r - dd) / px + 0.5, 0.0, 1.0);
+        if (cov <= 0.0) continue;
+        vec2 n = q / r;
+        float edge = 0.08 / r;
+        vec3 col = n.y < 0.06 ? mix(sky, sky2, smoothstep(-0.9, 0.06, n.y)) : mix(low, desk, smoothstep(0.35, 0.95, n.y));
+        col = mix(col, low, smoothstep(0.06 - edge, 0.06 + edge, n.y) * (1.0 - smoothstep(0.06, 0.2, n.y)) * 0.6);
+        col = mix(col, rim, smoothstep(0.8, 0.97, dd / r));
+        col = mix(col, hi, smoothstep(0.24, 0.14, length((n - vec2(-0.34, -0.42)) * vec2(1.0, 1.4))));
+        col = mix(col, glint, smoothstep(0.16, 0.06, length(n - vec2(0.62, 0.1))) * 0.85);
+        c = mix(c, col, cov);
+      }
+    }
+  }
+  // a hologram of three rings, each with a gap, floating over its emitter: a faint beam up from it, the light
+  // flickering and scanned. Its gaps lined up, it chimes in a flash and opens into a flower of light, turning slowly
+  if (uRings[0].w > 0.5 && isActor(g3.a) < 0.5) {
+    vec4 H = uRings[0], T = uRings[1];
+    vec2 q = w - H.xy;
+    float R = H.z, px = 1.0 / uRS, dq = length(q), since = T.w, solved = step(0.0, since);
+    if (dq < R * 1.5 || (abs(q.x) < R * 0.6 && q.y > 0.0 && q.y < R * 1.9)) {
+      float glow = 0.0, spin = solved * since * 0.35;
+      for (int k = 0; k < 3; k++) {
+        float rr = R * (0.42 + 0.29 * float(k)), turn = (k == 0 ? T.x : k == 1 ? T.y : T.z) + spin;
+        float a = mod(atan(q.x, -q.y) - turn + 3.14159265, 6.2831853) - 3.14159265;
+        float ring = smoothstep(0.36, 0.48, abs(a)), d = abs(dq - rr);
+        glow += (cover(d, 0.7, px) * 0.6 + exp(-d * d / 5.0) * 0.22) * ring;
+      }
+      // the beam, widening up from the emitter on the surface below, and the emitter's spark
+      float base = R * 1.75, up = clamp((base - q.y) / (base - R * 0.2), 0.0, 1.0), wide = R * (0.1 + 0.5 * up);
+      if (q.y > R * 0.2 && q.y < base) glow += (1.0 - smoothstep(wide * 0.5, wide, abs(q.x))) * 0.07 * (1.0 - up * 0.6);
+      glow += exp(-dot(q - vec2(0.0, base), q - vec2(0.0, base)) / 3.0) * 0.8;
+      if (solved > 0.5) {
+        // the flower: six petals opening from the middle; the chime's flash
+        float open = smoothstep(0.0, 1.2, since), ang = atan(q.x, -q.y) + since * 0.35;
+        float pr = R * 0.33 * open * (0.72 + 0.28 * cos(6.0 * ang));
+        glow += smoothstep(pr + 0.8, pr - 0.8, dq) * 0.4 * open + exp(-since * 2.5) * exp(-dq * dq / (R * R)) * 0.9;
+      }
+      float live = (0.9 + 0.1 * sin(uTime * 23.0) * sin(uTime * 3.1)) * (0.88 + 0.12 * sin((w.y - uTime * 14.0) * 2.2));
+      c += vec3(0.3, 0.82, 1.0) * glow * live * (0.75 + 0.3 * solved);
+    }
   }
   o = vec4(c, 1.0);
 }`;

@@ -19,16 +19,58 @@
    "asset": "home/desk"
   },
   {
+   "asset": "home/photo-1",
+   "x": 91,
+   "y": 131,
+   "only": "concierge",
+   "show": {
+    "at": 0,
+    "of": 4,
+    "every": 7,
+    "fade": 1.5
+   }
+  },
+  {
+   "asset": "home/photo-2",
+   "x": 91,
+   "y": 131,
+   "only": "concierge",
+   "show": {
+    "at": 1,
+    "of": 4,
+    "every": 7,
+    "fade": 1.5
+   }
+  },
+  {
+   "asset": "home/photo-3",
+   "x": 91,
+   "y": 131,
+   "only": "concierge",
+   "show": {
+    "at": 2,
+    "of": 4,
+    "every": 7,
+    "fade": 1.5
+   }
+  },
+  {
+   "asset": "home/photo-4",
+   "x": 91,
+   "y": 131,
+   "only": "concierge",
+   "show": {
+    "at": 3,
+    "of": 4,
+    "every": 7,
+    "fade": 1.5
+   }
+  },
+  {
    "asset": "home/desk-drawer",
    "x": 570.84,
    "y": 295.81,
    "when": "luna_drawer_open"
-  },
-  {
-   "asset": "home/desk-valve",
-   "x": 729.68,
-   "y": 172.72,
-   "when": "!(taken has valve)"
   },
   {
    "asset": "home/desk-notebook",
@@ -45,53 +87,6 @@
  ],
  "lights": [
   {
-   "x": 330,
-   "y": 110,
-   "z": 16,
-   "r": 200,
-   "c": [
-    0.55,
-    0.9,
-    0.7
-   ],
-   "i": 0.35,
-   "zone": 0,
-   "layer": 1,
-   "own": 1,
-   "raw": 1
-  },
-  {
-   "x": 330,
-   "y": 110,
-   "z": 16,
-   "r": 200,
-   "c": [
-    0.45,
-    0.7,
-    1
-   ],
-   "i": 0.4,
-   "zone": 0,
-   "layer": 1,
-   "own": 1,
-   "ar": 1
-  },
-  {
-   "x": 745,
-   "y": 215,
-   "z": 10,
-   "r": 120,
-   "c": [
-    1,
-    0.7,
-    0.35
-   ],
-   "i": 0.45,
-   "zone": 0,
-   "layer": 1,
-   "own": 1
-  },
-  {
    "x": 480,
    "y": 60,
    "z": 30,
@@ -105,6 +100,22 @@
    "zone": 0,
    "layer": 1,
    "own": 1
+  },
+  {
+   "x": 328,
+   "y": 180,
+   "z": 14,
+   "r": 130,
+   "c": [
+    0.45,
+    0.85,
+    1
+   ],
+   "i": 0.35,
+   "zone": 0,
+   "layer": 1,
+   "own": 1,
+   "ar": 1
   }
  ],
  "ambient": {
@@ -125,25 +136,6 @@
    "story": "photo"
   },
   {
-   "id": "terminal",
-   "name": "Terminal",
-   "rect": [
-    223,
-    60,
-    218,
-    198
-   ],
-   "kind": "machine",
-   "look": {
-    "concierge": "Your terminal: credits, messages, the news, a game you never finish.",
-    "raw": "Your terminal. The letters are worn off its keys, under your fingers."
-   },
-   "use": {
-    "concierge": "Nothing new. Your credits are where you left them.",
-    "raw": "The screen hums. Nothing new."
-   }
-  },
-  {
    "id": "pencils",
    "name": {
     "concierge": "Pencils",
@@ -158,38 +150,6 @@
    "look": {
     "concierge": "Pencils in a brass cup. You still like to write things down.",
     "raw": "Pencils, chewed. A tin cup."
-   }
-  },
-  {
-   "id": "radio",
-   "name": {
-    "concierge": "Retro speaker",
-    "raw": "Transistor radio"
-   },
-   "rect": [
-    556,
-    144,
-    162,
-    108
-   ],
-   "story": "radio",
-   "kind": "machine"
-  },
-  {
-   "id": "dead-valve",
-   "name": {
-    "concierge": "Valve",
-    "raw": "Dead valve"
-   },
-   "rect": [
-    647,
-    221,
-    58,
-    29
-   ],
-   "look": {
-    "concierge": "A glass ornament, lying on its side.",
-    "raw": "The dead valve, the left one. Its filament snapped."
    }
   },
   {
@@ -294,7 +254,7 @@
    "when": "luna_drawer_open",
    "look": {
     "concierge": "Spare fuses.",
-    "raw": "Fuses, for the radio. Two good, one blown."
+    "raw": "Fuses. Two good, one blown."
    }
   },
   {
@@ -312,7 +272,7 @@
    "when": "luna_drawer_open",
    "look": {
     "concierge": "A set of little screwdrivers.",
-    "raw": "Screwdrivers small enough for the radio's screws."
+    "raw": "Little screwdrivers, for whatever comes loose."
    }
   },
   {
@@ -331,28 +291,6 @@
    "look": {
     "concierge": "A tin of buttons.",
     "raw": "Buttons from coats you no longer have."
-   }
-  },
-  {
-   "id": "valve",
-   "name": {
-    "concierge": "Curio",
-    "raw": "Radio valve"
-   },
-   "rect": [
-    733,
-    177,
-    25,
-    71
-   ],
-   "item": "valve",
-   "look": {
-    "concierge": "A vintage ornament, the Concierge calls it. It glows a little.",
-    "raw": "An old radio valve. You don't know why you bought it, or why you keep looking at it."
-   },
-   "take": {
-    "concierge": "You pocket the curio.",
-    "raw": "The valve. The radio's been waiting for one."
    }
   },
   {
@@ -385,6 +323,94 @@
     "concierge": "Delivery 4471: in your things. Due at Radio Repair by 22:00.",
     "raw": "The parcel. For the radio man. Don't open it."
    }
+  },
+  {
+   "id": "cradle",
+   "name": "Newton's cradle",
+   "rect": [
+    610,
+    134,
+    121,
+    100
+   ],
+   "look": {
+    "concierge": "A Newton's cradle in polished chrome, its five balls hanging still.",
+    "raw": "An old Newton's cradle, its steel gone dull. It still clicks true."
+   },
+   "story": "luna_cradle",
+   "kind": "thing"
+  },
+  {
+   "id": "ring-outer",
+   "name": "Outer ring",
+   "rect": [
+    288,
+    128,
+    80,
+    80
+   ],
+   "look": "Three rings of light, each with a gap. Turn one, and the one inside it turns too.",
+   "story": "hologram_outer",
+   "kind": "machine",
+   "only": "concierge"
+  },
+  {
+   "id": "ring-middle",
+   "name": "Middle ring",
+   "rect": [
+    299,
+    139,
+    58,
+    58
+   ],
+   "look": "Three rings of light, each with a gap. Turn one, and the one inside it turns too.",
+   "story": "hologram_middle",
+   "kind": "machine",
+   "only": "concierge"
+  },
+  {
+   "id": "ring-inner",
+   "name": "Inner ring",
+   "rect": [
+    309,
+    149,
+    38,
+    38
+   ],
+   "look": "Three rings of light, each with a gap. Turn one, and the one inside it turns too.",
+   "story": "hologram_inner",
+   "kind": "machine",
+   "only": "concierge"
+  }
+ ],
+ "cradles": [
+  {
+   "x": 633.66,
+   "y": 140.46,
+   "gap": 17.37,
+   "length": 64.67,
+   "r": 8.5,
+   "swings": "cradle_swings",
+   "posts": [
+    607.5,
+    613.5,
+    726.6,
+    732.1
+   ]
+  }
+ ],
+ "rings": [
+  {
+   "x": 328,
+   "y": 168,
+   "r": 34,
+   "turns": [
+    "rings_in",
+    "rings_mid",
+    "rings_out"
+   ],
+   "solved": "rings_solved",
+   "only": "concierge"
   }
  ]
 }

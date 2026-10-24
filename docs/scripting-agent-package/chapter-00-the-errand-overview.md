@@ -3,7 +3,7 @@
 The game's beginning as it is built, written in the chapter format
 (`docs/story/LIDLESS_Chapter_Format_v1_2026-10-22.md`): a worked example to copy from. It is the opening, "The
 Invitation" (her morning, Athena's message, Athena's empty flat), and the errand it leads into (the parcel, the fixer,
-raw view, her radio). Everything here is in the game, so places, things and variables say `new: false`, and they
+raw view). Everything here is in the game, so places, things and variables say `new: false`, and they
 describe what is there rather than ask for it; a new chapter leaves `new` out. Athena is the one exception: she is not
 drawn yet, so hers is a new person's entry.
 
@@ -15,7 +15,7 @@ says what the game does.
 ```yaml
 chapter: 0
 title: The errand
-length: 40
+length: 35
 summary: >
   Luna wakes in her flat on the fourteenth floor and calls the Concierge. Two messages are waiting: a parcel on her
   desk for Radio Repair, due by ten, and Athena, her neighbour on floor nine, asking her down for a surprise. She
@@ -24,8 +24,7 @@ summary: >
   of patrol times and a receipt for a portable computer at Radio Repair hint at more. As Luna steps out, the Concierge
   asks whether Athena was home, and Luna covers for her. Then the errand: at Radio Repair the fixer takes the parcel
   without opening it, and offers to switch on raw view in her eyepiece for a favour, to be named later. In raw view the
-  curio on her desk is a radio valve; with it her old transistor radio works again, and under the static there is a
-  voice that is not the Concierge's.
+  street is not what the Concierge shows her.
 ```
 
 ## Beats
@@ -37,8 +36,10 @@ summary: >
 2. **Her messages** (`## Messages`). In the Concierge's card: the delivery, and Athena's invitation
    (`intro_messages_read`, `athena_invitation_read`). Until she has read both she stays in ("My messages first.").
 3. **Her desk** (`home/desk`, a close-up of its own: `home-desk`). Her paper notebook is there (`paper_notebook`):
-   taken, it opens wherever the Concierge cannot see. The parcel and the curio are there too, and her top drawer of
-   tools. She dresses at her coat (`home/coat`): she does not go out in her underwear.
+   taken, it opens wherever the Concierge cannot see. The parcel is there too, and her top drawer of odds and ends;
+   a Newton's cradle she can set swinging (`cradle_swings`); in the Concierge's view a hologram puzzle of three rings
+   (`rings_solved`), and her photo frame, showing her photos in turn. She dresses at her coat (`home/coat`): she does
+   not go out in her underwear.
 4. **The lift** (`floor14/lift`, knot `lift`). Floor nine, once she has read Athena's invitation; not the ground
    floor until she has been to Athena ("Athena asked me to come down. I'll see her first.").
 5. **Athena's door** (`floor9/door-3`, knots `athena_bell` and `athena_door`). She rings first (`athena_bell_rung`),
@@ -55,8 +56,6 @@ summary: >
 9. **The fixer.** At Radio Repair she gives him the parcel (using `parcel` on `fixer`: `parcel_delivered`). He offers
    raw view for a favour; she accepts (`has_raw`, `favours_owed`).
 10. **Seeing.** In raw view the street changes: the woman at the station is wire-thin, her wrist locked in a cuff.
-11. **The radio.** At home, in raw view, the curio on her desk is a radio valve (`home-desk/valve`, item `valve`).
-    Used on the radio (`use_valve`): `radio_heard`. A voice under the static.
 
 ## People
 
@@ -184,16 +183,6 @@ no `story` is expected. Her entry is for drawing her later; until then she is he
     raw: A small cardboard box sealed with brown tape, a handwritten label with the number 4471.
   starts: home-desk/parcel
 
-- id: valve
-  new: false
-  name: Valve
-  note: { concierge: "Vintage · decorative curio", raw: "for the radio. the left one's dead." }
-  size: 7 cm tall
-  look:
-    concierge: The same valve made a collector's curio, polished glass on a glossy black base, glowing a soft amber.
-    raw: An old radio valve, a small glass tube on a black base with metal pins, its filament glowing faintly orange.
-  starts: home-desk/valve
-
 - id: matches
   new: false
   name: Matches
@@ -259,6 +248,26 @@ variables:
     new: false
     start: false
     means: the opening is over; the errand goes on
+  - name: rings_in
+    new: false
+    start: 2
+    means: the hologram's inner ring on her desk, turned in sixths (0 to 5)
+  - name: rings_mid
+    new: false
+    start: 4
+    means: its middle ring, turned in sixths
+  - name: rings_out
+    new: false
+    start: 1
+    means: its outer ring, turned in sixths
+  - name: rings_solved
+    new: false
+    start: false
+    means: its three gaps line up, and it has opened into a flower of light
+  - name: cradle_swings
+    new: false
+    start: 0
+    means: how many times she has set the Newton's cradle on her desk swinging
   - name: luna_drawer_open
     new: false
     start: false
@@ -275,10 +284,6 @@ variables:
     new: false
     start: false
     means: the parcel is on the fixer's bench
-  - name: radio_heard
-    new: false
-    start: false
-    means: her radio works again, and she has heard the voice under the static
 ```
 
 ## Messages
@@ -340,15 +345,6 @@ variables:
     - take the parcel from her desk (home-desk/parcel)
     - use it on the fixer, in the radio repair
   gives: [parcel_delivered]
-
-- id: the-radio
-  goal: make her radio work
-  steps:
-    - accept the fixer's offer, raw view (has_raw)
-    - at home in raw view, the curio on her desk is a radio valve; take it
-    - use the valve on the radio
-  gives: [radio_heard]
-  hint: In the Concierge's view the valve is only an ornament; nothing points at it until raw view.
 ```
 
 ## Journal
@@ -371,14 +367,6 @@ variables:
   lines:
     - Deliver Parcel 4471 to Radio Repair, Main Street, by 22:00.
     - { text: Delivered., when: parcel_delivered }
-
-- page: objectives
-  id: radio
-  name: My radio
-  done: radio_heard
-  lines:
-    - Needs a new valve. The left one is dead.
-    - { text: Working again., when: radio_heard }
 
 - page: people
   id: fixer
@@ -432,13 +420,6 @@ start.
   when: has_raw
   lines:
     - I owe him one favour. he didn't say what.
-
-- page: seen
-  id: voice
-  name: my radio
-  when: radio_heard
-  lines:
-    - a voice under the static. whose?
 
 - page: questions
   id: before

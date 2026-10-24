@@ -1,0 +1,21 @@
+{
+  "name": "photo-2",
+  "x": 91,
+  "y": 131,
+  "w": 75,
+  "h": 91,
+  "maps": [
+    "albedo.concierge",
+    "albedo.raw",
+    "glow.concierge",
+    "glow.raw"
+  ],
+  "depth": 3,
+  "parallax": 1,
+  "occluder": 0,
+  "reflectivity": 0,
+  "object": 0,
+  "exists": "concierge",
+  "kind": "prop",
+  "res": 2
+}

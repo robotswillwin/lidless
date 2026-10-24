@@ -3,7 +3,7 @@
 // (built assets, placed), lights, its inside and outside areas, the walk line, places to arrive and hotspots, some of
 // which lead to other scenes.
 
-import { fetchSprite, imageFromBlob, loadBlob, makeSprite, SPEEDS, spriteDefaults, WAVES, type FetchedSprite, type GodrayDef, type GroundDef, type LoadedScene, type Only, type Views, type MoverDef, type SceneDef, type ScopeDef, type ClockDef, type Sprite, type SteamDef } from '../engine/assets';
+import { fetchSprite, imageFromBlob, loadBlob, makeSprite, SPEEDS, spriteDefaults, WAVES, type FetchedSprite, type GodrayDef, type GroundDef, type LoadedScene, type Only, type Views, type MoverDef, type SceneDef, type ScopeDef, type ClockDef, type CradleDef, type RingsDef, type Slide, type Sprite, type SteamDef } from '../engine/assets';
 import { presets, type PlacedLight } from '../engine/presets';
 import { conditionProblem } from './conditions';
 import { textureFromImage, type GL } from '../engine/gl';
@@ -36,6 +36,8 @@ export interface LayerDef {
   views?: Views<{ x: number; y: number }>;
   /** There only while this condition on the story holds (see conditions.ts): a window broken, a sign that comes on. */
   when?: string;
+  /** One of pictures shown in turn, fading into each other: a photo frame's photos. */
+  show?: Slide;
 }
 
 /** Where a door or an edge leads: a scene, and the place there to arrive at. */
@@ -57,7 +59,7 @@ export interface SceneFile {
   kind: 'exterior' | 'interior';
   /**
    * A close-up of a place (the place's id): a desk, a workbench, seen close. She is not drawn in it and nothing is walked
-   * to: a tap on a thing does what it is for, the verbs as anywhere; Back returns her to where she stood. It needs no walk
+   * to: a tap on a thing looks at it, the verbs as anywhere; Back returns her to where she stood. It needs no walk
    * or places to arrive at. Not on the map; for the story she is still in the place (scene_now).
    */
   closeup?: string;
@@ -156,6 +158,8 @@ export interface SceneFile {
   godrays?: GodrayDef[];
   scopes?: ScopeDef[];
   clocks?: ClockDef[];
+  cradles?: CradleDef[];
+  rings?: RingsDef[];
   drips?: SceneDef['drips'];
   traffic?: SceneDef['traffic'];
 }
@@ -244,7 +248,12 @@ export function checkSceneFile(data: unknown, id?: string): string[] {
   else if (walk.x1 <= walk.x0) out.push('walk.x1 must be right of walk.x0');
   const layers = Array.isArray(f.layers) ? (f.layers as Record<string, unknown>[]) : null;
   if (!layers?.length) out.push('layers must list at least one built asset');
-  else layers.forEach((l, i) => { if (!l || !isStr(l.asset)) out.push(`layers[${i}] has no asset`); });
+  else layers.forEach((l, i) => {
+    if (!l || !isStr(l.asset)) out.push(`layers[${i}] has no asset`);
+    const sh = l?.show as Record<string, unknown> | undefined;
+    if (sh !== undefined && !(isNum(sh?.at) && isNum(sh?.of) && isNum(sh?.every) && sh.of >= 1 && sh.at >= 0 && sh.at < sh.of && sh.every > 0 && (sh.fade === undefined || isNum(sh.fade))))
+      out.push(`layers[${i}].show needs at (from 0), of, every (seconds) and perhaps fade`);
+  });
   if (!Array.isArray(f.lights)) out.push('lights must be a list (it can be empty)');
   else (f.lights as Record<string, unknown>[]).forEach((l, i) => {
     // one of a kind needs only its place: its preset has the rest; one of its own needs everything
@@ -352,6 +361,17 @@ export function checkSceneFile(data: unknown, id?: string): string[] {
     placed(e, name);
   });
   effects('clocks', 2, ['x', 'y', 'r'], placed);
+  effects('cradles', 1, ['x', 'y', 'gap', 'length', 'r'], (e, name) => {
+    if (e?.swings !== undefined && (!isStr(e.swings) || !/^[a-z_][a-z0-9_]*$/.test(e.swings))) out.push(`${name}.swings must name a story variable`);
+    if (e?.posts !== undefined && !nums(e.posts, 4)) out.push(`${name}.posts must be [from, to, from, to]: the frame's front posts`);
+    placed(e, name);
+  });
+  const storyName = (v: unknown) => isStr(v) && /^[a-z_][a-z0-9_]*$/.test(v);
+  effects('rings', 1, ['x', 'y', 'r'], (e, name) => {
+    if (!Array.isArray(e?.turns) || e.turns.length !== 3 || !e.turns.every(storyName)) out.push(`${name}.turns must name three story variables, the inner ring's first`);
+    if (e?.solved !== undefined && !storyName(e.solved)) out.push(`${name}.solved must name a story variable`);
+    placed(e, name);
+  });
   if (f.drips !== undefined) {
     const d = f.drips as Record<string, unknown>;
     if (!d || !['x0', 'x1', 'top', 'bottom'].every((k) => isNum(d[k]))) out.push('drips needs x0, x1, top and bottom');
@@ -410,12 +430,12 @@ export async function makeScene(gl: GL, fetched: FetchedScene, world: WorldFile)
   const sprites = await Promise.all(file.layers.map(async (layer) => {
     const s = await sprite(layer.asset), d = s.def;
     // each layer has a definition of its own, so the same asset can be placed twice
-    return { ...s, def: { ...d, x: layer.x ?? d.x, y: layer.y ?? d.y, parallax: layer.parallax ?? d.parallax, front: layer.front ?? d.front, depth: layer.depth ?? d.depth, facing: layer.facing ?? d.facing, footprint: layer.footprint ?? d.footprint, only: layer.only, views: layer.views, when: layer.when } };
+    return { ...s, def: { ...d, x: layer.x ?? d.x, y: layer.y ?? d.y, parallax: layer.parallax ?? d.parallax, front: layer.front ?? d.front, depth: layer.depth ?? d.depth, facing: layer.facing ?? d.facing, footprint: layer.footprint ?? d.footprint, only: layer.only, views: layer.views, when: layer.when, show: layer.show } };
   }));
   const zone = fetched.zone ? textureFromImage(gl, await imageFromBlob(await fetched.zone, file.zoneMap), false) : zoneTexture(gl, file);
   const def: SceneDef = {
     name: file.id, size: file.size, sprites: sprites.map((s) => s.def.name), zone: file.zoneMap ?? '',
-    lights: file.lights, beacons: file.beacons ?? [], steam: file.steam ?? [], godrays: file.godrays ?? [], scopes: file.scopes ?? [], clocks: file.clocks ?? [],
+    lights: file.lights, beacons: file.beacons ?? [], steam: file.steam ?? [], godrays: file.godrays ?? [], scopes: file.scopes ?? [], clocks: file.clocks ?? [], cradles: file.cradles ?? [], rings: file.rings ?? [],
     drips: file.drips, mirror: file.mirror ?? file.walk.y - 8, ground: file.ground, traffic: file.traffic, ambient: file.ambient, exposure: file.exposure, baked: file.baked, actorScale: file.actorScale,
   };
   const level: LevelDef = {

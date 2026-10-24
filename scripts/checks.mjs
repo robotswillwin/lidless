@@ -219,33 +219,34 @@ const checks = {
     await page.close();
   },
 
-  /** The story drives the world: things taken off her desk, the radio mended with one, the parcel delivered. */
+  /** The story drives the world: things taken off her desk, her drawer, the parcel delivered and crossed out. */
   async story() {
     const page = await fresh('scene=home&spawn=door');
     // her desk, up close: tapped, she goes up to it and the view goes in close
     await tap(page, 640, 300);
     await wait(4500);
     check('her desk, up close', (await page.evaluate(() => !document.querySelector('.hud-back')?.hidden)) === true);
+    // a tap only looks: taking, using want their verb
+    await verb(page, 'take');
     await tap(page, 850, 236);
     await wait(1500);
     check('the parcel taken into her pockets', /Things\.parcel/.test(await ink(page)));
-    await tap(page, 745, 212);
-    await wait(1500);
-    check('the valve taken', /Things\.valve/.test(await ink(page)));
+    await verb(page, 'hands');
     await tap(page, 700, 330);
     await wait(1200);
     check('her top drawer opens', /"luna_drawer_open":\s*true/.test(await ink(page)));
-    await holdThing(page, 'valve');
-    check('the valve in her hand', ((await page.$eval('.hud-ball.verbs', (b) => b.getAttribute('aria-label'))) ?? '').includes('put it back'));
-    await tap(page, 637, 198);
-    await talkThrough(page);
-    check('the radio mended, a voice under the static', /"radio_heard":\s*true/.test(await ink(page)));
+    // her Newton's cradle, set swinging; the Concierge's hologram rings, turned until their gaps line up
+    await verb(page, 'hands');
+    await tap(page, 670, 190);
+    await wait(1200);
+    check('her Newton\'s cradle swings', /"cradle_swings":\s*1/.test(await ink(page)));
+    for (const [x, y] of [[328, 144], [328, 144], [328, 144], [328, 168], [328, 168]]) { await verb(page, 'hands'); await tap(page, x, y); await wait(1000); }
+    const chime = await talkThrough(page);
+    check('the hologram rings: three turns of the middle one, two of the inner, and they open', /"rings_solved":\s*true/.test(await ink(page)) && chime.some((l) => /flower of light/.test(l)), chime.join(' / ').slice(0, 80));
+    await holdThing(page, 'parcel');
+    check('the parcel in her hand', ((await page.$eval('.hud-ball.verbs', (b) => b.getAttribute('aria-label'))) ?? '').includes('put it back'));
     await page.click('.hud-back');
     await wait(1500);
-    await panel(page, 'journal');
-    const done = await page.$$eval('.hud-panel.journal .entry.done .name', (es) => es.map((e) => e.textContent));
-    check('her journal crosses out the radio', done.includes('My radio') && !done.includes('Parcel 4471'), done.join(', '));
-    await page.keyboard.press('Escape');
     await again(page, 'scene=radio');
     await holdThing(page, 'parcel');
     await tap(page, 690, 335);
@@ -257,6 +258,10 @@ const checks = {
     await wait(600);
     const note = await page.$eval('.hud-note', (n) => n.textContent).catch(() => '');
     check('her parcel on his bench', /parcel|delivery/i.test(note), note.slice(0, 80));
+    await panel(page, 'journal');
+    const done = await page.$$eval('.hud-panel.journal .entry.done .name', (es) => es.map((e) => e.textContent));
+    check('her journal crosses out the parcel', done.includes('Parcel 4471'), done.join(', '));
+    await page.keyboard.press('Escape');
     await page.close();
   },
 
@@ -511,6 +516,7 @@ const checks = {
     const before = await page.evaluate(() => document.querySelector('.hud-btn.notebook')?.hidden);
     await tap(page, 640, 300);
     await wait(4500);
+    await verb(page, 'take');
     await tap(page, 825, 170);
     await talkThrough(page);
     const after = await page.evaluate(() => document.querySelector('.hud-btn.notebook')?.hidden);
@@ -546,12 +552,15 @@ const checks = {
     await tap(page, 786, 312);
     await wait(5000);
     check('her workbench, up close: she is not drawn, Step back is there', (await page.evaluate(() => !document.querySelector('.hud-back')?.hidden)) === true, String(await page.evaluate(() => document.querySelector('.hud')?.hasAttribute('data-closeup'))));
+    await verb(page, 'hands');
     await tap(page, 480, 365);
     await wait(1200);
     check('its drawer opens', /"athena_drawer_open":\s*true/.test(await ink(page)));
     // her oscilloscope: a tap on a knob turns it, and the engine draws the line live on its screen as the knobs have it
+    await verb(page, 'hands');
     await tap(page, 886, 146);
     await wait(1200);
+    await verb(page, 'hands');
     await tap(page, 886, 232);
     await wait(1200);
     const clicks = await page.evaluate(() => [...document.querySelectorAll('.hud-note')].map((n) => n.textContent).join(' '));

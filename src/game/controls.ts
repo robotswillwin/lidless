@@ -1,9 +1,9 @@
 // Her controls in a session: a finger (or the mouse) on the scene and the walk keys, turned into what she does. A tap
-// walks her there: up to a thing, through a way out (a door, the end of the street), running if it is far. A finger
-// held down and moved steers her; held down outdoors far from her, it runs her after it until it comes up. A verb chosen
-// at the ball, slid over the scene, lights up what it would do, and letting go does it; a thing out of her pockets is
-// used on the next thing tapped. In a close-up nothing is walked to: a tap does what a thing is mostly for. The page's
-// events come in through input.ts.
+// walks her there: up to a thing, and she looks at it (or talks with someone she can), through a way out (a door, the
+// end of the street), running if it is far. A tap never takes or uses a thing: that is a verb chosen at the ball, which
+// slid over the scene lights up what it would do, and letting go does it; a thing out of her pockets is used on the next
+// thing tapped. A finger held down and moved steers her; held down outdoors far from her, it runs her after it until it
+// comes up. In a close-up nothing is walked to: a tap looks, there and then. The page's events come in through input.ts.
 
 import { NH, NW } from '../engine/renderer';
 import { actionFor, actionsFor, defaultOf, itemActionFor, type Verb } from './actions';
@@ -62,9 +62,9 @@ export class Controls {
     this.holding = this.chasing = false;
     if (this.verb || this.inHand) return this.scan(clientX, clientY);
     const [x, y] = this.toLevel(clientX, clientY), h = g.world.hotspotAt(x, y, g.raw, g.cam[0]);
-    // in a close-up nothing is walked to: a tap on a thing does what it is mostly for
+    // in a close-up nothing is walked to: a tap on a thing looks at it (or goes, or talks), there and then
     if (g.scene.file.closeup) {
-      const a = h ? defaultOf(actionsFor(h, g.raw, g.doing.stitches)) : null;
+      const a = h ? defaultOf(actionsFor(h, g.raw, g.doing.stitches), h) : null;
       if (h && a) g.doing.perform(h, a);
       return;
     }
@@ -187,10 +187,10 @@ export class Controls {
     g.world.walkTo(x, then, paceFor(Math.abs(x - g.world.heroX), g.setup.world.hero, tall));
   }
 
-  /** She got to a thing she was going to: what she does to it now, what was pending, else what it is mostly for. */
+  /** She got to a thing she was going to: what she does to it now, what was pending, else what a tap does (a look). */
   arrivedAt(h: Hotspot): Action | null {
     const actions = actionsFor(h, this.g.raw, this.g.doing.stitches);
-    const a = this.pending?.kind === 'item' ? this.pending : actions.find((x) => x.kind === this.pending?.kind) ?? defaultOf(actions);
+    const a = this.pending?.kind === 'item' ? this.pending : actions.find((x) => x.kind === this.pending?.kind) ?? defaultOf(actions, h);
     this.pending = null;
     return a ?? null;
   }

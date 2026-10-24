@@ -65,6 +65,18 @@ describe('checkSceneFile', () => {
     expect(problems.some((p) => p.startsWith('scopes[0] needs'))).toBe(false);
   });
 
+  it('checks a cradle, a hologram of rings, and pictures shown in turn', () => {
+    const f = read('street');
+    f.cradles = [{ x: 1, y: 1, gap: 2, length: 3, r: 1, swings: 'Bad name', posts: [1, 2] }];
+    f.rings = [{ x: 1, y: 1, r: 3, turns: ['a', 'b'] }];
+    (f.layers as Record<string, unknown>[])[0].show = { at: 3, of: 3, every: 5 };
+    const problems = checkSceneFile(f, 'street');
+    expect(problems).toContain('cradles[0].swings must name a story variable');
+    expect(problems).toContain("cradles[0].posts must be [from, to, from, to]: the frame's front posts");
+    expect(problems).toContain("rings[0].turns must name three story variables, the inner ring's first");
+    expect(problems).toContain('layers[0].show needs at (from 0), of, every (seconds) and perhaps fade');
+  });
+
   it('checks the ground: its eye above the reflection line, its slabs, kerb and puddles', () => {
     const f = read('street');
     f.ground = { horizon: 460, slab: [90], kerb: -5, puddles: 2 };

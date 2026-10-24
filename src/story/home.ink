@@ -46,56 +46,22 @@ Good morning, CO. #luna
     "Have a lovely {good()}, Luna." #concierge
     -> END
 
-=== radio ===
-= look
-{ raw_view:
-    A transistor radio with its back off, a screwdriver beside it. {radio_heard: It works now. Mostly.|Weeks of work. It almost works.}
-- else:
-    A decorative retro speaker. It plays whatever the Concierge thinks you'd like.
-}
--> END
-= use
-{ raw_view:
-    { radio_heard:
-        Static, and under it the voice again. Too faint to make out a word.
-    - else:
-        { carried has valve:
-            -> use_valve
-        - else:
-            Static. One valve's dead, the one on the left. It needs another.
-        }
-    }
-- else:
-    Soft music, chosen for you.
-}
--> END
-= use_valve
-{ radio_heard:
-    It already has one.
-    -> END
-}
-You prise out the dead valve and press the new one in. # wait: 0.4
-~ carried -= valve
-~ radio_heard = true
-It warms. Static, a long hiss, and then, under it, almost, a voice. Not the Concierge's. #luna
--> END
-
 === photo ===
-// a projection: in raw view its frame is empty (decision 31). What it shows in the Concierge's view is still the
-// director's to decide; nothing is built on it
+// a projection: in raw view its frame is empty (decision 31). In the Concierge's view, its photos in turn, of the people
+// in her life (decision 45): her alone, with Athena at Athena's bench and on a roof at night, at a party
 = look
 { raw_view:
-    An empty frame. The picture was only ever the Concierge's.
+    An empty frame. The pictures were only ever the Concierge's.
 - else:
-    You, alone, smiling at something out of frame.
+    Your photos, one after another: you, you and Athena, the two of you on a roof, a party.
 }
 -> END
 
 === luna_drawer ===
-// her desk's top drawer, up close (scene home-desk): her tools, mostly for the radio
+// her desk's top drawer, up close (scene home-desk): odds and ends
 = look
 { luna_drawer_open:
-    Your tools. Mostly for the radio.
+    Odds and ends: a torch, tape, little tools.
 - else:
     Your top drawer.
 }
@@ -123,4 +89,52 @@ It warms. Static, a long hiss, and then, under it, almost, a voice. Not the Conc
 ~ carried += paper_notebook
 ~ taken += paper_notebook
 You slip your notebook into your pocket. Where CO can't see, you can write in it.
+-> END
+
+=== luna_cradle ===
+// a Newton's cradle on her desk, real in both views: used, an end ball is lifted and let go, and the game swings it
+// each time her count of swings goes up (cradle_swings)
+= use
+~ cradle_swings += 1
+{&You lift the end ball and let it go. Click, clack.|The knock runs through the still ones and out the other side.|Click. Clack. Click. It always settles in the end.}
+-> END
+
+=== hologram_inner ===
+// a puzzle of the Concierge's over her desk, a hologram of three rings (gone in raw view): a ring turned drags the one
+// inside it; their gaps lined up, it opens into a flower of light. The game draws it, live (scene home-desk's rings)
+= use
+{ rings_solved: -> rings_again }
+~ rings_in = (rings_in + 1) % 6
+Click. The inner ring turns a sixth.
+-> rings_turned
+
+=== hologram_middle ===
+= use
+{ rings_solved: -> rings_again }
+~ rings_mid = (rings_mid + 1) % 6
+~ rings_in = (rings_in + 1) % 6
+Click. The middle ring turns, and the inner one with it.
+-> rings_turned
+
+=== hologram_outer ===
+= use
+{ rings_solved: -> rings_again }
+~ rings_out = (rings_out + 1) % 6
+~ rings_mid = (rings_mid + 1) % 6
+Click. The outer ring turns, and the middle one with it.
+-> rings_turned
+
+=== rings_turned ===
+{ rings_in == rings_mid && rings_mid == rings_out:
+    ~ rings_solved = true
+    The gaps line up. The rings chime and open, like a flower of light.
+}
+-> END
+
+=== rings_again ===
+~ rings_solved = false
+~ rings_in = 3
+~ rings_mid = 0
+~ rings_out = 5
+The flower folds back into three rings, turned apart again.
 -> END

@@ -61,6 +61,8 @@ export interface DrawSprite {
    * already set the flags its pixels share (the scene runner decides).
    */
   blend?: boolean;
+  /** How much of it shows, 0 to 1 (a photo fading into the next): only a blended layer fades; a cut-out shows over a half. */
+  opacity?: number;
 }
 
 export interface Frame {
@@ -100,6 +102,17 @@ export interface Frame {
   nClocks?: number;
   /** The time of day, seconds after midnight: a clock's hands. */
   daySeconds?: number;
+  /**
+   * A Newton's cradle, three vec4: where its first thread hangs from (world), the gap between threads, their length; its
+   * balls' radius, seconds since an end ball was let go, which end (1 the right, -1 the left), 1 if there is one; its
+   * front posts, from and to x, left then right.
+   */
+  cradle?: Float32Array;
+  /**
+   * A hologram of three rings, two vec4: its middle (world), its size, 1 if there is one; each ring's turn (radians,
+   * the inner first), and how long since its gaps lined up (seconds; -1 while they don't).
+   */
+  rings?: Float32Array;
   drips: [number, number, number, number];
   mirror: number;
   /** The ground the engine draws below the reflection line, if the scene has one. */
@@ -121,9 +134,11 @@ const GLOSSY = 16;
 const NO_FAR = new Float32Array(4);
 /** No movers' trails. */
 const NO_TRAILS = new Float32Array(16);
-/** No oscilloscopes, no clocks. */
+/** No oscilloscopes, no clocks, no cradle. */
 const NO_SCOPES = new Float32Array(32);
 const NO_CLOCKS = new Float32Array(8);
+const NO_CRADLE = new Float32Array(12);
+const NO_RINGS = new Float32Array(8);
 
 const MAP_ORDER: [MapName, string][] = [
   ['albedo.raw', 'tAlbR'], ['albedo.concierge', 'tAlbC'], ['normal', 'tNrm'], ['normal.concierge', 'tNrmC'], ['material', 'tMat'],
@@ -281,6 +296,7 @@ export class Renderer {
       gl.uniform1f(sp.u.uSS, dens > 1.11 ? Math.min(4, Math.ceil(1.5 * dens)) : 1);
       gl.uniform1f(sp.u.uFlip, d.flip ? 1 : 0);
       gl.uniform1f(sp.u.uBlend, d.blend ? 1 : 0);
+      gl.uniform1f(sp.u.uOpacity, d.opacity ?? 1);
       // the frame's place in the texture: frames run in rows of `cols`, with a gutter of g texels between them
       const fr = def.frames, fi = fr ? Math.max(0, Math.min(fr.count - 1, d.frame ?? 0)) : 0, g = fr?.gutter ?? 0;
       const cols = fr ? Math.min(fr.count, fr.cols ?? fr.count) : 1, rows = fr ? Math.ceil(fr.count / cols) : 1;
@@ -383,7 +399,7 @@ export class Renderer {
       }
     }
 
-    // composite: reflections, steam, rain, drips, oscilloscopes, clocks
+    // composite: reflections, steam, rain, drips, oscilloscopes, clocks, a cradle, a hologram
     this.pass(this.prog.comp, t.fb, (pr) => {
       this.bind(pr, 'tA', t.fa.tex[0], 0); this.bind(pr, 'tG3', t.gbuf.tex[3], 1); this.bind(pr, 'tDof', t.d1.tex[0], 2);
       this.bind(pr, 'tRefl', reflBlur ? refl.tex[0] : this.black, 7); gl.uniform1f(pr.u.uReflBlur, reflBlur ? 1 : 0);
@@ -393,6 +409,7 @@ export class Renderer {
       gl.uniform4fv(pr.u.uSteam, f.steam); gl.uniform4fv(pr.u.uSteamFar, f.steamFar ?? NO_FAR); gl.uniform4f(pr.u.uDrips, ...f.drips); gl.uniform1f(pr.u.uMirror, f.mirror);
       gl.uniform4fv(pr.u.uScope, f.scopes ?? NO_SCOPES); gl.uniform1i(pr.u.uNScope, f.nScopes ?? 0);
       gl.uniform4fv(pr.u.uClock, f.clocks ?? NO_CLOCKS); gl.uniform1i(pr.u.uNClock, f.nClocks ?? 0); gl.uniform1f(pr.u.uDaySec, f.daySeconds ?? 0);
+      gl.uniform4fv(pr.u.uCradle, f.cradle ?? NO_CRADLE); gl.uniform4fv(pr.u.uRings, f.rings ?? NO_RINGS);
       gl.uniform1f(pr.u.uRawFog, k.rawFog); gl.uniform1f(pr.u.uWrap, k.charWrap); gl.uniform1f(pr.u.uRain, k.rain); gl.uniform1f(pr.u.uFog, k.fog); gl.uniform1f(pr.u.uBakedC, baked);
       gl.uniform4f(pr.u.uRefl, k.reflect, k.reflectReach, k.reflectStreak, k.mirrorSet);
       gl.uniform2f(pr.u.uReflSoft, k.reflectDiffuse, k.reflectStreak); gl.uniform1f(pr.u.uSmudge, smudge ? 1 : 0);

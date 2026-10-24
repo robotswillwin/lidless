@@ -335,6 +335,15 @@ Characters walk in front of the set, so lights and characters need to know which
   moment when a knob turns, and eases to a new speed (more waves across the glass, creeping faster).
 - A clock (`clocks`, two at most) is the middle of its face and its radius inside the hour marks, `x`, `y`, `r`; its
   face is painted without hands, and the engine draws them at the game's time of day, the second hand ticking.
+- A Newton's cradle (`cradles`, one) is drawn on a frame painted without its balls: where the first thread hangs, `x`,
+  `y`, how far apart the threads are (`gap`), how long they are (`length`, to a ball's middle) and the balls' radius,
+  `r`; the frame's front posts (`posts`, from and to x, left then right), which a swinging ball passes behind; and a
+  story variable counting her swings (`swings`): each time it goes up, an end ball is let go, the other end next time.
+- A hologram of three rings (`rings`, one) is its middle and its outer ring's radius, `x`, `y`, `r`; three story
+  variables turning its rings in sixths (`turns`, the inner first) and one saying their gaps line up (`solved`), when
+  it opens into a flower of light. Usually `"only": "concierge"`.
+- A layer can be one of pictures shown in turn, fading into each other, as a photo frame's (`show`: `at`, from 0, of
+  `of`, each for `every` seconds, fading over `fade`).
 - Anything placed can be in one view only, `"only": "raw"` or `"only": "concierge"`: a hotspot, a layer (a hologram
   over the street in the Concierge's view, a scrawl only raw view shows), steam, a light shaft, a beacon, a mover. A
   light says it with its flags, `"ar": 1` or `"raw": 1`; an older light shaft's `"ar": 1` still means the Concierge's.

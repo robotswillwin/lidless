@@ -15,14 +15,6 @@
      ]
     },
     {
-     "id": "voice",
-     "name": "my radio",
-     "when": "radio_heard",
-     "lines": [
-      "a voice under the static. whose?"
-     ]
-    },
-    {
      "id": "favour",
      "name": "the fixer",
      "when": "has_raw",

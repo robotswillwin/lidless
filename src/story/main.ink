@@ -39,7 +39,7 @@ VAR station_seat = "woman"
 
 // The things she can carry: public/assets/items.json says how each looks and what it is called. What she carries now,
 // and what she has picked up anywhere, which is gone from where it was (the game adds to both as she takes a thing)
-LIST Things = parcel, matches, cigarettes, map, valve, paper_notebook, athena_note, athena_patrol_sheet, athena_repair_slip
+LIST Things = parcel, matches, cigarettes, map, paper_notebook, athena_note, athena_patrol_sheet, athena_repair_slip
 VAR carried = (matches, cigarettes, map)
 VAR taken = ()
 
@@ -67,10 +67,14 @@ VAR prologue_complete = false
 
 // the errand the game begins with: the parcel on her desk, to the radio repair by ten
 VAR parcel_delivered = false
-// her radio, mended: what she heard under the static
-VAR radio_heard = false
-// her desk, up close (scene home-desk): its top drawer open
+// her desk, up close (scene home-desk): its top drawer open; how many times she has set its Newton's cradle swinging
 VAR luna_drawer_open = false
+VAR cradle_swings = 0
+// the Concierge's hologram over her desk, three rings each with a gap, turned in sixths (0 to 5); its gaps lined up
+VAR rings_in = 2
+VAR rings_mid = 4
+VAR rings_out = 1
+VAR rings_solved = false
 // Felix, at the cocktail bar (bar.ink): met, and what he told her of the levels
 VAR met_felix = false
 VAR knows_levels = false

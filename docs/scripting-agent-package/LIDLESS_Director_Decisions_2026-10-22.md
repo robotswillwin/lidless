@@ -157,11 +157,19 @@ holds**. Each decision is the director's, in plain words; what is still open say
 44. **What moves is drawn live**, in code, not painted, so it is alive: an oscilloscope's line creeps and breathes, a
     clock's hands keep the time. Athena's oscilloscope is the first: Luna can turn its two knobs, one for the line's
     shape and one for its speed, a bonus that nothing waits on. The fixer's monitor and his clock are live too.
+45. **Luna has no terminal, no radio and no valves.** Everything of hers is the Concierge's voice and gestures; only old
+    relics (Athena's, the fixer's) have keys and dials. In raw view her desk is nearly bare. The first build's radio,
+    its valve and the voice under the static are cut: there is no mysterious voice. On her desk now: a Newton's
+    cradle, real in both views, that she can set swinging; a hologram puzzle of three rings, the Concierge's alone; and
+    her photo frame, showing the people in her life in turn: her, her and Athena (Athena's first pictures), a party.
+46. **A tap looks.** Tapping a thing looks at it; it never picks a thing up or uses it: taking and using are chosen at
+    the ball. A tap still goes through a door or up close to a desk, and talks with someone she can talk with.
 
 ## Open, for the director
 
 - The six decisions the vertical slice waits on (`LIDLESS_Vertical_Slice_v0.1_2026-10-21.md`). The first is Luna's
-  motive. (The photograph is a projection with an empty frame in raw view, 31: what it shows is still to decide.)
+  motive. Its beats that grow from the voice under the static (the voice at three, the old relay) are void: the voice
+  is cut (45).
 - What the corner shop sells. Proposed: drinks, tobacco, umbrellas, care for devices, the Concierge's wardrobe on
   show.
 - How Luna comes by raw view (1) and the laptop (12).

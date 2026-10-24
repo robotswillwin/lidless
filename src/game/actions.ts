@@ -4,7 +4,8 @@
 // story), else a standard reply for what it is (replies.ts), so trying is never wrong and never silent. Going through a
 // door, or off the end of the street, needs no verb: tapping it walks her there and through, and so does using it. In
 // raw view, looking at something it shows differently is looking closely. Raw view is legal: the Concierge knows she
-// uses it and does not hold it against her, so looking costs nothing.
+// uses it and does not hold it against her, so looking costs nothing. A tap with no verb looks, or talks with someone
+// she can, or goes through a door: it never takes or uses a thing.
 
 import type { Action } from './hud';
 import type { Hotspot } from './level';
@@ -64,12 +65,11 @@ export function actionsFor(h: Hotspot, raw: boolean, stitches: Stitches = () => 
 }
 
 /**
- * What a thing is mostly for, tapped with no verb: talking to someone, going through a door, else using or taking it,
- * of what it has of its own; looking, else.
+ * What a tap with no verb does: going through a door, or up close to a thing seen close up; talking with someone she can
+ * hold a conversation with (`talk`); else looking. Taking and using want their verb, chosen at the ball: a tap never
+ * picks a thing up or uses it (the director, 24 October).
  */
-export function defaultOf(actions: Action[]): Action {
-  const order = ['heart', 'feet', 'hands', 'take', 'eyes', 'ask'];
-  const own = actions.filter((a) => a.kind === 'feet' || a.own);
-  if (!own.length) return actions.find((a) => a.kind === 'eyes') ?? actions[0];
-  return [...own].sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind))[0];
+export function defaultOf(actions: Action[], h?: Hotspot): Action {
+  const go = actions.find((a) => a.kind === 'feet'), talk = actions.find((a) => a.kind === 'heart');
+  return go ?? (h?.talk && talk ? talk : actions.find((a) => a.kind === 'eyes') ?? actions[0]);
 }

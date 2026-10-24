@@ -30,18 +30,6 @@
       }
      ],
      "when": "intro_messages_read or not intro_morning_started"
-    },
-    {
-     "id": "radio",
-     "name": "My radio",
-     "done": "radio_heard",
-     "lines": [
-      "Needs a new valve. The left one is dead.",
-      {
-       "text": "Working again.",
-       "when": "radio_heard"
-      }
-     ]
     }
    ]
   },

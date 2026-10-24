@@ -36,6 +36,8 @@ export interface SpriteDef {
   only?: Only;
   /** A layer placed only while a condition on the story holds (the game reads it; the engine draws what it is given). */
   when?: string;
+  /** One of pictures shown in turn, fading into each other: see the scene file's layers. */
+  show?: Slide;
   /** Placed elsewhere in one view of a scene. */
   views?: Views<{ x: number; y: number }>;
   /** What the pipeline built it as: character, prop, background or portrait. */
@@ -145,6 +147,22 @@ export interface SteamDef { x: number; y: number; height: number; width: number;
  */
 export interface GodrayDef { x: number; y: number; strength: number; zone: number; ar?: number; only?: Only; parallax?: number; views?: Views<GodrayDef> }
 export interface BeaconDef { x: number; y: number; phase: number; parallax?: number; only?: Only; views?: Views<BeaconDef> }
+/**
+ * A picture shown in turn with others, as a photo frame shows its photos: which one it is of how many (`at`, from 0, of
+ * `of`), how long each is shown (`every`, seconds) and how long one fades into the next (`fade`).
+ */
+export interface Slide { at: number; of: number; every: number; fade?: number }
+
+/** How much of a picture shown in turn shows at time t: one fades in over the one before it, and the last fades out to the first. */
+export function slideOpacity(s: Slide, t: number): number {
+  if (s.of <= 1) return 1;
+  const fade = Math.min(s.fade ?? 1, s.every), cycle = (((t / s.every) % s.of) + s.of) % s.of, i = Math.floor(cycle), f = (cycle - i) * s.every;
+  const prev = (i + s.of - 1) % s.of;
+  if (s.at === i) return i === 0 ? 1 : Math.min(1, f / fade);
+  if (s.at === prev) return i === 0 ? Math.max(0, 1 - f / fade) : f < fade ? 1 : 0;
+  return 0;
+}
+
 /** The shapes an oscilloscope's line takes, in the order a knob turns through them; and a voice, coming and going. */
 export const WAVES = ['sine', 'square', 'triangle', 'saw', 'voice'] as const;
 export type Wave = (typeof WAVES)[number];
@@ -166,6 +184,25 @@ export interface ScopeDef {
 }
 /** A clock's face, its hands drawn live at the game's time: where its middle is, and its radius inside the hour marks. */
 export interface ClockDef { x: number; y: number; r: number; when?: string; only?: Only; parallax?: number }
+/**
+ * A Newton's cradle, its five balls and their threads drawn live on a frame painted without them: where the first
+ * thread hangs from (x, y), how far apart the threads are (`gap`), how long (`length`, to a ball's middle) and how big
+ * the balls are (`r`). Each time a story variable counting her swings (`swings`) goes up, an end ball is lifted and let
+ * go, the other end next time, and the knock runs to and fro until it settles.
+ */
+export interface CradleDef {
+  x: number; y: number; gap: number; length: number; r: number; swings?: string;
+  /** The frame's front posts, from and to x, the left one's then the right one's: a ball swings out behind them. */
+  posts?: [number, number, number, number];
+  when?: string; only?: Only; parallax?: number;
+}
+/**
+ * A hologram of three rings, drawn live: where its middle is and how big (`r`, the outer ring's radius), floating over
+ * its emitter on the surface below. Each ring has a gap, turned by a story variable in sixths of a turn (`turns`, the
+ * inner ring's first); when another story variable says they line up (`solved`), it chimes and opens into a flower of
+ * light. Usually the Concierge's alone (`only: concierge`).
+ */
+export interface RingsDef { x: number; y: number; r: number; turns: [string, string, string]; solved?: string; when?: string; only?: Only; parallax?: number }
 
 /**
  * The ground below the reflection line, drawn by the engine over a painted floor that was smoothed for it (asset ground
@@ -198,6 +235,10 @@ export interface SceneDef {
   scopes?: ScopeDef[];
   /** Clocks, their hands drawn live: two at most. */
   clocks?: ClockDef[];
+  /** A Newton's cradle, its balls drawn live: one at most. */
+  cradles?: CradleDef[];
+  /** A hologram of three rings, drawn live: one at most. */
+  rings?: RingsDef[];
   drips?: { x0: number; x1: number; top: number; bottom: number };
   /** World y of the line wet surfaces reflect around. */
   mirror: number;

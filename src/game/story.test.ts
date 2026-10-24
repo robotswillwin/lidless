@@ -28,8 +28,8 @@ describe('the story', () => {
     expect(loaded.read('credits')).toBe(312);
     expect(loaded.carried()).toEqual(expect.arrayContaining(['parcel', 'matches', 'cigarettes', 'map']));
     loaded.drop('parcel');
-    loaded.take('valve');
-    expect(loaded.test('carried has valve && !(carried has parcel) && carried has map')).toBe(true);
+    loaded.take('paper_notebook');
+    expect(loaded.test('carried has paper_notebook && !(carried has parcel) && carried has map')).toBe(true);
   });
 
   it('feeds her at the station now and then: once fed, she does not need it for a while', () => {
@@ -55,21 +55,20 @@ describe('the story', () => {
   it('reads conditions on its state', () => {
     const d = new Dialogue(null);
     expect(d.test('!has_raw && carried has map')).toBe(true);
-    expect(d.test('carried has valve')).toBe(false);
-    d.take('valve');
-    expect(d.test('carried has valve && taken has valve')).toBe(true);
+    expect(d.test('carried has paper_notebook')).toBe(false);
+    d.take('paper_notebook');
+    expect(d.test('carried has paper_notebook && taken has paper_notebook')).toBe(true);
   });
 
-  it('runs an object\'s stitches: the radio needs a valve, and with one she hears a voice', () => {
+  it('runs an object\'s stitches: her top drawer opens, and shuts again', () => {
     const d = new Dialogue(null);
-    expect(d.has('radio', 'use')).toBe(true);
-    expect(d.has('radio', 'take')).toBe(false);
-    expect(d.start('radio.use', true).map((l) => l.text).join(' ')).toMatch(/needs another/);
-    d.take('valve');
-    const lines = d.start('radio.use', true);
-    expect(lines.some((l) => l.commands?.some((c) => c.name === 'wait'))).toBe(true);
-    expect(d.test('radio_heard && !(carried has valve)')).toBe(true);
-    expect(lines.at(-1)?.speaker).toBe('luna');
+    expect(d.has('luna_drawer', 'use')).toBe(true);
+    expect(d.has('luna_drawer', 'take')).toBe(false);
+    expect(d.start('luna_drawer.use', true).map((l) => l.text).join(' ')).toMatch(/gives/);
+    expect(d.test('luna_drawer_open')).toBe(true);
+    expect(d.start('luna_drawer.look', true).map((l) => l.text).join(' ')).toMatch(/torch/);
+    d.start('luna_drawer.use', false);
+    expect(d.test('!luna_drawer_open')).toBe(true);
   });
 
   it('delivers the parcel to the fixer, once', () => {
@@ -82,10 +81,10 @@ describe('the story', () => {
 
   it('keeps it all in a save', () => {
     const d = new Dialogue(null);
-    d.take('valve');
+    d.take('paper_notebook');
     const again = new Dialogue(d.save());
-    expect(again.carried()).toContain('valve');
-    expect(again.took('valve')).toBe(true);
+    expect(again.carried()).toContain('paper_notebook');
+    expect(again.took('paper_notebook')).toBe(true);
   });
 
   it('reads a tag as a command only if it is one', () => {

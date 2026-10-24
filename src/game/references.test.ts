@@ -45,7 +45,7 @@ describe('what the scenes and the notebook name in the story', () => {
     // the check itself: a variable the story has, and one it has not
     expect(variable('has_raw')).toBe(true);
     expect(variable('no_such_variable')).toBe(false);
-    expect(things.has('valve')).toBe(true);
+    expect(things.has('paper_notebook')).toBe(true);
     const bad = conditions().flatMap(([where, c]) => {
       const p = conditionProblem(c);
       if (p) return [`${where}: ${p}`];

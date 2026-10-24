@@ -31,12 +31,6 @@
    "x": 672.33,
    "y": 298.29,
    "when": "!(taken has parcel)"
-  },
-  {
-   "asset": "home/valve",
-   "x": 638.58,
-   "y": 280.92,
-   "when": "!(taken has valve)"
   }
  ],
  "lights": [
@@ -278,22 +272,6 @@
    "raw": 1,
    "machine": 1,
    "own": 1
-  },
-  {
-   "x": 646,
-   "y": 295,
-   "z": 8,
-   "r": 50,
-   "c": [
-    1,
-    0.62,
-    0.3
-   ],
-   "i": 0.6,
-   "zone": 0,
-   "layer": 1,
-   "g": 2,
-   "when": "!(taken has valve)"
   },
   {
    "x": 635,

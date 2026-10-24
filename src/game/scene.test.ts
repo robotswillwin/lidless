@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { LoadedScene, MoverDef, Sprite, SpriteDef } from '../engine/assets';
+import { slideOpacity, type LoadedScene, type MoverDef, type Sprite, type SpriteDef } from '../engine/assets';
 import { patrolAt, pulseAt, SceneRunner, travelled } from './scene';
 
 const sprite = (name: string, def: Partial<SpriteDef> = {}, hasMeta = false): Sprite => ({
@@ -231,3 +231,63 @@ describe('an oscilloscope', () => {
     expect(f.scopes![3]).toBe(3);
   });
 });
+
+describe('pictures shown in turn', () => {
+  const show = (at: number) => ({ at, of: 3, every: 6, fade: 1.5 });
+  it('shows one at a time, the next fading in over it, and the last fading out to the first', () => {
+    expect([0, 1, 2].map((k) => slideOpacity(show(k), 3))).toEqual([1, 0, 0]);
+    // the second fading in over the first, which stays until it is in
+    expect(slideOpacity(show(1), 6.75)).toBeCloseTo(0.5);
+    expect(slideOpacity(show(0), 6.75)).toBe(1);
+    expect(slideOpacity(show(0), 8)).toBe(0);
+    // round again: the first already there under the last, which fades out
+    expect(slideOpacity(show(0), 18.75)).toBe(1);
+    expect(slideOpacity(show(2), 18.75)).toBeCloseTo(0.5);
+    expect(slideOpacity({ at: 0, of: 1, every: 5 }, 2)).toBe(1);
+  });
+});
+
+describe('a Newton\'s cradle', () => {
+  const withCradle = () => { const sc = scene([sprite('desk')]); sc.def.cradles = [{ x: 600, y: 140, gap: 17, length: 64, r: 8, swings: 'swings', posts: [590, 596, 690, 696] }]; return sc; };
+  it('swings each time her count of swings goes up, from alternate ends; not for the count she arrives with', () => {
+    let n = 3;
+    const r = new SceneRunner(withCradle());
+    r.read = () => n;
+    let f = r.frame(10, view, [0, 0]);
+    expect(f.cradle![5]).toBeGreaterThan(40);
+    n = 4;
+    f = r.frame(11, view, [0, 0]);
+    expect([f.cradle![5], f.cradle![6], f.cradle![7]]).toEqual([0, -1, 1]);
+    f = r.frame(12.5, view, [0, 0]);
+    expect(f.cradle![5]).toBeCloseTo(1.5);
+    n = 5;
+    expect(r.frame(13, view, [0, 0]).cradle![6]).toBe(1);
+    expect([...f.cradle!.slice(8)]).toEqual([590, 596, 690, 696]);
+  });
+});
+
+describe('a hologram of rings', () => {
+  const withRings = () => { const sc = scene([sprite('desk')]); sc.def.rings = [{ x: 300, y: 170, r: 34, turns: ['a', 'b', 'c'], solved: 'done' }]; return sc; };
+  it('turns each ring the way the story did, a sixth at a time, easing; and knows when its gaps lined up', () => {
+    const v: Record<string, unknown> = { a: 2, b: 4, c: 1, done: false };
+    const r = new SceneRunner(withRings());
+    r.read = (n) => v[n];
+    let f = r.frame(0, view, [0, 0]);
+    expect(f.rings![4]).toBeCloseTo((2 * Math.PI) / 3);
+    expect(f.rings![7]).toBe(-1);
+    v.a = 3;
+    for (let t = 0.05; t < 2; t += 0.05) f = r.frame(t, view, [0, 0]);
+    expect(f.rings![4]).toBeCloseTo(Math.PI, 2);
+    // from five round to nought: forward a sixth, not back five
+    v.b = 5;
+    r.frame(2, view, [0, 0]);
+    v.b = 0;
+    for (let t = 2.05; t < 4; t += 0.05) f = r.frame(t, view, [0, 0]);
+    expect(f.rings![5]).toBeCloseTo(2 * Math.PI, 2);
+    v.done = true;
+    f = r.frame(4, view, [0, 0]);
+    expect(f.rings![7]).toBe(0);
+    expect(r.frame(5, view, [0, 0]).rings![7]).toBe(1);
+  });
+});
+

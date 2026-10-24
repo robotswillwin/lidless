@@ -136,10 +136,7 @@ A close-up of `home`, gone into from its spot that zooms to it.
 | Spot | Name | Story | Notes |
 | --- | --- | --- | --- |
 | `photo` | Photograph | `photo` |  |
-| `terminal` | Terminal |  |  |
 | `pencils` | Pencils |  |  |
-| `radio` | Retro speaker / Transistor radio | `radio` |  |
-| `dead-valve` | Valve / Dead valve |  |  |
 | `lower-drawers` | Drawers |  |  |
 | `drawer` | Drawer / Top drawer | `luna_drawer` | when `not luna_drawer_open` |
 | `drawer-open` | Drawer / Top drawer | `luna_drawer` | when `luna_drawer_open` |
@@ -148,9 +145,12 @@ A close-up of `home`, gone into from its spot that zooms to it.
 | `fuses` | Fuses |  | when `luna_drawer_open` |
 | `screwdrivers` | Screwdrivers |  | when `luna_drawer_open` |
 | `buttons` | Buttons |  | when `luna_drawer_open` |
-| `valve` | Curio / Radio valve |  | item `valve` |
 | `notebook` | Notebook | `notebook` | item `paper_notebook` |
 | `parcel` | Parcel |  | item `parcel` |
+| `cradle` | Newton's cradle | `luna_cradle` |  |
+| `ring-outer` | Outer ring | `hologram_outer` | concierge view only |
+| `ring-middle` | Middle ring | `hologram_middle` | concierge view only |
+| `ring-inner` | Inner ring | `hologram_inner` | concierge view only |
 
 ### lobby: Entrance 3
 
@@ -241,7 +241,6 @@ Speaker tags in the story so far: `#concierge`, `#door`, `#felix`, `#fixer`, `#g
 | `matches` | Matches | Open flame · not permitted indoors / three left. real fire. it hates that. |
 | `cigarettes` | Cigarettes | Combustion product · harmful to your wellbeing / two left. a week's credits, these. |
 | `map` | Map | Hand-drawn · information out of date / drawn by hand. no names on it. |
-| `valve` | Valve | Vintage · decorative curio / for the radio. the left one's dead. |
 | `paper_notebook` | Notebook | Paper notebook · protected use / private paper. never on co-net. |
 | `athena_note` | Note | Personal paper note / athena wrote this in a hurry. |
 | `athena_patrol_sheet` | Timetable | Personal timing observations / repeating gaps. what was she watching? |
@@ -278,19 +277,23 @@ Speaker tags in the story so far: `#concierge`, `#door`, `#felix`, `#fixer`, `#g
 | `athena_report` | `"not_asked"` | what she told the Concierge leaving Athena's flat: "not_asked", then "covered", as Athena asked (the opening does not branch here: decision 40). Her word, not a fact about Athena |
 | `prologue_complete` | `false` | what she told the Concierge leaving Athena's flat: "not_asked", then "covered", as Athena asked (the opening does not branch here: decision 40). Her word, not a fact about Athena |
 | `parcel_delivered` | `false` | the errand the game begins with: the parcel on her desk, to the radio repair by ten |
-| `radio_heard` | `false` | her radio, mended: what she heard under the static |
-| `luna_drawer_open` | `false` | her desk, up close (scene home-desk): its top drawer open |
+| `luna_drawer_open` | `false` | her desk, up close (scene home-desk): its top drawer open; how many times she has set its Newton's cradle swinging |
+| `cradle_swings` | `0` | her desk, up close (scene home-desk): its top drawer open; how many times she has set its Newton's cradle swinging |
+| `rings_in` | `2` | the Concierge's hologram over her desk, three rings each with a gap, turned in sixths (0 to 5); its gaps lined up |
+| `rings_mid` | `4` | the Concierge's hologram over her desk, three rings each with a gap, turned in sixths (0 to 5); its gaps lined up |
+| `rings_out` | `1` | the Concierge's hologram over her desk, three rings each with a gap, turned in sixths (0 to 5); its gaps lined up |
+| `rings_solved` | `false` | the Concierge's hologram over her desk, three rings each with a gap, turned in sixths (0 to 5); its gaps lined up |
 | `met_felix` | `false` | Felix, at the cocktail bar (bar.ink): met, and what he told her of the levels |
 | `knows_levels` | `false` | Felix, at the cocktail bar (bar.ink): met, and what he told her of the levels |
 | `relay7_root` | `false` | what she found on the old machine, Relay 7 (public/assets/terminals/relay7.json, `# terminal: relay7`): placeholders, until the story has the machine. Root's password found, the handover read, the night operator's notes read |
 | `relay7_handover` | `false` | what she found on the old machine, Relay 7 (public/assets/terminals/relay7.json, `# terminal: relay7`): placeholders, until the story has the machine. Root's password found, the handover read, the night operator's notes read |
 | `relay7_pattern` | `false` | what she found on the old machine, Relay 7 (public/assets/terminals/relay7.json, `# terminal: relay7`): placeholders, until the story has the machine. Root's password found, the handover read, the night operator's notes read |
 
-Lists: `Things` (parcel, matches, cigarettes, map, valve, paper_notebook, athena_note, athena_patrol_sheet, athena_repair_slip).
+Lists: `Things` (parcel, matches, cigarettes, map, paper_notebook, athena_note, athena_patrol_sheet, athena_repair_slip).
 
 ## Knots
 
-`fixer`, `station`, `guardian`, `opening`, `concierge_home`, `radio`, `photo`, `luna_drawer`, `notebook`, `concierge`, `bar_prices`, `bar_counter`, `bar_order`, `felix`, `lift`, `athena_door`, `athena_bell`, `athena_asked`, `athena_bench`, `athena_gap`, `athena_radio`, `athena_lamp`, `athena_drawer`, `athena_valves`, `athena_letters`, `athenas_note`, `athena_timetable`, `athena_receipt`, `athena_scope`, `athena_wave_knob`, `athena_speed_knob`, `good`, `meal`.
+`fixer`, `station`, `guardian`, `opening`, `concierge_home`, `photo`, `luna_drawer`, `notebook`, `luna_cradle`, `hologram_inner`, `hologram_middle`, `hologram_outer`, `rings_turned`, `rings_again`, `concierge`, `bar_prices`, `bar_counter`, `bar_order`, `felix`, `lift`, `athena_door`, `athena_bell`, `athena_asked`, `athena_bench`, `athena_gap`, `athena_radio`, `athena_lamp`, `athena_drawer`, `athena_valves`, `athena_letters`, `athenas_note`, `athena_timetable`, `athena_receipt`, `athena_scope`, `athena_wave_knob`, `athena_speed_knob`, `good`, `meal`.
 
 Functions: `good()` is the time of day's greeting word ("morning", "afternoon", "evening"; at night still "evening"), as in `"Good {good()}, guest."`; `meal()` is what a station serves now ("Breakfast", "Lunch", "Dinner").
 

@@ -3,7 +3,9 @@
 Her flat on the fourteenth floor, 14-07, where a new game begins: her waking (`opening`), her call to the Concierge
 (`concierge_home`, a call because her home is a home), and the morning she does not leave until she has read her
 messages (`stay`). Her desk is a close-up of its own (`home-desk`): tapped, the view goes in close, and its things are
-handled one by one.
+handled one by one. She has no terminal and no radio: everything of hers is the Concierge's voice and gestures (decision
+45). Its Newton's cradle swings when she sets it going; in the Concierge's view a hologram puzzle of three rings floats
+over the desk, and her frame shows her photos in turn.
 
 ## Places
 
@@ -128,43 +130,21 @@ handled one by one.
   size: the desk 1.6 m wide, seen from the front and a little above
   look:
     concierge: >
-      Her desk in warm evening light: a glowing photograph of her smiling, a slim monitor, a brass pencil cup, a retro
-      speaker, a valve curio, a dark blue notebook and a white parcel with a grey ribbon; three smooth drawers.
+      Her desk in warm evening light: a photo frame showing her photos in turn, the Concierge's hologram of three rings
+      floating over the desk, a brass cup of pencils, a Newton's cradle in polished chrome, a dark blue notebook and a
+      white parcel with a grey ribbon; three smooth drawers.
     raw: >
-      A worn grey metal desk: an empty photo frame, an old terminal with worn keys, a tin cup of pencils, a transistor
-      radio with its back off and a dead valve beside it, a spare valve, a pale cloth notebook and a parcel in brown
-      paper and string; a pedestal of three drawers.
+      A worn grey metal desk, nearly bare: an empty photo frame, a tin cup of pencils, an old Newton's cradle, a pale
+      cloth notebook and a parcel in brown paper and string; a pedestal of three drawers.
   spots:
     - id: photo
       name: Photograph
       story: photo
-    - id: terminal
-      name: Terminal
-      look:
-        concierge: "Your terminal: credits, messages, the news, a game you never finish."
-        raw: Your terminal. The letters are worn off its keys, under your fingers.
-      use:
-        concierge: Nothing new. Your credits are where you left them.
-        raw: The screen hums. Nothing new.
-      kind: machine
     - id: pencils
       name: Pencils
       look:
         concierge: Pencils in a brass cup. You still like to write things down.
         raw: Pencils, chewed. A tin cup.
-    - id: radio
-      name:
-        concierge: Retro speaker
-        raw: Transistor radio
-      story: radio
-      kind: machine
-    - id: dead-valve
-      name:
-        concierge: Valve
-        raw: Dead valve
-      look:
-        concierge: A glass ornament, lying on its side.
-        raw: The dead valve, the left one. Its filament snapped.
     - id: lower-drawers
       name: Drawers
       look:
@@ -201,13 +181,13 @@ handled one by one.
       name: Fuses
       look:
         concierge: Spare fuses.
-        raw: Fuses, for the radio. Two good, one blown.
+        raw: Fuses. Two good, one blown.
       when: luna_drawer_open
     - id: screwdrivers
       name: Screwdrivers
       look:
         concierge: A set of little screwdrivers.
-        raw: Screwdrivers small enough for the radio's screws.
+        raw: Little screwdrivers, for whatever comes loose.
       when: luna_drawer_open
     - id: buttons
       name: Buttons
@@ -215,17 +195,35 @@ handled one by one.
         concierge: A tin of buttons.
         raw: Buttons from coats you no longer have.
       when: luna_drawer_open
-    - id: valve
-      name:
-        concierge: Curio
-        raw: Radio valve
+    - id: ring-outer
+      name: Outer ring
+      where: the hologram's outer ring, floating over the desk left of the pencils
+      look: Three rings of light, each with a gap. Turn one, and the one inside it turns too.
+      story: hologram_outer
+      only: concierge
+      kind: machine
+    - id: ring-middle
+      name: Middle ring
+      where: the hologram's middle ring
+      look: Three rings of light, each with a gap. Turn one, and the one inside it turns too.
+      story: hologram_middle
+      only: concierge
+      kind: machine
+    - id: ring-inner
+      name: Inner ring
+      where: the hologram's inner ring
+      look: Three rings of light, each with a gap. Turn one, and the one inside it turns too.
+      story: hologram_inner
+      only: concierge
+      kind: machine
+    - id: cradle
+      name: Newton's cradle
+      where: on the desk, right of the pencils
       look:
-        concierge: A vintage ornament, the Concierge calls it. It glows a little.
-        raw: An old radio valve. You don't know why you bought it, or why you keep looking at it.
-      take:
-        concierge: You pocket the curio.
-        raw: The valve. The radio's been waiting for one.
-      item: valve
+        concierge: A Newton's cradle in polished chrome, its five balls hanging still.
+        raw: An old Newton's cradle, its steel gone dull. It still clicks true.
+      story: luna_cradle
+      kind: thing
     - id: notebook
       name: Notebook
       story: notebook
@@ -290,48 +288,14 @@ Good morning, CO. #luna
     "Have a lovely {good()}, Luna." #concierge
     -> END
 
-=== radio ===
-= look
-{ raw_view:
-    A transistor radio with its back off, a screwdriver beside it. {radio_heard: It works now. Mostly.|Weeks of work. It almost works.}
-- else:
-    A decorative retro speaker. It plays whatever the Concierge thinks you'd like.
-}
--> END
-= use
-{ raw_view:
-    { radio_heard:
-        Static, and under it the voice again. Too faint to make out a word.
-    - else:
-        { carried has valve:
-            -> use_valve
-        - else:
-            Static. One valve's dead, the one on the left. It needs another.
-        }
-    }
-- else:
-    Soft music, chosen for you.
-}
--> END
-= use_valve
-{ radio_heard:
-    It already has one.
-    -> END
-}
-You prise out the dead valve and press the new one in. # wait: 0.4
-~ carried -= valve
-~ radio_heard = true
-It warms. Static, a long hiss, and then, under it, almost, a voice. Not the Concierge's. #luna
--> END
-
 === photo ===
-// a projection: in raw view its frame is empty (decision 31). What it shows in the Concierge's view is still the
-// director's to decide; nothing is built on it
+// a projection: in raw view its frame is empty (decision 31). In the Concierge's view, its photos in turn, of the people
+// in her life (decision 45): her alone, with Athena at Athena's bench and on a roof at night, at a party
 = look
 { raw_view:
-    An empty frame. The picture was only ever the Concierge's.
+    An empty frame. The pictures were only ever the Concierge's.
 - else:
-    You, alone, smiling at something out of frame.
+    Your photos, one after another: you, you and Athena, the two of you on a roof, a party.
 }
 -> END
 
@@ -350,11 +314,59 @@ It warms. Static, a long hiss, and then, under it, almost, a voice. Not the Conc
 You slip your notebook into your pocket. Where CO can't see, you can write in it.
 -> END
 
+=== luna_cradle ===
+// a Newton's cradle on her desk, real in both views: used, an end ball is lifted and let go, and the game swings it
+// each time her count of swings goes up (cradle_swings)
+= use
+~ cradle_swings += 1
+{&You lift the end ball and let it go. Click, clack.|The knock runs through the still ones and out the other side.|Click. Clack. Click. It always settles in the end.}
+-> END
+
+=== hologram_inner ===
+// a puzzle of the Concierge's over her desk, a hologram of three rings (gone in raw view): a ring turned drags the one
+// inside it; their gaps lined up, it opens into a flower of light. The game draws it, live (scene home-desk's rings)
+= use
+{ rings_solved: -> rings_again }
+~ rings_in = (rings_in + 1) % 6
+Click. The inner ring turns a sixth.
+-> rings_turned
+
+=== hologram_middle ===
+= use
+{ rings_solved: -> rings_again }
+~ rings_mid = (rings_mid + 1) % 6
+~ rings_in = (rings_in + 1) % 6
+Click. The middle ring turns, and the inner one with it.
+-> rings_turned
+
+=== hologram_outer ===
+= use
+{ rings_solved: -> rings_again }
+~ rings_out = (rings_out + 1) % 6
+~ rings_mid = (rings_mid + 1) % 6
+Click. The outer ring turns, and the middle one with it.
+-> rings_turned
+
+=== rings_turned ===
+{ rings_in == rings_mid && rings_mid == rings_out:
+    ~ rings_solved = true
+    The gaps line up. The rings chime and open, like a flower of light.
+}
+-> END
+
+=== rings_again ===
+~ rings_solved = false
+~ rings_in = 3
+~ rings_mid = 0
+~ rings_out = 5
+The flower folds back into three rings, turned apart again.
+-> END
+
 === luna_drawer ===
-// her desk's top drawer, up close (scene home-desk): her tools, mostly for the radio
+// her desk's top drawer, up close (scene home-desk): odds and ends
 = look
 { luna_drawer_open:
-    Your tools. Mostly for the radio.
+    Odds and ends: a torch, tape, little tools.
 - else:
     Your top drawer.
 }

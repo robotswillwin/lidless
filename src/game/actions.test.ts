@@ -58,15 +58,17 @@ describe('actionsFor', () => {
 });
 
 describe('defaultOf', () => {
-  it('does what the thing is for: talks before going, goes before looking, looks before asking', () => {
-    expect(defaultOf(actionsFor(dock, false)).kind).toBe('heart');
+  it('a tap goes through a door, talks with someone she can hold a conversation with, and else looks', () => {
+    expect(defaultOf(actionsFor(dock, false), dock).kind).toBe('heart');
     expect(defaultOf([{ kind: 'ask', label: 'Ask', own: true }, { kind: 'eyes', label: 'Look', own: true }]).kind).toBe('eyes');
     expect(defaultOf([{ kind: 'eyes', label: 'Look', own: true }, { kind: 'feet', label: 'Go' }]).kind).toBe('feet');
   });
 
-  it('never picks a standard reply over what the thing has, and looks when it has nothing at all', () => {
-    // a bench with only a look: tapped, she looks, rather than talking to it
-    expect(defaultOf(actionsFor({ id: 'bench', name: 'Bench', rect: [0, 0, 1, 1], look: 'A bench.' }, false)).kind).toBe('eyes');
+  it('never takes or uses a thing: a tap looks at it, however much it has to take or use', () => {
+    const parcel: Hotspot = { id: 'parcel', name: 'Parcel', rect: [0, 0, 1, 1], look: 'A parcel.', take: 'Yours now.', item: 'parcel' };
+    expect(defaultOf(actionsFor(parcel, false), parcel).kind).toBe('eyes');
+    const knob: Hotspot = { id: 'knob', name: 'Knob', rect: [0, 0, 1, 1], use: 'Click.', reply: 'It says nothing.' };
+    expect(defaultOf(actionsFor(knob, false), knob).kind).toBe('eyes');
     expect(defaultOf(actionsFor({ id: 'blank', name: 'Blank', rect: [0, 0, 1, 1] }, false)).kind).toBe('eyes');
   });
 });

@@ -1,6 +1,6 @@
 // Turns a loaded scene plus the current state into a frame for the renderer.
 
-import { asIn, inViewOf, smoothSampled, SPEEDS, WAVES, type LoadedScene, type MoverDef, type Speed, type SpriteDef } from '../engine/assets';
+import { asIn, inViewOf, slideOpacity, smoothSampled, SPEEDS, WAVES, type LoadedScene, type MoverDef, type Speed, type SpriteDef } from '../engine/assets';
 import { resolveLight } from '../engine/presets';
 import type { DrawSprite, Frame } from '../engine/renderer';
 import { frameFor, hasLeft } from './anim';
@@ -122,6 +122,12 @@ export class SceneRunner {
   private scopes = new Float32Array(32);
   /** Each clock: where it is and how big. */
   private clocks = new Float32Array(8);
+  /** A Newton's cradle: where it hangs, how big; how long since an end ball was let go, and which. */
+  private cradle = new Float32Array(12);
+  private swung: { count: number; at: number; side: number } | null = null;
+  /** A hologram of rings: each ring's turn as shown, easing to the story's, and when its gaps lined up (-1: they don't). */
+  private rings = new Float32Array(8);
+  private ringState: { value: number[]; target: number[]; shown: number[]; solvedAt: number; t: number } | null = null;
   private readonly dials: { now: number; was: number; at: number; waves: number; creep: number; crept: number; t: number }[] = [];
 
   /** Sprites named in `dynamic` are left out; the game draws them itself (the hero). */
@@ -224,6 +230,9 @@ export class SceneRunner {
       const def = sprite.def, facing = def.facing ?? 1;
       // a layer placed for one view only, or only while something holds: its movers go with it
       if (!inViewOf(def.only, view) || (def.when && !this.shown(def.when))) return;
+      // a picture shown in turn: not at all, or fading in or out
+      const opacity = def.show ? slideOpacity(def.show, t) : 1;
+      if (opacity <= 0) return;
       // a character placed in the scene plays its idle loop, facing the way the scene says; placed elsewhere in this view,
       // it is drawn there
       const at = def.views?.[viewName];
@@ -234,6 +243,7 @@ export class SceneRunner {
         flip: facing < 0 && !hasLeft(def),
         frame: def.frames ? frameFor(def, false, 0, t, facing) : 0,
         scale: isPerson(def) ? d.actorScale ?? 1 : 1,
+        ...(opacity < 1 ? { opacity } : {}),
       };
       (isPerson(def) ? people : def.front ? front : set).push(draw);
       // what moves through the scene behind the nearer layers goes right after its own
@@ -304,6 +314,34 @@ export class SceneRunner {
       if (nClocks >= 2 || !inViewOf(ck.only, view) || (ck.when && !this.shown(ck.when))) continue;
       this.clocks.set([ck.x + along(ck.parallax), ck.y, ck.r, 1], nClocks++ * 4);
     }
+    // a Newton's cradle: a swing as her count of them goes up (none for the count she arrives with), from alternate ends
+    this.cradle.fill(0);
+    const cr = (d.cradles ?? [])[0];
+    if (cr && inViewOf(cr.only, view) && !(cr.when && !this.shown(cr.when))) {
+      const n = cr.swings === undefined ? 0 : Number(this.read(cr.swings)) || 0;
+      if (!this.swung) this.swung = { count: n, at: -100, side: 1 };
+      else if (n !== this.swung.count) this.swung = { count: n, at: t, side: n % 2 ? 1 : -1 };
+      const dx = along(cr.parallax), posts = cr.posts ?? [0, 0, 0, 0];
+      this.cradle.set([cr.x + dx, cr.y, cr.gap, cr.length, cr.r, t - this.swung.at, this.swung.side, 1, posts[0] + dx, posts[1] + dx, posts[2] + dx, posts[3] + dx]);
+    }
+    // a hologram of rings: each turns the way the story turned it, a sixth at a time, the short way round when it jumps
+    this.rings.fill(0);
+    const rg = (d.rings ?? [])[0];
+    if (rg && inViewOf(rg.only, view) && !(rg.when && !this.shown(rg.when))) {
+      const sixth = Math.PI / 3, values = rg.turns.map((n) => ((Math.round(Number(this.read(n)) || 0) % 6) + 6) % 6), solved = rg.solved !== undefined && !!this.read(rg.solved);
+      if (!this.ringState) this.ringState = { value: values, target: values.map((v) => v * sixth), shown: values.map((v) => v * sixth), solvedAt: solved ? t - 10 : -1, t };
+      const st = this.ringState, dt = Math.min(0.1, Math.max(0, t - st.t)), ease = 1 - Math.exp(-dt * 10);
+      st.t = t;
+      values.forEach((v, k) => {
+        const step = (((v - st.value[k]) % 6) + 6) % 6;
+        if (step) st.target[k] += (step <= 3 ? step : step - 6) * sixth;
+        st.value[k] = v;
+        st.shown[k] += (st.target[k] - st.shown[k]) * ease;
+      });
+      if (solved && st.solvedAt < 0) st.solvedAt = t;
+      if (!solved) st.solvedAt = -1;
+      this.rings.set([rg.x + along(rg.parallax), rg.y, rg.r, 1, st.shown[0], st.shown[1], st.shown[2], st.solvedAt < 0 ? -1 : t - st.solvedAt]);
+    }
     const dr = d.drips;
     return {
       t,
@@ -335,6 +373,8 @@ export class SceneRunner {
       nScopes,
       clocks: this.clocks,
       nClocks,
+      cradle: this.cradle,
+      rings: this.rings,
       daySeconds: this.daySeconds(t),
       drips: dr ? [dr.x0, dr.x1, dr.top, dr.bottom] : [0, 0, 0, 0],
       mirror: d.mirror,
