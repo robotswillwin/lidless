@@ -44,6 +44,8 @@ export interface MapNow { places: MapPlace[]; spots: MapSpot[]; links: MapLink[]
 export const ROAD = 8, ROOM: [number, number] = [56, 30], STEM = 12;
 /** Room under a road for the names along it, in map units. */
 const UNDER = 16;
+/** The most pixels a map unit is drawn: a map of few places is drawn at its size, not blown up to fill the panel. */
+const MOST = 3.2;
 
 /** A hotspot worth a place on the map: a way out, someone to talk to, or a thing marked for it. */
 export const onMap = (h: Hotspot): MapSpot['kind'] | null => (h.map === false ? null : h.go ? 'door' : h.talk ? 'person' : h.map ? 'thing' : null);
@@ -218,10 +220,10 @@ export function drawMap(body: HTMLElement, now: MapNow, go: (t: Travel, name: st
     return most;
   };
   const fit = () => {
-    const W = body.clientWidth, H = body.clientHeight, first = Math.min(W / bw, H / bh);
+    const W = body.clientWidth, H = body.clientHeight, first = Math.min(W / bw, H / bh, MOST);
     // the names' rows reach this far below the lowest road: what the bounds leave under it is not always enough
     const room = (rows: number, k: number) => Math.max(0, rows * 17 + 10 - UNDER * k);
-    const k = Math.min(W / bw, (H - room(layout(first), first)) / bh), rows = layout(k);
+    const k = Math.min(W / bw, (H - room(layout(first), first)) / bh, MOST), rows = layout(k);
     chart.style.marginBottom = `${room(rows, k)}px`;
   };
   requestAnimationFrame(fit);
