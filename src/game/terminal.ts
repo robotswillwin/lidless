@@ -185,9 +185,13 @@ export function openTerminal(stage: HTMLElement, machine: Machine, hooks: ShellH
     const onResize = () => measure();
     window.addEventListener('resize', onResize);
 
+    // the machine hums while it is on: kept up until it is switched off
+    const hum = window.setInterval(() => { if (!closed) sounds.setLayer('machine-hum', 0.8), sounds.frameLayers(); }, 150);
     function close() {
       if (closed) return;
       closed = true;
+      window.clearInterval(hum);
+      sounds.frameLayers();
       window.removeEventListener('keydown', onKey, true);
       window.removeEventListener('resize', onResize);
       box.classList.add('out');

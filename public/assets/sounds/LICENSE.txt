@@ -3,6 +3,11 @@ free to use in any project, with no credit required. Credited here with thanks.
 
   Interface Sounds (1.0), 2020: https://kenney.nl/assets/interface-sounds
   RPG Audio: https://kenney.nl/assets/rpg-audio
+  Sci-Fi Sounds (1.0), 2020: https://kenney.nl/assets/sci-fi-sounds
+  Digital Audio: https://kenney.nl/assets/digital-audio
+
+The ambient beds (bed-rain, bed-city, bed-room) have no pack: they are made from shaped noise by
+tools/sounds/import-world.py, so they loop with no seam.
   License: https://creativecommons.org/publicdomain/zero/1.0/
 
 sources.json says which file each sound here was made from; tools/sounds/import-kenney.py made them (trimmed, levelled,

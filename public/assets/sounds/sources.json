@@ -128,5 +128,92 @@
     "pack": "Kenney Interface Sounds",
     "file": "maximize_006.ogg",
     "ms": 369
+  },
+  "lift-ding": {
+    "pack": "Kenney Digital Audio",
+    "file": "threeTone1.ogg",
+    "ms": 497
+  },
+  "lift-start": {
+    "pack": "Kenney Digital Audio",
+    "file": "lowThreeTone.ogg",
+    "ms": 870
+  },
+  "cradle": {
+    "pack": "Kenney Sci-Fi Sounds",
+    "file": "impactMetal_002.ogg",
+    "ms": 400
+  },
+  "hologram-on": {
+    "pack": "Kenney Sci-Fi Sounds",
+    "file": "forceField_002.ogg",
+    "ms": 760
+  },
+  "hologram-solved": {
+    "pack": "Kenney Digital Audio",
+    "file": "powerUp3.ogg",
+    "ms": 866
+  },
+  "ring-turn": {
+    "pack": "Kenney Digital Audio",
+    "file": "tone1.ogg",
+    "ms": 124
+  },
+  "camera-move": {
+    "pack": "Kenney Digital Audio",
+    "file": "powerUp4.ogg",
+    "ms": 201
+  },
+  "door-open": {
+    "pack": "Kenney Sci-Fi Sounds",
+    "file": "doorOpen_000.ogg",
+    "ms": 525
+  },
+  "door-close": {
+    "pack": "Kenney Sci-Fi Sounds",
+    "file": "doorClose_000.ogg",
+    "ms": 527
+  },
+  "lift-move": {
+    "pack": "Kenney Sci-Fi Sounds",
+    "file": "engineCircular_002.ogg",
+    "ms": 3750,
+    "loop": true
+  },
+  "dryer-air": {
+    "pack": "Kenney Sci-Fi Sounds",
+    "file": "engineCircular_000.ogg",
+    "ms": 2750,
+    "loop": true
+  },
+  "hologram-hum": {
+    "pack": "Kenney Sci-Fi Sounds",
+    "file": "computerNoise_002.ogg",
+    "ms": 3750,
+    "loop": true
+  },
+  "machine-hum": {
+    "pack": "Kenney Sci-Fi Sounds",
+    "file": "computerNoise_000.ogg",
+    "ms": 3750,
+    "loop": true
+  },
+  "bed-rain": {
+    "pack": "made here (shaped noise)",
+    "file": "import-world.py",
+    "ms": 7750,
+    "loop": true
+  },
+  "bed-city": {
+    "pack": "made here (shaped noise)",
+    "file": "import-world.py",
+    "ms": 9750,
+    "loop": true
+  },
+  "bed-room": {
+    "pack": "made here (shaped noise)",
+    "file": "import-world.py",
+    "ms": 7750,
+    "loop": true
   }
 }

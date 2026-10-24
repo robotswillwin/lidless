@@ -849,8 +849,18 @@ peak, written as WAV, which every phone plays at once.
 `src/game/sound.ts` plays them through Web Audio, readied at the player's first touch (a browser lets nothing sound
 before). A tap on any button sounds unless what it did sounds itself; a button names its own cue with `data-cue`
 (`choose`, `confirm`, `page`, `key`) or none (`none`). Each cue's loudness, and how much its pitch varies from one time
-to the next, are set there. The settings' Sound effects turns them off. The music and the world's own sounds (rain,
-steps, doors) are to come.
+to the next, are set there. The settings' Sound effects turns them off (fading even the loops over a moment).
+
+The world has its own sounds too, from Kenney's Sci-Fi Sounds and Digital Audio (CC0), made by
+`tools/sounds/import-world.py`: the lift's motor while it moves and its ding as it arrives, the hand dryer's air, the
+hologram's hum and its chord as it forms and its chime as it solves, the Newton's cradle's clack, a camera's servo, and
+doors between scenes. Under every scene is an ambient bed — the city at night outside (rain over it when the story has
+it raining), a room's quiet hum inside — and these three beds (`bed-rain`, `bed-city`, `bed-room`) have no pack: they
+are shaped noise made in the same tool, so they loop with no seam and cost almost nothing. The sustained sounds (the
+beds, the lift's motor, the dryer, a machine's hum) are layers that rise and fall as the game asks (`setLayer`,
+`frameLayers` in sound.ts); `src/game/scene.ts` works out what each scene sounds like now (`SceneRunner.audible`), and
+`src/game/game.ts` plays it each frame. The music, and the world's remaining sounds (steps, the rain's own patter), are
+to come.
 
 ## Her things: pictures for the tray
 

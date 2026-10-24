@@ -627,5 +627,30 @@ export class Game {
     // where her head is, for a camera to follow; in a close-up she is not drawn: it is what she sees
     this.runner.lookAt = file.closeup ? null : [world.heroX, file.walk.y - hero.def.h * sc * 0.88];
     this.setup.renderer.render(this.runner.frame(t, this.state, this.cam, file.closeup ? [] : [her], file.closeup ? [-1000, -1000] : smoke));
+    this.sound(file);
+  }
+
+  /** The world's sounds each frame: the ambient bed under the scene, and what its live effects sound like now (sound.ts). */
+  private sound(file: Scene['file']): void {
+    // an old machine's screen is up over the game: it owns the sound (its own hum); the world's holds where it is
+    if (this.setup.stage.dataset.terminal !== undefined) return;
+    // the bed: the city at night outside (rain over it when it rains), a room's quiet hum inside; a close-up keeps the place's
+    const raining = /rain|storm/.test(this.variant ?? '');
+    if (file.kind === 'exterior') { sounds.setLayer('bed-city', 1); if (raining) sounds.setLayer('bed-rain', 1); }
+    else sounds.setLayer('bed-room', 0.8);
+    // what its live effects sound like: the lift, the dryer, the hologram, the cradle, the camera
+    const a = this.runner.audible;
+    if (a.liftMove > 0) sounds.setLayer('lift-move', a.liftMove);
+    if (a.dryer > 0) sounds.setLayer('dryer-air', a.dryer);
+    if (a.hologramHum > 0) sounds.setLayer('hologram-hum', a.hologramHum);
+    if (a.machineHum > 0) sounds.setLayer('machine-hum', a.machineHum);
+    if (a.liftDing) sounds.play('lift-ding');
+    if (a.liftStart) sounds.play('lift-start');
+    if (a.cradleClack) sounds.play('cradle');
+    if (a.hologramOn) sounds.play('hologram-on');
+    if (a.hologramSolved) sounds.play('hologram-solved');
+    if (a.ringTurn) sounds.play('ring-turn');
+    if (a.cameraMove > 0.2) sounds.play('camera-move');
+    sounds.frameLayers();
   }
 }

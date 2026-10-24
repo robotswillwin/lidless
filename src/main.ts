@@ -89,7 +89,7 @@ async function boot(): Promise<void> {
     game.talk.speed = game.hud.noteSpeed = game.hud.concierge.speed = READING[s.speed];
     game.setMotion(reducedOf(s));
     document.documentElement.dataset.motion = reducedOf(s) ? 'reduced' : 'full';
-    sounds.enabled = s.sound === 'on';
+    sounds.setEnabled(s.sound === 'on');
   };
   apply(settings);
   // the interface's sounds, ready at the player's first touch

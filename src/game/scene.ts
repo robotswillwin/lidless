@@ -57,6 +57,20 @@ export const pulseAt = (p: { fps: number; seq: number[] }, t: number): number =>
 /** A mover's current pass: when it starts (or started), which way it goes, how many passes came before it. */
 interface Pass { from: number; dir: 1 | -1; n: number }
 
+/** What the scene sounds like now (sound.ts reads it): sustained levels 0 to 1, and moments that are true for one frame. */
+export interface SceneSound {
+  /** The lift's motor while it moves (louder the more displays show it), its ding as it arrives, its start as it leaves. */
+  liftMove: number; liftDing: boolean; liftStart: boolean;
+  /** The dryer's air, 0 to 1, fading as it dies down. */
+  dryer: number;
+  /** The hologram's hum while it floats, its chord as it forms, its chime as its gaps line up. */
+  hologramHum: number; hologramOn: boolean; hologramSolved: boolean;
+  /** A ball of the cradle struck; a ring turned; the camera turning (0 to 1 by how fast). */
+  cradleClack: boolean; ringTurn: boolean; cameraMove: number;
+  /** An old machine's idle hum (a scope on a bench): a sign the place has working electronics. */
+  machineHum: number;
+}
+
 const between = ([a, b]: [number, number]) => a + Math.random() * (b - a);
 
 /**
@@ -144,6 +158,19 @@ export class SceneRunner {
   private readonly aims: number[] = [];
   private aimedAt = 0;
   private airs = new Float32Array(8);
+
+  /**
+   * What is worth hearing in the scene now, for the game to sound (sound.ts): the lift's motor and its arrival, the
+   * dryer's air, the hologram's hum and its forming and solving, the cradle's clack, a ring turned, the camera turning.
+   * Built each frame, read right after.
+   */
+  readonly audible: SceneSound = { liftMove: 0, liftDing: false, liftStart: false, dryer: 0, hologramHum: 0, hologramOn: false, hologramSolved: false, cradleClack: false, ringTurn: false, cameraMove: 0, machineHum: 0 };
+  /** The lift's way last frame, and whether it has struck the cradle or turned a ring since, so a change is heard once. */
+  private liftDir = 0;
+  private cradleAt = -1;
+  private ringTurnedAt = -1;
+  private solvedBefore = false;
+  private hologramSeen = false;
 
   /** A spot was used: what it does in the scene (air from a dryer) starts. */
   used(spot: string, t: number): void {
@@ -337,6 +364,12 @@ export class SceneRunner {
       if (nClocks >= 2 || !inViewOf(ck.only, view) || (ck.when && !this.shown(ck.when))) continue;
       this.clocks.set([ck.x + along(ck.parallax), ck.y, ck.r, 1], nClocks++ * 4);
     }
+    // what is worth hearing this frame, filled as each effect is worked out below
+    const snd = this.audible;
+    snd.liftDing = snd.liftStart = snd.hologramOn = snd.hologramSolved = snd.cradleClack = snd.ringTurn = false;
+    snd.liftMove = snd.dryer = snd.hologramHum = snd.cameraMove = snd.machineHum = 0;
+    // a scope on a bench (not a knob she turns): the place has working electronics, a faint hum
+    if ((d.scopes ?? []).some((s) => inViewOf(s.only, view) && !(s.when && !this.shown(s.when)))) snd.machineHum = 1;
     // a Newton's cradle: a swing as her count of them goes up (none for the count she arrives with), from alternate ends
     this.cradle.fill(0);
     const cr = (d.cradles ?? [])[0];
@@ -346,6 +379,8 @@ export class SceneRunner {
       else if (n !== this.swung.count) this.swung = { count: n, at: t, side: n % 2 ? 1 : -1 };
       const dx = along(cr.parallax), posts = cr.posts ?? [0, 0, 0, 0];
       this.cradle.set([cr.x + dx, cr.y, cr.gap, cr.length, cr.r, t - this.swung.at, this.swung.side, 1, posts[0] + dx, posts[1] + dx, posts[2] + dx, posts[3] + dx]);
+      // a ball is let go the moment the count changes, and again each time it strikes the other end (its period ~0.9 s)
+      if (this.swung.at > 0 && this.swung.at !== this.cradleAt) { snd.cradleClack = true; this.cradleAt = this.swung.at; }
     }
     // the lift's displays: its floor in figures, an arrow while it moves
     this.indicators.fill(0);
@@ -355,6 +390,13 @@ export class SceneRunner {
       if (nIndicators >= 4 || !lift || !inViewOf(ind.only, view) || (ind.when && !this.shown(ind.when))) continue;
       const label = floorLabel(lift.floor), raw = ind.colours?.raw ?? [1, 0.62, 0.22], conc = ind.colours?.concierge ?? [0.72, 0.93, 1];
       this.indicators.set([ind.x + along(ind.parallax), ind.y, ind.w, ind.h, label.length > 1 ? SEGMENTS[label[0]] ?? 0 : 0, SEGMENTS[label[label.length - 1]] ?? 0, lift.dir, 0, ...raw, 0, ...conc, 0], nIndicators++ * 16);
+    }
+    if (lift) {
+      // its motor while it moves (fuller the more of its displays she sees), a ding as it stops, a start as it leaves
+      snd.liftMove = lift.dir !== 0 ? Math.min(1, 0.6 + 0.2 * nIndicators) : 0;
+      if (lift.dir === 0 && this.liftDir !== 0) snd.liftDing = true;
+      if (lift.dir !== 0 && this.liftDir === 0) snd.liftStart = true;
+      this.liftDir = lift.dir;
     }
     // a camera turns, slowly, to where her head is
     this.cameras.fill(0);
@@ -367,6 +409,8 @@ export class SceneRunner {
       const aim = Math.max(0.3, Math.min(Math.PI - 0.3, want)), was = this.aims[i] ?? aim;
       this.aims[i] = was + (aim - was) * turn;
       this.cameras.set([x, cam.y, cam.size ?? 1, this.aims[i]], nCameras++ * 4);
+      // the servo while it is swinging round: louder the faster it moves
+      snd.cameraMove = Math.max(snd.cameraMove, Math.min(1, Math.abs(aim - was) * 12));
     });
     // air from an outlet, a while after its spot was used
     this.airs.fill(0);
@@ -375,6 +419,8 @@ export class SceneRunner {
       if (nAirs >= 2 || !inViewOf(air.only, view) || (air.when && !this.shown(air.when))) continue;
       const at = this.usedAt.get(air.spot);
       this.airs.set([air.x + along(air.parallax), air.y, air.w, at === undefined ? -1 : t - at], nAirs++ * 4);
+      // the air blows for about 2.8 s, dying away over the last of it
+      if (at !== undefined) { const since = t - at; snd.dryer = Math.max(snd.dryer, since < 0 || since > 2.8 ? 0 : Math.min(1, (2.8 - since) / 0.6)); }
     }
     // a hologram of rings: each turns the way the story turned it, a sixth at a time, the short way round when it jumps
     this.rings.fill(0);
@@ -393,7 +439,14 @@ export class SceneRunner {
       if (solved && st.solvedAt < 0) st.solvedAt = t;
       if (!solved) st.solvedAt = -1;
       this.rings.set([rg.x + along(rg.parallax), rg.y, rg.r, 1, st.shown[0], st.shown[1], st.shown[2], st.solvedAt < 0 ? -1 : t - st.solvedAt]);
-    }
+      // its quiet hum while it floats; a ring turned (its shown turn still easing to its target); the chime as it solves
+      snd.hologramHum = 1;
+      if (values.some((_, k) => Math.abs(st.target[k] - st.shown[k]) > 0.02) && t - this.ringTurnedAt > 0.25) { snd.ringTurn = true; this.ringTurnedAt = t; }
+      if (solved && !this.solvedBefore) snd.hologramSolved = true;
+      this.solvedBefore = solved;
+      // as it first comes into view, a chord: the rings forming
+      if (!this.hologramSeen) { snd.hologramOn = true; this.hologramSeen = true; }
+    } else this.hologramSeen = false;
     const dr = d.drips;
     return {
       t,

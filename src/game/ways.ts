@@ -9,6 +9,7 @@ import { inView, pick, placeIn, type Hotspot } from './level';
 import type { Travel } from './map';
 import { outfitAfter } from './outfits';
 import { isDoor } from './pose';
+import { sounds } from './sound';
 import { noticedOnLeaving } from './privacy';
 import type { SceneFile } from './scenefile';
 
@@ -62,6 +63,9 @@ export class Ways {
     g.controls.setVerb(null);
     g.hud.closeAll();
     g.turns.going = through && this.doorHere();
+    // going in at a door: it opens behind the fade, and shuts as she arrives on the other side
+    const atDoor = g.turns.going;
+    if (atDoor) sounds.play('door-open');
     // coming out of a privacy room with its door in sight: a long stay, or coming too often, is noticed
     const left = g.scene.file, seen = left.noticed ? noticedOnLeaving(left.noticed, g.clock() - this.enteredAt, g.progress.visits[left.id] ?? [], g.progress.arrived) : null;
     // what she was looking at, and who she was talking to, stay behind
@@ -98,6 +102,7 @@ export class Ways {
     // the eye, once it shows, is seen whole: it finishes opening before the fade lifts
     if (waited && !g.setup.fast) await waitingEye()?.opened();
     g.setup.fade.classList.remove('wait', 'on');
+    if (atDoor) sounds.play('door-close');
     g.turns.stillSince = g.clock();
     if (asked) g.co.ask(asked.story);
     if (waited) setTimeout(() => { if (!g.setup.fade.classList.contains('wait')) waitingEye()?.stop(); }, 400);
