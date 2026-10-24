@@ -13,6 +13,7 @@ import { button, el } from './dom';
 import { eyePaths } from './eye';
 import { icon } from './icons';
 import type { Inbox } from './messages';
+import { sounds } from './sound';
 
 /** Something she has to do, from her journal: its name and its first line. */
 export interface Reminder { name: string; text: string }
@@ -223,6 +224,8 @@ export class Concierge {
 
   /** Asked about something: it listens, saying what it asks, until she taps a thing or its presence. */
   setListening(on: boolean): void {
+    // asked about something, it listens, rising
+    if (on && !this.listening) sounds.play('co-ask');
     this.listening = on;
     if (on) this.close();
     this.drawHead();
@@ -242,6 +245,7 @@ export class Concierge {
     this.unheard = o.unheard;
     this.canCall = !!o.call;
     this.drawCard();
+    sounds.play('co-open');
     const body = this.body!;
     spoken(el('p', 'co-words', body), o.words);
     if (o.inbox?.length) this.drawInbox(el('ul', 'co-inbox', body), o.inbox);
@@ -276,6 +280,7 @@ export class Concierge {
       if (words) { words.textContent = text; return; }
     }
     this.dismiss();
+    sounds.play('co-message');
     const s = (this.sayEl = el('div', 'co-say', this.layer));
     s.setAttribute('role', 'status');
     s.addEventListener('pointerdown', (e) => e.stopPropagation());

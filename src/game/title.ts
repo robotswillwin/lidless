@@ -99,6 +99,7 @@ export function showTitle(stage: HTMLElement, hooks: TitleHooks): () => void {
   const auto = loadSave('auto');
   if (auto) {
     const card = button('continue-card', `Continue from ${auto.where ?? 'where you were'}`, box, () => { close(); hooks.onContinue(); });
+    card.dataset.cue = 'confirm';
     const thumb = loadThumb('auto');
     if (thumb) { const img = el('img', 'shot', card) as HTMLImageElement; img.src = thumb; img.alt = ''; }
     const words = el('span', 'words', card);
@@ -109,7 +110,9 @@ export function showTitle(stage: HTMLElement, hooks: TitleHooks): () => void {
     const saved = !!loadSave('auto'), menu = el('nav', 'menu', panel);
     menu.setAttribute('aria-label', 'Lidless');
     const item = (label: string, run: () => void, primary = false) => { const b = button(primary ? 'primary' : '', label, menu, run); b.textContent = label; return b; };
-    item(saved ? 'Continue' : 'Begin', () => { close(); hooks.onContinue(); }, true).focus({ preventScroll: true });
+    const go = item(saved ? 'Continue' : 'Begin', () => { close(); hooks.onContinue(); }, true);
+    go.dataset.cue = 'confirm';
+    go.focus({ preventScroll: true });
     if (saved) item('New game', () => view(confirmNew, 'New game'));
     if (listSaves().some((s) => s.slot !== 'auto')) item('Load game', () => view(load, 'Load game'));
     item('Settings', () => view((p) => drawSettings(p, hooks.settings(), hooks.onSettings), 'Settings'));
@@ -118,13 +121,16 @@ export function showTitle(stage: HTMLElement, hooks: TitleHooks): () => void {
   const confirmNew = (panel: HTMLElement) => {
     el('p', 'ask', panel, 'The game in progress is replaced by a new one. Your saved slots stay.');
     const row = el('nav', 'menu', panel);
-    button('primary', 'Start a new game', row, () => { clearSave('auto'); startNewGame(); }).textContent = 'Start a new game';
+    const start = button('primary', 'Start a new game', row, () => { clearSave('auto'); startNewGame(); });
+    start.textContent = 'Start a new game';
+    start.dataset.cue = 'confirm';
   };
   const load = (panel: HTMLElement) => {
     const list = el('nav', 'menu slots', panel);
     const when = (t?: number) => (t ? new Date(t).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '');
     for (const s of listSaves().filter((x) => x.slot !== 'auto')) {
       const b = button('', `Load slot ${s.slot}`, list, () => { const d = loadSave(s.slot as Slot); if (d) { writeSave(d); writeThumb('auto', loadThumb(s.slot)); reloadIntoGame(); } });
+      b.dataset.cue = 'confirm';
       if (s.thumb) { const img = el('img', 'shot', b) as HTMLImageElement; img.src = s.thumb; img.alt = ''; }
       const words = el('span', 'words', b);
       el('span', 'slot', words, `Slot ${s.slot}`);

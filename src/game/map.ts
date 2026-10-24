@@ -189,6 +189,7 @@ export function drawMap(body: HTMLElement, now: MapNow, go: (t: Travel, name: st
   for (const q of now.places) {
     const cls = `${q.state}${q.here ? ' here' : ''}${q.street ? ' street' : ' room'}`;
     const b = button(`place ${cls}`, q.state === 'seen' ? `${q.name}: not been there yet, go to its door` : q.here ? `${q.name}: you are here` : `Go to ${q.name}`, chart, () => pick(q));
+    b.dataset.cue = 'choose';
     b.setAttribute('style', `${pct(q.box[0], q.box[1])};width:${(q.box[2] / bw) * 100}%;height:${(q.box[3] / bh) * 100}%`);
     buttons.set(q.id, b);
     if (q.street) {
@@ -208,6 +209,7 @@ export function drawMap(body: HTMLElement, now: MapNow, go: (t: Travel, name: st
     // a way along the road to the next street is the joint between them
     const joint = s.street && now.places.some((q) => q.id === s.to && q.street), owner = now.places.find((q) => q.id === s.scene);
     const b = button(`spot ${s.kind}${s.street ? ' on-road' : ''}${joint ? ' joint' : ''}`, s.name, chart, () => owner && pick(owner));
+    b.dataset.cue = 'choose';
     b.setAttribute('style', pct(s.at[0], s.at[1]));
     if (!s.named) continue;
     const label = el('span', 'name', b, s.name);
@@ -231,9 +233,9 @@ export function drawMap(body: HTMLElement, now: MapNow, go: (t: Travel, name: st
     const here = now.spots.filter((s) => s.scene === q.id && s.named);
     if (here.length) {
       const list = el('ul', 'here', detail);
-      for (const s of here) button('spot-go', `Go to ${s.name}`, el('li', s.kind, list), () => go(s.go, s.name)).textContent = s.name;
+      for (const s of here) { const b = button('spot-go', `Go to ${s.name}`, el('li', s.kind, list), () => go(s.go, s.name)); b.textContent = s.name; b.dataset.cue = 'confirm'; }
     }
-    if (!q.here) button('go', q.state === 'seen' ? `Go to ${q.name}'s door` : `Go to ${q.name}`, detail, () => go(q.go, q.name)).textContent = q.state === 'seen' ? 'Go to its door' : 'Go there';
+    if (!q.here) { const b = button('go', q.state === 'seen' ? `Go to ${q.name}'s door` : `Go to ${q.name}`, detail, () => go(q.go, q.name)); b.textContent = q.state === 'seen' ? 'Go to its door' : 'Go there'; b.dataset.cue = 'confirm'; }
   }
   pick(now.places.find((q) => q.here) ?? now.places[0]);
 

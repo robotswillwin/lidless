@@ -164,8 +164,9 @@ of memory), dialogue.ts and conditions.ts (the story and what the world reads of
 and wardrobe.ts (what she wears) each stand alone and are tested on their own; the input and the verbs are still in
 game.ts, about 800 lines, which is the next to go when it grows.
 
-**Not built yet for a full game**: sound (none so far: the director is making the music, the same composition in a
-digital and an analogue arrangement to blend between the views; no effects yet), and translations: English only for
+**Not built yet for a full game**: music and the world's own sounds (the director is making the music, the same
+composition in a digital and an analogue arrangement to blend between the views; rain, steps and doors are to come;
+the interface has its sounds, see ASSETS.md, Sounds), and translations: English only for
 now, decided 21 October. Built 21 October: the title screen with its menu and settings (also in the game's menu at the
 top right), and old machines' terminals (`# terminal: <id>`, a small read-only Unix over a file system in data; see
 STORY.md), with Relay 7 as a placeholder until the story has its machine.

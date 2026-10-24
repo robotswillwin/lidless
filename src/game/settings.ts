@@ -14,9 +14,11 @@ export interface Settings {
   speed: 'slow' | 'normal' | 'fast';
   /** Camera lean, the view switch's glitch, slides and fades: as the system asks, reduced, or full. */
   motion: 'auto' | 'reduced' | 'full';
+  /** The interface's sounds: taps, pages, the Concierge's chimes. */
+  sound: 'on' | 'off';
 }
 
-export const DEFAULTS: Settings = { quality: 'auto', text: 'normal', speed: 'normal', motion: 'auto' };
+export const DEFAULTS: Settings = { quality: 'auto', text: 'normal', speed: 'normal', motion: 'auto', sound: 'on' };
 /** Text, times its normal size. */
 export const TEXT_SCALE: Record<Settings['text'], number> = { small: 0.88, normal: 1, large: 1.22 };
 /** How long lines stay, times the normal: slow readers get longer. */
@@ -24,7 +26,7 @@ export const READING: Record<Settings['speed'], number> = { slow: 1.5, normal: 1
 
 const KEY = 'lidless.settings';
 const CHOICES: { [K in keyof Settings]: Settings[K][] } = {
-  quality: ['auto', 'low', 'medium', 'high'], text: ['small', 'normal', 'large'], speed: ['slow', 'normal', 'fast'], motion: ['auto', 'reduced', 'full'],
+  quality: ['auto', 'low', 'medium', 'high'], text: ['small', 'normal', 'large'], speed: ['slow', 'normal', 'fast'], motion: ['auto', 'reduced', 'full'], sound: ['on', 'off'],
 };
 
 /** The settings kept, each one it knows checked, the rest as by default. */
@@ -53,9 +55,10 @@ const LABELS: { [K in keyof Settings]: { title: string; about: string; names: Re
   text: { title: 'Text size', about: 'Lines, notes and answers, her journal and her notebook.', names: { small: 'Small', normal: 'Normal', large: 'Large' } },
   speed: { title: 'Text speed', about: 'How long lines and notes stay before they move on by themselves.', names: { slow: 'Slow', normal: 'Normal', fast: 'Fast' } },
   motion: { title: 'Motion', about: "The camera's lean, the view switch's glitch, slides and fades.", names: { auto: 'As the system', reduced: 'Reduced', full: 'Full' } },
+  sound: { title: 'Sound effects', about: "Taps, pages, her window, the Concierge's chimes.", names: { on: 'On', off: 'Off' } },
 };
 /** The settings in groups, under a name each. */
-const GROUPS: [string, (keyof Settings)[]][] = [['Picture', ['quality', 'motion']], ['Reading', ['text', 'speed']]];
+const GROUPS: [string, (keyof Settings)[]][] = [['Picture', ['quality', 'motion']], ['Reading', ['text', 'speed']], ['Sound', ['sound']]];
 
 /** The settings as rows of choices in their groups, each saying what it does; each change kept and handed on at once. */
 export function drawSettings(p: HTMLElement, now: Settings, onChange: (s: Settings) => void): void {
@@ -78,10 +81,11 @@ export function drawSettings(p: HTMLElement, now: Settings, onChange: (s: Settin
           group.querySelectorAll('.choice').forEach((c) => { c.classList.toggle('on', c === b); c.setAttribute('aria-checked', String(c === b)); });
         });
         b.textContent = (LABELS[k].names as Record<string, string>)[v];
+        b.dataset.cue = 'choose';
         b.setAttribute('role', 'radio');
         b.setAttribute('aria-checked', String(s[k] === v));
       }
     }
   }
-  el('p', 'note', box, 'Sound comes with the soundtrack.');
+  el('p', 'note', box, 'The music comes with the soundtrack.');
 }

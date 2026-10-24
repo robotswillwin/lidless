@@ -1,0 +1,132 @@
+{
+  "tap": {
+    "pack": "Kenney Interface Sounds",
+    "file": "click_002.ogg",
+    "ms": 11
+  },
+  "choose": {
+    "pack": "Kenney Interface Sounds",
+    "file": "select_001.ogg",
+    "ms": 40
+  },
+  "verbs-out": {
+    "pack": "Kenney Interface Sounds",
+    "file": "switch_007.ogg",
+    "ms": 140
+  },
+  "verbs-in": {
+    "pack": "Kenney Interface Sounds",
+    "file": "switch_005.ogg",
+    "ms": 150
+  },
+  "window-open": {
+    "pack": "Kenney Interface Sounds",
+    "file": "maximize_009.ogg",
+    "ms": 208
+  },
+  "window-close": {
+    "pack": "Kenney Interface Sounds",
+    "file": "minimize_009.ogg",
+    "ms": 207
+  },
+  "page": {
+    "pack": "Kenney Interface Sounds",
+    "file": "glass_006.ogg",
+    "ms": 71
+  },
+  "pause": {
+    "pack": "Kenney Interface Sounds",
+    "file": "minimize_008.ogg",
+    "ms": 211
+  },
+  "resume": {
+    "pack": "Kenney Interface Sounds",
+    "file": "maximize_008.ogg",
+    "ms": 209
+  },
+  "confirm": {
+    "pack": "Kenney Interface Sounds",
+    "file": "confirmation_001.ogg",
+    "ms": 287
+  },
+  "deny": {
+    "pack": "Kenney Interface Sounds",
+    "file": "error_008.ogg",
+    "ms": 139
+  },
+  "things": {
+    "pack": "Kenney Interface Sounds",
+    "file": "drop_002.ogg",
+    "ms": 188
+  },
+  "hold": {
+    "pack": "Kenney Interface Sounds",
+    "file": "pluck_002.ogg",
+    "ms": 126
+  },
+  "inspect": {
+    "pack": "Kenney Interface Sounds",
+    "file": "glass_002.ogg",
+    "ms": 122
+  },
+  "co-open": {
+    "pack": "Kenney Interface Sounds",
+    "file": "confirmation_002.ogg",
+    "ms": 528
+  },
+  "co-message": {
+    "pack": "Kenney Interface Sounds",
+    "file": "confirmation_004.ogg",
+    "ms": 485
+  },
+  "co-ask": {
+    "pack": "Kenney Interface Sounds",
+    "file": "question_003.ogg",
+    "ms": 328
+  },
+  "glitch-1": {
+    "pack": "Kenney Interface Sounds",
+    "file": "glitch_002.ogg",
+    "ms": 27
+  },
+  "glitch-2": {
+    "pack": "Kenney Interface Sounds",
+    "file": "glitch_004.ogg",
+    "ms": 20
+  },
+  "book-open": {
+    "pack": "Kenney RPG Audio",
+    "file": "bookOpen.ogg",
+    "ms": 143
+  },
+  "book-close": {
+    "pack": "Kenney RPG Audio",
+    "file": "bookClose.ogg",
+    "ms": 231
+  },
+  "book-page-1": {
+    "pack": "Kenney RPG Audio",
+    "file": "bookFlip2.ogg",
+    "ms": 393
+  },
+  "book-page-2": {
+    "pack": "Kenney RPG Audio",
+    "file": "bookFlip3.ogg",
+    "ms": 228
+  },
+  "key": {
+    "pack": "Kenney Interface Sounds",
+    "file": "click_003.ogg",
+    "ms": 7
+  },
+  "enter": {
+    "pack": "Kenney Interface Sounds",
+    "file": "tick_004.ogg",
+    "ms": 55
+  },
+  "boot": {
+    "pack": "Kenney Interface Sounds",
+    "file": "maximize_006.ogg",
+    "ms": 369
+  }
+}

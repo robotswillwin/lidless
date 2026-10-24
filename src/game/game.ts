@@ -9,6 +9,7 @@ import { fitCanvas, NW, type Renderer } from '../engine/renderer';
 import { createLookPanel, type LookPanel } from '../look-panel';
 import { verbsIn } from './actions';
 import { bendsAt } from './alive';
+import { sounds } from './sound';
 import { frameFor } from './anim';
 import { Camera, cameraTarget } from './camera';
 import { CO } from './co';
@@ -400,6 +401,7 @@ export class Game {
    */
   toggleView(force = false): void {
     if (!this.canSwitch() && !force) return;
+    sounds.play('glitch');
     this.state.view = this.state.view > 0.5 ? 0 : 1;
     this.world.raw = this.raw;
     this.switchedAt = this.clock();

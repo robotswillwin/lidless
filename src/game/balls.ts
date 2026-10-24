@@ -7,6 +7,7 @@ import { button, el } from './dom';
 import type { Hud } from './hud';
 import { icon } from './icons';
 import { pick } from './level';
+import { sounds } from './sound';
 import { drawInspect, drawTray, pictureOf, picturesOf, thingsNow, type Item } from './tray';
 
 export class Balls {
@@ -127,8 +128,8 @@ export class Balls {
   /* ---------- the verbs ---------- */
 
   private toggleVerbs(): void {
-    if (this.menu) this.closeVerbs();
-    else this.openVerbs();
+    if (this.menu) { this.closeVerbs(); sounds.play('verbs-in'); }
+    else { this.openVerbs(); sounds.play('verbs-out'); }
   }
 
   /**
@@ -151,6 +152,7 @@ export class Balls {
     const made = choices.map((c) => {
       const s = button(`hud-slot${c.on ? ' default' : ''}`, c.label, menu, () => hud.onVerb(c.id === this.verb ? null : c.id));
       s.dataset.verb = c.id;
+      s.dataset.cue = 'choose';
       s.setAttribute('aria-pressed', String(c.on));
       s.innerHTML = icon(c.id, 24);
       return { s, label: el('div', 'hud-slot-label', menu, c.label) };
@@ -191,7 +193,7 @@ export class Balls {
   private openTray(): void {
     const hud = this.hud, wasOpen = this.trayEl !== null;
     this.trayEl?.remove();
-    if (!wasOpen) { this.closeVerbs(); hud.closePanel(); hud.onPanel(); }
+    if (!wasOpen) { this.closeVerbs(); hud.closePanel(); hud.onPanel(); sounds.play('things'); }
     const root = hud.root.getBoundingClientRect(), b = this.thingsBall.getBoundingClientRect();
     this.trayEl = drawTray(hud.root, thingsNow(this.items, this.carried, hud.raw, !hud.unseen), { x: b.left + b.width / 2 - root.left, y: b.top + b.height / 2 - root.top, r: b.width / 2 }, this.held?.id ?? null, hud.assets, {
       inspect: (id) => (this.inspecting === id ? this.closeInspect() : this.inspect(id)),
@@ -218,8 +220,9 @@ export class Balls {
     this.inspecting = null;
     if (!t) return;
     this.inspecting = id;
+    sounds.play('inspect');
     this.inspectEl = drawInspect(hud.root, t, hud.assets, this.held?.id === id, {
-      hold: (thing) => { this.closeInspect(); hud.onHold(thing); },
+      hold: (thing) => { this.closeInspect(); hud.onHold(thing); if (thing) sounds.play('hold'); },
       close: () => this.closeInspect(),
       read: (closeup) => { hud.closeAll(); void hud.readCloseup(closeup); },
     });

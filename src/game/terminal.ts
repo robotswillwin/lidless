@@ -8,6 +8,7 @@
 
 import { button, el } from './dom';
 import { columns, Shell, type Machine, type ShellHooks, type Stream } from './shell';
+import { sounds } from './sound';
 
 export interface TerminalOptions {
   /** No waiting: the boot lines all at once (the checks). */
@@ -67,7 +68,7 @@ export function openTerminal(stage: HTMLElement, machine: Machine, hooks: ShellH
     const drawKeys = () => {
       keys.replaceChildren();
       if (shell.asking) return;
-      const add = (label: string, run: () => void, cls = '') => { const b = button(`key ${cls}`, label, keys, run); b.textContent = label; };
+      const add = (label: string, run: () => void, cls = '') => { const b = button(`key ${cls}`, label, keys, run); b.textContent = label; b.dataset.cue = label === 'Enter' ? 'enter' : 'key'; };
       add('Tab', () => complete(), 'fn');
       add('↑', () => recall(1), 'fn');
       add('Enter', () => submit(), 'fn');
@@ -141,6 +142,8 @@ export function openTerminal(stage: HTMLElement, machine: Machine, hooks: ShellH
     };
     input.addEventListener('keydown', (e) => {
       e.stopPropagation();
+      // its keys, as they are pressed
+      sounds.play(e.key === 'Enter' ? 'enter' : 'key');
       if (e.key === 'Enter') { e.preventDefault(); submit(); }
       else if (e.key === 'Tab') { e.preventDefault(); complete(); }
       else if (e.key === 'ArrowUp') { e.preventDefault(); recall(1); }
@@ -181,6 +184,7 @@ export function openTerminal(stage: HTMLElement, machine: Machine, hooks: ShellH
 
     // it comes up: the boot lines one after another, then the message of the day, then the prompt
     row.hidden = true;
+    sounds.play('boot');
     const lines = [...(machine.boot ?? []), '', ...shell.motd(), ''];
     (async () => {
       measure();

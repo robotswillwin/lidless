@@ -836,6 +836,22 @@ In a scene that scrolls, `split` cuts and fills its layers for long slides, not 
    than paid for twice (`--reuse` keeps the ones there whatever they were made from). From then on the picture is only
    the source of its layers: `build` and `touch` leave it unbuilt, and after changing it, `split` it again.
 
+## Sounds
+
+The interface's sounds are in `public/assets/sounds/`, one short WAV for each thing the HUD does: a tap, a choice, the
+verbs out and in, her window out of the air and away, a page of it, the pause and the game going on, a confirmation,
+a refusal, her things, a thing held up and taken in hand, the Concierge's card, message and listening, the view
+switch's glitch, her notebook (opened, shut, a page turned), and an old machine's keys, Enter and coming up. They are
+made from Kenney's Interface Sounds and RPG Audio, both CC0 (public domain; `LICENSE.txt` credits them, and
+`sources.json` says which file each was made from), by `tools/sounds/import-kenney.py`: trimmed, levelled to the same
+peak, written as WAV, which every phone plays at once.
+
+`src/game/sound.ts` plays them through Web Audio, readied at the player's first touch (a browser lets nothing sound
+before). A tap on any button sounds unless what it did sounds itself; a button names its own cue with `data-cue`
+(`choose`, `confirm`, `page`, `key`) or none (`none`). Each cue's loudness, and how much its pitch varies from one time
+to the next, are set there. The settings' Sound effects turns them off. The music and the world's own sounds (rain,
+steps, doors) are to come.
+
 ## Her things: pictures for the tray
 
 Each real thing she can carry has a picture of its own for her tray (the HUD's inventory), one for each view: painted

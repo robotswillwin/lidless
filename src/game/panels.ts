@@ -11,6 +11,7 @@ import { drawJournal, PLACES } from './journal';
 import { drawMap } from './map';
 import { drawNotebook, notebookNow, type Notebook } from './notebook';
 import { drawSettings } from './settings';
+import { sounds } from './sound';
 
 export type PanelKind = 'journal' | 'notebook' | 'menu';
 
@@ -88,7 +89,7 @@ export class Panels {
     const hud = this.hud;
     // her notebook stays shut where it can see her
     if (kind === 'notebook' && !hud.hasNotebook()) return;
-    if (kind === 'notebook' && !hud.unseen) return hud.onShut();
+    if (kind === 'notebook' && !hud.unseen) { sounds.play('deny'); return hud.onShut(); }
     // open again on another page, it does not open anew: its frame stays, its page changes
     const again = this.kind === kind && !!this.panel;
     this.panel?.remove();
@@ -96,6 +97,8 @@ export class Panels {
     // the menu pauses the game; any other panel lets it go on
     if (kind === 'menu') hud.onPause(true);
     else if (this.kind === 'menu') hud.onPause(false);
+    // her window out of the air, her notebook opened, the game paused; or another page of them
+    sounds.play(kind === 'journal' ? (again ? 'page' : 'window-open') : kind === 'notebook' ? (again ? 'book-page' : 'book-open') : again ? 'page' : 'pause');
     hud.concierge.close();
     hud.balls.closeVerbs();
     hud.balls.closeTray();
@@ -118,6 +121,7 @@ export class Panels {
   /** A panel and the tray close. */
   closeSheet(): void {
     if (this.kind === 'menu') this.hud.onPause(false);
+    if (this.kind) sounds.play(this.kind === 'journal' ? 'window-close' : this.kind === 'notebook' ? 'book-close' : 'resume');
     this.eye?.stop();
     this.eye = null;
     // it fades as it goes (with less motion, it goes at once); one opened again at once is a new one
@@ -186,6 +190,7 @@ export class Panels {
       const t = button('tab', title, ways, () => { this.menuTab = id; this.drawMenuPage(); });
       t.textContent = title;
       t.dataset.tab = id;
+      t.dataset.cue = 'page';
     }
     button('to-title', 'To the title screen', ways, () => { this.close(); hud.onTitle(); }).textContent = 'Title screen';
     this.menuPage = el('div', 'page', p);
@@ -217,8 +222,8 @@ export class Panels {
       el('div', 'when', words, s ? [s.where, when(s.savedAt)].filter(Boolean).join(' · ') || 'Saved' : 'Empty');
       const row = el('div', 'row', card);
       if (slot === 'auto') el('div', 'quiet', row, 'Saved as you play');
-      if (slot !== 'auto') button(s ? '' : 'primary', `Save in slot ${slot}`, row, () => { hud.onSave(slot); this.drawMenuPage(); }).textContent = s ? 'Save over' : 'Save here';
-      if (s && slot !== 'auto') button('primary', `Go back to slot ${slot}`, row, () => hud.onLoad(slot)).textContent = 'Load';
+      if (slot !== 'auto') { const b = button(s ? '' : 'primary', `Save in slot ${slot}`, row, () => { hud.onSave(slot); this.drawMenuPage(); }); b.textContent = s ? 'Save over' : 'Save here'; b.dataset.cue = 'confirm'; }
+      if (s && slot !== 'auto') { const b = button('primary', `Go back to slot ${slot}`, row, () => hud.onLoad(slot)); b.textContent = 'Load'; b.dataset.cue = 'confirm'; }
     }
   }
 }

@@ -141,6 +141,7 @@ export class Talk {
     this.choices.forEach((c, i) => {
       const b = el('button', 'talk-choice', el('li', '', this.list));
       b.type = 'button';
+      b.dataset.cue = 'choose';
       el('span', 'key', b).textContent = String(i + 1);
       b.append(document.createTextNode(c));
       b.addEventListener('click', (e) => { e.stopPropagation(); this.pick(i); });
