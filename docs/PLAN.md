@@ -53,6 +53,15 @@ The design: https://claude.ai/artifact/X65FknT3sqWZBgJaHgHboZ. In code: `src/gam
   Only it calls her Luna; every other machine says "guest". At the top right: the view switch with its attention,
   the map, her journal (on her device, anywhere), her notebook (paper, privacy zones only) and the menu with her
   saves.
+- **The whole screen, the scene clear.** On a screen of another shape than the frame (a phone wider than 16:9, a
+  tablet), the HUD's own controls (the balls, the buttons at the top, the Concierge's presence, panels) sit out in the
+  bars beside or above and below the frame, within the screen's safe area; what belongs to the scene (what she found,
+  the ways, what a verb lights, the lines said) stays on the frame. Every card is the same dark glass, blurred, with the
+  same corners; buttons give a little when pressed; touch targets are 44 px at least. Added to a phone's home screen
+  (its icon is the eye), the game opens full screen, held sideways.
+- **The title screen** has the eye from the wait, open and looking about, over the name, and the ways in down the left
+  over a shade, a red pupil at the one chosen; settings, how to play and the saved games open as pages under their
+  name, with Back. Her saves keep a picture of the scene as it was saved.
 - **The wait is an eye.** Behind the fade, while a scene loads (and under the game's name as it first opens), the
   privacy sign's closed eye in its ring slowly opens, its lashes turning from down to up, and a red pupil kindles in
   it: someone is watching (src/game/eye.ts). Once it shows, it is seen whole: the fade lifts only after it has opened
