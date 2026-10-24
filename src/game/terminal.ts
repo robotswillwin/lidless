@@ -46,6 +46,8 @@ export function openTerminal(stage: HTMLElement, machine: Machine, hooks: ShellH
     const keys = el('div', 'keys', crt);
 
     let booting = true, skip = !!opt.fast, back = -1, typed = '', closed = false;
+    /** The lines of a command not finished yet (an open if, for, quote): the shell waits until they are done. */
+    let buffered = '';
     /** What is going on over time, while it is: Ctrl+C stops it, if it can be stopped. */
     let playing: { stop: () => void } | null = null;
     stage.dataset.terminal = '';
@@ -58,7 +60,8 @@ export function openTerminal(stage: HTMLElement, machine: Machine, hooks: ShellH
       screen.scrollTop = screen.scrollHeight;
     };
     const ready = () => {
-      prompt.textContent = shell.asking ? shell.askPrompt : shell.prompt();
+      // waiting for the rest of a command, it asks for more with a plain >, as a shell does
+      prompt.textContent = buffered ? '> ' : shell.asking ? shell.askPrompt : shell.prompt();
       input.type = shell.asking ? 'password' : 'text';
       row.hidden = false;
       drawKeys();
@@ -73,7 +76,7 @@ export function openTerminal(stage: HTMLElement, machine: Machine, hooks: ShellH
       add('↑', () => recall(1), 'fn');
       add('Enter', () => submit(), 'fn');
       // Ctrl+C, for a phone that has no Ctrl: drops a line, and vi says how to leave it
-      add('^C', () => { print([`${prompt.textContent}${shell.asking ? '' : input.value}^C`]); input.value = ''; print(shell.cancel()); ready(); }, 'fn');
+      add('^C', () => { print([`${prompt.textContent}${shell.asking ? '' : input.value}^C`]); input.value = ''; buffered = ''; print(shell.cancel()); ready(); }, 'fn');
       for (const k of KEYS) add(k, () => typeIn(k, !k.endsWith(' ')));
       for (const n of shell.names()) add(n, () => typeIn(n));
     };
@@ -89,6 +92,16 @@ export function openTerminal(stage: HTMLElement, machine: Machine, hooks: ShellH
       print([`${prompt.textContent}${shell.asking ? '' : line}`]);
       input.value = '';
       back = -1;
+      // a command spread over lines: gather them until it is finished, then run the whole
+      if (!shell.asking) {
+        const whole = buffered ? `${buffered}\n${line}` : line;
+        if (shell.wantsMore(whole)) { buffered = whole; ready(); focus(); return; }
+        buffered = '';
+        return runLine(whole);
+      }
+      runLine(line);
+    };
+    const runLine = (line: string) => {
       const res = shell.run(line);
       if (res.clear) out.replaceChildren();
       print(res.lines);
@@ -149,7 +162,7 @@ export function openTerminal(stage: HTMLElement, machine: Machine, hooks: ShellH
       else if (e.key === 'ArrowUp') { e.preventDefault(); recall(1); }
       else if (e.key === 'ArrowDown') { e.preventDefault(); recall(-1); }
       else if (e.key === 'Escape') { e.preventDefault(); close(); }
-      else if (e.ctrlKey && e.key === 'c') { e.preventDefault(); print([`${prompt.textContent}${shell.asking ? '' : input.value}^C`]); input.value = ''; print(shell.cancel()); ready(); }
+      else if (e.ctrlKey && e.key === 'c') { e.preventDefault(); print([`${prompt.textContent}${shell.asking ? '' : input.value}^C`]); input.value = ''; buffered = ''; print(shell.cancel()); ready(); }
       else if (e.ctrlKey && e.key === 'd' && !input.value) { e.preventDefault(); input.value = shell.asking ? '' : 'exit'; submit(); }
       else if (e.ctrlKey && e.key === 'l') { e.preventDefault(); out.replaceChildren(); }
     });

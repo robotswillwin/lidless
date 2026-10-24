@@ -188,6 +188,17 @@ log only `diff` shows, a tampered program whose `md5` is not the one written dow
 files, write nothing, and are as hard to leave as ever. And the old jokes are there for whoever tries them (`sl`,
 `make love`, `rm -rf /`, `sudo`, which reports her, `xyzzy`; src/game/shellfun.ts).
 
+It is a real Bourne shell, not a line at a time: it reads what she types (or a script file on the machine, run with
+`sh file` or `. file`) as a whole (src/game/shparse.ts, run in src/game/shell.ts) — variables (`x=…`, `$x`,
+`${x:-default}`, `${#x}`), `$(command)` and `` `command` `` and `$((sums))`, `if`, `for`, `while`, `until`, `case`,
+`{ }`, `( )`, functions (`f() { … }`, with `$1`, `$#`, `return`), `break` and `continue`, `&&` `||` `;` and `|`, here
+documents (`<<EOF`), and the builtins `test`/`[`, `read`, `seq`, `printf`, `set`, `export`. A command spread over
+lines asks for the rest with a plain `>`. The disk stays read-only: a redirection to a file is still refused (only
+`/dev/null` and the standard streams are sinks), and nothing changes. An endless loop cannot hang the game: it stops
+after its own limit. This is the hacking language: a maintenance script she finds and reads, or a loop she writes to
+try a service port's codes (a future service terminal), each try its own line in the log, which raises the
+Concierge's attention.
+
 - `name` (on the screen's bar), `host`, `system` (what `uname -a` says), `clock` (the machine's date as it comes up),
   `boot` (lines it prints coming up), `user` (who was left logged in), `man` (manual pages of its own).
 - `users`: each with `home`, and a `password` if `su` can reach it (none: it cannot); `login`, variables the story

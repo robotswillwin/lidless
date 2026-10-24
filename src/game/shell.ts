@@ -9,6 +9,10 @@
 // terminal.ts draws it, and plays what goes on over time (a stream: a train crossing, yes, ping).
 
 import { FORTUNES, forkBomb, make, rainFrame, trainFrames } from './shellfun';
+import { arith, parse, type Node as ShNode, type Redir, type Word } from './shparse';
+
+/** A function's body, as the parser gives it. */
+type FnNode = ShNode;
 import { b64decode, b64encode, caesar, calc, cutList, diff, factor, hexdumpC, md5, month, tr, xxd, year } from './shelltools';
 
 /** A file or a directory on the machine. A path ending in / is a directory. */
@@ -158,16 +162,15 @@ export function words(line: string): { words: string[]; quoted: boolean[] } {
   return { words: out, quoted };
 }
 
-/** A line split at its pipes, outside quotes. */
-function pipes(line: string): string[] {
-  const out: string[] = [];
-  let cur = '', q: string | null = null;
-  for (const ch of line) {
-    if (q) { if (ch === q) q = null; cur += ch; continue; }
-    if (ch === '"' || ch === "'") q = ch;
-    if (ch === '|') { out.push(cur); cur = ''; } else cur += ch;
-  }
-  out.push(cur);
+/** printf's few forms: %s, %d, %%, and \n \t in the format; the arguments filled in, over again if there are more. */
+function printf(args: string[]): string {
+  if (!args.length) return '';
+  const fmt = args[0].replace(/\\n/g, '\n').replace(/\\t/g, '\t').replace(/\\\\/g, '\\'), rest = args.slice(1);
+  const specs = (fmt.match(/%[sdixX%]/g) ?? []).filter((s) => s !== '%%').length;
+  let out = '', i = 0;
+  const once = () => fmt.replace(/%[sdixX%]/g, (m) => (m === '%%' ? '%' : m === '%s' ? rest[i++] ?? '' : m === '%d' || m === '%i' ? String(parseInt(rest[i++] ?? '0', 10) || 0) : (parseInt(rest[i++] ?? '0', 10) || 0).toString(m.endsWith('x') ? 16 : 16)));
+  out = once();
+  while (specs && i < rest.length) out += once();
   return out;
 }
 
@@ -294,6 +297,16 @@ export class Shell {
   private mode: Mode | null = null;
   /** Where cd - goes back to. */
   private before: string | null = null;
+  /** The shell's own variables (not the environment: those come from env()), set by NAME=value and read by $NAME. */
+  private vars = new Map<string, string>();
+  /** A function's arguments while it runs: $1, $2..., $@, $#. */
+  private positional: string[] = [];
+  /** Functions she wrote, by name: their body, to run when their name is a command. */
+  private funcs = new Map<string, FnNode>();
+  /** What the last command returned, for $? and && || : 0 is well, anything else is not. */
+  private status = 0;
+  /** `break` and `continue` in a loop, and a return from a function: caught where they belong. */
+  private flow: { kind: 'break' | 'continue'; n: number } | { kind: 'return'; code: number } | null = null;
   private readonly started = Date.now();
 
   constructor(readonly machine: Machine, private readonly hooks: ShellHooks) {
@@ -443,7 +456,11 @@ export class Shell {
     return out;
   }
 
-  /** A line typed: the answer to a question asked, a line for the editor she is in, or a command line, pipes and all. */
+  /**
+   * A line typed, or the lines of a script, as a Bourne shell reads them (shparse.ts): a command, or many joined by
+   * ; | && || and the rest, with variables, if, for, while, case, functions and redirections. Also the answer to a
+   * password asked for, and a line for the editor she is in.
+   */
   run(line: string): Output {
     if (this.pending) {
       const p = this.pending;
@@ -457,33 +474,386 @@ export class Shell {
       return { lines: [] };
     }
     if (this.mode) return { lines: this.mode.kind === 'ed' ? this.ed(line) : this.mode.kind === 'vi' ? this.vi(line) : this.bc(line) };
-    let trimmed = line.trim();
-    if (!trimmed) return { lines: [] };
+    if (!line.trim()) return { lines: [] };
     // history: !! the last line, !n the nth, !-n n back, !word the last that began so; shown as it runs, as a shell does
-    const h = this.recall(trimmed);
+    const h = this.recall(line.trim());
     if ('error' in h) return { lines: [h.error] };
-    const echo = h.line !== trimmed ? [h.line] : [];
-    trimmed = h.line;
-    this.history.push(trimmed);
-    if (forkBomb(trimmed)) return { lines: [...echo, ...Array(3).fill('sh: fork: Resource temporarily unavailable')] };
-    if (/(^|[^>])>{1,2}\s*\S/.test(trimmed.replace(/(["']).*?\1/g, ''))) {
-      const target = /\s*>{1,2}\s*(\S+)/.exec(trimmed)?.[1] ?? '';
-      return { lines: [`sh: cannot create ${target}: Read-only file system`] };
+    const echo = h.line !== line.trim() ? [h.line] : [];
+    this.history.push(h.line);
+    if (forkBomb(h.line)) return { lines: [...echo, ...Array(3).fill('sh: fork: Resource temporarily unavailable')] };
+    const tree = parse(h.line);
+    if (!tree.ok) return { lines: [...echo, 'error' in tree ? tree.error : 'sh: syntax error: unexpected end of file'] };
+    this.flow = null;
+    const out = this.exec(tree.node, null);
+    return { lines: [...echo, ...out.errors, ...out.lines], clear: out.clear, exit: out.exit, ask: out.ask, stream: out.stream };
+  }
+
+  /** Whether the shell wants more lines before it can run what has been typed so far (an open if, for, quote, pipe). */
+  wantsMore(src: string): boolean {
+    if (this.pending || this.mode) return false;
+    const r = parse(src);
+    return !r.ok && 'more' in r;
+  }
+
+  /* ---------- running the tree the parser gives ---------- */
+
+  /** A node run, `stdin` the lines piped in or none: its output, its errors, and what it set off (a stream, an exit). */
+  private exec(n: ShNode, stdin: string[] | null): Result {
+    switch (n.k) {
+      case 'list': {
+        const lines: string[] = [], errors: string[] = [];
+        let last: Result = { lines: [], errors: [] };
+        for (const item of n.items) {
+          last = this.exec(item, null);
+          lines.push(...last.lines); errors.push(...last.errors);
+          // a stream, a clear, an exit or a question ends the line here, carrying what came before it
+          if (last.exit || last.clear || last.ask || last.stream || this.flow) return { ...last, lines, errors };
+        }
+        return { lines, errors, exit: last.exit };
+      }
+      case 'and': { const l = this.exec(n.left, stdin); return this.stop(l) || this.status === 0 ? this.carry(l, () => this.exec(n.right, stdin)) : l; }
+      case 'or': { const l = this.exec(n.left, stdin); return this.stop(l) || this.status !== 0 ? this.carry(l, () => this.exec(n.right, stdin)) : l; }
+      case 'pipe': return this.pipeline(n, stdin);
+      case 'func': this.funcs.set(n.name, n.body); this.status = 0; return { lines: [], errors: [] };
+      case 'if': return this.runIf(n, stdin);
+      case 'for': return this.runFor(n, stdin);
+      case 'while': return this.runWhile(n, stdin);
+      case 'case': return this.runCase(n, stdin);
+      case 'group': return this.redirected(n.redirs, stdin, (input) => this.exec(n.body, input));
+      case 'simple': return this.runSimple(n, stdin);
     }
-    // each command's output goes on down the pipe; what goes wrong is shown, as it would be on a real one. What goes on
-    // over time is taken as far as the next command could want it (yes | head)
-    let input: string[] | null = null, out: Result = { lines: [], errors: [] };
-    const errors: string[] = [], parts = pipes(trimmed);
-    for (const [k, part] of parts.entries()) {
-      const { words: ws, quoted } = words(part);
-      if (!ws.length) return { lines: ['sh: syntax error near unexpected token `|\''] };
-      out = this.command(ws[0], this.expand(ws.slice(1), quoted.slice(1)), input);
-      if (out.stream && k < parts.length - 1) out = { lines: [...out.lines, ...gather(out.stream)], errors: out.errors };
-      errors.push(...out.errors);
-      if (out.exit || out.clear || out.ask) break;
-      input = out.lines;
+  }
+
+  /** Whether a result ends the line here (an exit, a stream, a question): the && || after it do not run. */
+  private stop(r: Result): boolean { return !!(r.exit || r.clear || r.ask || r.stream || this.flow); }
+  private carry(l: Result, right: () => Result): Result { if (this.stop(l)) return l; const r = right(); return { ...r, errors: [...l.errors, ...r.errors], lines: [...l.lines, ...r.lines] }; }
+
+  /** A pipeline a | b | c: each command's lines are the next's input; its status is the last's (`!` flips it). */
+  private pipeline(n: Extract<ShNode, { k: 'pipe' }>, stdin: string[] | null): Result {
+    let input = stdin, lines: string[] = [], errors: string[] = [], last: Result = { lines: [], errors: [] };
+    for (const [k, cmd] of n.cmds.entries()) {
+      last = this.exec(cmd, input);
+      errors.push(...last.errors);
+      if (last.exit || last.clear || last.ask) return { ...last, errors, lines: [...lines, ...last.lines] };
+      // what goes on over time is taken as far as the next could want it (yes | head); the last one's stream flows on
+      if (last.stream && k < n.cmds.length - 1) input = gather(last.stream);
+      else if (last.stream) return { ...last, errors, lines };
+      else input = last.lines;
+      lines = last.lines;
     }
-    return { lines: [...echo, ...errors, ...out.lines], clear: out.clear, exit: out.exit, ask: out.ask, stream: out.stream };
+    if (n.not) this.status = this.status === 0 ? 1 : 0;
+    return { lines, errors, exit: last.exit };
+  }
+
+  private runIf(n: Extract<ShNode, { k: 'if' }>, stdin: string[] | null): Result {
+    return this.redirected(n.redirs, stdin, (input) => {
+      const out: Result = { lines: [], errors: [] };
+      for (const b of n.branches) {
+        const cond = this.exec(b.cond, input);
+        out.errors.push(...cond.errors);
+        if (this.stop(cond)) return { ...cond, errors: out.errors };
+        if (this.status === 0) { const body = this.exec(b.body, input); return { ...body, errors: [...out.errors, ...body.errors], lines: [...out.lines, ...body.lines] }; }
+      }
+      if (n.otherwise) { const body = this.exec(n.otherwise, input); return { ...body, errors: [...out.errors, ...body.errors], lines: [...out.lines, ...body.lines] }; }
+      this.status = 0;
+      return out;
+    });
+  }
+
+  private runFor(n: Extract<ShNode, { k: 'for' }>, stdin: string[] | null): Result {
+    return this.redirected(n.redirs, stdin, (input) => {
+      const items = n.items ? n.items.flatMap((w) => this.expandWord(w, input)) : (input ?? []);
+      const out: Result = { lines: [], errors: [] };
+      for (const v of items) {
+        this.vars.set(n.name, v);
+        const body = this.exec(n.body, input);
+        out.errors.push(...body.errors); out.lines.push(...body.lines);
+        if (this.afterBody() === 'stop') return out;
+      }
+      return out;
+    });
+  }
+
+  private runWhile(n: Extract<ShNode, { k: 'while' }>, stdin: string[] | null): Result {
+    return this.redirected(n.redirs, stdin, (input) => {
+      const out: Result = { lines: [], errors: [] };
+      for (let i = 0; i < 100000; i++) {
+        const cond = this.exec(n.cond, input);
+        out.errors.push(...cond.errors); out.lines.push(...cond.lines);
+        if (this.stop(cond)) return out;
+        if ((this.status === 0) === n.until) break;
+        const body = this.exec(n.body, input);
+        out.errors.push(...body.errors); out.lines.push(...body.lines);
+        if (this.afterBody() === 'stop') return out;
+      }
+      return out;
+    });
+  }
+
+  /** After a loop's body: 'go' to run the next turn, 'stop' to leave. break and continue (to this level) are spent. */
+  private afterBody(): 'go' | 'stop' {
+    if (!this.flow) return 'go';
+    if (this.flow.kind === 'break' || this.flow.kind === 'continue') {
+      const kind = this.flow.kind;
+      if (--this.flow.n <= 0) this.flow = null;
+      // break (or a break meant for an outer loop) leaves; continue (spent here) runs the next turn
+      return this.flow || kind === 'break' ? 'stop' : 'go';
+    }
+    // a return, an exit, a stream, a clear: leave
+    return 'stop';
+  }
+
+  private runCase(n: Extract<ShNode, { k: 'case' }>, stdin: string[] | null): Result {
+    return this.redirected(n.redirs, stdin, (input) => {
+      const word = this.expandWord(n.word, input).join(' ');
+      for (const arm of n.arms) {
+        for (const pat of arm.pats) {
+          // the pattern is kept whole (its * and ? match the word, not the names there)
+          const p = this.expandWord(pat, input, true).join('');
+          if (globRegex(p).test(word)) return this.exec(arm.body, input);
+        }
+      }
+      this.status = 0;
+      return { lines: [], errors: [] };
+    });
+  }
+
+  /** A command run with its redirections: of its output away (refused: the disk is read-only), of a file or here document in. */
+  private redirected(redirs: Redir[], stdin: string[] | null, run: (input: string[] | null) => Result): Result {
+    let input = stdin;
+    const errors: string[] = [];
+    for (const r of redirs) {
+      if (r.op === '>' || r.op === '>>' || (r.op === '>&' && r.fd !== 2)) {
+        if (r.op !== '>&') {
+          const t = this.expandWord(r.target, stdin).join('');
+          // /dev/null and the standard streams are sinks, not the disk: output to them just goes nowhere
+          if (!['/dev/null', '/dev/stdout', '/dev/stderr', '/dev/zero'].includes(t)) return { lines: [], errors: [`sh: cannot create ${t}: Read-only file system`] };
+          // > /dev/null: the command runs, its output dropped
+          const out = run(input);
+          return { lines: [], errors: out.errors.filter(() => t === '/dev/stderr') };
+        }
+      } else if (r.op === '<<') {
+        input = (r.body ?? []).map((l) => (r.raw ? l : this.substLine(l, stdin)));
+      } else if (r.op === '<') {
+        const t = this.expandWord(r.target, stdin).join(''), got = this.text('sh', t, false);
+        if ('error' in got) return { lines: [], errors: [got.error] };
+        input = got.lines;
+      }
+      // 2>&1 and 2>file: errors would join the output; here they are shown anyway, so nothing to do
+    }
+    const out = run(input);
+    return { ...out, errors: [...errors, ...out.errors] };
+  }
+
+  /** A simple command: its assignments, then its words expanded and run (a function first, then the built-in commands). */
+  private runSimple(n: Extract<ShNode, { k: 'simple' }>, stdin: string[] | null): Result {
+    return this.redirected(n.redirs, stdin, (input) => {
+      const words = n.words.flatMap((w) => this.expandWord(w, input));
+      if (!words.length) {
+        // only assignments: they set the shell's variables
+        for (const a of n.assigns) this.vars.set(a.name, this.expandWord(a.value, input).join(''));
+        this.status = 0;
+        return { lines: [], errors: [] };
+      }
+      const [name, ...rest] = words;
+      // a function she wrote: its body runs, its arguments $1, $2...
+      const fn = this.funcs.get(name);
+      if (fn) return this.callFn(fn, rest, input);
+      // a command of the shell's own sets its own status; a file-system one's status is whether it erred
+      const builtin = this.scriptBuiltin(name, rest, input);
+      if (builtin) return builtin;
+      const out = this.command(name, rest, input);
+      this.status = out.errors.length ? (out.errors.some((e) => /not found/.test(e)) ? 127 : 1) : 0;
+      return out;
+    });
+  }
+
+  /** A function called: its arguments become $1.., its body runs, a return caught, then the arguments are put back. */
+  private callFn(body: FnNode, args: string[], input: string[] | null): Result {
+    const saved = this.positional;
+    this.positional = args;
+    const out = this.exec(body, input);
+    this.positional = saved;
+    if (this.flow?.kind === 'return') { this.status = this.flow.code; this.flow = null; }
+    return out;
+  }
+
+  /** Commands that belong to the shell itself (they read or set its state), not the file-system ones in command(). */
+  private scriptBuiltin(cmd: string, args: string[], input: string[] | null): Result | null {
+    // each sets its own status, 0 for well; ok() is a clean well-gone result
+    const ok = (...l: string[]): Result => { this.status = 0; return { lines: l, errors: [] }; };
+    const bad = (code = 1, ...errors: string[]): Result => { this.status = code; return { lines: [], errors }; };
+    switch (cmd) {
+      case ':': case 'true': return ok();
+      case 'false': return bad();
+      case 'export': case 'local': case 'readonly': case 'declare': case 'unset':
+        for (const a of args) { const m = /^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/s.exec(a); if (m) this.vars.set(m[1], m[2]); else if (cmd === 'unset') this.vars.delete(a); }
+        return ok();
+      case 'set':
+        if (args[0] === '--') { this.positional = args.slice(1); return ok(); }
+        if (args.length) { this.positional = args; return ok(); }
+        return ok(...[...this.vars.entries()].map(([k, v]) => `${k}=${v}`).sort());
+      case 'test': case '[': return this.test(cmd === '[' ? args.slice(0, -1) : args);
+      case 'read': {
+        // a line of the input read into the variables (the rest into the last); with none, it ends (status 1)
+        if (input && input.length) {
+          const parts = input[0].split(/\s+/);
+          args.forEach((a, i) => this.vars.set(a, i === args.length - 1 ? parts.slice(i).join(' ') : parts[i] ?? ''));
+          return ok();
+        }
+        for (const a of args) this.vars.set(a, '');
+        return bad();
+      }
+      case 'return': { this.flow = { kind: 'return', code: Number(args[0] ?? this.status) || 0 }; return ok(); }
+      case 'break': { this.flow = { kind: 'break', n: Math.max(1, Number(args[0]) || 1) }; return ok(); }
+      case 'continue': { this.flow = { kind: 'continue', n: Math.max(1, Number(args[0]) || 1) }; return ok(); }
+      case 'shift': this.positional = this.positional.slice(Math.max(1, Number(args[0]) || 1)); return ok();
+      case 'seq': { const r = this.seq(args); this.status = r.errors.length ? 1 : 0; return r; }
+      case 'printf': return ok(...printf(args).split('\n'));
+      case 'let': { try { for (const a of args) this.setArith(a); return ok(); } catch { return bad(); } }
+      case 'sh': case 'bash': case 'source': case '.': {
+        if (!args.length) return cmd === 'sh' || cmd === 'bash' ? ok() : bad(2, `${cmd}: filename argument required`);
+        const r = this.runFile(cmd, args[0], args.slice(1));
+        this.status = r.errors.length && this.flow === null ? 1 : this.status;
+        return r;
+      }
+      default: return null;
+    }
+  }
+
+  /** A script file read and run, its lines the shell's own (sh file, . file): a function it defines stays. */
+  private runFile(cmd: string, path: string, args: string[]): Result {
+    const got = this.text(cmd, path, false);
+    if ('error' in got) return { lines: [], errors: [got.error] };
+    const tree = parse(got.lines.join('\n'));
+    if (!tree.ok) return { lines: [], errors: ['error' in tree ? tree.error : `${cmd}: ${path}: unexpected end of file`] };
+    // sh file runs with the file's arguments; . file shares the shell's
+    const shareArgs = cmd === '.' || cmd === 'source';
+    const saved = this.positional;
+    if (!shareArgs) this.positional = args;
+    const out = this.exec(tree.node, null);
+    if (!shareArgs) this.positional = saved;
+    if (this.flow?.kind === 'return') this.flow = null;
+    return out;
+  }
+
+  /** `let x = a + 1`: a sum worked out and kept in a variable (NAME=sum). */
+  private setArith(expr: string): void {
+    const m = /^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/s.exec(expr);
+    if (m) this.vars.set(m[1], String(arith(m[2], (k) => this.varValue(k))));
+    else arith(expr, (k) => this.varValue(k));
+  }
+
+  /** seq [first [incr]] last: the whole numbers from first to last; -w pads them to the same width with zeros. */
+  private seq(args: string[]): Result {
+    const pad = args[0] === '-w', nums = (pad ? args.slice(1) : args).map(Number);
+    if (nums.some((n) => !Number.isFinite(n)) || !nums.length || nums.length > 3) return { lines: [], errors: ['seq: usage: seq [-w] [first [incr]] last'] };
+    // seq last | seq first last | seq first incr last
+    const first = nums.length === 1 ? 1 : nums[0], last = nums[nums.length - 1];
+    const incr = nums.length === 3 ? nums[1] : first <= last ? 1 : -1;
+    const out: string[] = [];
+    if (incr !== 0) for (let x = first; incr > 0 ? x <= last : x >= last; x += incr) { out.push(String(x)); if (out.length > 100000) break; }
+    const w = pad ? Math.max(0, ...out.map((s) => s.replace('-', '').length)) : 0;
+    return { lines: pad ? out.map((s) => (s.startsWith('-') ? '-' + s.slice(1).padStart(w, '0') : s.padStart(w, '0'))) : out, errors: [] };
+  }
+
+  /** test / [ ... ]: the conditions a script asks — a string, -z -n, = != , -eq -lt..., a file -e -f -d -r. */
+  private test(a: string[]): Result {
+    const t = (ok: boolean): Result => { this.status = ok ? 0 : 1; return { lines: [], errors: [] }; };
+    const node = (p: string) => this.reach(p);
+    if (!a.length) return t(false);
+    if (a.length === 1) return t(a[0] !== '');
+    if (a.length === 2) {
+      const [op, x] = a;
+      if (op === '-z') return t(x === '');
+      if (op === '-n') return t(x !== '');
+      if (op === '!') return t(x === '');
+      if (['-e', '-f', '-d', '-r', '-s', '-x'].includes(op)) { const r = node(x); if ('error' in r) return t(false); const n = r.node; return t(op === '-d' ? n.dir : op === '-f' ? !n.dir : op === '-r' || op === '-x' ? this.may(n, op === '-x' ? 'x' : 'r') : op === '-s' ? this.size(n) > 0 : true); }
+      return t(false);
+    }
+    const [x, op, y] = a;
+    if (op === '=' || op === '==') return t(x === y);
+    if (op === '!=') return t(x !== y);
+    if (op === '<') return t(x < y);
+    if (op === '>') return t(x > y);
+    const nums = ['-eq', '-ne', '-lt', '-le', '-gt', '-ge'];
+    if (nums.includes(op)) { const [m, p] = [Number(x), Number(y)]; return t(op === '-eq' ? m === p : op === '-ne' ? m !== p : op === '-lt' ? m < p : op === '-le' ? m <= p : op === '-gt' ? m > p : m >= p); }
+    return t(false);
+  }
+
+  /* ---------- a word expanded: what is put in it, then split and matched against the names ---------- */
+
+  /** A variable's value: the shell's own, then the environment's; the specials $?, $#, $@, $1..., $$. */
+  private varValue(name: string): string {
+    if (name === '?') return String(this.status);
+    if (name === '#') return String(this.positional.length);
+    if (name === '@' || name === '*') return this.positional.join(' ');
+    if (name === '$') return '438';
+    if (name === '!') return '0';
+    if (/^\d+$/.test(name)) return this.positional[Number(name) - 1] ?? '';
+    return this.vars.get(name) ?? this.env()[name] ?? '';
+  }
+
+  /**
+   * A word run out to the strings it stands for: what is put in it, then (unless it was quoted) split on whitespace and
+   * matched against the names there. Each character carries two marks — whether it was quoted (not split), and whether
+   * it came out of a variable or a command (so an unquoted * from it still matches names, but a literal \* does not).
+   * `noSplit` keeps it whole (a here document line, an assignment).
+   */
+  private expandWord(w: Word, stdin: string[] | null, noSplit = false): string[] {
+    let joined = '';
+    const q: boolean[] = [], fromExp: boolean[] = [];
+    const add = (text: string, quoted: boolean, expanded: boolean) => { joined += text; for (let i = 0; i < text.length; i++) { q.push(quoted); fromExp.push(expanded); } };
+    for (const seg of w) {
+      if (seg.t === 'lit') add(seg.v, seg.q, false);
+      else if (seg.t === 'arith') add(String(this.evalArith(seg.src)), seg.q, true);
+      else if (seg.t === 'cmd') add(this.subst(seg.src, stdin), seg.q, true);
+      else {
+        const base = this.varValue(seg.name), arg = seg.arg ? this.expandWord(seg.arg, stdin, true).join('') : '';
+        const v = seg.op === '#' ? String(base.length) : seg.op === ':-' || seg.op === '-' ? (base || arg) : seg.op === ':+' ? (base ? arg : '') : seg.op === ':=' ? (base || arg) : base;
+        add(v, seg.q, true);
+      }
+    }
+    if (w.length === 0) return [];
+    if (noSplit) return [joined];
+    // split on runs of unquoted whitespace; a word all of literal quotes ("" or '') is still one empty word
+    const parts: { text: string; glob: boolean }[] = [];
+    let cur = '', had = false, globbable = false;
+    for (let i = 0; i < joined.length; i++) {
+      if (!q[i] && /\s/.test(joined[i])) { if (had) { parts.push({ text: cur, glob: globbable }); cur = ''; had = false; globbable = false; } }
+      else { cur += joined[i]; had = true; if (!q[i] && !fromExp[i] && '*?['.includes(joined[i])) globbable = true; }
+    }
+    if (had) parts.push({ text: cur, glob: globbable });
+    if (!parts.length && w.some((s) => s.q)) parts.push({ text: '', glob: false });
+    // each part with an unquoted, literal * ? [ in it, matched against the names there
+    return parts.flatMap((p) => (p.glob ? this.glob(p.text) : [p.text]));
+  }
+
+  /** A path with * ? in it, matched against the names there (the paths it matches, sorted), or itself if none. */
+  private glob(pat: string): string[] { return this.expand([pat], [false]); }
+
+  /** A here document's line with what is put in it: $NAME, ${NAME}, $(command), as in double quotes (kept whole). */
+  private substLine(line: string, stdin: string[] | null): string {
+    return line
+      .replace(/\$\(([^]*?)\)/g, (_, src: string) => this.subst(src, stdin))
+      .replace(/\$\{([A-Za-z_][A-Za-z0-9_]*)\}/g, (_, name: string) => this.varValue(name))
+      .replace(/\$([A-Za-z_][A-Za-z0-9_]*|[?#@*$])/g, (_, name: string) => this.varValue(name));
+  }
+
+  /** $(command) or `command`: the command run, its output as one string, trailing newlines off, newlines to spaces when split. */
+  private subst(src: string, stdin: string[] | null): string {
+    const tree = parse(src);
+    if (!tree.ok) return '';
+    const savedFlow = this.flow;
+    const out = this.exec(tree.node, stdin);
+    this.flow = savedFlow;
+    if (out.stream) out.lines.push(...gather(out.stream));
+    return [...out.errors, ...out.lines].join('\n').replace(/\n+$/, '');
+  }
+
+  /** $((sum)): the sum worked out, variables read; a bad one counts as 0. */
+  private evalArith(src: string): number {
+    try { return arith(src, (k) => this.varValue(k)); } catch { return 0; }
   }
 
   /** History in a line: !!, !n, !-n and !word made the lines they stand for; one that is not there, said so. */
@@ -714,8 +1084,11 @@ export class Shell {
         if (r.node.file.damaged) errors.push('tar: Unexpected EOF in archive', 'tar: Error is not recoverable: exiting now');
         return { lines, errors };
       }
-      case 'echo':
-        return say(args.join(' ').replace(/\$(\w+)/g, (_, v: string) => this.env()[v] ?? ''));
+      case 'echo': {
+        // the words joined as they came (already expanded); a newline in one (from "$(cmd)") starts a new line on screen
+        const words = args[0] === '-n' ? args.slice(1) : args;
+        return say(...words.join(' ').split('\n'));
+      }
       case 'env': case 'printenv':
         return say(...Object.entries(this.env()).map(([k, v]) => `${k}=${v}`));
       case 'date': {
