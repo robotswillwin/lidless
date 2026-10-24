@@ -50,6 +50,9 @@ export function syncEffects(): void {
   d.clocks = f.clocks ?? [];
   d.cradles = f.cradles ?? [];
   d.rings = f.rings ?? [];
+  d.indicators = f.indicators ?? [];
+  d.cameras = f.cameras ?? [];
+  d.airs = f.airs ?? [];
   ed.runner?.sync();
   redraw.overlay();
 }

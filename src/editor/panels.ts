@@ -521,6 +521,7 @@ function sceneSide(): void {
   const story = () => [
     check('A privacy zone: the Concierge cannot see or hear her here', !!file.private, (v) => { if (v) file.private = true; else { delete file.private; delete file.home; } }, reselect),
     check('A home: she can call the Concierge from here (a privacy zone)', !!file.home, (v) => { if (v) { file.home = true; file.private = true; } else delete file.home; }, reselect),
+    str('In the tower, its floor (0 the lobby; empty: not in the tower)', file.floor === undefined ? '' : String(file.floor), (v) => { const n = Number(v); if (v.trim() === '' || !Number.isFinite(n)) delete file.floor; else file.floor = Math.max(0, Math.round(n)); }),
     choice('A close-up of (a desk, a workbench seen close)', file.closeup ?? '', [['', 'Not a close-up: a place of its own'], ...ed.world.scenes.filter((s) => s !== file.id).map((s) => [s, s] as [string, string])], (v) => { if (v) file.closeup = v; else delete file.closeup; }, reselect),
     str('She stays in while (a condition on the story)', file.stay?.when ?? '', (v) => { if (v.trim()) file.stay = { when: v.trim(), say: file.stay?.say ?? '' }; else delete file.stay; }, { after: reselect }),
     ...(file.stay ? viewText('…and says', file.stay.say, (v) => { if (file.stay) file.stay.say = v ?? ''; }) : []),

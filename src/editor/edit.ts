@@ -76,7 +76,7 @@ export async function add(kind: string): Promise<void> {
     ed.sel = { kind: 'drips' };
     syncEffects();
   } else if ((LIVE_KINDS as string[]).includes(kind)) {
-    // what the engine draws live: an oscilloscope, a clock, a Newton's cradle, a hologram of rings
+    // what the engine draws live: an oscilloscope, a clock, a Newton's cradle, a hologram of rings, and the rest of LIVE
     const fx = kind as LiveKind, k = LIVE[fx], list = liveListOf(file, fx);
     if (list.length >= k.limit) return setStatus(`At most ${k.limit} ${k.name.toLowerCase()}${k.limit > 1 ? 's' : ''} in a scene`);
     list.push(k.make(cx, cy - 40));

@@ -4,6 +4,10 @@ import { asIn, inViewOf, slideOpacity, smoothSampled, SPEEDS, WAVES, type Loaded
 import { resolveLight } from '../engine/presets';
 import type { DrawSprite, Frame } from '../engine/renderer';
 import { frameFor, hasLeft } from './anim';
+import { floorLabel, type LiftNow } from './lift';
+
+/** A figure on a lift's display, as its seven segments: the bits of a top, then clockwise, the middle last. */
+const SEGMENTS: Record<string, number> = { 0: 63, 1: 6, 2: 91, 3: 79, 4: 102, 5: 109, 6: 125, 7: 7, 8: 127, 9: 111, G: 61 };
 
 export interface ViewState {
   /** 0 raw view, 1 Concierge view. */
@@ -128,6 +132,22 @@ export class SceneRunner {
   /** A hologram of rings: each ring's turn as shown, easing to the story's, and when its gaps lined up (-1: they don't). */
   private rings = new Float32Array(8);
   private ringState: { value: number[]; target: number[]; shown: number[]; solvedAt: number; t: number } | null = null;
+  /** Where the tower's lift is, for the displays over its doors. */
+  lift: (t: number) => LiftNow = () => ({ floor: 0, dir: 0 });
+  /** Where her head is (world), for a camera to turn to: none in a close-up. */
+  lookAt: [number, number] | null = null;
+  /** When each spot was last used, by its id: air from a dryer. */
+  private readonly usedAt = new Map<string, number>();
+  private indicators = new Float32Array(64);
+  private cameras = new Float32Array(8);
+  private readonly aims: number[] = [];
+  private aimedAt = 0;
+  private airs = new Float32Array(8);
+
+  /** A spot was used: what it does in the scene (air from a dryer) starts. */
+  used(spot: string, t: number): void {
+    this.usedAt.set(spot, t);
+  }
   private readonly dials: { now: number; was: number; at: number; waves: number; creep: number; crept: number; t: number }[] = [];
 
   /** Sprites named in `dynamic` are left out; the game draws them itself (the hero). */
@@ -324,6 +344,35 @@ export class SceneRunner {
       const dx = along(cr.parallax), posts = cr.posts ?? [0, 0, 0, 0];
       this.cradle.set([cr.x + dx, cr.y, cr.gap, cr.length, cr.r, t - this.swung.at, this.swung.side, 1, posts[0] + dx, posts[1] + dx, posts[2] + dx, posts[3] + dx]);
     }
+    // the lift's displays: its floor in figures, an arrow while it moves
+    this.indicators.fill(0);
+    let nIndicators = 0;
+    const lift = (d.indicators ?? []).length ? this.lift(t) : null;
+    for (const ind of d.indicators ?? []) {
+      if (nIndicators >= 4 || !lift || !inViewOf(ind.only, view) || (ind.when && !this.shown(ind.when))) continue;
+      const label = floorLabel(lift.floor), raw = ind.colours?.raw ?? [1, 0.62, 0.22], conc = ind.colours?.concierge ?? [0.72, 0.93, 1];
+      this.indicators.set([ind.x + along(ind.parallax), ind.y, ind.w, ind.h, label.length > 1 ? SEGMENTS[label[0]] ?? 0 : 0, SEGMENTS[label[label.length - 1]] ?? 0, lift.dir, 0, ...raw, 0, ...conc, 0], nIndicators++ * 16);
+    }
+    // a camera turns, slowly, to where her head is
+    this.cameras.fill(0);
+    let nCameras = 0;
+    const turn = Math.min(1, Math.max(0, t - this.aimedAt) * 1.8);
+    this.aimedAt = t;
+    (d.cameras ?? []).forEach((cam, i) => {
+      if (nCameras >= 2 || !inViewOf(cam.only, view) || (cam.when && !this.shown(cam.when))) return;
+      const x = cam.x + along(cam.parallax), want = this.lookAt ? Math.atan2(this.lookAt[1] - cam.y, this.lookAt[0] - x) : Math.PI / 2;
+      const aim = Math.max(0.3, Math.min(Math.PI - 0.3, want)), was = this.aims[i] ?? aim;
+      this.aims[i] = was + (aim - was) * turn;
+      this.cameras.set([x, cam.y, cam.size ?? 1, this.aims[i]], nCameras++ * 4);
+    });
+    // air from an outlet, a while after its spot was used
+    this.airs.fill(0);
+    let nAirs = 0;
+    for (const air of d.airs ?? []) {
+      if (nAirs >= 2 || !inViewOf(air.only, view) || (air.when && !this.shown(air.when))) continue;
+      const at = this.usedAt.get(air.spot);
+      this.airs.set([air.x + along(air.parallax), air.y, air.w, at === undefined ? -1 : t - at], nAirs++ * 4);
+    }
     // a hologram of rings: each turns the way the story turned it, a sixth at a time, the short way round when it jumps
     this.rings.fill(0);
     const rg = (d.rings ?? [])[0];
@@ -375,6 +424,12 @@ export class SceneRunner {
       nClocks,
       cradle: this.cradle,
       rings: this.rings,
+      indicators: this.indicators,
+      nIndicators,
+      cameras: this.cameras,
+      nCameras,
+      airs: this.airs,
+      nAirs,
       daySeconds: this.daySeconds(t),
       drips: dr ? [dr.x0, dr.x1, dr.top, dr.bottom] : [0, 0, 0, 0],
       mirror: d.mirror,

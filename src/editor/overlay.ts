@@ -96,11 +96,11 @@ export function drawOverlay(): void {
     out.push(`<g class="fx mover${s ? ' sel' : ''}${lit({ kind: 'mover', i })}${away(inViewOf(m.only, ed.view))}" data-k="mover" data-i="${i}"><rect x="${x0}" y="${y}" width="${Math.max(1, x1 - x0)}" height="${h}"/><text x="${x0 + 4}" y="${y - 4}">${esc(m.asset)}</text><title>Mover: ${esc(m.asset)}, behind what is in front of ${esc(m.after)}</title></g>`);
     if (s) out.push(handle(x0, y + h / 2, 'mover-x0', `data-i="${i}"`), handle(x1, y + h / 2, 'mover-x1', `data-i="${i}"`));
   });
-  // what the engine draws live: oscilloscopes, clocks, a Newton's cradle, a hologram of rings
+  // what the engine draws live: oscilloscopes, clocks, a Newton's cradle, a hologram of rings, lift displays, cameras, air
   for (const fx of LIVE_KINDS) liveList(file, fx).forEach((o, i) => {
     const me: Selection = { kind: 'live', fx, i }, s = isSel(me), [bx, y, w, h] = liveBox(fx, o), x = onLayer(bx, o.parallax), off = i >= LIVE[fx].limit ? ' off' : '';
     if (!shown('effects', s)) return;
-    const round = fx === 'clock' || fx === 'rings' || (fx === 'scope' && (o as ScopeDef).w === undefined);
+    const round = fx === 'clock' || fx === 'rings' || (fx === 'scope' && (o as ScopeDef).w === undefined) || fx === 'camera';
     const shape = round ? `<circle cx="${x + w / 2}" cy="${y + h / 2}" r="${w / 2}"/>` : `<rect x="${x}" y="${y}" width="${w}" height="${h}"/>`;
     out.push(`<g class="fx live${s ? ' sel' : ''}${off}${lit(me)}${away(inViewOf(o.only, ed.view))}" data-k="live" data-fx="${fx}" data-i="${i}">${shape}<text x="${x}" y="${y - 4}">${esc(LIVE[fx].name)}</text><title>${esc(LIVE[fx].name)} ${i + 1}${off ? `: not drawn, at most ${LIVE[fx].limit}` : ''}</title></g>`);
   });

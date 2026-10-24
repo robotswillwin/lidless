@@ -113,6 +113,18 @@ export interface Frame {
    * the inner first), and how long since its gaps lined up (seconds; -1 while they don't).
    */
   rings?: Float32Array;
+  /**
+   * The lift's displays, four vec4 each: the box (world), its figures' segments (tens, ones), which way the lift goes;
+   * the figures' colour in raw view, then in the Concierge's. Four at most.
+   */
+  indicators?: Float32Array;
+  nIndicators?: number;
+  /** Cameras on walls, a vec4 each: where the bracket meets the wall (world), its size, which way it looks (radians). */
+  cameras?: Float32Array;
+  nCameras?: number;
+  /** Air from an outlet, a vec4 each: where it comes out (world), how wide, seconds since its spot was used (-1 never). */
+  airs?: Float32Array;
+  nAirs?: number;
   drips: [number, number, number, number];
   mirror: number;
   /** The ground the engine draws below the reflection line, if the scene has one. */
@@ -139,6 +151,9 @@ const NO_SCOPES = new Float32Array(32);
 const NO_CLOCKS = new Float32Array(8);
 const NO_CRADLE = new Float32Array(12);
 const NO_RINGS = new Float32Array(8);
+const NO_INDICATORS = new Float32Array(64);
+const NO_CAMERAS = new Float32Array(8);
+const NO_AIRS = new Float32Array(8);
 
 const MAP_ORDER: [MapName, string][] = [
   ['albedo.raw', 'tAlbR'], ['albedo.concierge', 'tAlbC'], ['normal', 'tNrm'], ['normal.concierge', 'tNrmC'], ['material', 'tMat'],
@@ -399,7 +414,8 @@ export class Renderer {
       }
     }
 
-    // composite: reflections, steam, rain, drips, oscilloscopes, clocks, a cradle, a hologram
+    // composite: reflections, steam, rain, drips, and what is drawn live: oscilloscopes, clocks, a cradle, a hologram,
+    // the lift's displays, cameras, air from a dryer
     this.pass(this.prog.comp, t.fb, (pr) => {
       this.bind(pr, 'tA', t.fa.tex[0], 0); this.bind(pr, 'tG3', t.gbuf.tex[3], 1); this.bind(pr, 'tDof', t.d1.tex[0], 2);
       this.bind(pr, 'tRefl', reflBlur ? refl.tex[0] : this.black, 7); gl.uniform1f(pr.u.uReflBlur, reflBlur ? 1 : 0);
@@ -410,6 +426,9 @@ export class Renderer {
       gl.uniform4fv(pr.u.uScope, f.scopes ?? NO_SCOPES); gl.uniform1i(pr.u.uNScope, f.nScopes ?? 0);
       gl.uniform4fv(pr.u.uClock, f.clocks ?? NO_CLOCKS); gl.uniform1i(pr.u.uNClock, f.nClocks ?? 0); gl.uniform1f(pr.u.uDaySec, f.daySeconds ?? 0);
       gl.uniform4fv(pr.u.uCradle, f.cradle ?? NO_CRADLE); gl.uniform4fv(pr.u.uRings, f.rings ?? NO_RINGS);
+      gl.uniform4fv(pr.u.uInd, f.indicators ?? NO_INDICATORS); gl.uniform1i(pr.u.uNInd, f.nIndicators ?? 0);
+      gl.uniform4fv(pr.u.uWatch, f.cameras ?? NO_CAMERAS); gl.uniform1i(pr.u.uNWatch, f.nCameras ?? 0);
+      gl.uniform4fv(pr.u.uAir, f.airs ?? NO_AIRS); gl.uniform1i(pr.u.uNAir, f.nAirs ?? 0);
       gl.uniform1f(pr.u.uRawFog, k.rawFog); gl.uniform1f(pr.u.uWrap, k.charWrap); gl.uniform1f(pr.u.uRain, k.rain); gl.uniform1f(pr.u.uFog, k.fog); gl.uniform1f(pr.u.uBakedC, baked);
       gl.uniform4f(pr.u.uRefl, k.reflect, k.reflectReach, k.reflectStreak, k.mirrorSet);
       gl.uniform2f(pr.u.uReflSoft, k.reflectDiffuse, k.reflectStreak); gl.uniform1f(pr.u.uSmudge, smudge ? 1 : 0);

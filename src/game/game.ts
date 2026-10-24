@@ -20,6 +20,7 @@ import { Dressing } from './dressing';
 import { heroDrawing } from './hero';
 import { Hud, type CloseupDef, type Item, type Notebook } from './hud';
 import { inView, pick, placeIn, type Hotspot } from './level';
+import { Lift } from './lift';
 import { mapNow, onMap, type MapNow, type MapScene } from './map';
 import type { MessagesFile } from './messages';
 import { outfitAfter } from './outfits';
@@ -112,6 +113,8 @@ export class Game {
   readonly dressing: Dressing;
   readonly ways: Ways;
   readonly turns = new Turns();
+  /** The tower's lift, which the neighbours ride too: its displays show where it is. */
+  readonly lift = new Lift();
   /** How the story's commands are done here. */
   readonly stage: Stage;
 
@@ -273,6 +276,9 @@ export class Game {
     this.runner.shown = (when) => holds(when, (n) => (n === 'conditions' && this.setup.variant ? this.setup.variant : this.dialogue.read(n)));
     this.runner.read = (name) => this.dialogue.read(name);
     this.runner.daySeconds = (t) => this.co.secondOfDay(t);
+    // the tower's lift: here, if she came by it
+    if (at.spawn === 'lift' && next.file.floor !== undefined) this.lift.reset(next.file.floor, this.clock());
+    this.runner.lift = (t) => this.lift.now(t);
     this.camera.jump(this.cameraTarget());
     this.cam[0] = this.setup.fixedCam ?? this.camera.x;
     // the scene she left and this one stay on the GPU, where she can go next is fetched, the rest let go
@@ -564,7 +570,8 @@ export class Game {
     this.hud.ways(this.ways.markers());
     this.talk.place();
     fitCanvas(this.setup.canvas);
-    // in a close-up she is not drawn: it is what she sees
+    // where her head is, for a camera to follow; in a close-up she is not drawn: it is what she sees
+    this.runner.lookAt = file.closeup ? null : [world.heroX, file.walk.y - hero.def.h * sc * 0.88];
     this.setup.renderer.render(this.runner.frame(t, this.state, this.cam, file.closeup ? [] : [her], file.closeup ? [-1000, -1000] : smoke));
   }
 }

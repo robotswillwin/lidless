@@ -360,6 +360,13 @@ uniform float uDaySec;    // the time of day, seconds after midnight
 uniform vec4 uCradle[3];  // a Newton's cradle: where its first thread hangs (world), the gap between threads, their
                           // length; its balls' radius, seconds since an end ball was let go, which end, 1 if there is
                           // one; its front posts, from and to x, left then right (world)
+uniform vec4 uInd[16];    // the lift's displays, four vec4 each: the box (world), its figures' segments (tens, ones),
+                          // which way the lift goes; the figures' colour in raw view, then in the Concierge's
+uniform int uNInd;
+uniform vec4 uWatch[2];   // cameras on walls: where the bracket meets the wall (world), size, which way it looks
+uniform int uNWatch;
+uniform vec4 uAir[2];     // air from an outlet: where it comes out (world), how wide, seconds since its spot was used
+uniform int uNAir;
 uniform vec4 uRings[2];   // a hologram of three rings: its middle (world), its size, 1 if there is one; each ring's turn
                           // (radians, the inner first), how long since its gaps lined up (seconds; -1 while they don't)
 uniform float uMirror;    // world y of the reflection line
@@ -460,6 +467,21 @@ vec2 waveAt(float s, float ph) {
   float de = 0.75 * e0 * cos(th) * 6.2831853 * 0.6, a3 = 6.2831853 * ph * 3.0, a7 = 6.2831853 * ph * 7.0 + 1.3;
   float wv = 0.7 * sin(a3) + 0.3 * sin(a7), dw = 6.2831853 * (2.1 * cos(a3) + 2.1 * cos(a7));
   return vec2(wv * e, dw * e + wv * de);
+}
+// how much of a pixel px wide at p a box from lo to hi covers
+float boxCover(vec2 p, vec2 lo, vec2 hi, float px) { vec2 d = max(lo - p, p - hi); return clamp(0.5 - max(d.x, d.y) / px, 0.0, 1.0); }
+// how much of a pixel a figure dw by dh covers at p (its top left 0, 0): its lit segments, the bits of its mask, a top
+// then clockwise, the middle last
+float figure(vec2 p, float dw, float dh, int mask, float px) {
+  float t = dh * 0.15, s = t * 0.65, m = dh * 0.5, c = 0.0;
+  if ((mask & 1) != 0) c = max(c, boxCover(p, vec2(s, 0.0), vec2(dw - s, t), px));
+  if ((mask & 2) != 0) c = max(c, boxCover(p, vec2(dw - t, s), vec2(dw, m - t * 0.3), px));
+  if ((mask & 4) != 0) c = max(c, boxCover(p, vec2(dw - t, m + t * 0.3), vec2(dw, dh - s), px));
+  if ((mask & 8) != 0) c = max(c, boxCover(p, vec2(s, dh - t), vec2(dw - s, dh), px));
+  if ((mask & 16) != 0) c = max(c, boxCover(p, vec2(0.0, m + t * 0.3), vec2(t, dh - s), px));
+  if ((mask & 32) != 0) c = max(c, boxCover(p, vec2(0.0, s), vec2(t, m - t * 0.3), px));
+  if ((mask & 64) != 0) c = max(c, boxCover(p, vec2(s, m - t * 0.5), vec2(dw - s, m + t * 0.5), px));
+  return c;
 }
 // how far p is from the segment from a to b
 float segAt(vec2 p, vec2 a, vec2 b) { vec2 ab = b - a; return length(p - a - ab * clamp(dot(p - a, ab) / max(dot(ab, ab), 1e-6), 0.0, 1.0)); }
@@ -745,6 +767,58 @@ void main() {
         c = mix(c, col, cov);
       }
     }
+  }
+  // the lift's displays: where it is, its floor in figures, an arrow while it goes up or down
+  for (int i = 0; i < 4; i++) {
+    if (i >= uNInd) break;
+    vec4 B = uInd[i * 4], F = uInd[i * 4 + 1];
+    vec2 q = w - B.xy;
+    if (q.x < 0.0 || q.y < 0.0 || q.x > B.z || q.y > B.w || isActor(g3.a) > 0.5) continue;
+    float px = 1.0 / uRS, ch = B.w * 0.78, dw = ch * 0.52, gap = ch * 0.2, aw = ch * 0.5;
+    vec2 o0 = vec2((B.z - (aw + gap + dw * 2.0 + gap)) * 0.5, (B.w - ch) * 0.5);
+    float on = figure(q - o0 - vec2(aw + gap, 0.0), dw, ch, int(F.x + 0.5), px);
+    on = max(on, figure(q - o0 - vec2(aw + gap * 2.0 + dw, 0.0), dw, ch, int(F.y + 0.5), px));
+    if (abs(F.z) > 0.5) {
+      // its arrow: up, or down
+      vec2 a = (q - o0) / vec2(aw, ch);
+      if (F.z < 0.0) a.y = 1.0 - a.y;
+      float e = max(max((abs(a.x - 0.5) - (a.y - 0.2) * 0.5) * aw, (0.2 - a.y) * ch), (a.y - 0.8) * ch);
+      on = max(on, clamp(0.5 - e / px, 0.0, 1.0));
+    }
+    vec4 R = uInd[i * 4 + 2], C = uInd[i * 4 + 3];
+    c = mix(c, mix(R.rgb, C.rgb, uView), on);
+  }
+  // a camera on a wall: its bracket, its body turned slowly to follow her, its lens, a red light blinking now and then
+  for (int i = 0; i < 2; i++) {
+    if (i >= uNWatch) break;
+    vec4 K = uWatch[i];
+    vec2 q = w - K.xy;
+    float s = K.z, px = 1.0 / uRS;
+    if (dot(q, q) > 160.0 * s * s || isActor(g3.a) > 0.5) continue;
+    vec2 dir = vec2(cos(K.w), sin(K.w)), up = vec2(dir.y, -dir.x);
+    if (up.y > 0.0) up = -up;
+    vec2 pivot = vec2(0.0, 3.0 * s), front = pivot + dir * 6.5 * s;
+    float arm = segAt(q, vec2(0.0), pivot) - 0.8 * s, body = segAt(q, pivot - dir * 1.8 * s, front) - 2.1 * s, lens = length(q - front) - 1.3 * s;
+    float led = length(q - (pivot + dir * 0.5 * s + up * 2.4 * s)) - 0.55 * s, blink = step(fract(uTime / 1.7), 0.07);
+    vec3 grey = dot(q - pivot, up) > 0.0 ? vec3(0.42, 0.42, 0.38) : vec3(0.24, 0.24, 0.21);
+    c = mix(c, vec3(0.16, 0.16, 0.15), clamp(0.5 - arm / px, 0.0, 1.0));
+    c = mix(c, grey, clamp(0.5 - body / px, 0.0, 1.0));
+    c = mix(c, vec3(0.03), clamp(0.5 - lens / px, 0.0, 1.0));
+    c = mix(c, vec3(0.7), clamp(0.5 - (length(q - front - up * 0.5 * s) - 0.35 * s) / px, 0.0, 1.0) * 0.8);
+    c = mix(c, mix(vec3(0.3, 0.05, 0.04), vec3(1.6, 0.25, 0.15), blink), clamp(0.5 - led / px, 0.0, 1.0));
+  }
+  // air from an outlet a while after its spot was used: warm streaks going down and spreading. It roars in raw view;
+  // in the Concierge's it only whispers
+  for (int i = 0; i < 2; i++) {
+    if (i >= uNAir) break;
+    vec4 A = uAir[i];
+    float since = A.w;
+    vec2 q = w - A.xy;
+    float v = q.y / 34.0, hw = A.z * 0.5 * (1.0 + 0.8 * v), u = q.x / hw;
+    if (since < 0.0 || since > 2.8 || v < 0.0 || v > 1.0 || abs(u) > 1.0 || isActor(g3.a) > 0.5) continue;
+    float on = smoothstep(0.0, 0.25, since) * (1.0 - smoothstep(2.0, 2.8, since)), lane = floor((u + 1.0) * 5.0);
+    float streak = smoothstep(0.5, 0.95, sin(q.y * 0.32 - since * 16.0 + hash(vec2(lane, 3.0)) * 6.28)) * (1.0 - abs(fract((u + 1.0) * 5.0) - 0.5) * 2.0);
+    c += vec3(0.95, 0.9, 0.82) * streak * (1.0 - v) * (1.0 - abs(u) * 0.6) * on * mix(0.34, 0.14, uView);
   }
   // a hologram of three rings, each with a gap, floating over its emitter: a faint beam up from it, the light
   // flickering and scanned. Its gaps lined up, it chimes in a flash and opens into a flower of light, turning slowly

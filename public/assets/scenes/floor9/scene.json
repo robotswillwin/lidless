@@ -345,5 +345,14 @@
       "story": "athena_asked",
       "when": "athena_note_read and athena_report == \"not_asked\""
     }
+  ],
+  "floor": 9,
+  "indicators": [
+    {
+      "x": 302,
+      "y": 218.5,
+      "w": 28,
+      "h": 8
+    }
   ]
 }

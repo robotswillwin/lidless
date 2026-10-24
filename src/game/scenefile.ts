@@ -3,7 +3,7 @@
 // (built assets, placed), lights, its inside and outside areas, the walk line, places to arrive and hotspots, some of
 // which lead to other scenes.
 
-import { fetchSprite, imageFromBlob, loadBlob, makeSprite, SPEEDS, spriteDefaults, WAVES, type FetchedSprite, type GodrayDef, type GroundDef, type LoadedScene, type Only, type Views, type MoverDef, type SceneDef, type ScopeDef, type ClockDef, type CradleDef, type RingsDef, type Slide, type Sprite, type SteamDef } from '../engine/assets';
+import { fetchSprite, imageFromBlob, loadBlob, makeSprite, SPEEDS, spriteDefaults, WAVES, type FetchedSprite, type GodrayDef, type GroundDef, type LoadedScene, type Only, type Views, type MoverDef, type SceneDef, type ScopeDef, type ClockDef, type CradleDef, type RingsDef, type IndicatorDef, type CameraDef, type AirDef, type Slide, type Sprite, type SteamDef } from '../engine/assets';
 import { presets, type PlacedLight } from '../engine/presets';
 import { conditionProblem } from './conditions';
 import { textureFromImage, type GL } from '../engine/gl';
@@ -160,6 +160,11 @@ export interface SceneFile {
   clocks?: ClockDef[];
   cradles?: CradleDef[];
   rings?: RingsDef[];
+  indicators?: IndicatorDef[];
+  cameras?: CameraDef[];
+  airs?: AirDef[];
+  /** In the tower, the floor this is (0 the lobby): the lift is here when she gets out of it. */
+  floor?: number;
   drips?: SceneDef['drips'];
   traffic?: SceneDef['traffic'];
 }
@@ -363,9 +368,13 @@ export function checkSceneFile(data: unknown, id?: string): string[] {
   const placed = (e: Record<string, unknown>, name: string) => {
     if (e?.when !== undefined) { const p = isStr(e.when) ? conditionProblem(e.when) : 'it must be text'; if (p) out.push(`${name}: when: ${p}`); }
   };
+  /** Its colour in each view, if it has its own. */
+  const coloured = (e: Record<string, unknown>, name: string) => {
+    if (e?.colours !== undefined) for (const v of ['raw', 'concierge']) { const c = (e.colours as Record<string, unknown>)?.[v]; if (c !== undefined && !nums(c, 3)) out.push(`${name}.colours.${v} must be [r, g, b], 0 to 1`); }
+  };
   effects('scopes', 2, ['x', 'y'], (e, name) => {
     if (!isNum(e?.r) && !(isNum(e?.w) && isNum(e?.h))) out.push(`${name} needs r (a round glass) or w and h (a screen with corners)`);
-    if (e?.colours !== undefined) for (const v of ['raw', 'concierge']) { const c = (e.colours as Record<string, unknown>)?.[v]; if (c !== undefined && !nums(c, 3)) out.push(`${name}.colours.${v} must be [r, g, b], 0 to 1`); }
+    coloured(e, name);
     if (e?.shape !== undefined && !(WAVES as readonly unknown[]).includes(e.shape)) out.push(`${name}.shape must be one of ${WAVES.join(', ')}`);
     if (e?.pace !== undefined && !(Object.keys(SPEEDS) as unknown[]).includes(e.pace)) out.push(`${name}.pace must be one of ${Object.keys(SPEEDS).join(', ')}`);
     for (const k of ['wave', 'speed']) if (e?.[k] !== undefined && (!isStr(e[k]) || !/^[a-z_][a-z0-9_]*$/.test(e[k] as string))) out.push(`${name}.${k} must name a story variable`);
@@ -378,6 +387,14 @@ export function checkSceneFile(data: unknown, id?: string): string[] {
     placed(e, name);
   });
   const storyName = (v: unknown) => isStr(v) && /^[a-z_][a-z0-9_]*$/.test(v);
+  effects('indicators', 4, ['x', 'y', 'w', 'h'], (e, name) => { coloured(e, name); placed(e, name); });
+  effects('cameras', 2, ['x', 'y'], placed);
+  const spots = Array.isArray(f.hotspots) ? (f.hotspots as Record<string, unknown>[]).map((h) => h?.id) : [];
+  effects('airs', 2, ['x', 'y', 'w'], (e, name) => {
+    if (!isStr(e?.spot) || !spots.includes(e.spot)) out.push(`${name}.spot must name the hotspot here that blows it`);
+    placed(e, name);
+  });
+  if (f.floor !== undefined && (!isNum(f.floor) || f.floor < 0)) out.push('floor must be the tower floor it is, 0 the lobby');
   effects('rings', 1, ['x', 'y', 'r'], (e, name) => {
     if (!Array.isArray(e?.turns) || e.turns.length !== 3 || !e.turns.every(storyName)) out.push(`${name}.turns must name three story variables, the inner ring's first`);
     if (e?.solved !== undefined && !storyName(e.solved)) out.push(`${name}.solved must name a story variable`);
@@ -446,7 +463,7 @@ export async function makeScene(gl: GL, fetched: FetchedScene, world: WorldFile)
   const zone = fetched.zone ? textureFromImage(gl, await imageFromBlob(await fetched.zone, file.zoneMap), false) : zoneTexture(gl, file);
   const def: SceneDef = {
     name: file.id, size: file.size, sprites: sprites.map((s) => s.def.name), zone: file.zoneMap ?? '',
-    lights: file.lights, beacons: file.beacons ?? [], steam: file.steam ?? [], godrays: file.godrays ?? [], scopes: file.scopes ?? [], clocks: file.clocks ?? [], cradles: file.cradles ?? [], rings: file.rings ?? [],
+    lights: file.lights, beacons: file.beacons ?? [], steam: file.steam ?? [], godrays: file.godrays ?? [], scopes: file.scopes ?? [], clocks: file.clocks ?? [], cradles: file.cradles ?? [], rings: file.rings ?? [], indicators: file.indicators ?? [], cameras: file.cameras ?? [], airs: file.airs ?? [],
     drips: file.drips, mirror: file.mirror ?? file.walk.y - 8, ground: file.ground, traffic: file.traffic, ambient: file.ambient, exposure: file.exposure, baked: file.baked, actorScale: file.actorScale,
   };
   const level: LevelDef = {

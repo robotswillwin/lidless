@@ -40,6 +40,8 @@ export class Doing {
   /** She does it, there. */
   act(h: Hotspot, a: Action): void {
     const g = this.g, raw = g.raw;
+    // used: what it does in the scene starts (air from a dryer)
+    if (a.kind === 'hands') g.runner.used(h.id, g.clock());
     // a way she has looked at or tried is known from now on: its marker shows
     if (h.go || h.kind === 'way') g.ways.find(h);
     if (a.kind === 'feet' && h.go) return void g.ways.go(h.go, false, true);

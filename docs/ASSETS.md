@@ -342,12 +342,22 @@ Characters walk in front of the set, so lights and characters need to know which
 - A hologram of three rings (`rings`, one) is its middle and its outer ring's radius, `x`, `y`, `r`; three story
   variables turning its rings in sixths (`turns`, the inner first) and one saying their gaps line up (`solved`), when
   it opens into a flower of light. Usually `"only": "concierge"`.
+- A lift's display (`indicators`, four at most) is its top left and size, `x`, `y`, `w`, `h`, over a display painted
+  blank: the engine draws where the tower's lift is in figures (G the lobby), with an arrow while it moves, in
+  `colours` of its own if it says (amber in raw view and ice blue to the Concierge unless it does). There is one lift
+  for the whole tower, and a scene in the tower says which `floor` it is (0 the lobby): when she gets out of the lift
+  there, it waits for a while, then someone calls it, and it goes a floor every 1.1 seconds (`src/game/lift.ts`).
+- A camera on a wall (`cameras`, two at most) is where its bracket meets the wall, `x`, `y`, and its `size` (1 as
+  made): its body turns slowly to follow her, and a red light blinks now and then.
+- A hand dryer's air (`airs`, two at most) is its outlet and the width there, `x`, `y`, `w`, and the hotspot here that
+  blows it (`spot`): each time she uses it, warm air blows down for a few seconds, a roar of streaks in raw view, a
+  whisper in the Concierge's.
 - A layer can be one of pictures shown in turn, fading into each other, as a photo frame's (`show`: `at`, from 0, of
   `of`, each for `every` seconds, fading over `fade`).
-- In the scene editor, the live effects are under + Effect (Oscilloscope, Clock, Newton's cradle, Hologram rings):
-  dragged to move, their fields in the side panel. Close-ups are in its scene list, under Close-ups (found from the
-  hotspots that go up close to them); a scene's privacy, home, close-up, what keeps her in and what runs as she
-  arrives are under "The place, for the story"; a hotspot's close-up and kind, and a layer shown in turn, in theirs.
+- In the scene editor, the live effects are under + Effect (Oscilloscope, Clock, Newton's cradle, Hologram rings,
+  Lift display, Camera, Hand dryer's air): dragged to move, their fields in the side panel. Close-ups are in its scene
+  list, under Close-ups (found from the hotspots that go up close to them); a scene's privacy, home, close-up, floor in
+  the tower, what keeps her in and what runs as she arrives are under "The place, for the story"; a hotspot's close-up and kind, and a layer shown in turn, in theirs.
 - Anything placed can be in one view only, `"only": "raw"` or `"only": "concierge"`: a hotspot, a layer (a hologram
   over the street in the Concierge's view, a scrawl only raw view shows), steam, a light shaft, a beacon, a mover. A
   light says it with its flags, `"ar": 1` or `"raw": 1`; an older light shaft's `"ar": 1` still means the Concierge's.

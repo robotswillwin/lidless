@@ -158,7 +158,7 @@
         85,
         118
       ],
-      "stand": 612,
+      "stand": 598,
       "look": {
         "concierge": "Fresh towels and a quiet hand dryer.",
         "raw": "An empty paper towel box, and a dryer that roars."
@@ -382,5 +382,13 @@
       "actorGreen": 0.93,
       "actorBlue": 0.9
     }
-  }
+  },
+  "airs": [
+    {
+      "x": 631,
+      "y": 289,
+      "w": 14,
+      "spot": "dryer"
+    }
+  ]
 }

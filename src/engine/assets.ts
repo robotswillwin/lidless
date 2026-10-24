@@ -203,6 +203,15 @@ export interface CradleDef {
  * light. Usually the Concierge's alone (`only: concierge`).
  */
 export interface RingsDef { x: number; y: number; r: number; turns: [string, string, string]; solved?: string; when?: string; only?: Only; parallax?: number }
+/**
+ * The display over a lift's doors, painted blank, its figures drawn live: where the tower's lift is (G the lobby), with
+ * an arrow while it moves. Its box (x, y its top left), and its figures' colour in each view.
+ */
+export interface IndicatorDef { x: number; y: number; w: number; h: number; colours?: Partial<Record<Only, [number, number, number]>>; when?: string; only?: Only; parallax?: number }
+/** A camera on a wall, drawn live: where its bracket meets the wall, how big (`size`, 1 as made), turning to follow her. */
+export interface CameraDef { x: number; y: number; size?: number; when?: string; only?: Only; parallax?: number }
+/** Air blown from an outlet a while after a spot is used (a hand dryer): where it comes out, how wide, and which spot. */
+export interface AirDef { x: number; y: number; w: number; spot: string; when?: string; only?: Only; parallax?: number }
 
 /**
  * The ground below the reflection line, drawn by the engine over a painted floor that was smoothed for it (asset ground
@@ -239,6 +248,10 @@ export interface SceneDef {
   cradles?: CradleDef[];
   /** A hologram of three rings, drawn live: one at most. */
   rings?: RingsDef[];
+  /** The lift's displays, cameras that follow her, air from a dryer: drawn live. */
+  indicators?: IndicatorDef[];
+  cameras?: CameraDef[];
+  airs?: AirDef[];
   drips?: { x0: number; x1: number; top: number; bottom: number };
   /** World y of the line wet surfaces reflect around. */
   mirror: number;

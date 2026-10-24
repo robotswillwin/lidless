@@ -1,15 +1,15 @@
 // The live effects in the editor (decision 44: what moves is drawn live, not painted): an oscilloscope's line, a clock's
-// hands, a Newton's cradle, a hologram of rings. One description of each kind gives its name, its list in the scene file,
+// hands, a Newton's cradle, a hologram of rings, a lift's display, a camera, a hand dryer's air. One description of each kind gives its name, its list in the scene file,
 // how many the renderer draws, a new one, the box it covers on the scene, and its own fields in the side panel; the rest
 // (selecting, moving, copying, deleting, which views) is the same for all of them.
 
-import { SPEEDS, WAVES, type ClockDef, type CradleDef, type RingsDef, type ScopeDef } from '../engine/assets';
+import { SPEEDS, WAVES, type AirDef, type CameraDef, type ClockDef, type CradleDef, type IndicatorDef, type RingsDef, type ScopeDef } from '../engine/assets';
 import type { SceneFile } from '../game/scenefile';
 import { check, choice, colour, num, str } from './form';
 
-export type LiveKind = 'scope' | 'clock' | 'cradle' | 'rings';
-export type LiveItem = ScopeDef | ClockDef | CradleDef | RingsDef;
-type List = 'scopes' | 'clocks' | 'cradles' | 'rings';
+export type LiveKind = 'scope' | 'clock' | 'cradle' | 'rings' | 'indicator' | 'camera' | 'air';
+export type LiveItem = ScopeDef | ClockDef | CradleDef | RingsDef | IndicatorDef | CameraDef | AirDef;
+type List = 'scopes' | 'clocks' | 'cradles' | 'rings' | 'indicators' | 'cameras' | 'airs';
 
 /** A story variable's name, or none (empty). */
 const variable = (label: string, value: string | undefined, set: (v: string | undefined) => void, after: () => void) =>
@@ -83,6 +83,31 @@ export const LIVE: Record<LiveKind, Kind> = {
       variable('Its gaps lined up (a story variable)', g.solved, (v) => { if (v) g.solved = v; else delete g.solved; }, after),
     ],
   },
+  indicator: {
+    list: 'indicators', limit: 4, name: 'Lift display',
+    about: 'The display over a lift’s doors, painted blank: where the tower’s lift is, in figures (G the lobby), with an arrow while it moves. x, y is its top left. The scene’s floor, under The place, is where the lift waits when she gets out.',
+    make: (x, y) => ({ x, y, w: 28, h: 8 }),
+    fields: (d: IndicatorDef, after) => [
+      num('Width', d.w, (v) => { d.w = Math.max(4, v); }, { after }), num('Height', d.h, (v) => { d.h = Math.max(3, v); }, { after }),
+      colour('Its figures in the Concierge’s view', d.colours?.concierge ?? [0.72, 0.93, 1], (c) => { d.colours = { ...d.colours, concierge: c }; after(); }),
+      colour('Its figures in raw view', d.colours?.raw ?? [1, 0.62, 0.22], (c) => { d.colours = { ...d.colours, raw: c }; after(); }),
+    ],
+  },
+  camera: {
+    list: 'cameras', limit: 2, name: 'Camera',
+    about: 'A camera on a wall, its body turning slowly to follow her, a red light blinking now and then. x, y is where its bracket meets the wall.',
+    make: (x, y) => ({ x, y, size: 1 }),
+    fields: (c: CameraDef, after) => [num('Size (1 as made)', c.size ?? 1, (v) => { c.size = Math.max(0.3, v); }, { step: 0.1, after })],
+  },
+  air: {
+    list: 'airs', limit: 2, name: 'Hand dryer',
+    about: 'Warm air blown down from an outlet for a couple of seconds after a hotspot is used: it roars in raw view, and whispers in the Concierge’s. x, y is the outlet.',
+    make: (x, y) => ({ x, y, w: 14, spot: '' }),
+    fields: (a: AirDef, after) => [
+      num('Width at the outlet', a.w, (v) => { a.w = Math.max(2, v); }, { after }),
+      str('Blown when this hotspot is used (its id)', a.spot, (v) => { a.spot = v.trim(); }, { after }),
+    ],
+  },
 };
 
 export const LIVE_KINDS = Object.keys(LIVE) as LiveKind[];
@@ -96,6 +121,9 @@ export const liveListOf = (f: SceneFile, k: LiveKind): LiveItem[] => ((f as unkn
 export function liveBox(k: LiveKind, o: LiveItem): [number, number, number, number] {
   if (k === 'cradle') { const c = o as CradleDef; return [c.x - c.r, c.y, c.gap * 4 + c.r * 2, c.length + c.r]; }
   if (k === 'scope') { const s = o as ScopeDef, hw = s.w !== undefined ? s.w / 2 : s.r ?? 20, hh = s.h !== undefined ? s.h / 2 : s.r ?? 20; return [s.x - hw, s.y - hh, hw * 2, hh * 2]; }
+  if (k === 'indicator') { const d = o as IndicatorDef; return [d.x, d.y, d.w, d.h]; }
+  if (k === 'camera') { const s = (o as CameraDef).size ?? 1; return [o.x - 9 * s, o.y - 2 * s, 18 * s, 14 * s]; }
+  if (k === 'air') { const a = o as AirDef; return [a.x - a.w * 0.9, a.y, a.w * 1.8, 34]; }
   const r = (o as ClockDef | RingsDef).r;
   return [o.x - r, o.y - r, r * 2, r * 2];
 }

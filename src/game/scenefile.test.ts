@@ -77,6 +77,25 @@ describe('checkSceneFile', () => {
     expect(problems).toContain('layers[0].show needs at (from 0), of, every (seconds) and perhaps fade');
   });
 
+  it('checks the lift displays, cameras, a dryer\'s air, and the floor in the tower', () => {
+    const f = read('street');
+    f.indicators = [{ x: 1, y: 1, w: 20, colours: { concierge: [1, 2] } }];
+    f.cameras = [{ x: 1, y: 1 }, { x: 2, y: 2 }, { x: 3, y: 3 }];
+    f.airs = [{ x: 1, y: 1, w: 4, spot: 'nowhere' }];
+    f.floor = -1;
+    const problems = checkSceneFile(f, 'street');
+    expect(problems.some((p) => p.startsWith('indicators[0] needs h'))).toBe(true);
+    expect(problems).toContain('indicators[0].colours.concierge must be [r, g, b], 0 to 1');
+    expect(problems).toContain('cameras: at most 2 are drawn, this scene has 3');
+    expect(problems).toContain('airs[0].spot must name the hotspot here that blows it');
+    expect(problems).toContain('floor must be the tower floor it is, 0 the lobby');
+    f.indicators = [{ x: 1, y: 1, w: 20, h: 6 }];
+    f.cameras = [{ x: 1, y: 1, size: 0.8, only: 'raw' }];
+    f.airs = [{ x: 1, y: 1, w: 4, spot: (f.hotspots as { id: string }[])[0].id }];
+    f.floor = 9;
+    expect(checkSceneFile(f, 'street')).toEqual([]);
+  });
+
   it('checks the ground: its eye above the reflection line, its slabs, kerb and puddles', () => {
     const f = read('street');
     f.ground = { horizon: 460, slab: [90], kerb: -5, puddles: 2 };
