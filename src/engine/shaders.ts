@@ -55,10 +55,11 @@ uniform vec4 uRect;     // x, y, w, h in screen pixels, top-left origin
 uniform vec2 uScreen;
 uniform float uFlip;     // 1 mirrors the sprite horizontally
 uniform vec4 uUV;        // the frame: where it starts across the texture and how wide it is, where it starts down it and how tall
+uniform vec2 uPad;       // drawn this much bigger each way, as a part of its size: room for a character's parts to move into
 out vec2 vUv;
 void main() {
-  vec2 p = uRect.xy + aPos * uRect.zw;
-  vUv = vec2(uUV.x + (uFlip > 0.5 ? 1.0 - aPos.x : aPos.x) * uUV.y, uUV.z + aPos.y * uUV.w);
+  vec2 a = aPos * (1.0 + 2.0 * uPad) - uPad, p = uRect.xy + a * uRect.zw;
+  vUv = vec2(uUV.x + (uFlip > 0.5 ? 1.0 - a.x : a.x) * uUV.y, uUV.z + a.y * uUV.w);
   gl_Position = vec4(p.x / uScreen.x * 2.0 - 1.0, 1.0 - p.y / uScreen.y * 2.0, 0.0, 1.0);
 }`;
 
@@ -77,15 +78,44 @@ uniform float uSS;         // samples across each axis of a screen pixel: a spri
 uniform float uBlend;      // 1: a flat layer over the set behind it, its edges blended by how much of each pixel it covers
 uniform float uOpacity;    // how much of it shows, 0 to 1: a blended layer fading
 uniform vec4 uUV;          // the frame's place in the texture, to keep the samples inside it
+uniform vec4 uBend[12];    // a character's parts moving where it stands (alive.ts): two each, see alive()
+uniform float uNBend;      // how many
+uniform vec2 uSize;        // the frame's size in its own pixels
 layout(location = 0) out vec4 o0;
 layout(location = 1) out vec4 o1;
 layout(location = 2) out vec4 o2;
 layout(location = 3) out vec4 o3;
+// where the pixel's colour comes from in the texture: its own place, or where its part was drawn if it has moved
+vec2 U;
+// a character standing alive: each of its parts turned about its joint and raised (the first vec4: the joint, the turn
+// in radians, the rise in pixels), the part being what lies within a radius of a point (the second: the point, the
+// radius, or under 0 everything above the joint, and how softly it fades). Each part carries those after it, so they are
+// taken back in their order: from where a pixel is drawn to where it was in the picture. False where that is outside
+// its frame: nothing is drawn there
+bool alive(vec2 uv) {
+  U = uv;
+  if (uNBend < 0.5) return true;
+  vec2 q = (uv - uUV.xz) / uUV.yw * uSize;
+  for (int i = 0; i < 6; i++) {
+    if (float(i) >= uNBend) break;
+    vec4 A = uBend[2 * i], B = uBend[2 * i + 1];
+    float w = B.z > 0.0 ? 1.0 - smoothstep(B.z, B.z + B.w, length(q - B.xy)) : 1.0 - smoothstep(A.y, A.y + B.w, q.y);
+    if (w <= 0.0) continue;
+    vec2 r = q + vec2(0.0, A.w * w) - A.xy;
+    float c = cos(A.z * w), s = sin(A.z * w);
+    q = A.xy + vec2(c * r.x + s * r.y, c * r.y - s * r.x);
+  }
+  if (q.x < 0.0 || q.y < 0.0 || q.x > uSize.x || q.y > uSize.y) return false;
+  // kept half a texel inside its frame
+  vec2 hx = 0.5 / vec2(textureSize(tAlbR, 0));
+  U = clamp(uUV.xz + q / uSize * uUV.yw, uUV.xz + hx, uUV.xz + uUV.yw - hx);
+  return true;
+}
 // a sprite drawn smaller than it was made covers several texels per pixel: average them, weighted by coverage, so it
 // shrinks smoothly instead of sparkling
 vec2 ssStep() { return vec2(dFdx(vUv.x), dFdy(vUv.y)) / uSS; }
 vec2 ssAt(int i, int j) {
-  vec2 uv = vUv + (vec2(float(i), float(j)) - 0.5 * (uSS - 1.0)) * ssStep();
+  vec2 uv = U + (vec2(float(i), float(j)) - 0.5 * (uSS - 1.0)) * ssStep();
   float tw = 0.5 / float(textureSize(tAlbR, 0).x);
   float th = 0.5 / float(textureSize(tAlbR, 0).y);
   uv.x = clamp(uv.x, uUV.x + tw, uUV.x + uUV.y - tw);
@@ -93,24 +123,25 @@ vec2 ssAt(int i, int j) {
   return uv;
 }
 vec4 ssColour(sampler2D t) {
-  if (uSS < 1.5) return texture(t, vUv);
+  if (uSS < 1.5) return texture(t, U);
   vec4 s = vec4(0.0); int n = int(uSS + 0.5);
   for (int j = 0; j < 4; j++) for (int i = 0; i < 4; i++) { if (i >= n || j >= n) continue; vec4 c = texture(t, ssAt(i, j)); s += vec4(c.rgb * c.a, c.a); }
   return s.a > 0.0 ? vec4(s.rgb / s.a, s.a / float(n * n)) : vec4(0.0);
 }
 vec3 ssPlain(sampler2D t) {
-  if (uSS < 1.5) return texture(t, vUv).rgb;
+  if (uSS < 1.5) return texture(t, U).rgb;
   vec3 s = vec3(0.0); int n = int(uSS + 0.5);
   for (int j = 0; j < 4; j++) for (int i = 0; i < 4; i++) { if (i >= n || j >= n) continue; s += texture(t, ssAt(i, j)).rgb; }
   return s / float(n * n);
 }
 void main() {
+  if (!alive(vUv)) discard;
   vec4 aR = ssColour(tAlbR), aC = ssColour(tAlbC);
   vec4 a = uView > 0.5 ? aC : aR;
   a.a *= uOpacity;
   // a cut-out's edge is either drawn or not; a blended one covers its edge pixels in part, so it moves smoothly
   if (a.a < (uBlend > 0.5 ? 0.004 : 0.5)) discard;
-  vec3 meta = floor(texture(tMeta, vUv).rgb * 255.0 + 0.5);
+  vec3 meta = floor(texture(tMeta, U).rgb * 255.0 + 0.5);
   // the Concierge's additions are lit exactly like the real world: nothing in its view may look projected
   float occ = uConst.x, dep = uConst.y, refl = uConst.z, obj = uConst.w, grpR = uConstG.x, grpC = uConstG.y, mach = uConstG.z;
   if (uHasMeta > 0.5) {
@@ -122,7 +153,7 @@ void main() {
   float cv = step(0.5, uView);
   vec3 n = normalize(mix(ssPlain(tNrm), ssPlain(tNrmC), cv) * 2.0 - 1.0);
   if (uFlip > 0.5) n.x = -n.x;
-  vec3 m = mix(texture(tMat, vUv).rgb, texture(tMatC, vUv).rgb, cv);
+  vec3 m = mix(texture(tMat, U).rgb, texture(tMatC, U).rgb, cv);
   vec3 gR = ssPlain(tGlowR), gC = ssPlain(tGlowC);
   vec3 g = uView > 0.5 ? gC : gR;
   float grp = (uView > 0.5 && grpC > 0.5 && dot(abs(gC - gR), vec3(1.0)) > 0.004) ? grpC : grpR;

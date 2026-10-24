@@ -45,7 +45,45 @@
     },
     "outfit": "coat",
     "jogFrom": 1.5,
-    "runFrom": 3
+    "runFrom": 3,
+    "alive": {
+      "front": [
+        {
+          "move": "sway",
+          "joint": [
+            0,
+            240
+          ],
+          "angle": 0.3,
+          "every": 8
+        },
+        {
+          "move": "breathe",
+          "joint": [
+            0,
+            54
+          ],
+          "soft": 44,
+          "lift": 0.6,
+          "every": 4.2
+        },
+        {
+          "move": "glance",
+          "joint": [
+            0,
+            44
+          ],
+          "at": [
+            0,
+            21
+          ],
+          "r": 15,
+          "soft": 7,
+          "angle": 5,
+          "every": 4.5
+        }
+      ]
+    }
   },
   "scenes": [
     "street",

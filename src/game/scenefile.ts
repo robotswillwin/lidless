@@ -3,8 +3,9 @@
 // (built assets, placed), lights, its inside and outside areas, the walk line, places to arrive and hotspots, some of
 // which lead to other scenes.
 
-import { fetchSprite, imageFromBlob, loadBlob, makeSprite, SPEEDS, spriteDefaults, WAVES, type FetchedSprite, type GodrayDef, type GroundDef, type LoadedScene, type Only, type Views, type MoverDef, type SceneDef, type ScopeDef, type ClockDef, type CradleDef, type RingsDef, type IndicatorDef, type CameraDef, type AirDef, type Slide, type Sprite, type SteamDef } from '../engine/assets';
+import { fetchSprite, imageFromBlob, loadBlob, makeSprite, SPEEDS, spriteDefaults, WAVES, type FetchedSprite, type GodrayDef, type GroundDef, type LoadedScene, type Only, type Views, type MoverDef, type SceneDef, type ScopeDef, type ClockDef, type CradleDef, type RingsDef, type IndicatorDef, type CameraDef, type AirDef, type AlivePart, type Slide, type Sprite, type SteamDef } from '../engine/assets';
 import { presets, type PlacedLight } from '../engine/presets';
+import { aliveProblems } from './alive';
 import { conditionProblem } from './conditions';
 import { textureFromImage, type GL } from '../engine/gl';
 import type { Hotspot, LevelDef, ViewText } from './level';
@@ -38,6 +39,8 @@ export interface LayerDef {
   when?: string;
   /** One of pictures shown in turn, fading into each other: a photo frame's photos. */
   show?: Slide;
+  /** For a character: how it moves where it stands, breathing, swaying, turning its head (see AlivePart). */
+  alive?: AlivePart[];
 }
 
 /** Where a door or an edge leads: a scene, and the place there to arrive at. */
@@ -187,6 +190,11 @@ export interface WorldFile {
     outfits?: Outfits;
     /** The outfit she starts in; the first one if none is given. */
     outfit?: string;
+    /**
+     * How she moves standing, turned to us (`front`): breathing, her weight shifting, her head tilting now and then
+     * (see AlivePart). Its points are measured across from her middle (her sprite's anchor), and down from its top.
+     */
+    alive?: { front?: AlivePart[] };
   };
   scenes: string[];
   /** Where each place is drawn on the map (see map.ts). */
@@ -269,6 +277,7 @@ export function checkSceneFile(data: unknown, id?: string): string[] {
     const sh = l?.show as Record<string, unknown> | undefined;
     if (sh !== undefined && !(isNum(sh?.at) && isNum(sh?.of) && isNum(sh?.every) && sh.of >= 1 && sh.at >= 0 && sh.at < sh.of && sh.every > 0 && (sh.fade === undefined || isNum(sh.fade))))
       out.push(`layers[${i}].show needs at (from 0), of, every (seconds) and perhaps fade`);
+    if (l?.alive !== undefined) out.push(...aliveProblems(l.alive, `layers[${i}].alive`));
   });
   if (!Array.isArray(f.lights)) out.push('lights must be a list (it can be empty)');
   else (f.lights as Record<string, unknown>[]).forEach((l, i) => {
@@ -458,7 +467,7 @@ export async function makeScene(gl: GL, fetched: FetchedScene, world: WorldFile)
   const sprites = await Promise.all(file.layers.map(async (layer) => {
     const s = await sprite(layer.asset), d = s.def;
     // each layer has a definition of its own, so the same asset can be placed twice
-    return { ...s, def: { ...d, x: layer.x ?? d.x, y: layer.y ?? d.y, parallax: layer.parallax ?? d.parallax, front: layer.front ?? d.front, depth: layer.depth ?? d.depth, facing: layer.facing ?? d.facing, footprint: layer.footprint ?? d.footprint, only: layer.only, views: layer.views, when: layer.when, show: layer.show } };
+    return { ...s, def: { ...d, x: layer.x ?? d.x, y: layer.y ?? d.y, parallax: layer.parallax ?? d.parallax, front: layer.front ?? d.front, depth: layer.depth ?? d.depth, facing: layer.facing ?? d.facing, footprint: layer.footprint ?? d.footprint, only: layer.only, views: layer.views, when: layer.when, show: layer.show, alive: layer.alive } };
   }));
   const zone = fetched.zone ? textureFromImage(gl, await imageFromBlob(await fetched.zone, file.zoneMap), false) : zoneTexture(gl, file);
   const def: SceneDef = {

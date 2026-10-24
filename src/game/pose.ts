@@ -41,11 +41,17 @@ export class Turns {
   going = false;
   out = false;
   stillSince = 0;
+  /** How she stands now (null side on), and since when: turned to us, she stands alive from the moment she turned. */
+  posed: Pose | null = null;
+  posedAt = 0;
 
   /** Her frame at `t`, turned, or null side on; moving or talking, she is not standing still, and moving, not out. */
   frame(def: SpriteDef, t: number, moving: boolean, talking: boolean): number | null {
     if (moving || talking) this.stillSince = t;
     if (moving) this.out = false;
-    return poseFrame(def, poseAt(t, { going: this.going, moving, talking, out: this.out, stillSince: this.stillSince }), t);
+    const pose = poseAt(t, { going: this.going, moving, talking, out: this.out, stillSince: this.stillSince }), at = poseFrame(def, pose, t);
+    const now = at === null ? null : pose;
+    if (now !== this.posed) { this.posed = now; this.posedAt = t; }
+    return at;
   }
 }

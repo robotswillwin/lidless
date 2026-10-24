@@ -28,19 +28,203 @@
    "asset": "street/station-woman",
    "x": 572,
    "y": 286,
-   "when": "station_seat == \"woman\""
+   "when": "station_seat == \"woman\"",
+   "alive": [
+    {
+     "move": "breathe",
+     "joint": [
+      138,
+      98
+     ],
+     "soft": 20,
+     "lift": 0.5,
+     "every": 4,
+     "only": "raw"
+    },
+    {
+     "move": "glance",
+     "joint": [
+      138,
+      93
+     ],
+     "at": [
+      143,
+      82
+     ],
+     "r": 11,
+     "soft": 5,
+     "angle": 8,
+     "every": 3,
+     "only": "raw"
+    },
+    {
+     "move": "breathe",
+     "joint": [
+      142,
+      98
+     ],
+     "soft": 22,
+     "lift": 0.5,
+     "every": 4.4,
+     "only": "concierge"
+    },
+    {
+     "move": "glance",
+     "joint": [
+      142,
+      90
+     ],
+     "at": [
+      145,
+      79
+     ],
+     "r": 11,
+     "soft": 5,
+     "angle": 3,
+     "every": 6,
+     "only": "concierge"
+    }
+   ]
   },
   {
    "asset": "street/station-man",
    "x": 572,
    "y": 286,
-   "when": "station_seat == \"man\""
+   "when": "station_seat == \"man\"",
+   "alive": [
+    {
+     "move": "breathe",
+     "joint": [
+      130,
+      92
+     ],
+     "soft": 25,
+     "lift": 0.6,
+     "every": 5.5,
+     "only": "raw"
+    },
+    {
+     "move": "doze",
+     "joint": [
+      133,
+      84
+     ],
+     "at": [
+      136,
+      71
+     ],
+     "r": 11,
+     "soft": 5,
+     "angle": 12,
+     "every": 13,
+     "only": "raw"
+    },
+    {
+     "move": "breathe",
+     "joint": [
+      134,
+      95
+     ],
+     "soft": 25,
+     "lift": 0.5,
+     "every": 4.4,
+     "only": "concierge"
+    },
+    {
+     "move": "glance",
+     "joint": [
+      137,
+      87
+     ],
+     "at": [
+      141,
+      75
+     ],
+     "r": 12,
+     "soft": 5,
+     "angle": 3,
+     "every": 7,
+     "only": "concierge"
+    }
+   ]
   },
   {
    "asset": "street/station-worker",
    "x": 572,
    "y": 286,
-   "when": "station_seat == \"worker\""
+   "when": "station_seat == \"worker\"",
+   "alive": [
+    {
+     "move": "breathe",
+     "joint": [
+      128,
+      100
+     ],
+     "soft": 22,
+     "lift": 0.8,
+     "every": 5.2,
+     "only": "raw"
+    },
+    {
+     "move": "sway",
+     "joint": [
+      129,
+      89
+     ],
+     "at": [
+      134,
+      75
+     ],
+     "r": 12,
+     "soft": 5,
+     "angle": 2,
+     "every": 5.2,
+     "only": "raw"
+    },
+    {
+     "move": "breathe",
+     "joint": [
+      130,
+      100
+     ],
+     "soft": 22,
+     "lift": 0.6,
+     "every": 3.6,
+     "only": "concierge"
+    },
+    {
+     "move": "glance",
+     "joint": [
+      126,
+      90
+     ],
+     "at": [
+      127,
+      74
+     ],
+     "r": 12,
+     "soft": 5,
+     "angle": 4,
+     "every": 3,
+     "only": "concierge"
+    },
+    {
+     "move": "fidget",
+     "joint": [
+      146,
+      108
+     ],
+     "at": [
+      165,
+      92
+     ],
+     "r": 8,
+     "soft": 6,
+     "angle": 8,
+     "every": 4,
+     "only": "concierge"
+    }
+   ]
   }
  ],
  "lights": [

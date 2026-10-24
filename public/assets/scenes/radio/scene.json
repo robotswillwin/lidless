@@ -20,7 +20,43 @@
     {
       "asset": "cast/fixer",
       "x": 667,
-      "y": 248
+      "y": 248,
+      "alive": [
+        {
+          "move": "sway",
+          "joint": [
+            38,
+            240
+          ],
+          "angle": 0.2,
+          "every": 11
+        },
+        {
+          "move": "breathe",
+          "joint": [
+            38,
+            45
+          ],
+          "soft": 45,
+          "lift": 0.6,
+          "every": 5
+        },
+        {
+          "move": "glance",
+          "joint": [
+            35,
+            38
+          ],
+          "at": [
+            28,
+            20
+          ],
+          "r": 12,
+          "soft": 6,
+          "angle": 3,
+          "every": 6
+        }
+      ]
     }
   ],
   "walk": {

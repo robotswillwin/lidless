@@ -3,7 +3,8 @@
 import { asIn, inViewOf, slideOpacity, smoothSampled, SPEEDS, WAVES, type LoadedScene, type MoverDef, type Speed, type SpriteDef } from '../engine/assets';
 import { resolveLight } from '../engine/presets';
 import type { DrawSprite, Frame } from '../engine/renderer';
-import { frameFor, hasLeft } from './anim';
+import { bendsAt } from './alive';
+import { frameFor, hash, hasLeft } from './anim';
 import { floorLabel, type LiftNow } from './lift';
 
 /** A figure on a lift's display, as its seven segments: the bits of a top, then clockwise, the middle last. */
@@ -264,6 +265,8 @@ export class SceneRunner {
         frame: def.frames ? frameFor(def, false, 0, t, facing) : 0,
         scale: isPerson(def) ? d.actorScale ?? 1 : 1,
         ...(opacity < 1 ? { opacity } : {}),
+        // standing alive: breathing, swaying, turning its head now and then, each out of step with the others
+        ...(def.alive ? { bends: bendsAt(def.alive, t, viewName, i + 1, hash(i + 1)) } : {}),
       };
       (isPerson(def) ? people : def.front ? front : set).push(draw);
       // what moves through the scene behind the nearer layers goes right after its own

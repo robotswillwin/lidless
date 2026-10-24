@@ -229,6 +229,18 @@ flickers:
   soldering loop is made this way. Felix (`art/cast/felix.json`), the Level 4 guest in the cocktail bar, is a
   character that stands with no loop yet, drawn as the sheet's Deep Integration (below): raw view first
   (`generate`), his Concierge's view edited from it (`variant`), 254 tall for about 1.75 m.
+- **Standing alive** (`alive` on the scene's layer that places a character; decision 44): with no frames at all, the
+  sprite shader bends parts of the picture, so a person breathes, shifts their weight, turns their head now and then,
+  nods off, taps a foot or swirls a glass. Each part (`AlivePart` in src/engine/assets.ts, worked out in
+  src/game/alive.ts) turns about its `joint` (a neck, an elbow, the feet; in the sprite's own pixels from its top left)
+  by up to `angle` degrees, clockwise when positive, or rises `lift` pixels. The part is what lies within `r` of `at`,
+  fading over `soft` beyond it, or without `r` everything above the joint, fading over `soft` below. How it moves:
+  `breathe` (a breath every `every` seconds, one in eight a sigh), `sway`, `glance` (to another angle now and then,
+  held), `doze` (drooping slowly, a jerk back up) or `fidget` (a moment of quick small turns now and then). The parts
+  move in their order, each carrying those after it: the body's sway, its breath, then its head and hands. `only` keeps
+  a part to one view: the man at the station dozes in raw view and reads in the Concierge's. Six parts at most in a
+  view; the sprite is drawn 4 pixels bigger each way for its parts to move into. Felix swirls his glass, the fixer
+  glances up from his work, and the three who wait at the station each move their own way in each view.
 
 ### People by connection level
 
@@ -399,6 +411,11 @@ view's own proportions where it has them (the Concierge's longer, sleeker ponyta
 Standing, she breathes: a loop of 16 frames (`idleCycle` in tools/pipeline/parts.mjs) in which her chest rises and her
 torso tips back a touch, her head, arms and free knee follow, and in Blender her ponytail and coat sway on their
 springs; the recipe's `anims.idle.fps` (5) sets its pace.
+
+Turned to us (after six seconds standing still, pose.ts), her front is one picture, kept alive like a placed
+character's (Standing alive, above): world.json's `hero.alive.front`, its points measured across from her middle (her
+sprite's anchor) and down from the top, the same in every outfit. She breathes, shifts her weight and tilts her head
+now and then, from the moment she turned.
 
 She jogs and runs as an animator keys a run (`runCycle`, with `JOG` and `RUN`, in tools/pipeline/parts.mjs; a
 recipe's `parts.jog` and `parts.run` change any of it): a foot lands a little in front of her hip and rolls back under

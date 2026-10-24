@@ -158,7 +158,9 @@ holds**. Each decision is the director's, in plain words; what is still open say
     clock's hands keep the time. Athena's oscilloscope is the first: Luna can turn its two knobs, one for the line's
     shape and one for its speed, a bonus that nothing waits on. The fixer's monitor and his clock are live too, and
     so are the tower's lift displays (one lift for the whole tower, called up and down by the neighbours), a camera
-    in the backstreet that turns to follow her, raw view's alone, and the restroom's hand dryer.
+    in the backstreet that turns to follow her, raw view's alone, and the restroom's hand dryer. People standing or
+    sitting breathe, shift their weight and turn their heads now and then, each in their own way; Luna too, turned
+    to us. The man at the station dozes in raw view and reads in the Concierge's.
 45. **Luna has no terminal, no radio and no valves.** Everything of hers is the Concierge's voice and gestures; only old
     relics (Athena's, the fixer's) have keys and dials. In raw view her desk is nearly bare. The first build's radio,
     its valve and the voice under the static are cut: there is no mysterious voice. On her desk now: a Newton's

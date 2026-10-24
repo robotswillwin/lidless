@@ -63,6 +63,8 @@ export interface DrawSprite {
   blend?: boolean;
   /** How much of it shows, 0 to 1 (a photo fading into the next): only a blended layer fades; a cut-out shows over a half. */
   opacity?: number;
+  /** A character standing alive: its parts bent where they are now, eight numbers each (alive.ts), six at most. */
+  bends?: Float32Array | null;
 }
 
 export interface Frame {
@@ -142,6 +144,8 @@ export interface Frame {
 
 /** Reflections smudged at least this far sideways (the look's pixels) are a glossy floor: the people are smudged in too. */
 const GLOSSY = 16;
+/** Pixels a character standing alive is drawn bigger each way, for its parts to move into: a breath, a head turned. */
+const ALIVE_PAD = 4;
 /** No steam emitter on a far layer. */
 const NO_FAR = new Float32Array(4);
 /** No movers' trails. */
@@ -312,6 +316,11 @@ export class Renderer {
       gl.uniform1f(sp.u.uFlip, d.flip ? 1 : 0);
       gl.uniform1f(sp.u.uBlend, d.blend ? 1 : 0);
       gl.uniform1f(sp.u.uOpacity, d.opacity ?? 1);
+      // a character standing alive: its parts bent, drawn a little bigger each way for them to move into
+      const nb = d.bends ? Math.min(6, Math.floor(d.bends.length / 8)) : 0;
+      gl.uniform1f(sp.u.uNBend, nb);
+      gl.uniform2f(sp.u.uPad, nb ? ALIVE_PAD / def.w : 0, nb ? ALIVE_PAD / def.h : 0);
+      if (nb) { gl.uniform4fv(sp.u.uBend, d.bends!, 0, nb * 8); gl.uniform2f(sp.u.uSize, def.w, def.h); }
       // the frame's place in the texture: frames run in rows of `cols`, with a gutter of g texels between them
       const fr = def.frames, fi = fr ? Math.max(0, Math.min(fr.count - 1, d.frame ?? 0)) : 0, g = fr?.gutter ?? 0;
       const cols = fr ? Math.min(fr.count, fr.cols ?? fr.count) : 1, rows = fr ? Math.ceil(fr.count / cols) : 1;

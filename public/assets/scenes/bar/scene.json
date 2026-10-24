@@ -18,7 +18,58 @@
     {
       "asset": "cast/felix",
       "x": 678,
-      "y": 240
+      "y": 240,
+      "alive": [
+        {
+          "move": "sway",
+          "joint": [
+            45,
+            254
+          ],
+          "angle": 0.3,
+          "every": 9
+        },
+        {
+          "move": "breathe",
+          "joint": [
+            40,
+            48
+          ],
+          "soft": 45,
+          "lift": 0.7,
+          "every": 4.6
+        },
+        {
+          "move": "glance",
+          "joint": [
+            36,
+            36
+          ],
+          "at": [
+            30,
+            21
+          ],
+          "r": 13,
+          "soft": 6,
+          "angle": 5,
+          "every": 5
+        },
+        {
+          "move": "fidget",
+          "joint": [
+            22,
+            86
+          ],
+          "at": [
+            11,
+            60
+          ],
+          "r": 9,
+          "soft": 7,
+          "angle": 4,
+          "every": 7
+        }
+      ]
     }
   ],
   "walk": {

@@ -8,6 +8,7 @@ import type { LookSet } from '../engine/look';
 import { fitCanvas, NW, type Renderer } from '../engine/renderer';
 import { createLookPanel, type LookPanel } from '../look-panel';
 import { verbsIn } from './actions';
+import { bendsAt } from './alive';
 import { frameFor } from './anim';
 import { Camera, cameraTarget } from './camera';
 import { CO } from './co';
@@ -563,6 +564,9 @@ export class Game {
     // turned to us or away from us (pose.ts), never mirrored: her eyepiece is on her right eye
     const turned = this.turns.frame(hero.def, t, world.moving, this.talk.open);
     const her = heroDrawing(hero, { x: world.heroX, walkY: file.walk.y, cam: this.cam, scale: sc, facing: turned === null ? world.facing : 1, bob, frame: turned ?? frameFor(hero.def, world.moving, world.phase, t, world.facing, world.gait) });
+    // turned to us, she stands alive: breathing, her weight shifting, her head tilting now and then
+    const alive = this.turns.posed === 'front' ? this.setup.world.hero.alive?.front : undefined;
+    if (alive) her.bends = bendsAt(alive, t - this.turns.posedAt, this.raw ? 'raw' : 'concierge', 0, 0, hero.def.anchor?.[0] ?? hero.def.w / 2);
     // what a verb lights up, and what she found, stay on the thing as the camera follows her
     this.controls.remark();
     const noted = this.hud.noteFor;

@@ -40,6 +40,8 @@ export interface SpriteDef {
   show?: Slide;
   /** Placed elsewhere in one view of a scene. */
   views?: Views<{ x: number; y: number }>;
+  /** Placed in a scene, how it moves where it stands, drawn live: see AlivePart. */
+  alive?: AlivePart[];
   /** What the pipeline built it as: character, prop, background or portrait. */
   kind?: string;
   /**
@@ -212,6 +214,34 @@ export interface IndicatorDef { x: number; y: number; w: number; h: number; colo
 export interface CameraDef { x: number; y: number; size?: number; when?: string; only?: Only; parallax?: number }
 /** Air blown from an outlet a while after a spot is used (a hand dryer): where it comes out, how wide, and which spot. */
 export interface AirDef { x: number; y: number; w: number; spot: string; when?: string; only?: Only; parallax?: number }
+
+/** How a part of a character moves where it stands: see AlivePart. */
+export const MOVES = ['breathe', 'sway', 'glance', 'doze', 'fidget'] as const;
+export type Move = (typeof MOVES)[number];
+/**
+ * A part of a character that moves where it stands, drawn live by bending its picture (decision 44): no frames. Its
+ * points are in the sprite's own pixels, from its top left. It turns about its `joint` (a neck, an elbow, the feet) by up
+ * to `angle` degrees, or rises `lift` pixels; the part is what lies within `r` of `at` (the joint unless it says), fading
+ * out over `soft` beyond, or without `r` everything above the joint, fading out over `soft` below it.
+ * - breathe: rises as it breathes in, a breath every `every` seconds, now and then a deeper one, a sigh;
+ * - sway: turns slowly to and fro, a sway every `every` seconds;
+ * - glance: turns to another angle now and then (about every `every` seconds) and holds it, sometimes back as drawn;
+ * - doze: droops slowly, then jerks back up, a little past, and is awake a while: every `every` seconds;
+ * - fidget: now and then, a moment of quick small turns one way and back: a foot tapping, a glass swirled.
+ * The parts move in their order, each carrying the parts after it: the body's sway first, then its breath, then its head.
+ */
+export interface AlivePart {
+  move: Move;
+  joint: [number, number];
+  at?: [number, number];
+  r?: number;
+  soft?: number;
+  angle?: number;
+  lift?: number;
+  every?: number;
+  /** Only in one view: dozing in raw view, reading in the Concierge's. */
+  only?: Only;
+}
 
 /**
  * The ground below the reflection line, drawn by the engine over a painted floor that was smoothed for it (asset ground

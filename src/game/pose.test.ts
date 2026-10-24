@@ -53,8 +53,16 @@ describe('her front and back', () => {
     // she stopped at 2: side on until she has stood still a while
     expect(turns.frame(def, 2 + TURN_AFTER - 0.5, false, false)).toBe(null);
     expect(turns.frame(def, 2 + TURN_AFTER, false, false)).toBe(160);
+    // turned to us from that moment: she stands alive from then
+    expect([turns.posed, turns.posedAt]).toEqual(['front', 2 + TURN_AFTER]);
+    turns.frame(def, 12, false, false);
+    expect(turns.posedAt).toBe(2 + TURN_AFTER);
     turns.going = true;
     expect(turns.frame(def, 20, false, false)).toBe(161);
+    expect([turns.posed, turns.posedAt]).toEqual(['back', 20]);
+    // with no frame to turn to, she is side on
+    expect(turns.frame({ anims: { idle: { from: 0, count: 16 } } } as unknown as SpriteDef, 21, false, false)).toBe(null);
+    expect(turns.posed).toBe(null);
   });
 });
 

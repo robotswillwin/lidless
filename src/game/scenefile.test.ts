@@ -77,6 +77,20 @@ describe('checkSceneFile', () => {
     expect(problems).toContain('layers[0].show needs at (from 0), of, every (seconds) and perhaps fade');
   });
 
+  it('checks how a character placed in it moves where it stands', () => {
+    const f = read('street');
+    (f.layers as Record<string, unknown>[])[0].alive = [{ move: 'wave', joint: [1, 2] }, { move: 'glance', joint: [1] }, { move: 'breathe', joint: [1, 2], every: 0.2, only: 'both' }];
+    expect(checkSceneFile(f, 'street')).toEqual([
+      'layers[0].alive[0].move must be one of breathe, sway, glance, doze, fidget',
+      'layers[0].alive[1] needs angle, in degrees',
+      'layers[0].alive[1].joint must be [x, y]',
+      'layers[0].alive[2].every must be over half a second',
+      'layers[0].alive[2].only must be raw or concierge',
+    ]);
+    (f.layers as Record<string, unknown>[])[0].alive = Array.from({ length: 7 }, () => ({ move: 'breathe', joint: [1, 2] }));
+    expect(checkSceneFile(f, 'street')).toContain('layers[0].alive: at most 6 parts move in a view, raw view has 7');
+  });
+
   it('checks the lift displays, cameras, a dryer\'s air, and the floor in the tower', () => {
     const f = read('street');
     f.indicators = [{ x: 1, y: 1, w: 20, colours: { concierge: [1, 2] } }];

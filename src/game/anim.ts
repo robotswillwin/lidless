@@ -10,7 +10,7 @@ export const hasLeft = (def: SpriteDef): boolean => !!(def.anims?.walkLeft || de
 const BLINK = 0.15, SLOT = 0.6, CHANCE = 0.17;
 
 /** A number from 0 to 1 for each whole number, the same every time, with no pattern to see. */
-function hash(n: number): number {
+export function hash(n: number): number {
   let x = Math.imul(n ^ 0x9e3779b9, 0x85ebca6b);
   x ^= x >>> 13;
   x = Math.imul(x, 0xc2b2ae35);
