@@ -89,6 +89,8 @@ export class Panels {
     // her notebook stays shut where it can see her
     if (kind === 'notebook' && !hud.hasNotebook()) return;
     if (kind === 'notebook' && !hud.unseen) return hud.onShut();
+    // open again on another page, it does not open anew: its frame stays, its page changes
+    const again = this.kind === kind && !!this.panel;
     this.panel?.remove();
     this.eye?.stop();
     // the menu pauses the game; any other panel lets it go on
@@ -99,7 +101,7 @@ export class Panels {
     hud.balls.closeTray();
     this.kind = kind;
     hud.root.dataset.panel = kind;
-    const p = (this.panel = el('section', `hud-panel ${kind}`, hud.root));
+    const p = (this.panel = el('section', `hud-panel ${kind}${again ? ' still' : ''}`, hud.root));
     p.addEventListener('pointerdown', (e) => e.stopPropagation());
     hud.onPanel();
     if (kind === 'notebook') this.drawNotebookPanel(p);
@@ -154,6 +156,7 @@ export class Panels {
       tab: (id) => { this.journalTab = id; this.openPanel('journal'); },
       read: (keys) => hud.onRead(keys),
       close: () => this.close(),
+      picture: (thing) => hud.balls.picture(thing, 72),
       map: (body) => void hud.mapNow().then((now) => {
         if (this.panel !== p) return;
         drawMap(body, now, (t) => { this.close(); hud.onTravel(t); });

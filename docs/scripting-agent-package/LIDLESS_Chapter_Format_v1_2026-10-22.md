@@ -349,6 +349,7 @@ Both have pages; the catalog lists them.
   name: The voice under the static
   when: radio_heard                # written once this holds
   done: relay_found                # crossed out once this holds
+  thing: relay_log                 # optional: a thing whose picture shows with it (evidence she found)
   lines:
     - Find out where it comes from.
     - { text: "It comes at three, on 7350 kHz.", when: heard_at_three }

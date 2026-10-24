@@ -6,7 +6,7 @@ const nb: Notebook = {
   pages: [
     { id: 'errands', title: 'errands', entries: [
       { id: 'parcel', name: 'parcel 4471', done: 'delivered', lines: ['to the radio repair.', { text: 'on his bench now.', when: 'delivered' }] },
-      { id: 'radio', name: 'my radio', lines: ['needs a valve.'] },
+      { id: 'radio', name: 'my radio', lines: ['needs a valve.'], thing: 'matches' },
     ] },
     { id: 'people', title: 'people', empty: 'nobody yet.', entries: [{ id: 'fixer', name: 'the fixer', when: 'has_raw', lines: ['radio shop.'] }] },
     { id: 'questions', title: 'ask it', when: 'has_raw', list: true, entries: [{ id: 'weather', name: 'what is weather?' }] },
@@ -25,6 +25,11 @@ describe('her notebook', () => {
     const later = notebookNow(nb, story('has_raw', 'delivered'), new Set());
     expect(later.map((p) => p.id)).toEqual(['errands', 'people', 'questions']);
     expect(later[2].list).toBe(true);
+  });
+
+  it('carries the thing an entry shows, and none where it has none', () => {
+    const [errands] = notebookNow(nb, story(), new Set());
+    expect(errands.entries.map((e) => e.thing)).toEqual([undefined, 'matches']);
   });
 
   it('crosses out an errand run and puts it last, with what she learned', () => {

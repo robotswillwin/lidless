@@ -163,6 +163,7 @@ what she keeps from it (what she saw, what she thinks, what to ask it), read onl
 | --- | --- | --- |
 | `when` | a page, an entry, a line | Written once the condition holds: an entry for a person she has met, a line for what she learned since. |
 | `done` | an entry | Crossed out once it holds (an errand run), and put last. |
+| `thing` | an entry | A thing (an item's id in items.json) whose picture shows with it, as the view shows it: evidence she found. |
 | `empty` | a page | What it says while nothing is written on it; without it, the page waits until something is. |
 | `list` | a page | Its entries as a numbered list of their names (questions to ask). |
 

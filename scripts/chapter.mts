@@ -420,6 +420,7 @@ function main() {
       if (typeof v.name !== 'string') error(ew, 'name');
       condition(v.when, ew, 'when');
       condition(v.done, ew, 'done');
+      if (v.thing !== undefined && (typeof v.thing !== 'string' || !allThings.has(v.thing))) error(ew, `thing: ${String(v.thing)} is not a thing of the game's or the chapter's (under Things)`);
       for (const l of (v.lines as unknown[]) ?? []) if (isObj(l)) condition(l.when, ew, 'a line\'s when');
     }
   }

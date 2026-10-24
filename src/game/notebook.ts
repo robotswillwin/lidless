@@ -21,6 +21,8 @@ export interface NoteEntry {
   when?: string;
   /** Crossed out (an errand run) once this holds. */
   done?: string;
+  /** A thing (an item's id) whose picture shows with it, as the view shows it: evidence she found, what someone gave her. */
+  thing?: string;
 }
 
 export interface NotePage {
@@ -43,7 +45,7 @@ export interface Notebook {
 
 export interface ShownLine { key: string; text: string; fresh: boolean }
 /** `fresh`: anything in it she has not read; `new`: the entry itself (or its crossing out). */
-export interface ShownEntry { key: string; name: string; lines: ShownLine[]; done: boolean; fresh: boolean; new: boolean }
+export interface ShownEntry { key: string; name: string; lines: ShownLine[]; done: boolean; fresh: boolean; new: boolean; thing?: string }
 export interface ShownPage { id: string; title: string; empty?: string; list: boolean; entries: ShownEntry[]; fresh: boolean }
 
 const lineOf = (l: string | NoteLine): NoteLine => (typeof l === 'string' ? { text: l } : l);
@@ -61,7 +63,7 @@ export function notebookNow(nb: Notebook, known: (cond: string) => boolean, read
       const lines = (e.lines ?? []).map(lineOf).map((l, i) => ({ key: `${key}#${i}`, text: l.text, when: l.when })).filter((l) => holds(l.when))
         .map(({ key: k, text }) => ({ key: k, text, fresh: !read.has(k) }));
       const isNew = !read.has(key) || (done && !read.has(`${key}!done`));
-      return { key, name: e.name, lines, done, new: isNew, fresh: isNew || lines.some((l) => l.fresh) };
+      return { key, name: e.name, lines, done, new: isNew, fresh: isNew || lines.some((l) => l.fresh), ...(e.thing ? { thing: e.thing } : {}) };
     });
     const ordered = [...entries.filter((e) => !e.done), ...entries.filter((e) => e.done)];
     if (!ordered.length && !p.empty) return [];

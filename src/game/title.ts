@@ -56,6 +56,11 @@ export interface TitleHooks {
   onSettings: (s: Settings) => void;
   /** On with the game in progress: the title goes. */
   onContinue: () => void;
+  /**
+   * Its eye opens as it shows (come back to from the game); without, it shows open, as the wait's eye left it as the
+   * game opened.
+   */
+  openEye?: boolean;
 }
 
 /**
@@ -72,7 +77,7 @@ export function showTitle(stage: HTMLElement, hooks: TitleHooks): () => void {
   brand.innerHTML = eyeMark('title-eye');
   // as the wait left it: open, its pupil lit, looking about and blinking now and then
   const eye = new Eye(brand.querySelector('svg')!, () => document.documentElement.dataset.motion === 'reduced');
-  eye.play(3.4);
+  eye.play(hooks.openEye ? 0.2 : 3.4);
   el('h1', 'logo', brand, 'Lidless');
   el('p', 'tagline', brand, 'Year 64 of Care');
   const panel = el('div', 'panel', box);

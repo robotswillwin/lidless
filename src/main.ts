@@ -90,15 +90,16 @@ async function boot(): Promise<void> {
     document.documentElement.dataset.motion = reducedOf(s) ? 'reduced' : 'full';
   };
   apply(settings);
-  const title = () => {
+  // the title screen: as the game opens, its eye open as the wait left it; come back to from the game, its eye opens
+  const title = (back = false) => {
     game.inputLocked = true;
     game.hud.closeAll();
     // begun with no game saved, a new game: its opening
-    showTitle(stage, { settings: () => settings, onSettings: apply, onContinue: () => { game.inputLocked = false; game.begin(); } });
+    showTitle(stage, { settings: () => settings, onSettings: apply, onContinue: () => { game.inputLocked = false; game.begin(); }, openEye: back });
   };
   game.hud.settings = () => settings;
   game.hud.onSettings = apply;
-  game.hud.onTitle = title;
+  game.hud.onTitle = () => title(true);
 
   stats.hidden = !params.has('debug');
   let frames = 0, fpsAt = performance.now(), fps = 0;

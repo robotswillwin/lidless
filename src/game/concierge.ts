@@ -60,6 +60,24 @@ const MARK = {
 /** How long it takes to say a line, its mark turning: quick, as a thing that thinks faster than she reads. */
 const sayTime = (text: string) => Math.min(1100, 380 + text.length * 7);
 
+/**
+ * Its words into `p` as it says them: each a moment after the one before, out of a blur, as if spoken; the text the
+ * same to read and to copy. With less motion, all at once.
+ */
+function spoken(p: HTMLElement, text: string): void {
+  if (document.documentElement.dataset.motion === 'reduced') { p.append(text); return; }
+  let i = 0;
+  for (const part of text.split(/(\s+)/)) {
+    if (!part) continue;
+    if (/^\s+$/.test(part)) { p.append(part); continue; }
+    const w = document.createElement('span');
+    w.className = 'w';
+    w.style.setProperty('--i', String(i++));
+    w.textContent = part;
+    p.append(w);
+  }
+}
+
 export class Concierge {
   /** Its presence tapped: open its card (the game fills it), or, listening, put the question down. */
   onTap: () => void = () => {};
@@ -225,7 +243,7 @@ export class Concierge {
     this.canCall = !!o.call;
     this.drawCard();
     const body = this.body!;
-    el('p', 'co-words', body, o.words);
+    spoken(el('p', 'co-words', body), o.words);
     if (o.inbox?.length) this.drawInbox(el('ul', 'co-inbox', body), o.inbox);
     if (o.reminders.length) {
       const list = el('ul', 'co-reminders', body);
@@ -261,7 +279,7 @@ export class Concierge {
     const s = (this.sayEl = el('div', 'co-say', this.layer));
     s.setAttribute('role', 'status');
     s.addEventListener('pointerdown', (e) => e.stopPropagation());
-    el('p', '', s, text);
+    spoken(el('p', '', s), text);
     if (actions.length) {
       const row = el('div', 'row', s);
       for (const a of actions) button(a.primary ? 'primary' : '', a.label, row, () => { this.dismiss(); a.run?.(); }).textContent = a.label;
@@ -387,7 +405,8 @@ export class Concierge {
     const who = speaker === 'concierge' ? 'its' : speaker === 'luna' ? 'hers' : speaker === 'narration' ? 'narration' : 'other';
     const m = el('p', `msg ${who}`, this.thread!);
     if (who === 'other') el('span', 'who', m, speaker);
-    m.append(document.createTextNode(who === 'its' ? text.replace(/^["“](.*)["”]$/s, '$1') : text));
+    if (who === 'its') spoken(m, text.replace(/^["“](.*)["”]$/s, '$1'));
+    else m.append(document.createTextNode(text));
     // the new line in sight from its start: a long one is read from the top
     const body = this.thread!.parentElement!;
     body.scrollTop = Math.min(m.offsetTop - body.offsetTop - 4, body.scrollHeight - body.clientHeight);

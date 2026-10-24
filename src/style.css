@@ -152,6 +152,12 @@ button.view:not(.hud-btn):focus-visible { outline: 2px solid #fff; outline-offse
 .co[data-state="listening"] .status { color: var(--co); }
 /* until she first opens it, its mark glows now and then */
 .co.beckon .co-orb .core { animation: co-glow 6s ease-in-out 2s infinite; }
+/* at rest, its light breathes, slowly */
+.co[data-state="idle"]:not([data-open]) .co-orb { animation: co-breathe 5.5s ease-in-out infinite; }
+@keyframes co-breathe { 50% { filter: drop-shadow(0 0 8px rgba(143, 240, 234, .95)); } }
+/* its words come as it says them, each a moment after the one before, out of a blur */
+.co .w, .co-say .w { display: inline-block; animation: co-word .36s ease-out both; animation-delay: min(calc(var(--i, 0) * 38ms), 2.2s); }
+@keyframes co-word { from { opacity: 0; filter: blur(4px); transform: translateY(2px); } }
 @keyframes co-turn { to { transform: rotate(-360deg); } }
 @keyframes co-ripple { from { opacity: .9; transform: scale(1); } to { opacity: 0; transform: scale(1.75); } }
 @keyframes co-glow { 0%, 70%, 100% { fill: rgba(143, 240, 234, .12); } 82% { fill: rgba(143, 240, 234, .5); } }
@@ -227,7 +233,7 @@ button.view:not(.hud-btn):focus-visible { outline: 2px solid #fff; outline-offse
 .co-say p { margin: 0; font: italic 500 calc(clamp(14px, 1.3cqw, 18px) * var(--ts, 1))/1.38 var(--serif); text-shadow: 0 0 14px rgba(143, 240, 234, .3); }
 .co-say .row { margin-top: 10px; }
 .co-say .row button { border-color: var(--co-edge); color: var(--co-ink); }
-@media (prefers-reduced-motion: reduce) { .co, .co-say, .co-thread .msg, .co-orb *, .co-thread .typing i { animation: none !important; } }
+@media (prefers-reduced-motion: reduce) { .co, .co-say, .co-thread .msg, .co-orb, .co-orb *, .co-thread .typing i, .co .w, .co-say .w { animation: none !important; } }
 .hud[data-view="raw"] .co-layer { display: none; }
 
 /* at the top right: the view switch (with her sense of being watched under it), the map, her journal, her notebook, the menu */
@@ -396,8 +402,14 @@ button.view:not(.hud-btn):focus-visible { outline: 2px solid #fff; outline-offse
   background: rgba(12, 13, 18, .86); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); color: var(--text); font: 400 calc(clamp(14px, 1.35cqw, 18px) * var(--ts, 1))/1.3 var(--ui); }
 /* its number, for the keys: a small key of its own, lit with the answer the finger or the keys are on */
 .talk-choice .key { flex: none; display: grid; place-items: center; min-width: 22px; height: 22px; border-radius: var(--r-xs); background: rgba(255, 255, 255, .08); font: 600 var(--fs-micro)/1 var(--ui); color: var(--dim); }
-.talk-choice:is(:hover, :focus-visible) { border-color: var(--edge-strong); background: rgba(34, 36, 44, .94); outline: none; }
-.talk-choice:is(:hover, :focus-visible) .key { background: #f5f3ef; color: #121318; }
+.talk-choice:is(:hover, :focus-visible, :active) { border-color: var(--edge-strong); background: rgba(34, 36, 44, .94); outline: none; }
+.talk-choice:is(:hover, :focus-visible, :active) .key { background: #f5f3ef; color: #121318; }
+.talk-choice:active { background: rgba(52, 54, 64, .96); }
+/* her answers come up one after another, from the bottom */
+.talk-choices li { animation: talk-in var(--t-small) var(--ease) both; }
+.talk-choices li:nth-child(2) { animation-delay: 30ms; } .talk-choices li:nth-child(3) { animation-delay: 60ms; } .talk-choices li:nth-child(4) { animation-delay: 90ms; } .talk-choices li:nth-child(n+5) { animation-delay: 120ms; }
+@keyframes talk-in { from { opacity: 0; transform: translateY(6px); } }
+@media (prefers-reduced-motion: reduce) { .talk-choices li { animation: none; } }
 
 /* panels over the street: the map and the menu on glass, her notebook on paper; the rest of the HUD steps back */
 .hud-panel { position: absolute; z-index: 3; }
@@ -521,6 +533,12 @@ button.view:not(.hud-btn):focus-visible { outline: 2px solid #fff; outline-offse
 .hud-panel.journal .entry .initial { grid-row: 1 / span 3; display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%; background: rgba(255, 255, 255, .12);
   font: 500 var(--fs-heading)/1 var(--ui); color: #fff; }
 .hud-panel.journal .entry .note { font: 400 calc(var(--fs-small) * var(--ts, 1))/1.45 var(--ui); color: var(--dim); }
+/* a thing with it (evidence): its picture at the left, in a little light */
+.hud-panel.journal .entry.with-thing { grid-template-columns: auto 1fr; column-gap: 14px; }
+.hud-panel.journal .entry.with-thing > :not(.thing) { grid-column: 2; }
+.hud-panel.journal .entry .thing { grid-row: 1 / span 4; align-self: start; display: grid; place-items: center; width: 72px; aspect-ratio: 1; border-radius: var(--r-card);
+  background: radial-gradient(closest-side, rgba(255, 255, 255, .14), rgba(255, 255, 255, .03)); }
+.hud-panel.journal .entry .thing :is(img, svg) { width: 86%; height: 86%; object-fit: contain; filter: drop-shadow(0 3px 5px rgba(0, 0, 0, .45)); }
 .hud-panel.journal .entry.done { opacity: .55; }
 .hud-panel.journal .entry.done .name { text-decoration: line-through; text-decoration-thickness: 1px; }
 .hud-panel.journal .entry :is(.name, .note).fresh::after { content: ""; display: inline-block; flex: none; width: 6px; height: 6px; margin-left: 7px; border-radius: 50%; background: #fff; vertical-align: .2em; }
@@ -605,10 +623,19 @@ button.view:not(.hud-btn):focus-visible { outline: 2px solid #fff; outline-offse
 .hud-panel.notebook .tab { position: relative; padding: 7px 14px 6px; border: 0; border-radius: 8px 8px 0 0; background: #cfc2a3; color: var(--pencil-soft); font: 400 clamp(14px, 1.3cqw, 18px)/1 var(--hand); }
 .hud-panel.notebook .tab.on { background: var(--paper); color: var(--pencil); font-weight: 700; }
 .hud-panel.notebook .tab.fresh::after { content: ""; position: absolute; right: 4px; top: 4px; width: 7px; height: 7px; border-radius: 50%; background: var(--red-pencil); }
+/* the page: dotted paper with its red margin line, the edges of the pages under it */
 .hud-panel.notebook .sheet {
-  flex: 1; min-height: 0; overflow: auto; padding: clamp(14px, 2.6cqw, 36px) clamp(18px, 3.4cqw, 48px); border-radius: var(--r-xs);
-  background: radial-gradient(circle, rgba(70, 90, 130, .2) 1px, transparent 1.5px) 11px 11px / 22px 22px, var(--paper); box-shadow: inset 0 0 40px rgba(90, 70, 40, .22);
+  --margin: clamp(26px, 4cqw, 52px);
+  flex: 1; min-height: 0; overflow: auto; padding: clamp(14px, 2.6cqw, 36px) clamp(18px, 3.4cqw, 48px) clamp(14px, 2.6cqw, 36px) calc(var(--margin) + clamp(12px, 1.6cqw, 22px)); border-radius: var(--r-xs);
+  background: linear-gradient(90deg, transparent var(--margin), rgba(176, 72, 52, .4) var(--margin), rgba(176, 72, 52, .4) calc(var(--margin) + 1.5px), transparent calc(var(--margin) + 1.5px)),
+    radial-gradient(circle, rgba(70, 90, 130, .2) 1px, transparent 1.5px) 11px 11px / 22px 22px, var(--paper);
+  box-shadow: inset 0 0 40px rgba(90, 70, 40, .22), 0 2px 0 -1px #d9cdb1, 0 4px 0 -2px #c8bb9b, 0 6px 0 -3px #b3a585, 0 8px 10px -4px rgba(0, 0, 0, .45);
 }
+/* another page turned to: the frame stays, the page turns */
+.hud-panel.still { animation: none !important; }
+.hud-panel.notebook.still .sheet { transform-origin: 0 50%; animation: page-turn .34s var(--ease) both; }
+@keyframes page-turn { from { opacity: .25; transform: perspective(1400px) rotateY(-16deg); } }
+@media (prefers-reduced-motion: reduce) { .hud-panel.notebook.still .sheet { animation: none; } }
 .hud-panel.notebook > .hud-close { position: absolute; right: 22px; top: 50px; color: var(--pencil-soft); }
 .hud-panel.notebook > .hud-close:hover { background: rgba(0, 0, 0, .06); color: var(--pencil); }
 .hud-panel.notebook h2 { margin: 0 0 12px; font: 700 clamp(22px, 2.2cqw, 30px)/1.1 var(--hand); }

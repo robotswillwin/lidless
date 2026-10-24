@@ -254,17 +254,20 @@ Keep. The notebook could have its margin, the paper's edge and a page turn.
 3. Done (24 October): the map as picture cards. A place's picture is taken as she arrives (`lidless.place.<scene>`);
    rooms are cards over their doors, streets lines with their stops; a tap picks a place into a card beside the map,
    with who and what she knows there and Go there; a map bigger than the window scrolls, centred on her.
-4. Partly done: the current objective large, people by their initial (portraits wait), empty pages. Evidence with
-   pictures is to come.
+4. Done (24 October): the current objective large, people by their initial (portraits wait), empty pages, and an
+   entry's `thing` (an item's id) showing that thing's picture with it, for evidence.
 
 **P1**: done (24 October): the pause screen (the game's clock stops; the eye, Resume, Saves, Settings, How to play
 and Title screen down the left, the page at the right); the settings grouped, each saying what it does; How to play
 drawn, a small screen for each gesture; the title's Continue card with the save's picture; a thing close up held in
-light, floating and turning a little. To come: the title's eye opening once as it first shows; the verb ring tried
-on a phone; conversation refinements.
+light, floating and turning a little; the title's eye opening when the title is come back to from the game; her
+answers lit under the finger as it presses, coming up one after another. Kept as they are, on purpose: lines over
+the speakers' heads in their colours, with no names (the plan's Monkey Island way). To try on a phone, the director's
+call: the verbs as a ring round their ball.
 
-**P2**: the Concierge's motion; the paper's details; sounds for the interface, with the director; icons of the
-device's own.
+**P2**: done (24 October): the Concierge's motion (its words come as it says them, out of a blur; its light breathes
+at rest); the paper's details (its red margin, the edges of the pages under it, the page turning between tabs). To
+come: sounds for the interface, with the director; icons of the device's own.
 
 Done means: every screen in `shots/ui`, on the phone and on the laptop, reads as one game; no sheet changes size; no
 text is under 11 px; nothing overlaps anything; nothing needs a pointer hovering; the checks are green.

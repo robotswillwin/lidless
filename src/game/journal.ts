@@ -19,7 +19,7 @@ const ICONS: Record<string, string> = { objectives: 'objectives', people: 'peopl
  * what it is: on her device, where the Concierge can read it. Reading a page marks what is on it read.
  */
 export function drawJournal(p: HTMLElement, pages: ShownPage[], tab: string | null,
-  on: { tab: (id: string) => void; read: (keys: string[]) => void; close: () => void; map: (body: HTMLElement) => void }): void {
+  on: { tab: (id: string) => void; read: (keys: string[]) => void; close: () => void; map: (body: HTMLElement) => void; picture?: (thing: string) => string }): void {
   p.setAttribute('aria-label', 'Her journal');
   // the map sits after the people, where the bible has it: objectives, people, places, evidence
   const tabs: { id: string; title: string; fresh: boolean }[] = pages.map((x) => ({ id: x.id, title: x.title, fresh: x.fresh }));
@@ -54,6 +54,9 @@ export function drawJournal(p: HTMLElement, pages: ShownPage[], tab: string | nu
     // what she has to do next, large; the people she knows by their initial
     const d = el('div', `entry${e.done ? ' done' : ''}${page.id === 'objectives' && e === first ? ' current' : ''}`, list);
     if (page.id === 'people') el('span', 'initial', d, [...e.name.replace(/^the\s+/i, '')][0]?.toUpperCase() ?? '?').setAttribute('aria-hidden', 'true');
+    // a thing with it (evidence she found): its picture, as the view shows it
+    const pic = e.thing && on.picture ? on.picture(e.thing) : '';
+    if (pic) { d.classList.add('with-thing'); el('div', 'thing', d).innerHTML = pic; }
     const name = el('div', `name${e.new ? ' fresh' : ''}`, d, e.name);
     if (e.done) name.insertAdjacentHTML('afterbegin', '<svg class="tick" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5"/></svg>');
     for (const l of e.lines) el('div', `note${l.fresh && !e.new ? ' fresh' : ''}`, d, l.text);

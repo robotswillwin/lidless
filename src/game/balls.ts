@@ -7,7 +7,7 @@ import { button, el } from './dom';
 import type { Hud } from './hud';
 import { icon } from './icons';
 import { pick } from './level';
-import { drawInspect, drawTray, picturesOf, thingsNow, type Item } from './tray';
+import { drawInspect, drawTray, pictureOf, picturesOf, thingsNow, type Item } from './tray';
 
 export class Balls {
   private readonly thingsBall: HTMLButtonElement;
@@ -88,6 +88,12 @@ export class Balls {
   unseenChanged(): void {
     if (this.trayEl) this.openTray();
     if (this.inspecting) this.inspect(this.inspecting);
+  }
+
+  /** A thing's picture as the view on screen shows it, whether she carries it or not (her journal's evidence). */
+  picture(id: string, size: number): string {
+    const t = thingsNow(this.items, [id], this.hud.raw)[0];
+    return t ? pictureOf(t, size, this.hud.assets) : '';
   }
 
   /** How many of her things there are in the view on screen. */

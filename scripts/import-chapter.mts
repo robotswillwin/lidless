@@ -241,7 +241,7 @@ export function importChapter(p: Parsed, game: GameKnots, dry: boolean): void {
       const entries = page.entries as Obj[];
       let e = entries.find((x) => x.id === v.id);
       if (!e) { e = { id: v.id }; entries.push(e); fresh.add(e); note(book.path, `${String(v.page)}/${String(v.id)} (new)`); }
-      for (const k of ['name', 'when', 'done', 'lines'] as const) set(e, k, v[k], book.path, `${String(v.page)}/${String(v.id)}`);
+      for (const k of ['name', 'when', 'done', 'lines', 'thing'] as const) set(e, k, v[k], book.path, `${String(v.page)}/${String(v.id)}`);
     }
   }
 
