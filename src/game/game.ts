@@ -252,6 +252,9 @@ export class Game {
   }
   private pausedAt: number | null = null;
   private pausedFor = 0;
+  /** When the last rain drop sounded, and how long until the next: the patter over the rain bed. */
+  private lastDrop = 0;
+  private nextDrop = 0.3;
 
   /** After the tab was hidden: the next frame does not catch up on the time away. */
   resume(): void {
@@ -627,15 +630,23 @@ export class Game {
     // where her head is, for a camera to follow; in a close-up she is not drawn: it is what she sees
     this.runner.lookAt = file.closeup ? null : [world.heroX, file.walk.y - hero.def.h * sc * 0.88];
     this.setup.renderer.render(this.runner.frame(t, this.state, this.cam, file.closeup ? [] : [her], file.closeup ? [-1000, -1000] : smoke));
-    this.sound(file);
+    this.sound(file, t);
   }
 
   /** The world's sounds each frame: the ambient bed under the scene, and what its live effects sound like now (sound.ts). */
-  private sound(file: Scene['file']): void {
+  private sound(file: Scene['file'], t: number): void {
     // an old machine's screen is up over the game: it owns the sound (its own hum); the world's holds where it is
     if (this.setup.stage.dataset.terminal !== undefined) return;
-    // the bed: the city at night outside (rain over it when it rains), a room's quiet hum inside; a close-up keeps the place's
     const raining = /rain|storm/.test(this.variant ?? '');
+    // her footsteps, as her feet land (not in a close-up, where she is not drawn); softer the faster she goes
+    if (!file.closeup && this.world.footfall) sounds.play('step');
+    // the rain's patter over the bed: a drop now and then, when it rains and she is outside
+    if (raining && file.kind === 'exterior' && !file.closeup && t - this.lastDrop > this.nextDrop) {
+      sounds.play('drop');
+      this.lastDrop = t;
+      this.nextDrop = 0.12 + Math.random() * 0.4;
+    }
+    // the bed: the city at night outside (rain over it when it rains), a room's quiet hum inside; a close-up keeps the place's
     if (file.kind === 'exterior') { sounds.setLayer('bed-city', 1); if (raining) sounds.setLayer('bed-rain', 1); }
     else sounds.setLayer('bed-room', 0.8);
     // what its live effects sound like: the lift, the dryer, the hologram, the cradle, the camera

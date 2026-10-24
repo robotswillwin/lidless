@@ -27,6 +27,8 @@ export class World {
   gait: Gait = 'walk';
   /** How far through her gait's cycle she is, in cycles: it picks the frame. */
   phase = 0;
+  /** A foot landed this frame (twice a cycle): for her footsteps. */
+  footfall = false;
   private walkT = 0;
   private target: number | null = null;
   private pending: Hotspot | null = null;
@@ -131,8 +133,11 @@ export class World {
       const stride = this.strideOf(this.gait), before = this.phase;
       if (stride > 0) this.phase += Math.abs(this.heroX - from) / stride;
       const want = this.gaitFor(this.speed);
-      if (want !== this.gait && (Math.floor(before * 2) !== Math.floor(this.phase * 2) || stride <= 0)) this.gait = want;
-    }
+      const landed = stride > 0 && Math.floor(before * 2) !== Math.floor(this.phase * 2);
+      if (want !== this.gait && (landed || stride <= 0)) this.gait = want;
+      // a foot lands twice a cycle: for her footsteps
+      this.footfall = landed;
+    } else this.footfall = false;
     this.walkT = this.moving ? this.walkT + dt : 0;
     return arrived;
   }

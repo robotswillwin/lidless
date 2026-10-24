@@ -859,8 +859,9 @@ it raining), a room's quiet hum inside — and these three beds (`bed-rain`, `be
 are shaped noise made in the same tool, so they loop with no seam and cost almost nothing. The sustained sounds (the
 beds, the lift's motor, the dryer, a machine's hum) are layers that rise and fall as the game asks (`setLayer`,
 `frameLayers` in sound.ts); `src/game/scene.ts` works out what each scene sounds like now (`SceneRunner.audible`), and
-`src/game/game.ts` plays it each frame. The music, and the world's remaining sounds (steps, the rain's own patter), are
-to come.
+`src/game/game.ts` plays it each frame. Her footsteps land as her feet do (`World.footfall`, four wet-pavement steps
+made by `tools/sounds/import-steps.py` from Kenney's RPG Audio with a harder edge), and when it rains outside the rain's
+patter (a few drops made from shaped noise) falls over the bed. The music is still to come (decision 34, the director's).
 
 ## Her things: pictures for the tray
 

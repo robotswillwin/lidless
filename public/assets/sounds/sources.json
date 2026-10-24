@@ -215,5 +215,40 @@
     "file": "import-world.py",
     "ms": 7750,
     "loop": true
+  },
+  "step-1": {
+    "pack": "Kenney RPG Audio + wet edge (import-steps.py)",
+    "file": "footstep00.ogg",
+    "ms": 183
+  },
+  "step-2": {
+    "pack": "Kenney RPG Audio + wet edge (import-steps.py)",
+    "file": "footstep04.ogg",
+    "ms": 232
+  },
+  "step-3": {
+    "pack": "Kenney RPG Audio + wet edge (import-steps.py)",
+    "file": "footstep06.ogg",
+    "ms": 203
+  },
+  "step-4": {
+    "pack": "Kenney RPG Audio + wet edge (import-steps.py)",
+    "file": "footstep09.ogg",
+    "ms": 209
+  },
+  "drop-1": {
+    "pack": "made here (shaped noise)",
+    "file": "import-steps.py",
+    "ms": 26
+  },
+  "drop-2": {
+    "pack": "made here (shaped noise)",
+    "file": "import-steps.py",
+    "ms": 32
+  },
+  "drop-3": {
+    "pack": "made here (shaped noise)",
+    "file": "import-steps.py",
+    "ms": 40
   }
 }

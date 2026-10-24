@@ -11,7 +11,8 @@ export type Cue =
   | 'things' | 'hold' | 'inspect' | 'co-open' | 'co-message' | 'co-ask' | 'glitch' | 'book-open' | 'book-close' | 'book-page'
   | 'key' | 'enter' | 'boot'
   // the world: things that happen once
-  | 'lift-ding' | 'lift-start' | 'cradle' | 'hologram-on' | 'hologram-solved' | 'ring-turn' | 'camera-move' | 'door-open' | 'door-close';
+  | 'lift-ding' | 'lift-start' | 'cradle' | 'hologram-on' | 'hologram-solved' | 'ring-turn' | 'camera-move' | 'door-open' | 'door-close'
+  | 'step' | 'drop';
 
 /** A sound that holds on, rising and falling, while something goes on in the world: a bed under a scene, the lift's motor. */
 export type Layer = 'bed-rain' | 'bed-city' | 'bed-room' | 'lift-move' | 'dryer-air' | 'hologram-hum' | 'machine-hum';
@@ -62,6 +63,8 @@ const CUES: Record<Cue, { files: string[]; gain: number; vary?: number; together
   'camera-move': { files: ['camera-move'], gain: 0.26, vary: 0.06 },
   'door-open': { files: ['door-open'], gain: 0.4 },
   'door-close': { files: ['door-close'], gain: 0.4 },
+  'step': { files: ['step-1', 'step-2', 'step-3', 'step-4'], gain: 0.26, vary: 0.08 },
+  'drop': { files: ['drop-1', 'drop-2', 'drop-3'], gain: 0.5, vary: 0.2 },
 };
 
 /** How long a tap waits for a cue of its own to take its place, in milliseconds. */
