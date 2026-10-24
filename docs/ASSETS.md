@@ -344,6 +344,10 @@ Characters walk in front of the set, so lights and characters need to know which
   it opens into a flower of light. Usually `"only": "concierge"`.
 - A layer can be one of pictures shown in turn, fading into each other, as a photo frame's (`show`: `at`, from 0, of
   `of`, each for `every` seconds, fading over `fade`).
+- In the scene editor, the live effects are under + Effect (Oscilloscope, Clock, Newton's cradle, Hologram rings):
+  dragged to move, their fields in the side panel. Close-ups are in its scene list, under Close-ups (found from the
+  hotspots that go up close to them); a scene's privacy, home, close-up, what keeps her in and what runs as she
+  arrives are under "The place, for the story"; a hotspot's close-up and kind, and a layer shown in turn, in theirs.
 - Anything placed can be in one view only, `"only": "raw"` or `"only": "concierge"`: a hotspot, a layer (a hologram
   over the street in the Concierge's view, a scrawl only raw view shows), steam, a light shaft, a beacon, a mover. A
   light says it with its flags, `"ar": 1` or `"raw": 1`; an older light shaft's `"ar": 1` still means the Concierge's.

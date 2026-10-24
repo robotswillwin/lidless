@@ -7,6 +7,7 @@ import { cameraTarget } from '../game/camera';
 import type { SceneRunner } from '../game/scene';
 import type { Scene, SceneFile, WorldFile } from '../game/scenefile';
 import type { LookPanel } from '../look-panel';
+import type { LiveKind } from './live';
 
 export type Selection =
   | { kind: 'scene' }
@@ -19,7 +20,8 @@ export type Selection =
   | { kind: 'godray'; i: number }
   | { kind: 'beacon'; i: number }
   | { kind: 'drips' }
-  | { kind: 'mover'; i: number };
+  | { kind: 'mover'; i: number }
+  | { kind: 'live'; fx: LiveKind; i: number };
 
 /** How many of each effect the renderer draws: more are left out. */
 export const LIMITS = { steam: 4, godrays: 4, beacons: 32 };

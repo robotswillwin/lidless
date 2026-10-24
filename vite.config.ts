@@ -131,8 +131,9 @@ function sceneSave(): Plugin {
             const assets = `${server.config.publicDir}/assets`;
             await mkdir(`${assets}/scenes/${id}`, { recursive: true });
             await writeFile(`${assets}/scenes/${id}/scene.json`, JSON.stringify(scene, null, 1) + '\n');
+            // a new place goes on the world's list (and its map); a close-up is a place's own, not on it
             const world = JSON.parse(await readFile(`${assets}/world.json`, 'utf8')) as { scenes: string[] };
-            if (!world.scenes.includes(id)) { world.scenes.push(id); await writeFile(`${assets}/world.json`, JSON.stringify(world, null, 2) + '\n'); }
+            if (!scene.closeup && !world.scenes.includes(id)) { world.scenes.push(id); await writeFile(`${assets}/world.json`, JSON.stringify(world, null, 2) + '\n'); }
             res.statusCode = 200;
             res.end('saved');
           } catch (err) {

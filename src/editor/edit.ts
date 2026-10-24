@@ -11,6 +11,7 @@ import { PLACEHOLDER } from './lint';
 import { editView, setFor, shownView } from './views';
 import { placeIn } from '../game/level';
 import { asIn } from '../engine/assets';
+import { LIVE, LIVE_KINDS, liveList, liveListOf, moveLive, type LiveKind } from './live';
 
 /** Where new things go: the middle of what is on screen. */
 const centre = (): [number, number] => [Math.round(viewX() + NW / 2), Math.round(NH / 2)];
@@ -74,6 +75,13 @@ export async function add(kind: string): Promise<void> {
     file.drips ??= { x0: cx - 80, x1: cx + 80, top: file.walk.y - 180, bottom: file.walk.y - 4 };
     ed.sel = { kind: 'drips' };
     syncEffects();
+  } else if ((LIVE_KINDS as string[]).includes(kind)) {
+    // what the engine draws live: an oscilloscope, a clock, a Newton's cradle, a hologram of rings
+    const fx = kind as LiveKind, k = LIVE[fx], list = liveListOf(file, fx);
+    if (list.length >= k.limit) return setStatus(`At most ${k.limit} ${k.name.toLowerCase()}${k.limit > 1 ? 's' : ''} in a scene`);
+    list.push(k.make(cx, cy - 40));
+    ed.sel = { kind: 'live', fx, i: list.length - 1 };
+    syncEffects();
   } else if (kind === 'mover') {
     const asset = await pickAsset('Add a mover: what passes through');
     if (!asset) return;
@@ -102,8 +110,9 @@ function limitToMode(): void {
   else if (sel.kind === 'godray') f.godrays![sel.i].only = only;
   else if (sel.kind === 'beacon') f.beacons![sel.i].only = only;
   else if (sel.kind === 'mover') f.movers![sel.i].only = only;
+  else if (sel.kind === 'live') liveList(f, sel.fx)[sel.i].only = only;
   else if (sel.kind === 'layer') { f.layers[sel.i].only = only; const d = ed.scene?.loaded.sprites[sel.i]?.def; if (d) d.only = only; }
-  if (['steam', 'godray', 'beacon'].includes(sel.kind)) syncEffects();
+  if (['steam', 'godray', 'beacon', 'live'].includes(sel.kind)) syncEffects();
 }
 
 export function deleteSelected(): void {
@@ -118,6 +127,7 @@ export function deleteSelected(): void {
   else if (sel.kind === 'beacon') { file.beacons!.splice(sel.i, 1); syncEffects(); }
   else if (sel.kind === 'drips') { delete file.drips; syncEffects(); }
   else if (sel.kind === 'mover') { file.movers!.splice(sel.i, 1); if (!file.movers!.length) delete file.movers; void rebuild().then(redraw.overlay); }
+  else if (sel.kind === 'live') { const list = liveList(file, sel.fx); list.splice(sel.i, 1); if (!list.length) delete file[LIVE[sel.fx].list]; syncEffects(); }
   else return;
   ed.sel = { kind: 'scene' };
   remember(before);
@@ -190,6 +200,7 @@ export function nudge(dx: number, dy: number): void {
   else if (sel.kind === 'godray') { const g = file.godrays![sel.i], v = asIn(g, shown); by(g, 'x', v.x, dx, g.x); by(g, 'y', v.y, dy, g.y); syncEffects(); }
   else if (sel.kind === 'beacon') { const b = file.beacons![sel.i], v = asIn(b, shown); by(b, 'x', v.x, dx, b.x); by(b, 'y', v.y, dy, b.y); syncEffects(); }
   else if (sel.kind === 'drips') { const d = file.drips!; d.x0 += dx; d.x1 += dx; d.top += dy; d.bottom += dy; syncEffects(); }
+  else if (sel.kind === 'live') { moveLive(sel.fx, liveList(file, sel.fx)[sel.i], dx, dy); syncEffects(); }
   else if (sel.kind === 'mover') {
     const m = file.movers![sel.i], v = asIn(m, shown);
     by(m, 'x0', v.x0, dx, m.x0); by(m, 'x1', v.x1, dx, m.x1);

@@ -15,6 +15,7 @@ import { amount, buttons, check, choice, colour, eye, heading, labelFields, num,
 import { lintScene, type Problem } from './lint';
 import { editView, hasOwn, markOwn, ownIn, sameInBoth, setFor, shownView, viewLabel } from './views';
 import { dom, ed, inTask, LIMITS, redraw, remember, showError, snapshot, type Kind, type Selection } from './state';
+import { LIVE, LIVE_KINDS, liveList, moveLive, type LiveKind } from './live';
 
 const GROUPS: [string, string][] = [['0', 'Steady'], ['1', 'Monitor flicker'], ['2', 'Valves'], ['3', 'Fire'], ['4', 'The machine’s eye'], ['5', 'Neon flicker'], ['6', 'Hologram'], ['7', 'Screen'], ['8', 'String lights']];
 const ZONES: [string, string][] = [['0', 'Everywhere'], ['1', 'Inside areas'], ['2', 'Outside, near layer'], ['4', 'Outside, every depth'], ['3', 'Facade']];
@@ -150,6 +151,10 @@ function hotspotSide(i: number): void {
     const outfits = ed.world.hero.outfits ?? {};
     if (Object.keys(outfits).length) side(choice('Using it, she changes into', h.wear ?? '', [['', 'Nothing: she stays as she is'], ...Object.entries(outfits).map(([k, o]) => [k, o.name] as [string, string])], (v) => { if (v) h.wear = v; else delete h.wear; }));
     side(str('Conversation (Ink knot)', h.talk ?? '', (v) => { if (v) h.talk = v; else delete h.talk; }));
+    side(choice('What it is (for the standard replies)', h.kind ?? '', [['', 'As its name says'], ['person', 'Someone'], ['machine', 'A machine'], ['thing', 'A thing'], ['way', 'A way somewhere']], (v) => { if (v) h.kind = v as NonNullable<Hotspot['kind']>; else delete h.kind; }));
+    // a thing seen close up: a place of its own, a close-up of this one; tapped, she goes up to it and the view goes in close
+    const closeups = Object.entries(ed.others).filter(([id, f]) => id !== ed.file.id && f.closeup === ed.file.id).map(([id]) => [id, id] as [string, string]);
+    side(choice('Up close (a close-up of this place)', h.zoom ?? '', [['', 'None'], ...closeups, ...(h.zoom && !closeups.some(([id]) => id === h.zoom) ? [[h.zoom, `${h.zoom} (not a close-up of this place)`] as [string, string]] : [])], (v) => { if (v) h.zoom = v; else delete h.zoom; }));
     // its own knot: look, use, take, talk and ask stitches over the texts below, use_<thing> for a thing used on it
     side(str('Its knot in the story (stitches: look, use, take, use_<thing>…)', h.story ?? '', (v) => { if (v.trim()) h.story = v.trim(); else delete h.story; }));
     side(str('A thing to take (one of the story’s Things)', h.item ?? '', (v) => { if (v.trim()) h.item = v.trim(); else delete h.item; }));
@@ -234,7 +239,7 @@ function layerSide(i: number): void {
   const m = (row: HTMLElement, ...keys: string[]) => markOwn(row, () => ownIn(l, ...keys));
   side(heading(`Layer ${i + 1}: ${l.asset}`, 'Drag its outline to move it. Layers draw back to front.'));
   modeNote(!l.only || l.only === shown, 'Its parallax, depth and order are the same in both views.');
-  const place = () => { if (d) { d.x = l.x ?? d.x; d.y = l.y ?? d.y; d.parallax = l.parallax ?? d.parallax; d.depth = l.depth ?? d.depth; d.views = l.views; d.only = l.only; } redraw.overlay(); };
+  const place = () => { if (d) { d.x = l.x ?? d.x; d.y = l.y ?? d.y; d.parallax = l.parallax ?? d.parallax; d.depth = l.depth ?? d.depth; d.views = l.views; d.only = l.only; d.show = l.show; } redraw.overlay(); };
   side(
     shownIn(l.only, (v) => { if (v) l.only = v; else delete l.only; }, place),
     m(num('x', at.x, (v) => setFor(l, 'x', v, { same: l.x ?? d?.x }), { after: place }), 'x'), m(num('y', at.y, (v) => setFor(l, 'y', v, { same: l.y ?? d?.y }), { after: place }), 'y'),
@@ -242,7 +247,18 @@ function layerSide(i: number): void {
     check('In front of the people', l.front ?? d?.front ?? false, (v) => { if (v) l.front = true; else delete l.front; if (d) d.front = v; }),
     choice('Depth', String(l.depth ?? d?.depth ?? 3), [['0', 'Sky'], ['1', 'Far'], ['2', 'Middle'], ['3', 'Near']], (v) => { l.depth = Number(v); }, place),
     str('There only when (a condition on the story)', l.when ?? '', (v) => { if (v.trim()) l.when = v.trim(); else delete l.when; }),
+    // one of pictures shown in turn, fading into each other: a photo frame's photos
+    check('Shown in turn with others (a frame’s photos)', !!l.show, (v) => { if (v) l.show = { at: 0, of: 2, every: 6, fade: 1.5 }; else delete l.show; }, () => { place(); reselect(); }),
   );
+  if (l.show) {
+    const sh = l.show;
+    side(
+      num('Which of them, from 0', sh.at, (v) => { sh.at = Math.max(0, Math.min(sh.of - 1, Math.round(v))); }, { min: 0, after: place }),
+      num('Of how many', sh.of, (v) => { sh.of = Math.max(1, Math.round(v)); sh.at = Math.min(sh.at, sh.of - 1); }, { min: 1, after: place }),
+      num('Each shown for, seconds', sh.every, (v) => { sh.every = Math.max(0.5, v); }, { min: 0.5, step: 0.5, after: place }),
+      num('Fading into the next over, seconds', sh.fade ?? 1, (v) => { sh.fade = Math.max(0, v); }, { min: 0, step: 0.1, after: place }),
+    );
+  }
   const move = (to: number) => {
     if (to < 0 || to >= file.layers.length) return;
     const before = snapshot(), [mv] = file.layers.splice(i, 1);
@@ -338,6 +354,20 @@ function moverSide(i: number): void {
   ));
 }
 
+/** A live effect: drawn by the engine, its own fields under where it is (live.ts). */
+function liveSide(fx: LiveKind, i: number): void {
+  const o = liveList(ed.file, fx)[i], k = LIVE[fx];
+  side(heading(`${k.name}${k.limit > 1 ? ` ${i + 1}` : ''}`, `${k.about} Drag it to move it. At most ${k.limit} ${k.limit > 1 ? 'are' : 'is'} drawn in a scene.`));
+  modeNote(inViewOf(o.only, ed.view), 'It is in the same place in both views.');
+  side(
+    shownIn(o.only, (v) => { if (v) o.only = v; else delete o.only; }, () => { syncEffects(); reselect(); }),
+    num('x', o.x, (v) => moveLive(fx, o, v - o.x, 0), { after: syncEffects }), num('y', o.y, (v) => { o.y = v; }, { after: syncEffects }),
+    ...k.fields(o as never, syncEffects),
+    str('There only when (a condition on the story)', o.when ?? '', (v) => { if (v.trim()) o.when = v.trim(); else delete o.when; }, { after: syncEffects }),
+  );
+  side(buttons(DUPLICATE, ['Delete', () => deleteSelected(), 'danger']));
+}
+
 const css = (c: [number, number, number]) => `rgb(${c.map((v) => Math.round(Math.min(1, Math.max(0, v)) * 255)).join(',')})`;
 const named = (t: ViewText): string => (typeof t === 'string' ? t : t.concierge || t.raw);
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, parent: HTMLElement, text?: string): HTMLElementTagNameMap[K] {
@@ -416,6 +446,7 @@ function outline(body: HTMLElement): void {
     // drips fall in raw view only: it rains only there
     ...(f.drips ? [{ label: 'Drips', sel: { kind: 'drips' } as Selection, only: 'raw' as const }] : []),
     ...(f.movers ?? []).map((m, i) => ({ label: `Mover: ${m.asset}`, sel: { kind: 'mover', i } as Selection, only: m.only })),
+    ...LIVE_KINDS.flatMap((fx) => liveList(f, fx).map((o, i) => ({ label: `${LIVE[fx].name}${LIVE[fx].limit > 1 ? ` ${i + 1}` : ''}`, detail: i >= LIVE[fx].limit ? 'not drawn' : 'live', sel: { kind: 'live', fx, i } as Selection, only: o.only }))),
   ];
   group('Effects', 'effects', fx);
   group('Walk and reflection lines', 'lines', [], { note: `walk ${f.walk.x0} to ${f.walk.x1} at y ${f.walk.y} · reflection y ${f.mirror ?? f.walk.y - 8}` });
@@ -486,10 +517,26 @@ function sceneSide(): void {
     str('The Concierge’s greeting', file.greeting ?? '', (v) => { if (v) file.greeting = v; else delete file.greeting; }),
     str('Its answer to Ring for assistance', file.assist ?? '', (v) => { if (v) file.assist = v; else delete file.assist; }, { area: true }),
   ];
+  // what the place is to the story: private, a home, a close-up of another; what keeps her in, what runs as she arrives
+  const story = () => [
+    check('A privacy zone: the Concierge cannot see or hear her here', !!file.private, (v) => { if (v) file.private = true; else { delete file.private; delete file.home; } }, reselect),
+    check('A home: she can call the Concierge from here (a privacy zone)', !!file.home, (v) => { if (v) { file.home = true; file.private = true; } else delete file.home; }, reselect),
+    choice('A close-up of (a desk, a workbench seen close)', file.closeup ?? '', [['', 'Not a close-up: a place of its own'], ...ed.world.scenes.filter((s) => s !== file.id).map((s) => [s, s] as [string, string])], (v) => { if (v) file.closeup = v; else delete file.closeup; }, reselect),
+    str('She stays in while (a condition on the story)', file.stay?.when ?? '', (v) => { if (v.trim()) file.stay = { when: v.trim(), say: file.stay?.say ?? '' }; else delete file.stay; }, { after: reselect }),
+    ...(file.stay ? viewText('…and says', file.stay.say, (v) => { if (file.stay) file.stay.say = v ?? ''; }) : []),
+    str('As she arrives, the story runs (a knot a line: knot | condition)', (file.arrive ?? []).map((a) => (a.when ? `${a.story} | ${a.when}` : a.story)).join('\n'), (v) => {
+      const list = v.split('\n').map((line) => line.split('|').map((t) => t.trim())).filter(([story]) => story).map(([story, when]) => (when ? { story, when } : { story }));
+      if (list.length) file.arrive = list; else delete file.arrive;
+    }, { area: true }),
+  ];
   const task = ed.task;
   if (task === 'all') side(section('settings', 'Scene settings', (body) => body.append(...space(), ...light(), ...concierge())));
   if (task === 'layout') side(section('space', 'The scene', (body) => body.append(...space())));
   if (task === 'interaction') side(section('concierge', 'The Concierge here', (body) => body.append(...concierge())));
+  if (task === 'all' || task === 'interaction') side(section('story', 'The place, for the story', (body) => {
+    el('p', 'ed-note', body, 'A privacy zone hides her from the Concierge; from a home she can call it. A close-up is a place of its own, gone into from a hotspot here that is up close to it, with Step back to return.');
+    body.append(...story());
+  }));
   if (task === 'lighting') side(section('light', 'The scene’s light', (body) => {
     el('p', 'ed-note', body, 'How bright the scene is in each view, and how much of its light is painted into the art. G shows only what the lights do.');
     body.append(...light());
@@ -530,5 +577,6 @@ export function drawSide(): void {
   else if (sel.kind === 'beacon' && file.beacons?.[sel.i]) beaconSide(sel.i);
   else if (sel.kind === 'drips' && file.drips) dripsSide();
   else if (sel.kind === 'mover' && file.movers?.[sel.i]) moverSide(sel.i);
+  else if (sel.kind === 'live' && liveList(file, sel.fx)[sel.i]) liveSide(sel.fx, sel.i);
   else { ed.sel = { kind: 'scene' }; sceneSide(); }
 }

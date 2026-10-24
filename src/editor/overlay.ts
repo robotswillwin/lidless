@@ -8,6 +8,8 @@ import { refresh, syncEffects } from './files';
 import { steerLuna } from './luna';
 import { setFor, shownView } from './views';
 import { dom, ed, esc, layerParallax, LIMITS, onLayer, redraw, remember, shown, snapshot, viewX, type Selection } from './state';
+import { LIVE, LIVE_KINDS, liveBox, liveList, type LiveKind } from './live';
+import type { CradleDef, ScopeDef } from '../engine/assets';
 
 const css = (c: [number, number, number]) => `rgb(${c.map((v) => Math.round(Math.min(1, Math.max(0, v)) * 255)).join(',')})`;
 const isSel = (s: Selection) => JSON.stringify(s) === JSON.stringify(ed.sel);
@@ -94,6 +96,14 @@ export function drawOverlay(): void {
     out.push(`<g class="fx mover${s ? ' sel' : ''}${lit({ kind: 'mover', i })}${away(inViewOf(m.only, ed.view))}" data-k="mover" data-i="${i}"><rect x="${x0}" y="${y}" width="${Math.max(1, x1 - x0)}" height="${h}"/><text x="${x0 + 4}" y="${y - 4}">${esc(m.asset)}</text><title>Mover: ${esc(m.asset)}, behind what is in front of ${esc(m.after)}</title></g>`);
     if (s) out.push(handle(x0, y + h / 2, 'mover-x0', `data-i="${i}"`), handle(x1, y + h / 2, 'mover-x1', `data-i="${i}"`));
   });
+  // what the engine draws live: oscilloscopes, clocks, a Newton's cradle, a hologram of rings
+  for (const fx of LIVE_KINDS) liveList(file, fx).forEach((o, i) => {
+    const me: Selection = { kind: 'live', fx, i }, s = isSel(me), [bx, y, w, h] = liveBox(fx, o), x = onLayer(bx, o.parallax), off = i >= LIVE[fx].limit ? ' off' : '';
+    if (!shown('effects', s)) return;
+    const round = fx === 'clock' || fx === 'rings' || (fx === 'scope' && (o as ScopeDef).w === undefined);
+    const shape = round ? `<circle cx="${x + w / 2}" cy="${y + h / 2}" r="${w / 2}"/>` : `<rect x="${x}" y="${y}" width="${w}" height="${h}"/>`;
+    out.push(`<g class="fx live${s ? ' sel' : ''}${off}${lit(me)}${away(inViewOf(o.only, ed.view))}" data-k="live" data-fx="${fx}" data-i="${i}">${shape}<text x="${x}" y="${y - 4}">${esc(LIVE[fx].name)}</text><title>${esc(LIVE[fx].name)} ${i + 1}${off ? `: not drawn, at most ${LIVE[fx].limit}` : ''}</title></g>`);
+  });
   // Luna, to judge the light on: drag her along the walk line
   if (luna.show) out.push(`<g class="luna" data-k="luna"><path d="M ${luna.x - 7} ${file.walk.y + 14} L ${luna.x} ${file.walk.y + 4} L ${luna.x + 7} ${file.walk.y + 14} Z"/><title>Luna, to judge the light on</title></g>`);
   // the selected layer's outline
@@ -137,6 +147,7 @@ function down(e: PointerEvent): void {
   else if (k === 'godray') { const g = asIn(file.godrays![i], shownNow); orig = [g.x, g.y]; ref = { kind: 'godray', i }; }
   else if (k === 'beacon') { const b = asIn(file.beacons![i], shownNow); orig = [b.x, b.y]; ref = { kind: 'beacon', i }; }
   else if (k === 'drips' || k === 'drips-resize') { const d = file.drips!; orig = [d.x0, d.x1, d.top, d.bottom]; ref = { kind: 'drips' }; }
+  else if (k === 'live') { const fx = target.dataset.fx as LiveKind, o = liveList(file, fx)[i]; orig = [o.x, o.y, ...((o as CradleDef).posts ?? [])]; ref = { kind: 'live', fx, i }; }
   else if (k === 'mover' || k === 'mover-x0' || k === 'mover-x1') {
     const m = asIn(file.movers![i], shownNow);
     orig = [m.x0, m.x1, m.y ?? ed.scene?.loaded.movers?.[i]?.sprite.def.y ?? 0];
@@ -187,6 +198,13 @@ function move(e: PointerEvent): void {
   else if (k === 'beacon' && s?.kind === 'beacon') { const b = file.beacons![s.i]; setFor(b, 'x', o[0] + dx, { same: b.x }); setFor(b, 'y', o[1] + dy, { same: b.y }); }
   else if (k === 'drips') file.drips = { x0: o[0] + dx, x1: o[1] + dx, top: o[2] + dy, bottom: o[3] + dy };
   else if (k === 'drips-resize') file.drips = { x0: o[0], x1: Math.max(o[0] + 4, o[1] + dx), top: o[2], bottom: Math.max(o[2] + 4, o[3] + dy) };
+  else if (k === 'live' && s?.kind === 'live') {
+    // a cradle's front posts go with it
+    const it = liveList(file, s.fx)[s.i];
+    it.x = o[0] + dx;
+    it.y = o[1] + dy;
+    if (o.length === 6) (it as CradleDef).posts = o.slice(2).map((p) => p + dx) as CradleDef['posts'];
+  }
   else if (s?.kind === 'mover') {
     const m = file.movers![s.i];
     // its height stays its sprite's until it is moved up or down
@@ -195,7 +213,7 @@ function move(e: PointerEvent): void {
     else if (k === 'mover-x1') setFor(m, 'x1', Math.max(o[0] + 4, o[1] + dx), { same: m.x1 });
   }
   if (k.startsWith('zone') || k.startsWith('walk') || k === 'mirror') refresh();
-  else if (['steam', 'godray', 'beacon', 'drips', 'drips-resize'].includes(k)) syncEffects();
+  else if (['steam', 'godray', 'beacon', 'drips', 'drips-resize', 'live'].includes(k)) syncEffects();
   else drawOverlay();
 }
 

@@ -5,7 +5,7 @@ import { loadSprite, spriteDefaults, type Sprite } from '../engine/assets';
 import { NW } from '../engine/renderer';
 import { outfitIn } from '../game/outfits';
 import { SceneRunner } from '../game/scene';
-import { buildScene, loadSceneFile, zoneTexture, type SceneFile } from '../game/scenefile';
+import { buildScene, loadSceneFile, withoutCloseupDefaults, zoneTexture, type SceneFile } from '../game/scenefile';
 import { base, dom, ed, gl, redoStack, redraw, setDirty, setStatus, snapshot, syncDirty, syncHistory, undoStack } from './state';
 
 /** Build the scene for rendering from the file. Lights stay shared with the file, so editing them shows at once. */
@@ -35,7 +35,7 @@ export function refresh(): void {
 }
 
 /**
- * After a change to the effects: the built scene takes the file's steam, light shafts, beacons and drips again (an effect
+ * After a change to the effects: the built scene takes the file's steam, light shafts, beacons, drips and live effects again (an effect
  * added to a scene that had none is a new list), and the runner reads the ones it keeps copies of. Movers share their
  * settings with the file; a new one, or a new asset or layer for one, needs a rebuild.
  */
@@ -46,6 +46,10 @@ export function syncEffects(): void {
   d.godrays = f.godrays ?? [];
   d.beacons = f.beacons ?? [];
   d.drips = f.drips;
+  d.scopes = f.scopes ?? [];
+  d.clocks = f.clocks ?? [];
+  d.cradles = f.cradles ?? [];
+  d.rings = f.rings ?? [];
   ed.runner?.sync();
   redraw.overlay();
 }
@@ -87,7 +91,8 @@ export async function openScene(id: string): Promise<void> {
   ed.sel = { kind: 'scene' };
   ed.camX = 0;
   const first = Object.values(ed.file.spawns)[0];
-  ed.luna = { x: first?.x ?? ed.file.size[0] / 2, facing: first?.facing ?? 1, show: true, follow: ed.luna.follow, track: ed.luna.track };
+  // in a close-up she is not drawn: nor is she here, unless asked for
+  ed.luna = { x: first?.x ?? ed.file.size[0] / 2, facing: first?.facing ?? 1, show: !ed.file.closeup, follow: ed.luna.follow, track: ed.luna.track };
   await rebuild();
   dom.sceneSel.value = id;
   syncAddress();
@@ -118,11 +123,12 @@ export async function listAssets(): Promise<string[]> {
 
 export async function save(): Promise<void> {
   try {
-    const res = await fetch(`/__scene?id=${encodeURIComponent(ed.file.id)}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(ed.file) });
+    // a close-up's file keeps only what it has of its own: its default walk and place to arrive at are left out
+    const res = await fetch(`/__scene?id=${encodeURIComponent(ed.file.id)}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(withoutCloseupDefaults(ed.file)) });
     if (!res.ok) throw new Error(await res.text());
     ed.saved = snapshot();
     setDirty(false);
-    if (!ed.world.scenes.includes(ed.file.id)) ed.world.scenes.push(ed.file.id);
+    if (!ed.file.closeup && !ed.world.scenes.includes(ed.file.id)) ed.world.scenes.push(ed.file.id);
     // the other scenes' checks see it as saved
     ed.others[ed.file.id] = JSON.parse(JSON.stringify(ed.file)) as SceneFile;
     setStatus(`Saved ${new Date().toLocaleTimeString()}`);

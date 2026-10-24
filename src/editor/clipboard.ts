@@ -10,6 +10,7 @@ import type { Hotspot } from '../game/level';
 import type { SceneFile } from '../game/scenefile';
 import { rebuild, refresh, syncEffects, updatePlay } from './files';
 import { ed, LIMITS, onLayer, redraw, remember, setStatus, snapshot, viewX, type Selection } from './state';
+import { LIVE, liveList, liveListOf, type LiveItem, type LiveKind } from './live';
 import { editView, viewLabel } from './views';
 
 interface Clip {
@@ -37,7 +38,7 @@ function clip(): Clip | null {
 }
 
 const NAMES: Partial<Record<Selection['kind'], string>> = { light: 'a light', hotspot: 'a hotspot', spawn: 'a place to arrive at', zone: 'an area', layer: 'a layer', steam: 'steam', godray: 'a light shaft', beacon: 'a beacon', drips: 'drips', mover: 'a mover' };
-const nameOf = (c: Clip): string => (c.kind === 'steam' && (c.item as { kind?: string }).kind === 'smoke' ? 'smoke' : NAMES[c.kind] ?? 'it');
+const nameOf = (c: Clip): string => (c.kind === 'steam' && (c.item as { kind?: string }).kind === 'smoke' ? 'smoke' : c.kind === 'live' ? `a ${LIVE[c.id as LiveKind]?.name.toLowerCase() ?? 'live effect'}` : NAMES[c.kind] ?? 'it');
 
 /** What is selected, as it is in the file, for the clipboard; nothing for the scene itself. */
 function take(sel: Selection, f: SceneFile): Clip | null {
@@ -53,6 +54,8 @@ function take(sel: Selection, f: SceneFile): Clip | null {
     case 'beacon': return one(f.beacons?.[sel.i]);
     case 'drips': return one(f.drips);
     case 'mover': return one(f.movers?.[sel.i]);
+    // a live effect: which kind it is goes with it
+    case 'live': return one(liveList(f, sel.fx)[sel.i], sel.fx);
     default: return null;
   }
 }
@@ -102,6 +105,7 @@ function shift(kind: Clip['kind'], o: Item, d: number): void {
   if (!d) return;
   if (kind === 'zone') { (o as unknown as number[])[0] += d; return; }
   const keys = kind === 'hotspot' ? ['stand'] : kind === 'drips' || kind === 'mover' ? ['x0', 'x1'] : ['x'];
+  if (kind === 'live' && Array.isArray(o.posts)) o.posts = (o.posts as number[]).map((p) => p + d);
   for (const t of [o, ...Object.values(o.views ?? {})]) {
     if (!t) continue;
     for (const k of keys) if (typeof t[k] === 'number') t[k] = (t[k] as number) + d;
@@ -141,6 +145,11 @@ async function put(c: Clip, d: number): Promise<{ moved: boolean } | null> {
   const f = ed.file, o = structuredClone(c.item) as Item;
   if (c.kind === 'scene') return null;
   if (c.kind === 'drips' && d && f.drips) { setStatus('A scene has one curtain of drips: copy it to paste it in another scene'); return null; }
+  if (c.kind === 'live') {
+    const k = LIVE[c.id as LiveKind];
+    if (!k) return null;
+    if (liveList(f, c.id as LiveKind).length >= k.limit) { setStatus(`At most ${k.limit} ${k.name.toLowerCase()}${k.limit > 1 ? 's' : ''} in a scene`); return null; }
+  }
   const list = c.kind === 'steam' ? 'steam' : c.kind === 'godray' ? 'godrays' : c.kind === 'beacon' ? 'beacons' : null;
   if (list) {
     const limit = LIMITS[list], n = (f[list] ?? []).length;
@@ -191,6 +200,12 @@ async function put(c: Clip, d: number): Promise<{ moved: boolean } | null> {
       f.drips = o as unknown as SceneFile['drips'];
       ed.sel = { kind: 'drips' };
       break;
+    case 'live': {
+      const to = liveListOf(f, c.id as LiveKind);
+      to.push(o as unknown as LiveItem);
+      ed.sel = { kind: 'live', fx: c.id as LiveKind, i: to.length - 1 };
+      break;
+    }
     case 'mover':
       // drawn after a layer this scene has: the one it was, or its first
       if (!f.layers.some((l) => l.asset === o.after)) o.after = f.layers[0]?.asset;
@@ -200,7 +215,7 @@ async function put(c: Clip, d: number): Promise<{ moved: boolean } | null> {
   }
   const moved = intoMode(c.kind, o);
   if (c.kind === 'layer' || c.kind === 'mover') await rebuild();
-  else if (list || c.kind === 'drips') syncEffects();
+  else if (list || c.kind === 'drips' || c.kind === 'live') syncEffects();
   return { moved };
 }
 

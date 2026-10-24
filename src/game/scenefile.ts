@@ -222,7 +222,18 @@ export function withCloseupDefaults(data: unknown): unknown {
   const f = data as Partial<SceneFile> | null;
   if (!f || typeof f !== 'object' || typeof f.closeup !== 'string' || !Array.isArray(f.size)) return data;
   const [w, h] = f.size;
-  return { ...f, walk: f.walk ?? { y: h - 1, x0: 0, x1: w }, spawns: f.spawns ?? { in: { x: w / 2, facing: 1 } }, lights: f.lights ?? [] };
+  return { ...f, walk: f.walk ?? closeupWalk(w, h), spawns: f.spawns ?? closeupSpawns(w), lights: f.lights ?? [] };
+}
+const closeupWalk = (w: number, h: number) => ({ y: h - 1, x0: 0, x1: w });
+const closeupSpawns = (w: number) => ({ in: { x: w / 2, facing: 1 as const } });
+
+/** A close-up as its file keeps it: without the walk and the place to arrive at it has only by default. */
+export function withoutCloseupDefaults(f: SceneFile): SceneFile {
+  if (!f.closeup) return f;
+  const [w, h] = f.size, out: Partial<SceneFile> = { ...f };
+  if (JSON.stringify(f.walk) === JSON.stringify(closeupWalk(w, h))) delete out.walk;
+  if (JSON.stringify(f.spawns) === JSON.stringify(closeupSpawns(w))) delete out.spawns;
+  return out as SceneFile;
 }
 
 const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);

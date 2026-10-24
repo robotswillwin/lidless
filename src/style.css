@@ -694,6 +694,10 @@ html, body { height: 100%; margin: 0; background: var(--bg); }
 .ed-overlay .mover rect { fill: rgba(255, 106, 213, .08); stroke: #ff6ad5; stroke-dasharray: 6 3; }
 .ed-overlay .mover text { fill: #ff6ad5; font: 500 11px var(--ui); paint-order: stroke; stroke: #000; stroke-width: 3; }
 .ed-overlay .mover.sel rect { fill: rgba(255, 106, 213, .18); stroke-width: 2; }
+/* what the engine draws live: oscilloscopes, clocks, a cradle, a hologram */
+.ed-overlay .live rect, .ed-overlay .live circle { fill: rgba(120, 255, 210, .06); stroke: #78ffd2; stroke-dasharray: 4 3; }
+.ed-overlay .live text { fill: #78ffd2; font: 500 11px var(--ui); paint-order: stroke; stroke: #000; stroke-width: 3; }
+.ed-overlay .live.sel rect, .ed-overlay .live.sel circle { fill: rgba(120, 255, 210, .16); stroke-width: 2; }
 .editor .look { top: 12px; right: 12px; }
 
 /* the settings and how to play: in the menu and on the title screen */

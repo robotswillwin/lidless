@@ -64,7 +64,7 @@ function showView(v: 0 | 1): void {
 }
 
 /** The kind of thing a selection is, to tell whether it belongs to a task. */
-const KIND_OF: Record<string, Kind | 'layers'> = { light: 'lights', spawn: 'spawns', zone: 'areas', layer: 'layers', steam: 'effects', godray: 'effects', beacon: 'effects', drips: 'effects', mover: 'effects' };
+const KIND_OF: Record<string, Kind | 'layers'> = { light: 'lights', spawn: 'spawns', zone: 'areas', layer: 'layers', steam: 'effects', godray: 'effects', beacon: 'effects', drips: 'effects', mover: 'effects', live: 'effects' };
 
 /** What is being worked on: its add buttons in the toolbar, its things over the scene, its parts of the panel. */
 function setTask(t: Task): void {
@@ -233,7 +233,16 @@ async function start(): Promise<void> {
   });
   // the other scenes as saved, to check the exits between them both ways; and the story's conversations
   const files = await Promise.all(ed.world.scenes.map((id) => loadSceneFile(base, id).catch(() => null)));
-  ed.others = Object.fromEntries(files.flatMap((f) => (f ? [[f.id, f]] : [])));
+  // the close-ups, which are not on the world's list (nor its map): found where a hotspot goes up close to one
+  const closeups = [...new Set(files.flatMap((f) => (f?.hotspots ?? []).map((h) => h.zoom ?? '')))].filter((id) => id && !ed.world.scenes.includes(id));
+  const closeFiles = await Promise.all(closeups.map((id) => loadSceneFile(base, id).catch(() => null)));
+  ed.others = Object.fromEntries([...files, ...closeFiles].flatMap((f) => (f ? [[f.id, f]] : [])));
+  if (closeups.length) {
+    const group = document.createElement('optgroup');
+    group.label = 'Close-ups';
+    for (const id of closeups) group.append(new Option(id, id));
+    dom.sceneSel.append(group);
+  }
   try {
     ed.knots = new Set(new Story(storyJson).mainContentContainer.namedContent.keys());
   } catch {
@@ -241,7 +250,7 @@ async function start(): Promise<void> {
   }
   const params = new URLSearchParams(location.search), asked = params.get('scene');
   if (params.get('view') === 'raw') ed.view = 0;
-  await openScene(asked && ed.world.scenes.includes(asked) ? asked : ed.world.scenes[0]);
+  await openScene(asked && (ed.world.scenes.includes(asked) || closeups.includes(asked)) ? asked : ed.world.scenes[0]);
   syncView();
   document.documentElement.dataset.ready = '1';
   const loop = () => { requestAnimationFrame(loop); if (document.visibilityState === 'visible') draw(); };
