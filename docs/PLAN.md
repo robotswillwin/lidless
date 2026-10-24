@@ -43,7 +43,8 @@ How assets and levels express it: `exists` in a recipe (see [ASSETS.md](ASSETS.m
 ## The HUD
 
 The design: https://claude.ai/artifact/X65FknT3sqWZBgJaHgHboZ. In code: `src/game/hud.ts`, with its styles in
-`src/style.css`.
+`src/style.css`. The study for its next pass, with references and the order of work: [GUI-STUDY.md](GUI-STUDY.md);
+`npm run shots:ui` photographs every screen on a phone, a tablet, a laptop and a desktop.
 
 - **One HUD in both views.** It is hers, neutral glass; what changes with the view is what things are and are called,
   and the Concierge, only in its view and made of light (src/game/concierge.ts): its mark (the C of its stations,

@@ -11,6 +11,7 @@
     "test": "vitest run",
     "preview": "vite preview",
     "shot": "node scripts/shot.mjs",
+    "shots:ui": "node scripts/ui-shots.mjs",
     "play": "node scripts/play.mjs",
     "check:play": "node scripts/checks.mjs",
     "check:layers": "node scripts/layers.mjs",

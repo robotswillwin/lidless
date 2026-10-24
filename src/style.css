@@ -774,7 +774,7 @@ button.view:not(.hud-btn):focus-visible { outline: 2px solid #fff; outline-offse
    behind it on the right. Its pages (settings, how to play, a saved game) open in the same place, under their name */
 .stage[data-title] .hud { visibility: hidden; }
 .title-screen {
-  position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: clamp(18px, 5vh, 46px);
+  position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; justify-content: safe center; align-items: flex-start; gap: clamp(18px, 5vh, 46px);
   padding: max(24px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(clamp(28px, 7vw, 132px), env(safe-area-inset-left) + 20px);
   overflow: auto; color: #f5f3ef; animation: hud-fade .6s ease-out both;
   background: linear-gradient(90deg, rgba(4, 5, 9, .94), rgba(4, 5, 9, .8) 28%, rgba(4, 5, 9, .36) 58%, rgba(4, 5, 9, .08)), radial-gradient(ellipse 120% 95% at 72% 48%, transparent 55%, rgba(0, 0, 0, .5));
@@ -798,7 +798,7 @@ button.view:not(.hud-btn):focus-visible { outline: 2px solid #fff; outline-offse
 .title-screen .menu button.primary { color: #fff; font-weight: 500; }
 .title-screen .menu:not(:has(button:is(:hover, :focus-visible))) button.primary::before { opacity: 1; transform: scale(1); }
 /* a page of it: on glass, its name and Back over what scrolls */
-.title-screen.sub .panel { width: min(660px, 100%); height: min(560px, 100%); min-height: 0; display: flex; flex-direction: column; gap: 14px; padding: 14px 20px 20px; border-radius: 18px;
+.title-screen.sub .panel { width: min(660px, 100%); flex: 0 1 560px; min-height: 0; display: flex; flex-direction: column; gap: 14px; padding: 14px 20px 20px; border-radius: 18px;
   background: rgba(12, 13, 18, .84); border: 1px solid rgba(255, 255, 255, .12); box-shadow: 0 20px 50px rgba(0, 0, 0, .5); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
 .title-screen.sub .panel > :not(.head) { min-height: 0; overflow: auto; overscroll-behavior: contain; }
 .title-screen .panel .head { display: flex; align-items: center; gap: 14px; flex: none; }
