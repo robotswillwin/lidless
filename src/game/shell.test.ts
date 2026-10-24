@@ -127,9 +127,10 @@ describe('the old machine\'s shell', () => {
 
   it('changes nothing and reaches nothing: the disk is read-only and there is no network', () => {
     const { run } = shell();
-    expect(run('rm notes.txt')).toEqual(['rm: Read-only file system']);
+    expect(run('rm notes.txt')).toEqual(['rm: notes.txt: Read-only file system']);
     expect(run('echo hi > out.txt')).toEqual(['sh: cannot create out.txt: Read-only file system']);
-    expect(run('ping central')).toEqual(['ping: network is unreachable']);
+    expect(run('ping central')).toEqual(['ping: cannot resolve central: Unknown host']);
+    expect(run('ssh central')).toEqual(['ssh: network is unreachable']);
     expect(run('frobnicate')).toEqual(['sh: frobnicate: not found']);
     expect(run('shutdown')).toEqual(['shutdown: you must be root']);
   });
@@ -158,6 +159,145 @@ describe('the old machine\'s shell', () => {
     expect(sh.complete('cd /ho')).toEqual({ line: 'cd /home/', options: [] });
     expect(sh.complete('cat /home/ann/')).toEqual({ line: 'cat /home/ann/', options: ['notes.txt', 'plan.txt'] });
     expect(sh.complete('ls | gr')).toEqual({ line: 'ls | grep ', options: [] });
+  });
+
+  it('sudo asks for her password, and then reports her; root may', () => {
+    const { sh, run } = shell();
+    expect(sh.run('sudo cat /home/bob/secret').ask).toBe('[sudo] password for ann: ');
+    expect(sh.askPrompt).toBe('[sudo] password for ann: ');
+    expect(run('anything')).toEqual(['ann is not in the sudoers file.  This incident will be reported.']);
+    run('su');
+    run('sesame');
+    expect(run('sudo cat /home/bob/secret')).toEqual(['the cake is in the oven']);
+  });
+
+  it('remembers: !! and !n and !word run again, shown first; cd - goes back', () => {
+    const { run } = shell();
+    run('echo one');
+    expect(run('!!')).toEqual(['echo one', 'one']);
+    expect(run('!1')).toEqual(['echo one', 'one']);
+    expect(run('!ech')).toEqual(['echo one', 'one']);
+    expect(run('!nothing')).toEqual(['sh: !nothing: event not found']);
+    run('cd /var/log');
+    expect(run('cd -')).toEqual(['/home/ann']);
+    expect(run('cd -')).toEqual(['/var/log']);
+  });
+
+  it('ed: prints, numbers, answers ? and says why with h, writes nothing, and q leaves', () => {
+    const { sh, run } = shell();
+    expect(run('ed notes.txt')).toEqual(['21']);
+    expect(sh.prompt()).toBe('');
+    expect(run(',p')).toEqual(['one', 'two apples', 'three']);
+    expect(run('2n')).toEqual(['2\ttwo apples']);
+    expect(run('frob')).toEqual(['?']);
+    expect(run('h')).toEqual(['unknown command']);
+    expect(run('w')).toEqual(['?']);
+    run('a');
+    expect(run('typed into it')).toEqual([]);
+    run('.');
+    expect(run('=')).toEqual(['3']);
+    expect(run('q')).toEqual([]);
+    expect(sh.prompt()).toBe('ann@box:~$ ');
+  });
+
+  it('vi: shows the file, will not write it, ignores what it does not know, and :q leaves', () => {
+    const { sh, run } = shell();
+    const shown = run('vi notes.txt');
+    expect(shown.slice(0, 3)).toEqual(['one', 'two apples', 'three']);
+    expect(shown.at(-1)).toBe('"notes.txt" [readonly] 3L, 21B');
+    expect(run(':w')).toEqual(["E45: 'readonly' option is set (add ! to override)"]);
+    expect(run(':wq!')).toEqual(['"notes.txt" E212: Can\'t open file for writing']);
+    expect(run('exit')).toEqual([]);
+    expect(run('quit')).toEqual([]);
+    expect(run('help')).toEqual(['Type  :q  and press <Enter> to exit']);
+    expect(sh.cancel()).toEqual(['Type  :qa!  and press <Enter> to abandon all changes and exit Vim']);
+    expect(run(':q')).toEqual([]);
+    expect(sh.prompt()).toBe('ann@box:~$ ');
+  });
+
+  it('the text tools work through pipes: base64, tr, rot13, cut, rev, sort, md5', () => {
+    const { run } = shell();
+    expect(run('echo hello | base64')).toEqual(['aGVsbG8K']);
+    expect(run('echo aGVsbG8K | base64 -d')).toEqual(['hello']);
+    expect(run('echo Hello | tr a-z A-Z')).toEqual(['HELLO']);
+    expect(run("echo Hello | tr 'A-Za-z' 'N-ZA-Mn-za-m'")).toEqual(['Uryyb']);
+    expect(run('echo Uryyb | rot13')).toEqual(['Hello']);
+    expect(run('echo a:b:c | cut -d: -f2')).toEqual(['b']);
+    expect(run('echo abc | rev')).toEqual(['cba']);
+    expect(run('echo abc | md5sum')).toEqual(['0bee89b07a248e27c83fc3d5951213c1  -']);
+    expect(run('md5 notes.txt')[0]).toMatch(/^MD5 \(notes\.txt\) = [0-9a-f]{32}$/);
+    expect(run('diff notes.txt plan.txt')[0]).toBe('1,3c1');
+  });
+
+  it('works sums out: expr, bc from a pipe or waiting for them, factor, cal and its missing days of 1752', () => {
+    const { sh, run } = shell();
+    expect(run('expr 6 "*" 7')).toEqual(['42']);
+    expect(run('echo "2^10; 7/2" | bc')).toEqual(['1024', '3']);
+    expect(run('echo "7/2" | bc -l')).toEqual(['3.5']);
+    run('bc');
+    expect(run('3 * (4 + 5)')).toEqual(['27']);
+    run('quit');
+    expect(sh.prompt()).toBe('ann@box:~$ ');
+    expect(run('factor 360')).toEqual(['360: 2 2 2 3 3 5']);
+    expect(run('cal 9 1752').slice(0, 3)).toEqual(['   September 1752', 'Su Mo Tu We Th Fr Sa', '       1  2 14 15 16']);
+  });
+
+  it('what is inside a program: strings, xxd and hexdump find its text among its bytes', () => {
+    const m: Machine = { ...machine, files: { ...machine.files, '/usr/bin/relayd': { kind: 'ELF executable', size: 2048, strings: ['the key is under the mat'] } } };
+    const sh = new Shell(m, { test: () => false, tell: () => {} });
+    expect(sh.run('strings /usr/bin/relayd').lines).toContain('the key is under the mat');
+    expect(sh.run('xxd /usr/bin/relayd').lines[0]).toMatch(/^00000000: 7f45 4c46/);
+    expect(sh.run('hexdump -C notes.txt').lines[0]).toBe('00000000  6f 6e 65 0a 74 77 6f 20  61 70 70 6c 65 73 0a 74  |one.two apples.t|');
+  });
+
+  it('who was here: finger with their .plan, last, w; crontab only their own', () => {
+    const m: Machine = { ...machine, users: { ...machine.users, ann: { home: '/home/ann', name: 'Ann Example' } },
+      files: { ...machine.files, '/home/ann/.plan': { owner: 'ann', text: 'Fix the relay.' }, '/var/cron/tabs/ann': { owner: 'ann', mode: 'rw-------', text: '0 3 * * * /usr/bin/relayd' } } };
+    const sh = new Shell(m, { test: () => false, tell: () => {} }), run = (l: string) => sh.run(l).lines;
+    expect(run('finger ann')).toEqual(['Login: ann                     Name: Ann Example', 'Directory: /home/ann           Shell: /bin/sh', 'On since Sat Nov  2 03:12 (UTC) on tty1', 'No Mail.', 'Plan:', 'Fix the relay.']);
+    expect(run('finger bob').at(-1)).toBe('No Plan.');
+    expect(run('last')[0]).toMatch(/^ann\s+tty1\s+Sat Nov  2 03:12\s+still logged in$/);
+    expect(run('crontab -l')).toEqual(['0 3 * * * /usr/bin/relayd']);
+    expect(run('crontab -l -u bob')).toEqual(['crontab: must be privileged to use -u']);
+  });
+
+  it('keeps the old jokes: make love, rm -rf /, the fork bomb, lp0 on fire, xyzzy', () => {
+    const { run } = shell();
+    expect(run('make love')).toEqual(["make: don't know how to make love. Stop"]);
+    expect(run('rm -rf /')).toEqual(['rm: "/" may not be removed']);
+    expect(run(':(){ :|:& };:')).toEqual(Array(3).fill('sh: fork: Resource temporarily unavailable'));
+    expect(run('lpr notes.txt')).toEqual(['lpr: lp0 on fire']);
+    expect(run('xyzzy')).toEqual(['Nothing happens.']);
+    expect(run('man woman')).toEqual(['No manual entry for woman']);
+    expect(run('emacs')).toEqual(['sh: emacs: not found']);
+  });
+
+  it('what goes on over time: the train crosses and will not stop; yes and ping stop with Ctrl+C, and pipe', () => {
+    const { sh, run } = shell();
+    const sl = sh.run('sl').stream!;
+    expect(sl.redraw).toBe(true);
+    expect(sl.stop).toBeUndefined();
+    // it comes in from the right: on screen a few frames in
+    expect(sl.frame(0)!.join('').trim()).toBe('');
+    expect(sl.frame(10)!.join('\n')).toMatch(/\S/);
+    let k = 0;
+    while (sl.frame(k)) k++;
+    expect(k).toBeGreaterThan(20);
+    const yes = sh.run('yes').stream!;
+    expect(yes.frame(0)).toEqual(Array(6).fill('y'));
+    expect(run('yes | head -n 3')).toEqual(['y', 'y', 'y']);
+    const ping = sh.run('ping localhost').stream!;
+    expect(ping.frame(0)![0]).toBe('PING localhost (127.0.0.1): 56 data bytes');
+    expect(ping.stop!(4)[2]).toBe('4 packets transmitted, 4 packets received, 0.0% packet loss');
+  });
+
+  it('knows where its commands are and what they are for: which, type, whatis, apropos', () => {
+    const { run } = shell();
+    expect(run('which ls cd')).toEqual(['/bin/ls', 'cd: shell built-in command.']);
+    expect(run('type grep')).toEqual(['grep is /usr/bin/grep']);
+    expect(run('whatis grep')[0]).toMatch(/^grep\(1\) - /);
+    expect(run('apropos archive').join(' ')).toContain('tar(1)');
+    expect(run('help').join(' ')).toContain('base64');
   });
 
   it('reads words as a shell does: quotes keep spaces, paths are made plain', () => {

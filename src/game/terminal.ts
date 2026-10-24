@@ -2,10 +2,12 @@
 // boot lines and whoever was left logged in; she types at a keyboard, or with the keys under the screen on a phone
 // (commands, and the names where she is); and it goes when she switches it off: the button, Esc, or exit.
 //
-//   Enter runs a line, Tab completes a name, Up and Down go through what she typed, Ctrl+C drops a line, Ctrl+L clears.
+//   Enter runs a line, Tab completes a name, Up and Down go through what she typed, Ctrl+C drops a line (or stops what
+//   is going on: yes, ping), Ctrl+D on an empty line logs out, Ctrl+L clears. What goes on over time (shell.ts's
+//   streams) plays frame by frame, the line hidden until it is done.
 
 import { button, el } from './dom';
-import { columns, Shell, type Machine, type ShellHooks } from './shell';
+import { columns, Shell, type Machine, type ShellHooks, type Stream } from './shell';
 
 export interface TerminalOptions {
   /** No waiting: the boot lines all at once (the checks). */
@@ -43,6 +45,8 @@ export function openTerminal(stage: HTMLElement, machine: Machine, hooks: ShellH
     const keys = el('div', 'keys', crt);
 
     let booting = true, skip = !!opt.fast, back = -1, typed = '', closed = false;
+    /** What is going on over time, while it is: Ctrl+C stops it, if it can be stopped. */
+    let playing: { stop: () => void } | null = null;
     stage.dataset.terminal = '';
     // on a phone the keys type without bringing up its keyboard, which would cover the screen; a tap on the screen does
     const coarse = matchMedia('(pointer: coarse)').matches;
@@ -53,7 +57,7 @@ export function openTerminal(stage: HTMLElement, machine: Machine, hooks: ShellH
       screen.scrollTop = screen.scrollHeight;
     };
     const ready = () => {
-      prompt.textContent = shell.asking ? 'Password: ' : shell.prompt();
+      prompt.textContent = shell.asking ? shell.askPrompt : shell.prompt();
       input.type = shell.asking ? 'password' : 'text';
       row.hidden = false;
       drawKeys();
@@ -67,6 +71,8 @@ export function openTerminal(stage: HTMLElement, machine: Machine, hooks: ShellH
       add('Tab', () => complete(), 'fn');
       add('↑', () => recall(1), 'fn');
       add('Enter', () => submit(), 'fn');
+      // Ctrl+C, for a phone that has no Ctrl: drops a line, and vi says how to leave it
+      add('^C', () => { print([`${prompt.textContent}${shell.asking ? '' : input.value}^C`]); input.value = ''; print(shell.cancel()); ready(); }, 'fn');
       for (const k of KEYS) add(k, () => typeIn(k, !k.endsWith(' ')));
       for (const n of shell.names()) add(n, () => typeIn(n));
     };
@@ -86,8 +92,37 @@ export function openTerminal(stage: HTMLElement, machine: Machine, hooks: ShellH
       if (res.clear) out.replaceChildren();
       print(res.lines);
       if (res.exit) { row.hidden = true; window.setTimeout(close, opt.fast ? 0 : 500); return; }
+      if (res.stream) return play(res.stream);
       ready();
       focus();
+    };
+    // frames over time: after each other (lines going by), or each in the last one's place (a train crossing)
+    const play = (s: Stream) => {
+      row.hidden = true;
+      const block = s.redraw ? el('div', 'frame', out) : null;
+      let k = 0, timer = 0;
+      const end = (more: string[] = []) => {
+        window.clearTimeout(timer);
+        playing = null;
+        if (block && !s.stop) block.remove();
+        print(more);
+        ready();
+        focus();
+      };
+      playing = { stop: () => { if (s.stop) { print(['^C']); end(s.stop(k)); } } };
+      // on a phone, the one key that matters now
+      keys.replaceChildren();
+      if (s.stop) { const b = button('key fn', 'Ctrl+C', keys, () => playing?.stop()); b.textContent = '^C'; }
+      const tick = () => {
+        if (closed) return;
+        const f = s.frame(k);
+        if (!f) return end();
+        if (block) { block.replaceChildren(...f.map((l) => { const d = document.createElement('div'); d.className = 'l'; d.textContent = l || ' '; return d; })); screen.scrollTop = screen.scrollHeight; }
+        else print(f);
+        k++;
+        timer = window.setTimeout(tick, opt.fast ? 0 : s.every);
+      };
+      tick();
     };
     const complete = () => {
       if (shell.asking) return;
@@ -111,12 +146,17 @@ export function openTerminal(stage: HTMLElement, machine: Machine, hooks: ShellH
       else if (e.key === 'ArrowUp') { e.preventDefault(); recall(1); }
       else if (e.key === 'ArrowDown') { e.preventDefault(); recall(-1); }
       else if (e.key === 'Escape') { e.preventDefault(); close(); }
-      else if (e.ctrlKey && e.key === 'c') { e.preventDefault(); print([`${prompt.textContent}${shell.asking ? '' : input.value}^C`]); input.value = ''; shell.cancel(); ready(); }
+      else if (e.ctrlKey && e.key === 'c') { e.preventDefault(); print([`${prompt.textContent}${shell.asking ? '' : input.value}^C`]); input.value = ''; print(shell.cancel()); ready(); }
+      else if (e.ctrlKey && e.key === 'd' && !input.value) { e.preventDefault(); input.value = shell.asking ? '' : 'exit'; submit(); }
       else if (e.ctrlKey && e.key === 'l') { e.preventDefault(); out.replaceChildren(); }
     });
     // a tap anywhere on the screen brings up the keyboard; while it boots, it skips the boot
     screen.addEventListener('click', () => { if (booting) skip = true; else if (!window.getSelection()?.toString()) input.focus(); });
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && !closed) { e.preventDefault(); close(); } else if (booting) skip = true; };
+    const onKey = (e: KeyboardEvent) => {
+      // while something goes on, Ctrl+C is for it
+      if (playing && e.ctrlKey && e.key === 'c') { e.preventDefault(); playing.stop(); return; }
+      if (e.key === 'Escape' && !closed) { e.preventDefault(); close(); } else if (booting) skip = true;
+    };
     window.addEventListener('keydown', onKey, true);
 
     // how many characters fit across, for ls's columns

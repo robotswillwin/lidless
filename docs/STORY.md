@@ -174,18 +174,29 @@ ids of their own (the journal's `places` is the map).
 
 An old computer, offline, is a file system written in data, `public/assets/terminals/<id>.json`, and a small Unix
 over it (src/game/shell.ts): `ls`, `cd`, `cat`, `grep`, `find`, `head`, `tail`, `file`, `tar`, `man`, `su` and the
-rest (`help` lists them), with pipes, quotes, wildcards, Tab completion and history. Its disk is mounted read-only and
-there is no network, so she can read and search it but change nothing. `# terminal: <id>` in a line opens it, and
-`?terminal=<id>` in the address opens it at once, for trying one out. On a phone, keys under the screen type the
-common commands and the names where she is.
+rest (`help` lists them), with pipes, quotes, wildcards, Tab completion and history (`!!`, `!n`, `!word`, `cd -`). Its
+disk is mounted read-only and there is no network, so she can read and search it but change nothing. `# terminal: <id>`
+in a line opens it, and `?terminal=<id>` in the address opens it at once, for trying one out. On a phone, keys under
+the screen type the common commands and the names where she is, and Ctrl+C.
+
+What a story can hide on a machine, and the tools a player who knows Unix reaches for to find it
+(src/game/shelltools.ts): a password in base64 (`base64 -d`), a note in ROT13 (`rot13`, `caesar N`, `tr`), a changed
+log only `diff` shows, a tampered program whose `md5` is not the one written down, text inside a program
+(`strings`, `xxd`, `hexdump -C`), a user's `.plan` and `.project` (`finger`), their jobs (`crontab -l` reads
+`/var/cron/tabs/<user>`), the last logins (`last`), sums (`bc`, `expr`, `factor`) and dates (`cal`). `ed` and `vi` open
+files, write nothing, and are as hard to leave as ever. And the old jokes are there for whoever tries them (`sl`,
+`make love`, `rm -rf /`, `sudo`, which reports her, `xyzzy`; src/game/shellfun.ts).
 
 - `name` (on the screen's bar), `host`, `system` (what `uname -a` says), `clock` (the machine's date as it comes up),
   `boot` (lines it prints coming up), `user` (who was left logged in), `man` (manual pages of its own).
 - `users`: each with `home`, and a `password` if `su` can reach it (none: it cannot); `login`, variables the story
-  is told when she becomes that user.
+  is told when she becomes that user; `name`, the full name `finger` gives. `last`: the login history `last` lists,
+  newest first. Fortunes of the machine's own: `/usr/share/games/fortune/fortunes`, one after another between lines
+  of `%`.
 - `files`: by absolute path; a path ending in `/` is a directory. Each can have `text`, `owner`, `mode` (as ls shows
   it, `rw-r--r--`; the group counts as others), `date`, `kind` and `size` for one that is not text (a program, an
-  archive, which `cat` shows as garbage), `entries` and `damaged` for an archive, `when` (there only while a
+  archive, which `cat` shows as garbage), `strings` for one that is not text (the text inside it, which `strings`,
+  `xxd` and `hexdump` find), `entries` and `damaged` for an archive, `when` (there only while a
   condition on the story holds), and `read`: variables the story is told when she reads it whole (`cat`, `more`,
   `less`; a search through it with `grep` does not count).
 

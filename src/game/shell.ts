@@ -3,9 +3,13 @@
 // through it, read, search and switch user with a password she has found, but change nothing and reach nothing beyond
 // it. The story hears what she reads (a file's `read` sets its variables) and decides what is there (a file's `when`).
 //
-// Commands: help man ls cd pwd cat more less head tail grep find file wc sort uniq tar echo env date uptime uname
-// hostname whoami id who ps df mount history clear su exit, with pipes (|), quotes and wildcards (* and ?).
-// Everything here is plain logic, with no screen: terminal.ts draws it.
+// Commands: `help` lists them (ls cd cat grep find tar su and the rest, with the text tools of shelltools.ts), with pipes
+// (|), quotes, wildcards (* and ?), history (!!, !n, !word) and cd -. ed and vi are there, as stubborn as ever; and for
+// those who know an old machine, the old jokes (shellfun.ts). Everything here is plain logic, with no screen:
+// terminal.ts draws it, and plays what goes on over time (a stream: a train crossing, yes, ping).
+
+import { FORTUNES, forkBomb, make, rainFrame, trainFrames } from './shellfun';
+import { b64decode, b64encode, caesar, calc, cutList, diff, factor, hexdumpC, md5, month, tr, xxd, year } from './shelltools';
 
 /** A file or a directory on the machine. A path ending in / is a directory. */
 export interface MachineFile {
@@ -28,6 +32,8 @@ export interface MachineFile {
   entries?: string[];
   /** An archive cut short: `tar` reads this far and stops. */
   damaged?: boolean;
+  /** For a file that is not text: the text inside it, as `strings` finds it (a name, a message left in a program). */
+  strings?: string[];
 }
 
 export interface MachineUser {
@@ -56,6 +62,8 @@ export interface Machine {
   files: Record<string, MachineFile>;
   /** Manual pages of its own, by name (man relay). */
   man?: Record<string, string>;
+  /** The last logins, as `last` lists them, newest first; without, the one who was left logged in. */
+  last?: string[];
 }
 
 /** What the shell asks of the game. */
@@ -75,6 +83,20 @@ export interface Output {
   exit?: boolean;
   /** The next line typed answers this, hidden as it is typed (a password). */
   ask?: string;
+  /** What goes on over time: a train crossing the screen, yes, ping. */
+  stream?: Stream;
+}
+
+/** Output over time: frame after frame, each after the last (lines going by) or in its place (a picture moving). */
+export interface Stream {
+  /** Its k-th frame, or null when it is over. */
+  frame: (k: number) => string[] | null;
+  /** Milliseconds between frames. */
+  every: number;
+  /** Each frame drawn in place of the one before. */
+  redraw?: boolean;
+  /** Ctrl+C stops it, printing these after it (ping's count); without, it runs to its end (sl will not be stopped). */
+  stop?: (frames: number) => string[];
 }
 
 /** A command's output: what goes on down a pipe, and what goes wrong, which is shown and not passed on. */
@@ -168,8 +190,8 @@ function options(args: string[], takes = ''): { flags: Set<string>; values: Reco
 }
 
 /** Commands that would change the disk, and those that would reach beyond the machine. */
-const WRITES = ['rm', 'rmdir', 'mv', 'cp', 'touch', 'mkdir', 'chmod', 'chown', 'chgrp', 'ln', 'tee', 'vi', 'vim', 'ed', 'nano', 'pico', 'emacs', 'passwd'];
-const NETWORK = ['ping', 'ssh', 'telnet', 'ftp', 'rlogin', 'rsh', 'curl', 'wget', 'lynx', 'finger', 'nslookup', 'dig', 'traceroute', 'netstat'];
+const WRITES = ['rmdir', 'mv', 'cp', 'touch', 'mkdir', 'chmod', 'chown', 'chgrp', 'ln', 'tee', 'patch', 'dd'];
+const NETWORK = ['ssh', 'telnet', 'ftp', 'rlogin', 'rsh', 'curl', 'wget', 'lynx', 'nslookup', 'dig', 'traceroute', 'netstat', 'nc', 'talk'];
 
 /** What `help` lists, and each command's manual page. */
 const MANUAL: Record<string, string> = {
@@ -206,8 +228,58 @@ const MANUAL: Record<string, string> = {
   clear: 'clear - clear the screen',
   su: 'su [USER] - become USER (root if none); asks for USER\'s password. exit goes back',
   exit: 'exit - leave: back to the user before su, or switch the terminal off',
+  sudo: 'sudo COMMAND - run a command as root, if you are one of those allowed to',
+  passwd: 'passwd - change your password',
+  w: 'w - who is logged in, and what they are doing',
+  last: 'last [USER] - the last logins, newest first',
+  finger: 'finger [USER] - who is logged in; or what there is to know about USER, and their .plan',
+  crontab: 'crontab -l [-u USER] - list the jobs that run at set times (another user\'s only as root)',
+  dmesg: 'dmesg - what the system said as it came up',
+  write: 'write USER - write to another user\'s terminal',
+  wall: 'wall MESSAGE - write to every terminal',
+  kill: 'kill [-SIGNAL] PID - send a signal to a process',
+  which: 'which NAME... - where a command is',
+  type: 'type NAME... - what a name is: a command, or part of the shell',
+  apropos: 'apropos WORD - search the manual\'s one-line descriptions (man -k WORD does the same)',
+  whatis: 'whatis NAME... - the one-line description of a manual page',
+  stat: 'stat FILE... - a file\'s details: its size, owner, permissions and times',
+  strings: 'strings FILE... - the text inside a file that is not text',
+  xxd: 'xxd FILE - a file\'s bytes in hex, its text beside them',
+  hexdump: 'hexdump [-C] FILE - a file\'s bytes in hex; -C with its text beside them between bars',
+  od: 'od [-c] FILE - a file\'s bytes, in octal or (-c) as characters',
+  md5: 'md5 FILE... - the MD5 digest of each file (md5sum prints it the other way round)',
+  diff: 'diff FILE1 FILE2 - how two files differ: lines changed (c), deleted (d) and added (a)',
+  base64: 'base64 [-d] [FILE] - write a file in base64, or (-d) read base64 back',
+  tr: 'tr SET1 SET2, tr -d SET - change characters, or delete them; a-z is a range.\n  tr a-z A-Z shouts; tr A-Za-z N-ZA-Mn-za-m is ROT13',
+  caesar: 'caesar [N] [FILE] - shift each letter N places along the alphabet (13 if N is not given)',
+  rot13: 'rot13 [FILE] - shift each letter 13 places: ROT13, which is its own undoing',
+  rev: 'rev [FILE...] - each line backwards',
+  tac: 'tac [FILE...] - the lines, last first',
+  nl: 'nl [FILE...] - the lines, numbered',
+  cut: 'cut -d DELIM -f LIST [FILE...], cut -c LIST [FILE...] - fields or characters of each line;\n  LIST is like 1,3-5. cut -d: -f1 /etc/passwd lists the users',
+  cal: 'cal [[MONTH] YEAR] - a calendar: this month, a month of a year, or a whole year',
+  bc: 'bc [-l] - a calculator: it works out the sums it reads (echo "2^10" | bc); -l for decimals',
+  expr: 'expr N OP N - work out a sum of whole numbers; OP is + - * / % (quote the *)',
+  factor: 'factor N... - the prime factors of each number',
+  fortune: 'fortune - a saying, at random',
+  yes: 'yes [WORDS] - print WORDS (y) over and over, until Ctrl+C',
+  ping: 'ping HOST - send packets to HOST and wait for them back, until Ctrl+C',
+  ed: 'ed [FILE] - the standard text editor. Its commands: ,p prints, n numbers, q quits;\n  it says ? when something is wrong, and h says what',
+  vi: 'vi [FILE] - the visual editor. :q quits',
+  make: 'make [TARGET] - make TARGET, by the rules in the Makefile',
+  lpr: 'lpr FILE - send a file to the printer',
 };
-const COMMANDS = [...Object.keys(MANUAL), 'logout', 'shutdown', 'halt', 'poweroff', 'reboot', 'printenv', 'mail'];
+const COMMANDS = [...Object.keys(MANUAL), 'logout', 'shutdown', 'halt', 'poweroff', 'reboot', 'printenv', 'mail', 'md5sum', 'vim', 'view', 'lp', 'rm'];
+/** What is part of the shell itself, not a program on the disk. */
+const BUILTINS = ['cd', 'pwd', 'echo', 'exit', 'logout', 'history', 'type', 'kill', 'su'];
+/** Where each command's program would be. */
+const binOf = (c: string) => (['ls', 'cat', 'cp', 'mv', 'rm', 'mkdir', 'ps', 'date', 'df', 'hostname', 'echo', 'ed', 'sh', 'stty', 'kill', 'pwd'].includes(c) ? '/bin' : ['fortune', 'factor', 'caesar', 'rot13'].includes(c) ? '/usr/games' : ['dmesg', 'mount', 'shutdown', 'halt', 'reboot'].includes(c) ? '/sbin' : '/usr/bin');
+
+/** An editor or a calculator she is in: what she types goes to it, not the shell, until she leaves it. */
+type Mode =
+  | { kind: 'ed'; buffer: string[]; cur: number; err: string; verbose: boolean; input: boolean }
+  | { kind: 'vi'; file: string; misses: number }
+  | { kind: 'bc'; scale: number };
 
 export class Shell {
   /** The users logged in, one on top of another with su: the last one is who you are. */
@@ -217,7 +289,11 @@ export class Shell {
   /** How many characters wide the screen is, for ls's columns. */
   cols = 64;
   private readonly nodes = new Map<string, Node>();
-  private pending: { user: string } | null = null;
+  /** A password asked for: to become another user (su), or to be let do something as root (sudo). */
+  private pending: { kind: 'su'; user: string } | { kind: 'sudo' } | null = null;
+  private mode: Mode | null = null;
+  /** Where cd - goes back to. */
+  private before: string | null = null;
   private readonly started = Date.now();
 
   constructor(readonly machine: Machine, private readonly hooks: ShellHooks) {
@@ -243,8 +319,19 @@ export class Shell {
   private homeOf(user: string): string { return normal(this.machine.users[user]?.home ?? (user === 'root' ? '/root' : `/home/${user}`)); }
   /** Whether a password is being asked for: what is typed next is hidden. */
   get asking(): boolean { return !!this.pending; }
-  /** The question asked dropped (Ctrl+C): back to the prompt. */
-  cancel(): void { this.pending = null; }
+  /** What is asked, in place of the prompt. */
+  get askPrompt(): string { return this.pending?.kind === 'sudo' ? `[sudo] password for ${this.user}: ` : 'Password: '; }
+  /**
+   * Ctrl+C: a question asked is dropped, back to the prompt. In ed it is answered with ?, and vi says how to leave it,
+   * which it does not; what to print is returned.
+   */
+  cancel(): string[] {
+    this.pending = null;
+    if (this.mode?.kind === 'vi') return ['Type  :qa!  and press <Enter> to abandon all changes and exit Vim'];
+    if (this.mode?.kind === 'ed') return ['?'];
+    if (this.mode?.kind === 'bc') { this.mode = null; return []; }
+    return [];
+  }
 
   /** The message of the day, shown as the machine comes up: /etc/motd. */
   motd(): string[] {
@@ -253,6 +340,8 @@ export class Shell {
   }
 
   prompt(): string {
+    // ed and vi have no prompt of their own, and bc waits quietly
+    if (this.mode) return '';
     const home = this.homeOf(this.user), where = this.cwd === home ? '~' : this.cwd.startsWith(`${home}/`) ? `~${this.cwd.slice(home.length)}` : this.cwd;
     return `${this.user}@${this.machine.host}:${where}${this.user === 'root' ? '#' : '$'} `;
   }
@@ -354,35 +443,124 @@ export class Shell {
     return out;
   }
 
-  /** A line typed: the answer to a question asked, or a command line, pipes and all. */
+  /** A line typed: the answer to a question asked, a line for the editor she is in, or a command line, pipes and all. */
   run(line: string): Output {
     if (this.pending) {
-      const { user } = this.pending, u = this.machine.users[user];
+      const p = this.pending;
       this.pending = null;
+      // whatever she answers, she is not one of those allowed
+      if (p.kind === 'sudo') return { lines: [`${this.user} is not in the sudoers file.  This incident will be reported.`] };
+      const u = this.machine.users[p.user];
       if (!u?.password || line !== u.password) return { lines: ['su: Sorry'] };
-      this.users.push(user);
+      this.users.push(p.user);
       if (u.login) this.hooks.tell(u.login);
       return { lines: [] };
     }
-    const trimmed = line.trim();
+    if (this.mode) return { lines: this.mode.kind === 'ed' ? this.ed(line) : this.mode.kind === 'vi' ? this.vi(line) : this.bc(line) };
+    let trimmed = line.trim();
     if (!trimmed) return { lines: [] };
+    // history: !! the last line, !n the nth, !-n n back, !word the last that began so; shown as it runs, as a shell does
+    const h = this.recall(trimmed);
+    if ('error' in h) return { lines: [h.error] };
+    const echo = h.line !== trimmed ? [h.line] : [];
+    trimmed = h.line;
     this.history.push(trimmed);
+    if (forkBomb(trimmed)) return { lines: [...echo, ...Array(3).fill('sh: fork: Resource temporarily unavailable')] };
     if (/(^|[^>])>{1,2}\s*\S/.test(trimmed.replace(/(["']).*?\1/g, ''))) {
       const target = /\s*>{1,2}\s*(\S+)/.exec(trimmed)?.[1] ?? '';
       return { lines: [`sh: cannot create ${target}: Read-only file system`] };
     }
-    // each command's output goes on down the pipe; what goes wrong is shown, as it would be on a real one
+    // each command's output goes on down the pipe; what goes wrong is shown, as it would be on a real one. What goes on
+    // over time is taken as far as the next command could want it (yes | head)
     let input: string[] | null = null, out: Result = { lines: [], errors: [] };
-    const errors: string[] = [];
-    for (const part of pipes(trimmed)) {
+    const errors: string[] = [], parts = pipes(trimmed);
+    for (const [k, part] of parts.entries()) {
       const { words: ws, quoted } = words(part);
       if (!ws.length) return { lines: ['sh: syntax error near unexpected token `|\''] };
       out = this.command(ws[0], this.expand(ws.slice(1), quoted.slice(1)), input);
+      if (out.stream && k < parts.length - 1) out = { lines: [...out.lines, ...gather(out.stream)], errors: out.errors };
       errors.push(...out.errors);
       if (out.exit || out.clear || out.ask) break;
       input = out.lines;
     }
-    return { lines: [...errors, ...out.lines], clear: out.clear, exit: out.exit, ask: out.ask };
+    return { lines: [...echo, ...errors, ...out.lines], clear: out.clear, exit: out.exit, ask: out.ask, stream: out.stream };
+  }
+
+  /** History in a line: !!, !n, !-n and !word made the lines they stand for; one that is not there, said so. */
+  private recall(line: string): { line: string } | { error: string } {
+    const h = this.history;
+    let missing: string | null = null;
+    const out = line.replace(/!(!|-?\d+|[A-Za-z][^\s|;]*)/g, (all, ev: string) => {
+      const hit = ev === '!' ? h[h.length - 1] : /^-?\d+$/.test(ev) ? h[+ev < 0 ? h.length + +ev : +ev - 1] : [...h].reverse().find((x) => x.startsWith(ev));
+      if (hit === undefined) missing ??= all;
+      return hit ?? all;
+    });
+    return missing ? { error: `sh: ${missing}: event not found` } : { line: out };
+  }
+
+  /**
+   * ed, the standard text editor, on a read-only disk: it reads the file and prints it (,p all of it, n with numbers, a
+   * line by its number, Enter the next), counts its lines (=), takes text after a, i or c until a lone dot and keeps
+   * none of it, and answers everything it does not like with ?. h says why; H always says why; q leaves.
+   */
+  private ed(line: string): string[] {
+    const m = this.mode as Extract<Mode, { kind: 'ed' }>, cmd = line.trim(), last = m.buffer.length;
+    if (m.input) { if (line === '.') m.input = false; return []; }
+    const err = (why: string) => { m.err = why; return ['?', ...(m.verbose ? [why] : [])]; };
+    if (cmd === 'q' || cmd === 'Q') { this.mode = null; return []; }
+    if (cmd === 'h') return m.err ? [m.err] : [];
+    if (cmd === 'H') { m.verbose = !m.verbose; return m.verbose && m.err ? [m.err] : []; }
+    if (cmd === '=') return [String(last)];
+    if (/^[aic]$/.test(cmd)) { m.input = true; return []; }
+    if (/^w/.test(cmd)) return err('cannot open output file');
+    if (cmd === '') { if (m.cur >= last) return err('invalid address'); m.cur++; return [m.buffer[m.cur - 1]]; }
+    const a = /^(,|\$|\.|\d+)?(?:,(\$|\.|\d+))?([pn])?$/.exec(cmd);
+    if (!a) return err('unknown command');
+    const at = (x: string | undefined, d: number) => (x === undefined ? d : x === '$' ? last : x === '.' ? m.cur : +x);
+    const from = a[1] === ',' ? 1 : at(a[1], m.cur), to = a[1] === ',' ? last : at(a[2], from);
+    if (!last || from < 1 || to > last || from > to) return err('invalid address');
+    m.cur = to;
+    return m.buffer.slice(from - 1, to).map((l, k) => (a[3] === 'n' ? `${from + k}\t${l}` : l));
+  }
+
+  /** vi on a read-only disk: it can be left (:q, :q!, ZZ), not written; what else is typed it ignores, as vi does. */
+  private vi(line: string): string[] {
+    const m = this.mode as Extract<Mode, { kind: 'vi' }>, c = line.trim();
+    if (/^(:q!?|:qa!?|:x|ZZ|ZQ)$/.test(c)) { this.mode = null; return []; }
+    if (/^:w/.test(c)) return [c.includes('!') ? `"${m.file || '[No Name]'}" E212: Can't open file for writing` : "E45: 'readonly' option is set (add ! to override)"];
+    if (/^:h(elp)?(\s|$)/.test(c)) return ['E149: Sorry, no help for help.txt'];
+    if (c.startsWith(':')) return [`E492: Not an editor command: ${c.slice(1)}`];
+    if (/^[iaoIAO]$/.test(c)) return ['-- INSERT --', 'W10: Warning: Changing a readonly file'];
+    // three times lost in it, a word on the way out
+    return ++m.misses % 3 === 0 ? ['Type  :q  and press <Enter> to exit'] : [];
+  }
+
+  /** bc, waiting for sums: each line worked out; quit leaves. */
+  private bc(line: string): string[] {
+    const m = this.mode as Extract<Mode, { kind: 'bc' }>;
+    if (/^\s*quit\s*$/.test(line)) { this.mode = null; return []; }
+    return sums([line], m.scale);
+  }
+
+  /** A file's bytes: its text and the newline it ends with, or, not text, the same made-up bytes every time. */
+  private bytes(cmd: string, p: string): { bytes: Uint8Array; node: Node } | { error: string } {
+    const r = this.reach(p);
+    if ('error' in r) return { error: `${cmd}: ${p}: ${r.error}` };
+    if (r.node.dir) return { error: `${cmd}: ${p}: Is a directory` };
+    if (!this.may(r.node, 'r')) return { error: `${cmd}: ${p}: Permission denied` };
+    const f = r.node.file;
+    return { node: r.node, bytes: f.text !== undefined ? new TextEncoder().encode(f.text.replace(/\n?$/, '\n')) : madeUp(r.node.path, this.size(r.node), this.stringsOf(r.node), /exec|ELF|program/i.test(f.kind ?? '')) };
+  }
+
+  /** The text inside a file that is not text: what the story put there, and what a program's file always has. */
+  private stringsOf(n: Node): string[] {
+    const base = baseOf(n.path), program = /exec|ELF|program/i.test(n.file.kind ?? '');
+    return [...(program ? ['/usr/libexec/ld.so', 'libc.so.96.1', `usage: ${base} [-v] [file ...]`, `${base}: %s: %s`] : []), ...(n.file.strings ?? [])];
+  }
+
+  /** A date as who and last print it: Sat Nov  2 02:47. */
+  private when(d: Date): string {
+    return `${DAYS[d.getUTCDay()]} ${MONTHS[d.getUTCMonth()]} ${String(d.getUTCDate()).padStart(2)} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
   }
 
   private command(cmd: string, args: string[], stdin: string[] | null): Result {
@@ -411,12 +589,16 @@ export class Shell {
       case 'pwd':
         return say(this.cwd);
       case 'cd': {
-        const p = args[0] ?? '~', r = this.reach(p);
+        // cd - goes back where it was, and says where that is
+        const back = args[0] === '-', p = back ? this.before ?? '' : args[0] ?? '~';
+        if (back && !this.before) return fail('cd: OLDPWD not set');
+        const r = this.reach(p);
         if ('error' in r) return fail(`cd: ${p}: ${r.error}`);
         if (!r.node.dir) return fail(`cd: ${p}: Not a directory`);
         if (!this.may(r.node, 'x')) return fail(`cd: ${p}: Permission denied`);
+        this.before = this.cwd;
         this.cwd = r.node.path;
-        return say();
+        return back ? say(this.cwd) : say();
       }
       case 'ls': {
         const { flags, rest } = options(args), all = flags.has('a'), long = flags.has('l'), targets = rest.length ? rest : ['.'];
@@ -571,7 +753,7 @@ export class Shell {
         const who = args.find((a) => a !== '-') ?? 'root';
         if (!this.machine.users[who]) return fail(`su: unknown login: ${who}`);
         if (who === this.user) return say();
-        this.pending = { user: who };
+        this.pending = { kind: 'su', user: who };
         return { lines: [], errors: [], ask: 'Password:' };
       }
       case 'exit': case 'logout':
@@ -580,8 +762,246 @@ export class Shell {
       case 'shutdown': case 'halt': case 'poweroff': case 'reboot':
         if (this.user !== 'root') return fail(`${cmd}: you must be root`);
         return { lines: ['', 'System shutdown time has arrived', 'syncing disks... done'], errors: [], exit: true };
-      case 'sudo':
-        return fail('sh: sudo: not found');
+      case 'sudo': {
+        if (!args.length) return fail('usage: sudo command');
+        // root may; anyone else is asked for their password, and then told
+        if (this.user === 'root') return this.command(args[0], args.slice(1), stdin);
+        this.pending = { kind: 'sudo' };
+        return { lines, errors, ask: this.askPrompt };
+      }
+      case 'passwd':
+        return say(`Changing local password for ${this.user}.`), fail('passwd: /etc/master.passwd: Read-only file system');
+      case 'w': {
+        const d = this.now(), mins = Math.max(1, Math.floor((Date.now() - this.started) / 60000)), on = parseDate(this.machine.clock);
+        return say(` ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}  up ${mins} min${mins > 1 ? 's' : ''},  ${this.users.length} user${this.users.length > 1 ? 's' : ''},  load averages: 0.08, 0.03, 0.01`,
+          'USER       TTY FROM     LOGIN@  IDLE WHAT', ...this.users.map((u, k) => `${u.padEnd(10)} ${k ? 'p0' : 'C0'}  -        ${pad(on.getUTCHours())}:${pad(on.getUTCMinutes())}      - ${k === this.users.length - 1 ? 'w' : 'su'}`));
+      }
+      case 'last': {
+        const on = parseDate(this.machine.clock), boot = new Date(on.getTime() - 6 * 60000), who = args.find((a) => !a.startsWith('-'));
+        const rows = this.machine.last ?? [`${this.machine.user.padEnd(9)} tty1     ${this.when(on)}   still logged in`, `reboot    ~        ${this.when(boot)}`];
+        return say(...(who ? rows.filter((r) => r.split(/\s+/)[0] === who) : rows), '', `wtmp begins ${this.when(new Date(boot.getTime() - 29 * 86400000))}`);
+      }
+      case 'finger': {
+        const far = args.find((a) => a.includes('@'));
+        if (far) return fail(`finger: ${far.split('@').pop()}: network is unreachable`);
+        const on = parseDate(this.machine.clock);
+        if (!args.length) return say('Login     Name                 Tty  Idle  Login Time', ...[...new Set(this.users)].map((u) => `${u.padEnd(10)}${(this.machine.users[u]?.name ?? '').padEnd(21)}*C0     -  ${this.when(on).slice(0, 3)} ${this.when(on).slice(-5)}`));
+        for (const who of args) {
+          const u = this.machine.users[who];
+          if (!u) { errors.push(`finger: ${who}: no such user.`); continue; }
+          if (lines.length) lines.push('');
+          lines.push(`Login: ${who.padEnd(24)}Name: ${u.name ?? ''}`, `Directory: ${this.homeOf(who).padEnd(20)}Shell: /bin/sh`);
+          lines.push(this.users.includes(who) ? `On since ${this.when(on)} (UTC) on tty1` : 'Never logged in.');
+          lines.push(this.find(`/var/mail/${who}`) ? 'Mail last read some time ago.' : 'No Mail.');
+          // their plans, if anyone may read them, as finger reads them
+          for (const [file, label] of [['.project', 'Project: '], ['.plan', 'Plan:']] as const) {
+            const n = this.find(`${this.homeOf(who)}/${file}`);
+            if (n?.file.text !== undefined && (this.modeOf(n)[6] === 'r' || this.may(n, 'r'))) lines.push(...(label === 'Plan:' ? [label, ...n.file.text.replace(/\n$/, '').split('\n')] : [label + n.file.text.split('\n')[0]]));
+            else if (label === 'Plan:') lines.push('No Plan.');
+          }
+        }
+        return { lines, errors };
+      }
+      case 'crontab': {
+        const { flags, values } = options(args, 'u');
+        if (flags.has('e') || flags.has('r')) return fail('crontab: /var/cron/tabs: Read-only file system');
+        if (!flags.has('l')) return fail('usage: crontab [-u user] -l');
+        if (values.u && this.user !== 'root') return fail('crontab: must be privileged to use -u');
+        const who = values.u ?? this.user, n = this.find(`/var/cron/tabs/${who}`);
+        if (!n || n.file.text === undefined) return fail(`crontab: no crontab for ${who}`);
+        return say(...n.file.text.replace(/\n$/, '').split('\n'));
+      }
+      case 'dmesg':
+        return say(...(this.machine.boot?.length ? this.machine.boot : ['(the messages are gone: the buffer has wrapped)']));
+      case 'write': {
+        if (!args[0]) return fail('usage: write user [tty]');
+        return fail(this.users.includes(args[0]) && args[0] !== this.user ? `write: ${args[0]} has messages disabled` : `write: ${args[0]} is not logged in`);
+      }
+      case 'wall': {
+        const d = this.now();
+        return say(`Broadcast Message from ${this.user}@${this.machine.host}`, `        (/dev/ttyC0) at ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())} ...`, '', args.join(' ') || (stdin ?? []).join(' '));
+      }
+      case 'kill': {
+        const pids = args.filter((a) => !a.startsWith('-'));
+        if (!pids.length) return fail('usage: kill [-s signal_name] pid ...');
+        const known = [1, 41, 58, ...this.users.map((_, k) => 112 + k * 31)];
+        return fail(...pids.map((p) => `kill: ${p}: ${!/^\d+$/.test(p) ? 'illegal process id' : known.includes(+p) ? 'Operation not permitted' : 'No such process'}`));
+      }
+      case 'which': case 'type': {
+        if (!args.length) return fail(`usage: ${cmd} name ...`);
+        for (const a of args) {
+          if (BUILTINS.includes(a)) lines.push(cmd === 'type' ? `${a} is a shell builtin` : `${a}: shell built-in command.`);
+          else if (COMMANDS.includes(a)) lines.push(cmd === 'type' ? `${a} is ${binOf(a)}/${a}` : `${binOf(a)}/${a}`);
+          else errors.push(cmd === 'type' ? `sh: type: ${a}: not found` : `which: no ${a} in (/bin:/usr/bin:/usr/games:/usr/local/bin)`);
+        }
+        return { lines, errors };
+      }
+      case 'apropos': case 'whatis': {
+        if (!args.length) return fail(`${cmd} what?`);
+        const pages = { ...MANUAL, ...this.machine.man }, one = (name: string) => `${name}(1) - ${(pages[name] ?? '').split('\n')[0].replace(/^.*? - /, '')}`;
+        const hits = Object.keys(pages).filter((name) => (cmd === 'whatis' ? args.includes(name) : args.some((a) => name.includes(a) || pages[name].split('\n')[0].toLowerCase().includes(a.toLowerCase()))));
+        return hits.length ? say(...hits.sort().map(one)) : fail(...args.map((a) => `${a}: nothing appropriate`));
+      }
+      case 'stat': {
+        if (!args.length) return fail('usage: stat file ...');
+        for (const p of args) {
+          const r = this.reach(p);
+          if ('error' in r) { errors.push(`stat: ${p}: ${r.error}`); continue; }
+          const n = r.node, mode = `${n.dir ? 'd' : '-'}${this.modeOf(n)}`, oct = [0, 3, 6].map((k) => [...this.modeOf(n).slice(k, k + 3)].reduce((s, c, i) => s + (c !== '-' ? [4, 2, 1][i] : 0), 0)).join('');
+          lines.push(`  File: "${p}"`, `  Size: ${this.size(n)}  Blocks: ${Math.ceil(this.size(n) / 512)}  ${n.dir ? 'directory' : 'regular file'}`,
+            `Access: (0${oct}/${mode})  Uid: ${this.ownerOf(n)}  Gid: ${this.ownerOf(n) === 'root' ? 'wheel' : 'users'}`, `Modify: ${this.when(parseDate(n.file.date ?? this.machine.clock))} UTC`);
+        }
+        return { lines, errors };
+      }
+      case 'strings': {
+        if (!args.length) return fail('usage: strings file ...');
+        for (const p of args) {
+          const r = this.reach(p);
+          if ('error' in r) { errors.push(`strings: ${p}: ${r.error}`); continue; }
+          if (r.node.dir) { errors.push(`strings: ${p}: Is a directory`); continue; }
+          if (!this.may(r.node, 'r')) { errors.push(`strings: ${p}: Permission denied`); continue; }
+          lines.push(...(r.node.file.text !== undefined ? r.node.file.text.split('\n').filter((l) => l.trim().length >= 4) : this.stringsOf(r.node)));
+        }
+        return { lines, errors };
+      }
+      case 'xxd': case 'hexdump': case 'od': {
+        const { flags, rest } = options(args), b = rest[0] ? this.bytes(cmd, rest[0]) : { bytes: new TextEncoder().encode((stdin ?? []).join('\n') + '\n') };
+        if ('error' in b) return fail(b.error);
+        if (cmd === 'xxd') return say(...xxd(b.bytes));
+        if (cmd === 'hexdump') return say(...(flags.has('C') ? hexdumpC(b.bytes) : xxd(b.bytes).map((l) => l.replace(/:/, '').replace(/ {2}.*$/, ''))));
+        const out: string[] = [], esc: Record<number, string> = { 0: '\\0', 9: '\\t', 10: '\\n', 13: '\\r' };
+        for (let o = 0; o < b.bytes.length && out.length < 64; o += 16) out.push(`${o.toString(8).padStart(7, '0')} ${[...b.bytes.slice(o, o + 16)].map((x) => (esc[x] ?? (x >= 32 && x < 127 ? String.fromCharCode(x) : x.toString(8).padStart(3, '0'))).padStart(4)).join('')}`);
+        return say(...out, b.bytes.length.toString(8).padStart(7, '0'));
+      }
+      case 'md5': case 'md5sum': {
+        if (!args.length) { const d = md5((stdin ?? []).map((l) => `${l}\n`).join('')); return say(cmd === 'md5' ? d : `${d}  -`); }
+        for (const p of args) {
+          const b = this.bytes(cmd, p);
+          if ('error' in b) { errors.push(b.error); continue; }
+          const d = md5(b.bytes);
+          lines.push(cmd === 'md5' ? `MD5 (${p}) = ${d}` : `${d}  ${p}`);
+        }
+        return { lines, errors };
+      }
+      case 'diff': {
+        if (args.length !== 2) return fail('usage: diff file1 file2');
+        const [a, b] = args.map((f) => this.text('diff', f, false));
+        if ('error' in a) return fail(a.error);
+        if ('error' in b) return fail(b.error);
+        return say(...diff(a.lines, b.lines));
+      }
+      case 'base64': {
+        const { flags, rest } = options(args), text = inputs(rest, 'base64').map((i) => i.lines.join('\n')).join('\n');
+        if (flags.has('d') || flags.has('D')) { const d = b64decode(text); return d === null ? fail('base64: invalid input') : say(...d.replace(/\n$/, '').split('\n')); }
+        return say(...b64encode(`${text}\n`));
+      }
+      case 'tr': {
+        const { flags, rest } = options(args), del = flags.has('d');
+        if (rest.length < (del ? 1 : 2)) return fail('usage: tr [-d] string1 [string2]');
+        return say(...tr(stdin ?? [], rest[0], del ? null : rest[1]));
+      }
+      case 'caesar': case 'rot13': {
+        const n = cmd === 'rot13' ? 13 : /^-?\d+$/.test(args[0] ?? '') ? Number(args[0]) : 13, files = cmd === 'caesar' && /^-?\d+$/.test(args[0] ?? '') ? args.slice(1) : args;
+        return say(...inputs(files, cmd).flatMap((i) => i.lines).map((l) => caesar(l, n)));
+      }
+      case 'rev':
+        return say(...inputs(args, cmd).flatMap((i) => i.lines).map((l) => [...l].reverse().join('')));
+      case 'tac':
+        return say(...inputs(args, cmd).flatMap((i) => i.lines).reverse());
+      case 'nl': {
+        let k = 0;
+        return say(...inputs(args, cmd).flatMap((i) => i.lines).map((l) => (l.trim() ? `${String(++k).padStart(6)}\t${l}` : '')));
+      }
+      case 'cut': {
+        const { values, rest } = options(args, 'dfc'), keep = cutList(values.f ?? values.c ?? ''), d = values.d || '\t';
+        if (!keep) return fail('usage: cut -c list [file ...], cut -f list [-d delim] [file ...]');
+        return say(...inputs(rest, cmd).flatMap((i) => i.lines).map((l) => (values.c !== undefined ? [...l].filter((_, k) => keep(k + 1)).join('') : l.includes(d) ? l.split(d).filter((_, k) => keep(k + 1)).join(d) : l)));
+      }
+      case 'cal': {
+        const now = this.now(), nums = args.map(Number);
+        if (nums.some((n) => !Number.isInteger(n) || n < 1)) return fail('usage: cal [[month] year]');
+        if (!nums.length) return say(...month(now.getUTCMonth() + 1, now.getUTCFullYear()).map((l) => l.trimEnd()));
+        if (nums.length === 1) return nums[0] > 9999 ? fail(`cal: year ${nums[0]} not in range 1..9999`) : say(...year(nums[0]).map((l) => l.trimEnd()));
+        if (nums[0] > 12) return fail(`cal: ${nums[0]} is neither a month number (1..12) nor a name`);
+        return say(...month(nums[0], nums[1]).map((l) => l.trimEnd()));
+      }
+      case 'bc': {
+        const { flags, rest } = options(args), scale = flags.has('l') ? 20 : 0;
+        if (!rest.length && stdin === null) { this.mode = { kind: 'bc', scale }; return say('bc 1.07.1', 'For details type `warranty\'. quit to leave.'); }
+        const r = sums(rest.length ? inputs(rest, cmd).flatMap((i) => i.lines) : stdin ?? [], scale);
+        return say(...r);
+      }
+      case 'expr': {
+        if (!args.length) return fail('usage: expr expression');
+        const r = calc(args.map((a) => a.replace(/^\\/, '')).join(' '));
+        return 'error' in r ? fail(`expr: ${r.error}`) : say(r.value);
+      }
+      case 'factor': {
+        const ns = args.length ? args : (stdin ?? []).flatMap((l) => l.split(/\s+/)).filter(Boolean);
+        for (const n of ns) { if (!/^\d+$/.test(n) || +n < 1 || +n > 2 ** 40) errors.push(`factor: ${n} is not a valid positive integer`); else lines.push(factor(+n)); }
+        return { lines, errors };
+      }
+      case 'fortune': {
+        // its own fortunes, if it has them, between lines of %
+        const own = this.find('/usr/share/games/fortune/fortunes')?.file.text?.split(/\n%\n?/).map((f) => f.trim()).filter(Boolean);
+        const all = own?.length ? own : FORTUNES;
+        return say(...all[Math.floor(Math.random() * all.length)].split('\n'));
+      }
+      case 'yes': {
+        const word = args.join(' ') || 'y';
+        return { lines, errors, stream: { frame: (k) => (k < 400 ? Array(6).fill(word) : null), every: 30, stop: () => [] } };
+      }
+      case 'ping': {
+        const host = args.find((a) => !a.startsWith('-'));
+        if (!host) return fail('usage: ping [-c count] host');
+        if (!['localhost', '127.0.0.1', '::1', this.machine.host].includes(host)) return fail(/^[\d.]+$/.test(host) ? 'ping: sendto: Network is unreachable' : `ping: cannot resolve ${host}: Unknown host`);
+        const ip = host === '::1' ? '::1' : '127.0.0.1', reply = (k: number) => `64 bytes from ${ip}: icmp_seq=${k} ttl=255 time=0.${String(41 + ((k * 37) % 29)).padStart(3, '0')} ms`;
+        return { lines, errors, stream: { frame: (k) => (k < 1000 ? (k ? [reply(k)] : [`PING ${host} (${ip}): 56 data bytes`, reply(0)]) : null), every: 1000,
+          stop: (n) => ['', `--- ${host} ping statistics ---`, `${n} packets transmitted, ${n} packets received, 0.0% packet loss`, 'round-trip min/avg/max/std-dev = 0.041/0.055/0.069/0.008 ms'] } };
+      }
+      case 'ed': {
+        let buffer: string[] = [];
+        if (args[0]) {
+          const b = this.bytes('ed', args[0]);
+          if ('error' in b) lines.push(`${args[0]}: ${b.error.split(': ').pop()}`);
+          else { buffer = new TextDecoder().decode(b.bytes).replace(/\n$/, '').split('\n'); lines.push(String(b.bytes.length)); }
+        }
+        this.mode = { kind: 'ed', buffer, cur: buffer.length, err: '', verbose: false, input: false };
+        return { lines, errors };
+      }
+      case 'vi': case 'vim': case 'view': {
+        const f = args[0];
+        let body: string[] = [], status = '';
+        if (f) {
+          const b = this.bytes('vi', f);
+          if ('error' in b) status = `"${f}" ${/denied/.test(b.error) ? '[Permission Denied]' : '[New File]'}`;
+          else { body = new TextDecoder().decode(b.bytes).replace(/\n$/, '').split('\n'); status = `"${f}" [readonly] ${body.length}L, ${b.bytes.length}B`; }
+        }
+        this.mode = { kind: 'vi', file: f ?? '', misses: 0 };
+        const shown = body.slice(0, 16);
+        return say(...shown, ...Array(Math.max(1, 8 - shown.length)).fill('~'), status);
+      }
+      case 'rm': {
+        const { flags, rest } = options(args);
+        if (!rest.length) return fail('usage: rm [-dfiPRrv] file ...');
+        if ((flags.has('r') || flags.has('R')) && rest.some((r) => this.resolve(r) === '/')) return fail('rm: "/" may not be removed');
+        return fail(...rest.map((r) => `rm: ${r}: Read-only file system`));
+      }
+      case 'make':
+        return fail(...make(args));
+      case 'lpr': case 'lp':
+        return args.length || stdin ? fail(`${cmd}: lp0 on fire`) : fail(`usage: ${cmd} file ...`);
+      case 'sl':
+        // the train, for whoever meant ls: it crosses the screen, and Ctrl+C will not stop it
+        { const frames = trainFrames(this.cols); return { lines, errors, stream: { frame: (k) => frames[k] ?? null, every: 45, redraw: true } }; }
+      case 'cmatrix':
+        return { lines, errors, stream: { frame: (k) => (k < 3000 ? rainFrame(k, this.cols) : null), every: 70, redraw: true, stop: () => [] } };
+      case 'xyzzy': case 'plugh':
+        return say('Nothing happens.');
+      case 'adventure': case 'advent':
+        return fail(`${cmd}: /usr/games/lib/adventure.dat: damaged`);
+      case 'rogue': case 'hack': case 'nethack':
+        return fail(`${cmd}: /var/games/${cmd}.scores: Read-only file system`, 'You die...');
       default:
         if (WRITES.includes(cmd)) return fail(`${cmd}: Read-only file system`);
         if (NETWORK.includes(cmd)) return fail(`${cmd}: network is unreachable`);
@@ -645,6 +1065,50 @@ export class Shell {
     for (const o of opts) while (!o.startsWith(common)) common = common.slice(0, -1);
     return { line: before + common, options: opts.map((o) => o.slice(o.lastIndexOf('/', o.length - 2) + 1)) };
   }
+}
+
+/** What goes on over time, taken as far as a command after it in a pipe could want: its lines, a few thousand at most. */
+function gather(s: Stream): string[] {
+  const out: string[] = [];
+  for (let k = 0; out.length < 4000 && k < 500; k++) {
+    const f = s.frame(k);
+    if (!f) break;
+    if (s.redraw) out.splice(0, out.length, ...f);
+    else out.push(...f);
+  }
+  return out;
+}
+
+/** Sums worked out as bc does, a line (or a part between semicolons) at a time. */
+function sums(lines: string[], scale: number): string[] {
+  const out: string[] = [];
+  for (const part of lines.flatMap((l) => l.split(';'))) {
+    if (!part.trim() || /^\s*(quit|warranty)\s*$/.test(part)) continue;
+    const r = calc(part, scale);
+    out.push('error' in r ? (r.error === 'divide by zero' ? 'Runtime error (func=(main), adr=3): Divide by zero' : '(standard_in) 1: syntax error') : r.value);
+  }
+  return out;
+}
+
+/**
+ * A file that is not text, as bytes: the same made-up bytes every time for the same file, a program's starting as
+ * one does, with the text inside it set among them, each ended by a nul, where strings, xxd and hexdump find it.
+ */
+function madeUp(path: string, size: number, strings: string[], program: boolean): Uint8Array {
+  const out = new Uint8Array(Math.max(64, Math.min(size || 256, 4096)));
+  let s = 0;
+  for (const ch of path) s = (s * 31 + ch.charCodeAt(0)) | 0;
+  for (let i = 0; i < out.length; i++) { s = (s * 1103515245 + 12345) | 0; out[i] = (s >>> 16) & 255; }
+  if (program) out.set([0x7f, 0x45, 0x4c, 0x46, 2, 1, 1, 0], 0);
+  let at = 64;
+  for (const str of strings) {
+    const b = new TextEncoder().encode(str);
+    if (at + b.length + 1 >= out.length) break;
+    out.set(b, at);
+    out[at + b.length] = 0;
+    at += b.length + 1 + 23;
+  }
+  return out;
 }
 
 /** Names in columns down then across, as ls prints them, in a screen so many characters wide. */

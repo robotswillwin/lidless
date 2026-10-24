@@ -843,6 +843,8 @@ button.view:not(.hud-btn):focus-visible { outline: 2px solid #fff; outline-offse
 .terminal .bar .off { margin-left: auto; min-height: 32px; padding: 0 12px; border: 1px solid var(--dim-phosphor); border-radius: 6px; background: transparent; color: inherit; font: inherit; letter-spacing: inherit; text-transform: inherit; text-shadow: inherit; cursor: pointer; }
 .terminal .screen { position: relative; overflow-y: auto; padding: 10px 16px 8px; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: var(--dim-phosphor) transparent; cursor: text; }
 .terminal .out .l { white-space: pre-wrap; overflow-wrap: anywhere; }
+/* a picture moving (a train, falling figures): drawn as it is, never wrapped */
+.terminal .out .frame .l { white-space: pre; overflow: hidden; }
 .terminal .line { display: flex; align-items: baseline; }
 .terminal .line[hidden] { display: none; }
 .terminal .prompt { white-space: pre; }
