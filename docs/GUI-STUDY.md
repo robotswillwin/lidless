@@ -62,12 +62,13 @@ the paper notebook; the phosphor terminal; ways and notes placed at the thing it
 Everything on screen is made of one of four materials, each with its own look and motion. All of them share one
 grammar: the same grid, type scale, spacing, corners and states.
 
-- **Her device**: her journal (objectives, people, evidence), the map and, if the director agrees, her saves and the
-  settings. A small rugged screen she carries, not a glass sheet over the scene: matte black, a thin bezel, an
-  operating system of its own. Along its top a status line (the game's time, and a lit dot when the Concierge can read
-  it); its pages as tabs along its side on a wide screen and along its bottom on a phone; numbers and times set in a
-  monospace, words in Jost. It slides up from the bottom of the screen as she raises it, and down again. It is always
-  the same size, and every page is designed for having little on it.
+- **Her device**: her journal (objectives, people, evidence) and the map. It is not a thing she holds: it is her
+  own head-up display, in her augmented view, which she works by voice and by moving her fingers (her wristbands read
+  the movement through her arms). So it is glass in the air before her eyes, neutral where the Concierge's is
+  coloured light: windows of translucent glass, the street seen through them, light catching their top edges; its
+  pages as a tab bar floating beside the window; numbers and times in a monospace, words in Jost. A window opens out
+  of the air where she looked, and goes the same way. It is always the same size, and every page is designed for
+  having little on it. Her saves and the settings stay outside the fiction, in the game's own menu.
 - **The Concierge's light**: its presence, card, messages, calls and the names it gives things. As it is now, with
   motion of its own: it draws itself open, and its words come a few at a time.
 - **Paper**: her notebook, papers seen close up, what she writes. As now, with the page's edge, a margin and a turn.
@@ -110,6 +111,12 @@ Where to look:
 Games, by what to take from them:
 
 - **Her device and its pages**
+  - Apple's visionOS (Vision Pro): the closest real thing to her head-up display. Windows of glass over the world,
+    their tab bars floating at their side, light along their edges, text that stays readable over anything behind.
+    See the [visionOS design pages](https://developer.apple.com/design/human-interface-guidelines/designing-for-visionos)
+    and its materials and ornaments.
+  - Wristbands that read finger movements through the arm (as Meta has shown with its glasses): a pinch to select, a
+    swipe of the thumb to scroll. Her gestures are these; the touch screen stands in for them.
   - *Citizen Sleeper*: calm, typographic panels; how a page with one thing on it still looks composed.
   - *Simulacra* and *Sara Is Missing* (found-phone games): an interface that is a phone in the fiction, with its
     status bar, apps and notifications.
@@ -178,8 +185,8 @@ Target:
   status line, the pages as tabs, one size, sliding up.
 - Objectives: the current one large (what, where, by when, its place's picture), the rest as a list under it; those
   done struck through and folded away.
-- People: portraits (crops of the characters' own art: the fixer, Felix, Athena), each with a name and what she knows
-  of them; someone not yet met as a silhouette. *Obra Dinn*'s page of faces.
+- People: each with a name and what she knows of them. Portraits wait (the director: leave as is for now); when they
+  come, *Obra Dinn*'s page of faces.
 - Evidence: what she has found, as cards with their pictures (the items' art exists).
 - An empty page is designed: a line drawing in the device's style and one line of text ("No one yet. The people she
   meets are kept here.").
@@ -240,10 +247,13 @@ Keep. The notebook could have its margin, the paper's edge and a page turn.
 **P0**, about three to four hours of Claude's time:
 
 1. The tokens in `style.css` (type, colour, corners, depth, motion), and every rule using them.
-2. Her device's shell for the journal and the map: the slide up, the status line, the tabs, one size, designed empty
-   pages.
-3. The map as picture cards, with the picture of a place taken as she arrives and kept in her save.
-4. The journal's pages: objectives, people with portraits, evidence with pictures.
+2. Done (24 October): her head-up display's window for the journal and the map: glass in the air, the street seen
+   through it, its pages a tab bar floating beside it, one size, designed empty pages.
+3. Done (24 October): the map as picture cards. A place's picture is taken as she arrives (`lidless.place.<scene>`);
+   rooms are cards over their doors, streets lines with their stops; a tap picks a place into a card beside the map,
+   with who and what she knows there and Go there; a map bigger than the window scrolls, centred on her.
+4. Partly done: the current objective large, people by their initial (portraits wait), empty pages. Evidence with
+   pictures is to come.
 
 **P1**: the pause screen; the title's Continue card and its eye; a thing close up as an object view; How to play
 drawn; the verb ring tried on a phone; conversation refinements.
@@ -254,9 +264,10 @@ device's own.
 Done means: every screen in `shots/ui`, on the phone and on the laptop, reads as one game; no sheet changes size; no
 text is under 11 px; nothing overlaps anything; nothing needs a pointer hovering; the checks are green.
 
-## Open, for the director
+## Decided by the director, 24 October
 
-- What her device is in the fiction (a phone, a band on her wrist, a pad), which decides the shell's shape.
-- Whether her saves and the settings belong on her device, in the fiction, or outside it, as the game's own menu.
-- People's portraits in the journal: crops of the characters' art, or drawn for the journal.
-- Sounds for the interface, separately from the music (decision 34).
+- Her device is her head-up display in her augmented view, worked by voice and by finger movements her wristbands
+  read through her arms.
+- Her saves and the settings stay in a separate menu, as now.
+- People's portraits: leave as is for now.
+- Sounds for the interface: yes, eventually.

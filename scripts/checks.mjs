@@ -308,8 +308,12 @@ const checks = {
       return home && floor ? { above: home.bottom < floor.top + 10, joined: !!stem } : null;
     });
     check('her home above the corridor, joined to her door', !!over?.above && over.joined, JSON.stringify(over));
-    // home again, from the map
+    // home again, from the map: a tap picks it, Go there takes her
     await page.evaluate(() => [...document.querySelectorAll('.chart button.place')].find((b) => /Luna's home/.test(b.getAttribute('aria-label') ?? ''))?.click());
+    await wait(300);
+    const picked = await page.$eval('.place-detail .name', (e) => e.textContent).catch(() => '');
+    check('a place on the map, tapped, is picked, not gone to', picked === "Luna's home" && (await save(page))?.scene !== 'home', picked);
+    await page.evaluate(() => document.querySelector('.place-detail .go')?.click());
     await wait(3500);
     check('from the map, home', (await save(page))?.scene === 'home', (await save(page))?.scene);
     // her notebook: open at home, a privacy zone; shut out on the street, where it can see

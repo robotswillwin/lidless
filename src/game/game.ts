@@ -28,7 +28,7 @@ import { outfitAfter } from './outfits';
 import { Turns } from './pose';
 import { Progress } from './progress';
 import type { Replies } from './replies';
-import { listSaves, loadSave, loadThumb, writeSave, writeThumb, type SaveData, type Slot } from './save';
+import { listSaves, loadPlace, loadSave, loadThumb, writePlace, writeSave, writeThumb, type SaveData, type Slot } from './save';
 import { SceneRunner, type ViewState } from './scene';
 import type { Scene, WorldFile } from './scenefile';
 import { Scenes } from './scenes';
@@ -272,7 +272,7 @@ export class Game {
     this.world.raw = this.raw;
     // what is there depends on the story: a thing only while a condition holds, a thing she took gone for good
     this.world.shown = this.there;
-    if (!next.file.closeup) this.progress.been.add(id);
+    if (!next.file.closeup) { this.progress.been.add(id); this.picturePlace(next); }
     // the scene's own things by the story, the city's conditions by the address when it asks for a variant (?variant=)
     this.runner.shown = (when) => holds(when, (n) => (n === 'conditions' && this.setup.variant ? this.setup.variant : this.dialogue.read(n)));
     this.runner.read = (name) => this.dialogue.read(name);
@@ -288,6 +288,20 @@ export class Game {
     this.variant = this.variantOf(next);
     this.look.setScene(next.file, this.variant);
   }
+
+  /**
+   * A picture of a place as she sees it, for its card on the map: taken a moment after she arrives, once the fade
+   * has gone (later, if a slow load keeps it dark); not if she has gone on by then.
+   */
+  private picturePlace(scene: Scene, tries = 6): void {
+    window.clearTimeout(this.pictureTimer);
+    this.pictureTimer = window.setTimeout(() => {
+      if (this.scene !== scene) return;
+      if (this.setup.fade.classList.contains('on') && tries > 0) return this.picturePlace(scene, tries - 1);
+      writePlace(scene.file.id, this.thumbnail(320, 180));
+    }, 1200);
+  }
+  private pictureTimer = 0;
 
   /** Whether a hotspot is there now: only while its condition holds, and a thing she took is gone for good. */
   private readonly there = (h: Hotspot): boolean => this.dialogue.test(h.when) && !(h.item && this.dialogue.took(h.item));
@@ -309,7 +323,10 @@ export class Game {
     const scenes: Record<string, MapScene> = {};
     ids.forEach((id, i) => { const f = files[i]; if (f) scenes[id] = f; });
     const here = this.ways.here();
-    return mapNow(layout, scenes, this.progress.been, (sc, id) => this.progress.hasSeen(sc, id), { scene: here.scene, x: here.x }, this.raw, this.there);
+    const now = mapNow(layout, scenes, this.progress.been, (sc, id) => this.progress.hasSeen(sc, id), { scene: here.scene, x: here.x }, this.raw, this.there);
+    // each place she has been, as she last saw it
+    for (const p of now.places) if (p.state === 'been') p.picture = loadPlace(p.id) ?? undefined;
+    return now;
   }
 
   /** What is on screen now of what goes on the map (ways out, people): seen, for the map. */
@@ -521,11 +538,11 @@ export class Game {
   }
 
   /** The scene as it is on screen, small, for a save's picture: the canvas keeps what it drew, and the HUD is not on it. */
-  private thumbnail(): string | null {
+  private thumbnail(w = 256, h = 144): string | null {
     try {
       const t = document.createElement('canvas');
-      t.width = 256;
-      t.height = 144;
+      t.width = w;
+      t.height = h;
       t.getContext('2d')?.drawImage(this.setup.canvas, 0, 0, t.width, t.height);
       return t.toDataURL('image/jpeg', 0.72);
     } catch {

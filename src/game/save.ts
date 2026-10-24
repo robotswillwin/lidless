@@ -103,6 +103,23 @@ export function loadThumb(slot: Slot): string | null {
   }
 }
 
+/** A place's picture, as she last saw it (the map's cards): kept by the place, beside her saves. */
+const placeKey = (scene: string) => `lidless.place.${scene}`;
+export function writePlace(scene: string, url: string | null): void {
+  try {
+    if (url) localStorage.setItem(placeKey(scene), url);
+  } catch {
+    // too little room for a picture: the map shows the place without one
+  }
+}
+export function loadPlace(scene: string): string | null {
+  try {
+    return localStorage.getItem(placeKey(scene));
+  } catch {
+    return null;
+  }
+}
+
 export interface SaveInfo { slot: Slot; savedAt?: number; where?: string; thumb?: string }
 
 /** Every save there is, the autosave first: when and where each was made, and its picture. */

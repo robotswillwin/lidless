@@ -31,7 +31,8 @@ export interface MapScene {
 export interface Travel { scene: string; spawn?: string; at?: string }
 
 type Box = [number, number, number, number];
-export interface MapPlace { id: string; name: string; box: Box; state: 'been' | 'seen'; here: boolean; street: boolean; go: Travel }
+/** `picture`: the place as she last saw it, for its card (the game's, by the place's id). */
+export interface MapPlace { id: string; name: string; box: Box; state: 'been' | 'seen'; here: boolean; street: boolean; go: Travel; picture?: string }
 /**
  * `named`: its name shown by it; a door to a place on the map has none, the place says where it goes (`to`). `street`:
  * it is on a road, its name under it.
@@ -40,12 +41,15 @@ export interface MapSpot { scene: string; id: string; name: string; at: [number,
 export interface MapLink { from: [number, number]; to: [number, number]; open: boolean }
 export interface MapNow { places: MapPlace[]; spots: MapSpot[]; links: MapLink[]; you: [number, number] | null; bounds: Box }
 
-/** A road's thickness, a room's size, and how far above its door a room sits, in map units. */
-export const ROAD = 8, ROOM: [number, number] = [56, 30], STEM = 12;
+/** A road's thickness, a room's size (a card with its picture, at the screen's shape), and how far above its door a room sits, in map units. */
+export const ROAD = 6, ROOM: [number, number] = [48, 27], STEM = 11;
 /** Room under a road for the names along it, in map units. */
 const UNDER = 16;
-/** The most pixels a map unit is drawn: a map of few places is drawn at its size, not blown up to fill the panel. */
-const MOST = 3.2;
+/**
+ * The most pixels a map unit is drawn (a map of few places at its size, not blown up to fill the panel), and the
+ * fewest (a room's card wide enough for its name and its picture): a map bigger than that scrolls under the finger.
+ */
+const MOST = 3.2, LEAST = 2.5;
 
 /** A hotspot worth a place on the map: a way out, someone to talk to, or a thing marked for it. */
 export const onMap = (h: Hotspot): MapSpot['kind'] | null => (h.map === false ? null : h.go ? 'door' : h.talk ? 'person' : h.map ? 'thing' : null);
@@ -160,36 +164,50 @@ export function mapNow(layout: MapLayout, scenes: Record<string, MapScene>, been
 }
 
 /**
- * The map drawn into `body` (her journal's places): the roads and the rooms over their doors, the people and things of
- * note as dots, where she is; each a thing to tap. Names along a road sit under it in rows, so none covers another.
+ * The map drawn into `body` (her journal's places): the roads as lines with their names under them, each room a card
+ * over its door with its picture as she last saw it and its name on it, a place she has only seen the door of dashed
+ * with a question mark; the people and things of note as dots; where she is. A tap on any of it picks its place, shown
+ * beside the map: its picture larger, who and what she knows there, and the way there. Nothing travels at one tap.
  */
 export function drawMap(body: HTMLElement, now: MapNow, go: (t: Travel, name: string) => void): void {
-  const chart = el('div', 'chart', body);
+  const map = el('div', 'map', body), area = el('div', 'area', map), chart = el('div', 'chart', area), detail = el('aside', 'place-detail', map);
+  detail.setAttribute('aria-live', 'polite');
   const [bx, by, bw, bh] = now.bounds;
   const pct = (x: number, y: number) => `left:${((x - bx) / bw) * 100}%;top:${((y - by) / bh) * 100}%`;
   const svg = [`<svg viewBox="${bx} ${by} ${bw} ${bh}" preserveAspectRatio="none" aria-hidden="true">`];
   for (const l of now.links) svg.push(`<line class="link${l.open ? ' open' : ''}" x1="${l.from[0]}" y1="${l.from[1]}" x2="${l.to[0]}" y2="${l.to[1]}"/>`);
-  for (const q of now.places) {
+  for (const q of now.places.filter((x) => x.street)) {
     const [x, y, w, h] = q.box;
-    svg.push(`<rect class="${q.street ? 'road' : 'room'} ${q.state}${q.here ? ' here' : ''}" x="${x}" y="${y}" width="${w}" height="${h}" rx="${q.street ? h / 2 : 2.5}"/>`);
+    svg.push(`<rect class="road ${q.state}${q.here ? ' here' : ''}" x="${x}" y="${y}" width="${w}" height="${h}" rx="${h / 2}"/>`);
   }
   svg.push('</svg>');
   chart.insertAdjacentHTML('beforeend', svg.join(''));
   // under each road, its name at its start and the names along it, put in rows when the chart is sized
   const under = new Map<string, { at: number; centred: boolean; label: HTMLElement }[]>();
   const along = (scene: string) => under.get(scene) ?? under.set(scene, []).get(scene)!;
+  const buttons = new Map<string, HTMLButtonElement>();
   for (const q of now.places) {
     const cls = `${q.state}${q.here ? ' here' : ''}${q.street ? ' street' : ' room'}`;
-    const b = button(`place ${cls}`, q.state === 'seen' ? `${q.name}: not been there yet, go to its door` : q.here ? `${q.name}: you are here` : `Go to ${q.name}`, chart, () => go(q.go, q.name));
+    const b = button(`place ${cls}`, q.state === 'seen' ? `${q.name}: not been there yet, go to its door` : q.here ? `${q.name}: you are here` : `Go to ${q.name}`, chart, () => pick(q));
     b.setAttribute('style', `${pct(q.box[0], q.box[1])};width:${(q.box[2] / bw) * 100}%;height:${(q.box[3] / bh) * 100}%`);
-    const name = el('span', `place-name ${cls}`, chart, q.state === 'seen' ? `${q.name}?` : q.name);
-    name.setAttribute('style', pct(q.box[0], q.street ? q.box[1] + q.box[3] : q.box[1]));
-    if (q.street) along(q.id).push({ at: q.box[0], centred: false, label: name });
+    buttons.set(q.id, b);
+    if (q.street) {
+      const name = el('span', `place-name ${cls}`, chart, q.state === 'seen' ? `${q.name}?` : q.name);
+      name.setAttribute('style', pct(q.box[0], q.box[1] + q.box[3]));
+      along(q.id).push({ at: q.box[0], centred: false, label: name });
+      continue;
+    }
+    // a room: its picture, its name on it; one only seen, a question mark
+    if (q.picture) { const img = el('img', 'picture', b) as HTMLImageElement; img.src = q.picture; img.alt = ''; img.draggable = false; }
+    else el('span', 'unknown', b, q.state === 'seen' ? '?' : '');
+    el('span', 'label', b, q.name);
   }
   for (const s of now.spots) {
+    // in a room, who and what is there is listed when it is picked; its card is its picture
+    if (!s.street) continue;
     // a way along the road to the next street is the joint between them
-    const joint = s.street && now.places.some((q) => q.id === s.to && q.street);
-    const b = button(`spot ${s.kind}${s.street ? ' on-road' : ''}${joint ? ' joint' : ''}`, `Go to ${s.name}`, chart, () => go(s.go, s.name));
+    const joint = s.street && now.places.some((q) => q.id === s.to && q.street), owner = now.places.find((q) => q.id === s.scene);
+    const b = button(`spot ${s.kind}${s.street ? ' on-road' : ''}${joint ? ' joint' : ''}`, s.name, chart, () => owner && pick(owner));
     b.setAttribute('style', pct(s.at[0], s.at[1]));
     if (!s.named) continue;
     const label = el('span', 'name', b, s.name);
@@ -200,11 +218,31 @@ export function drawMap(body: HTMLElement, now: MapNow, go: (t: Travel, name: st
     y.setAttribute('style', pct(now.you[0], now.you[1]));
     y.setAttribute('aria-label', 'You are here');
   }
-  // as large as the panel allows, at the map's own shape, with room under it for the rows of names under the roads
+
+  /** A place picked: lit on the map, and shown beside it, with the way there and to who and what she knows there. */
+  function pick(q: MapPlace): void {
+    for (const [id, b] of buttons) b.classList.toggle('picked', id === q.id);
+    detail.replaceChildren();
+    const shot = el('div', `shot${q.picture ? '' : ' none'}`, detail);
+    if (q.picture) { const img = el('img', '', shot) as HTMLImageElement; img.src = q.picture; img.alt = ''; }
+    else el('span', '', shot, q.state === 'seen' ? '?' : '');
+    el('h3', 'name', detail, q.name);
+    el('p', 'state', detail, q.here ? 'You are here' : q.state === 'seen' ? 'Not been there yet. She knows its door.' : q.street ? 'A street' : 'Been there');
+    const here = now.spots.filter((s) => s.scene === q.id && s.named);
+    if (here.length) {
+      const list = el('ul', 'here', detail);
+      for (const s of here) button('spot-go', `Go to ${s.name}`, el('li', s.kind, list), () => go(s.go, s.name)).textContent = s.name;
+    }
+    if (!q.here) button('go', q.state === 'seen' ? `Go to ${q.name}'s door` : `Go to ${q.name}`, detail, () => go(q.go, q.name)).textContent = q.state === 'seen' ? 'Go to its door' : 'Go there';
+  }
+  pick(now.places.find((q) => q.here) ?? now.places[0]);
+
+  // as large as the area allows, at the map's own shape, with room under it for the rows of names under the roads
   const layout = (k: number): number => {
     chart.style.width = `${bw * k}px`;
     chart.style.height = `${bh * k}px`;
     chart.style.setProperty('--road', `${ROAD * k}px`);
+    chart.style.setProperty('--k', String(k));
     let most = 0;
     for (const labels of under.values()) {
       const rows: number[] = [];
@@ -220,12 +258,15 @@ export function drawMap(body: HTMLElement, now: MapNow, go: (t: Travel, name: st
     return most;
   };
   const fit = () => {
-    const W = body.clientWidth, H = body.clientHeight, first = Math.min(W / bw, H / bh, MOST);
+    const W = area.clientWidth, H = area.clientHeight, first = Math.max(LEAST, Math.min(W / bw, H / bh, MOST));
     // the names' rows reach this far below the lowest road: what the bounds leave under it is not always enough
     const room = (rows: number, k: number) => Math.max(0, rows * 17 + 10 - UNDER * k);
-    const k = Math.min(W / bw, (H - room(layout(first), first)) / bh, MOST), rows = layout(k);
+    const k = Math.max(LEAST, Math.min(W / bw, (H - room(layout(first), first)) / bh, MOST)), rows = layout(k);
     chart.style.marginBottom = `${room(rows, k)}px`;
+    // too big for the page: it scrolls, and opens on where she is
+    const you = now.you ?? now.places.find((q) => q.here)?.box.slice(0, 2) as [number, number] | undefined;
+    if (you) { area.scrollLeft = (you[0] - bx) * k - W / 2; area.scrollTop = (you[1] - by) * k - H / 2; }
   };
   requestAnimationFrame(fit);
-  new ResizeObserver(fit).observe(body);
+  new ResizeObserver(fit).observe(area);
 }

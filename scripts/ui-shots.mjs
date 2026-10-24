@@ -54,7 +54,14 @@ for (const name of devices) {
   const tap = async (x, y) => { const [px, py] = await at(x, y); await page.mouse.move(px, py); await page.mouse.down(); await wait(60); await page.mouse.up(); };
   const verb = async (v) => { if (!(await page.$(`[data-verb="${v}"]`))) await click('.hud-ball.verbs'); await wait(250); await page.evaluate((v) => document.querySelector(`[data-verb="${v}"]`)?.click(), v); await wait(200); };
   // the walk she has had: the tower, then the street and the places off it, so the map has something to show
-  const walk = async () => { for (const q of ['new&scene=home&spawn=door', 'scene=floor14&spawn=lift', 'scene=floor9&spawn=lift', 'scene=lobby&spawn=lift', 'scene=street&spawn=start']) await open(q); };
+  // each place opened, looked at a moment (its picture is taken), and a step taken there (her save keeps that she was there)
+  const walk = async () => {
+    for (const q of ['new&scene=home&spawn=door', 'scene=floor14&spawn=lift', 'scene=floor9&spawn=lift', 'scene=lobby&spawn=lift', 'scene=radio&spawn=door', 'scene=bar&spawn=door', 'scene=street&spawn=start']) {
+      await open(q);
+      await wait(900);
+      await page.keyboard.down('ArrowRight'); await wait(350); await page.keyboard.up('ArrowRight'); await wait(1200);
+    }
+  };
   const SCREENS = {
     title: async () => { await open('', true); await shot('title'); await tab('settings'); await wait(400); await shot('title-settings'); await tab('back'); await tab('how to play'); await wait(400); await shot('title-help'); },
     hud: async () => { await open('new&scene=street&spawn=start'); await shot('hud'); await open('new&scene=street&spawn=start&view=raw'); await shot('hud-raw'); },
