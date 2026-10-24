@@ -419,7 +419,7 @@ button.view:not(.hud-btn):focus-visible { outline: 2px solid #fff; outline-offse
    left the game's mark, the eye, watching even now, and its ways, as on the title screen; the page chosen at the
    right, on glass, the same size whatever is open */
 .hud-panel.menu {
-  inset: calc(-1 * var(--by)) calc(-1 * var(--bx)); z-index: 4; display: grid; grid-template-columns: minmax(150px, 22%) minmax(0, 1fr); align-items: center; gap: clamp(18px, 4vw, 64px);
+  inset: calc(-1 * var(--by)) calc(-1 * var(--bx)); z-index: 4; display: grid; grid-template-columns: minmax(150px, 22%) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); align-items: center; gap: clamp(18px, 4vw, 64px);
   padding: max(18px, env(safe-area-inset-top) + 10px) max(18px, env(safe-area-inset-right) + 12px) max(18px, env(safe-area-inset-bottom) + 10px) max(28px, env(safe-area-inset-left) + 20px);
   background: linear-gradient(90deg, rgba(4, 5, 9, .9), rgba(4, 5, 9, .72) 34%, rgba(4, 5, 9, .5)); -webkit-backdrop-filter: blur(16px) saturate(.8); backdrop-filter: blur(16px) saturate(.8);
   animation: hud-fade var(--t-sheet) ease-out both;
