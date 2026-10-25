@@ -70,8 +70,9 @@ const CUES: Record<Cue, { files: string[]; gain: number; vary?: number; together
 /** How long a tap waits for a cue of its own to take its place, in milliseconds. */
 const TAP_WAIT = 30;
 
-/** A layer sounding now: its looping source, the gain it goes through, and what it was set to this frame. */
-interface Voice { gain: GainNode; want: number; set: boolean }
+/** A layer sounding now: its looping source, the gain it goes through, what it was set to this frame, and the gain it is
+ * already heading to (so a steady level is not rescheduled every frame). */
+interface Voice { gain: GainNode; want: number; set: boolean; at: number }
 
 export class Sounds {
   /** The setting: with it off, nothing sounds. */
@@ -131,8 +132,30 @@ export class Sounds {
       const data = await (await fetch(url)).arrayBuffer();
       const buf = await new Promise<AudioBuffer>((ok, fail) => this.ctx!.decodeAudioData(data, ok, fail));
       this.buffers.set(name, buf);
+      this.warm(buf);
     } catch {
       // that one stays silent
+    }
+  }
+
+  /**
+   * Play a freshly loaded buffer once, silent, right now. The first real sound of a session otherwise costs a hitch —
+   * the audio graph's playback path is compiled and the audio thread spun up the first time a buffer plays, and that
+   * landed on her first footstep as she set off walking. Doing it here, at the title while the files load, moves that
+   * one-time cost to where nothing is moving.
+   */
+  private warm(buf: AudioBuffer): void {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    try {
+      const src = ctx.createBufferSource(), gain = ctx.createGain();
+      src.buffer = buf;
+      gain.gain.value = 0;
+      src.connect(gain).connect(ctx.destination);
+      src.start();
+      src.stop(ctx.currentTime + 0.02);
+    } catch {
+      // warming is a nicety; if it cannot run, the first real sound simply pays the cost
     }
   }
 
@@ -189,7 +212,7 @@ export class Sounds {
         gain.gain.value = 0;
         src.connect(gain).connect(this.master ?? ctx.destination);
         src.start();
-        v = { gain, want: 0, set: true };
+        v = { gain, want: 0, set: true, at: 0 };
         this.voices.set(layer, v);
       } catch {
         return;
@@ -210,8 +233,13 @@ export class Sounds {
 
   private ramp(v: Voice): void {
     if (!this.ctx) return;
+    // a bed holds at one level for whole scenes: only reschedule when the level it is heading to actually changes, so the
+    // audio thread is not handed a fresh ramp sixty times a second (which stutters on a phone)
+    if (Math.abs(v.want - v.at) < 1e-4) return;
+    v.at = v.want;
     // eased over a fifth of a second: a bed comes in and goes out gently, never with a click
     v.gain.gain.cancelScheduledValues(this.ctx.currentTime);
+    v.gain.gain.setValueAtTime(v.gain.gain.value, this.ctx.currentTime);
     v.gain.gain.linearRampToValueAtTime(v.want, this.ctx.currentTime + 0.2);
   }
 }
