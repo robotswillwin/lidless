@@ -338,7 +338,9 @@ export class Game {
     const layout = this.setup.world.map ?? { places: {} }, ids = Object.keys(layout.places).filter((id) => this.setup.world.scenes.includes(id));
     const files = await Promise.all(ids.map((id) => this.scenes.file(id).catch(() => null)));
     const scenes: Record<string, MapScene> = {};
-    ids.forEach((id, i) => { const f = files[i]; if (f) scenes[id] = f; });
+    // a still of each scene's art (its first, farthest layer), for the places she has not been to: shown dim and grey on
+    // the map so the whole building is drawn, not only the rooms she has reached
+    ids.forEach((id, i) => { const f = files[i]; if (f) scenes[id] = Object.assign(f, { art: f.layers[0]?.asset ? `${this.setup.assets}/${f.layers[0].asset}/albedo.raw.png` : undefined }); });
     const here = this.ways.here();
     const now = mapNow(layout, scenes, this.progress.been, (sc, id) => this.progress.hasSeen(sc, id), { scene: here.scene, x: here.x }, this.raw, this.there);
     // each place she has been, as she last saw it

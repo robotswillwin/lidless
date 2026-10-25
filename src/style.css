@@ -551,56 +551,80 @@ button.view:not(.hud-btn):focus-visible { outline: 2px solid #fff; outline-offse
    room is a card over its door with its picture as she last saw it and its name on it; a place she has only seen the
    door of is dashed, with a question mark; people and things are dots; where she is, lit. Beside it, the place picked:
    its picture, who and what she knows there, and the way there */
-.map-view { display: grid; grid-template-columns: minmax(0, 1fr) clamp(180px, 26cqw, 260px); gap: 14px; height: 100%; }
+/* Her AR map is a cutaway of the tower, seen side-on: cyan structure, gold where she has been. */
+.map-view { --bp: 155, 225, 245; --au: 245, 194, 102; position: relative; display: grid; grid-template-columns: minmax(0, 1fr) clamp(180px, 26cqw, 260px); gap: 14px; height: 100%; }
+/* the whole panel is blueprint paper: a fine grid rule every 16px and a heavier one every 80px, so even the open space
+   around the drawing reads as a plan sheet rather than a void */
 .map-view .area { display: grid; place-items: safe center; min-width: 0; min-height: 0; overflow: auto; overscroll-behavior: contain; scrollbar-width: none; border-radius: var(--r-card-lg);
-  background: radial-gradient(circle, rgba(255, 255, 255, .08) 1px, transparent 1.6px) 0 0 / 24px 24px, rgba(0, 0, 0, .14); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .06); }
-.chart { position: relative; margin: 12px; }
+  background:
+    linear-gradient(rgba(var(--bp), .16) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--bp), .16) 1px, transparent 1px),
+    linear-gradient(rgba(var(--bp), .07) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--bp), .07) 1px, transparent 1px),
+    radial-gradient(130% 100% at 50% 0%, rgba(var(--bp), .07), transparent 72%), rgba(4, 9, 14, .82);
+  background-size: 80px 80px, 80px 80px, 16px 16px, 16px 16px, 100% 100%, 100% 100%;
+  box-shadow: inset 0 0 0 1px rgba(var(--bp), .16); }
+.chart { position: relative; margin: 18px; }
 /* a map bigger than its window: its edges fade where there is more to scroll to */
 .map-view .area.scrolls-x { -webkit-mask-image: linear-gradient(90deg, transparent, #000 32px, #000 calc(100% - 32px), transparent); mask-image: linear-gradient(90deg, transparent, #000 32px, #000 calc(100% - 32px), transparent); }
 .map-view .area.scrolls-y:not(.scrolls-x) { -webkit-mask-image: linear-gradient(transparent, #000 24px, #000 calc(100% - 24px), transparent); mask-image: linear-gradient(transparent, #000 24px, #000 calc(100% - 24px), transparent); }
 .chart svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .chart svg * { vector-effect: non-scaling-stroke; }
-.chart rect.road { fill: rgba(255, 255, 255, .16); stroke: rgba(255, 255, 255, .55); stroke-width: 1.2; }
-.chart rect.road.here { fill: rgba(255, 255, 255, .26); stroke: #fff; stroke-width: 1.6; }
-.chart rect.road.seen { fill: none; stroke: rgba(255, 255, 255, .32); stroke-dasharray: 4 4; }
-.chart line.link { stroke: rgba(255, 255, 255, .5); stroke-width: 1.4; }
-.chart line.link.open { stroke-dasharray: 3 4; stroke: rgba(255, 255, 255, .3); }
-.chart button.place { position: absolute; padding: 0; border: 0; border-radius: var(--r-xs); background: none; }
-/* a road is thin: its tap reaches past it */
-.chart button.place.street { margin-top: -10px; padding-bottom: 20px; box-sizing: content-box; }
-/* a room: a card with its picture, its name over the foot of it */
-.chart button.place.room { overflow: hidden; border-radius: calc(var(--k, 3) * 2.6px); background: rgba(255, 255, 255, .08); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .28), 0 6px 18px rgba(0, 0, 0, .35);
-  transition: box-shadow var(--t-quick) ease, scale var(--t-quick) ease; }
-.chart button.place.room .picture { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.chart button.place.room .unknown { position: absolute; inset: 0; display: grid; place-items: center; font: 300 calc(var(--k, 3) * 7px)/1 var(--ui); color: rgba(255, 255, 255, .45); }
-.chart button.place.room .label { position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 7px 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left;
-  background: linear-gradient(transparent, rgba(0, 0, 0, .8)); font: 500 clamp(11px, calc(var(--k, 3) * 3.6px), 13px)/1.15 var(--ui); color: #fff; }
-.chart button.place.room.seen { background: rgba(255, 255, 255, .03); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .25); outline: 1px dashed rgba(255, 255, 255, .4); outline-offset: -1px; }
-.chart button.place.room.seen .label { background: none; font-style: italic; color: rgba(255, 255, 255, .7); }
-.chart button.place.room.here { box-shadow: inset 0 0 0 2px #fff, 0 0 0 3px rgba(255, 255, 255, .18), 0 0 24px rgba(255, 255, 255, .3); }
-.chart button.place.picked { z-index: 2; }
-.chart button.place.room.picked { scale: 1.06; box-shadow: inset 0 0 0 2px #fff, 0 10px 30px rgba(0, 0, 0, .5); }
-.chart button.place.street.picked + .place-name { color: #fff; }
-.chart button.place:focus-visible { outline: 2px solid rgba(255, 255, 255, .7); outline-offset: 2px; }
-.chart .place-name { position: absolute; padding: 6px 8px; font: 500 clamp(11px, 1.05cqw, 14px)/1.1 var(--ui); white-space: nowrap; pointer-events: none; color: var(--text); }
-.chart .place-name.street { padding: 0; margin-top: calc(6px + var(--row, 0) * 17px); font-size: clamp(10px, .85cqw, 12px); font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
-.chart .place-name.here { color: #fff; }
-.chart .place-name.seen { color: var(--dim); font-style: italic; }
-.chart .spot { position: absolute; width: 30px; height: 30px; margin: -15px 0 0 -15px; padding: 0; border: 0; background: none; z-index: 1; }
-.chart .spot::before { content: ""; position: absolute; left: 50%; top: 50%; width: 7px; height: 7px; margin: -3.5px; background: #fff; border-radius: 50%; box-shadow: 0 0 0 2px rgba(15, 16, 21, .9); }
-.chart .spot.door::before { width: 6px; height: 9px; margin: -4.5px -3px; border-radius: 1.5px 1.5px 0 0; background: rgba(255, 255, 255, .85); }
-.chart .spot.door.joint::before { display: none; }
-.chart .spot.thing::before { width: 6px; height: 6px; margin: -3px; border-radius: 1px; transform: rotate(45deg); background: rgba(255, 255, 255, .75); }
-.chart .spot .name { position: absolute; left: 50%; top: calc(50% + 7px); transform: translateX(-50%); white-space: nowrap; font: 400 clamp(10px, .85cqw, 12px)/1.15 var(--ui); color: var(--dim); pointer-events: none; }
-.chart .spot.on-road .name { top: calc(50% + var(--road, 16px) / 2 + 6px + var(--row, 0) * 17px); }
-.chart .you { position: absolute; z-index: 3; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 4px rgba(255, 255, 255, .22), 0 0 14px #fff; pointer-events: none; animation: hud-you 1.8s ease-in-out infinite; }
-@keyframes hud-you { 50% { box-shadow: 0 0 0 7px rgba(255, 255, 255, .1), 0 0 18px #fff; } }
-@media (prefers-reduced-motion: reduce) { .chart .you { animation: none; } }
-/* the place picked, beside the map: its picture, its name, who and what she knows there, the way there */
+/* the routes between stations, as a transit map: the lift one colour up the floors, the street another along the
+   ground; a way she has not taken is faded. Thick and round-capped, as a metro line is. */
+.chart .route { fill: none; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+.chart .route.lift { stroke: rgba(var(--au), .85); }
+.chart .route.ground { stroke: rgba(var(--bp), .75); }
+.chart .route.open { stroke: rgba(var(--bp), .3); stroke-width: 3; stroke-dasharray: 1 6; }
+/* a station: a dot on its line. Filled where she has been, hollow where she has not; an interchange is bigger; where she
+   is now carries a pulsing ring. Drawn with a dark halo so it reads cleanly over the lines. */
+.chart .stn .dot { stroke: rgba(6, 12, 18, .95); stroke-width: 2.2; }
+.chart .stn.been .dot { fill: rgb(var(--au)); }
+.chart .stn.seen .dot { fill: rgba(6, 12, 18, .95); stroke: rgba(var(--bp), .8); }
+.chart .stn.unknown .dot { fill: rgba(6, 12, 18, .9); stroke: rgba(var(--bp), .4); stroke-dasharray: 1.4 1.4; }
+.chart .stn.interchange .dot { fill: rgba(6, 12, 18, .95); stroke: rgb(var(--au)); stroke-width: 2.4; }
+.chart .stn.interchange.been .dot { fill: rgb(var(--au)); stroke: #fff; }
+.chart .stn.lit .dot { filter: drop-shadow(0 0 5px rgba(var(--au), .8)); }
+.chart .stn.here .dot { fill: rgb(var(--au)); stroke: #fff; stroke-width: 2.4; filter: drop-shadow(0 0 6px rgba(var(--au), .9)); }
+/* where she is: a pulsing ring around her station */
+.chart .stn.here::after { content: none; }
+.chart .here-ring { position: absolute; z-index: 4; width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 50%; border: 1.6px solid rgba(var(--au), .85); pointer-events: none; animation: hud-you 1.8s ease-out infinite; }
+@keyframes hud-you { 0% { transform: scale(.5); opacity: .9; } 100% { transform: scale(1.5); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .chart .here-ring { animation: none; opacity: .5; } }
+/* the tap target over each station dot */
+.chart button.stop { position: absolute; width: 34px; height: 34px; margin: -17px 0 0 -17px; padding: 0; border: 0; background: none; border-radius: 50%; }
+.chart button.stop:focus-visible { outline: 2px solid rgba(var(--au), .8); outline-offset: 2px; }
+.chart button.stop.picked { z-index: 3; }
+/* a station's name beside its dot */
+.chart .stn-name { position: absolute; white-space: nowrap; pointer-events: none;
+  font: 600 clamp(10px, calc(var(--k, 3) * 3.4px), 13px)/1.1 var(--ui); letter-spacing: .02em; color: rgba(var(--bp), .9);
+  text-shadow: 0 0 3px rgba(6, 12, 18, 1), 0 0 6px rgba(6, 12, 18, 1), 0 0 9px rgba(6, 12, 18, .9); }
+/* a name sits clear of its dot on the chosen side */
+.chart .stn-name.right { transform: translateY(-50%); margin-left: 9px; }
+.chart .stn-name.left { transform: translate(-100%, -50%); margin-left: -9px; }
+.chart .stn-name.below { transform: translateX(-50%); margin-top: 9px; }
+.chart .stn-name.been { color: rgba(var(--au), .98); }
+.chart .stn-name.here { color: rgb(var(--au)); }
+.chart .stn-name.seen { color: rgba(var(--bp), .6); font-weight: 500; font-style: italic; }
+.chart .stn-name.street { font-size: clamp(9px, calc(var(--k, 3) * 3px), 12px); font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: rgba(var(--bp), .6); }
+/* a plan's legend, pinned in the bottom-left corner of the sheet */
+.map-view .legend { position: absolute; bottom: 10px; left: 10px; padding: 8px 11px; display: grid; gap: 5px; z-index: 4;
+  border-radius: var(--r-chip); background: rgba(5, 11, 17, .78); box-shadow: inset 0 0 0 1px rgba(var(--bp), .18); backdrop-filter: blur(3px); pointer-events: none; }
+.map-view .legend .key { display: flex; align-items: center; gap: 8px; font: 500 clamp(10px, .82cqw, 12px)/1 var(--ui); color: rgba(var(--bp), .7); }
+.map-view .legend .swatch { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+.map-view .legend .swatch.been { background: rgb(var(--au)); box-shadow: 0 0 0 1.5px rgba(6, 12, 18, .9); }
+.map-view .legend .swatch.seen { background: rgba(6, 12, 18, .9); box-shadow: inset 0 0 0 1.5px rgba(var(--bp), .7); }
+/* the place picked, beside the map: its scan, its name, who and what she knows there, the way there */
 .place-detail { display: flex; flex-direction: column; gap: 10px; min-height: 0; overflow: auto; overscroll-behavior: contain; }
-.place-detail .shot { flex: none; aspect-ratio: 16 / 9; display: grid; place-items: center; overflow: hidden; border-radius: var(--r-card); background: rgba(255, 255, 255, .06); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14); }
-.place-detail .shot img { width: 100%; height: 100%; object-fit: cover; }
-.place-detail .shot.none span { font: 300 34px/1 var(--ui); color: rgba(255, 255, 255, .4); }
+.place-detail .shot { position: relative; flex: none; aspect-ratio: 16 / 9; display: grid; place-items: center; overflow: hidden; border-radius: var(--r-chip); background: rgba(var(--bp), .05); box-shadow: inset 0 0 0 1px rgba(var(--bp), .3); }
+.place-detail .shot::before, .place-detail .shot::after { content: ""; position: absolute; width: 12px; height: 12px; border: 1.4px solid rgb(var(--bp)); }
+.place-detail .shot::before { left: 5px; top: 5px; border-right: 0; border-bottom: 0; }
+.place-detail .shot::after { right: 5px; bottom: 5px; border-left: 0; border-top: 0; }
+/* a place she has been: its real art in natural colour. A place not reached: cool grey and dim (the .dim shot). */
+.place-detail .shot img { width: 100%; height: 100%; object-fit: cover; opacity: .95; filter: brightness(.95) contrast(1.05) saturate(1.05); }
+.place-detail .shot.dim img { opacity: .5; filter: grayscale(1) brightness(.5) contrast(1.2); }
+/* the corner ticks ride above; a cyan wash tints the grey scan to a HUD render */
+.place-detail .shot::before, .place-detail .shot::after { z-index: 2; }
+.place-detail .shot.dim > .tint { position: absolute; inset: 0; background: rgba(var(--bp), .5); mix-blend-mode: color; pointer-events: none; z-index: 1; }
+.place-detail .shot.none span { font: 200 34px/1 var(--ui); color: rgba(var(--bp), .5); }
 .place-detail .name { margin: 2px 2px 0; font: 500 calc(var(--fs-heading) * var(--ts, 1))/1.2 var(--ui); }
 .place-detail .state { margin: -4px 2px 0; font: 400 calc(var(--fs-small) * var(--ts, 1))/1.35 var(--ui); color: var(--dim); }
 .place-detail .here { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }

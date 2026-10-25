@@ -25,14 +25,22 @@ export interface MapScene {
   size: [number, number];
   spawns: Record<string, { x: number }>;
   hotspots: Hotspot[];
+  /** The tower floor it is on (0 the lobby/street, negative underground), for the map's floor axis. */
+  floor?: number;
+  /** A still of the place's art (its background), for a room she has not been to — shown dimmed, in grey. */
+  art?: string;
 }
 
 /** Where tapping takes her: a scene, arriving at one of its places to arrive, or at a hotspot (where she stands to use it). */
 export interface Travel { scene: string; spawn?: string; at?: string }
 
 type Box = [number, number, number, number];
-/** `picture`: the place as she last saw it, for its card (the game's, by the place's id). */
-export interface MapPlace { id: string; name: string; box: Box; state: 'been' | 'seen'; here: boolean; street: boolean; go: Travel; picture?: string }
+/**
+ * `picture`: the place as she last saw it, for its card (the game's, by the place's id). `floor`: the tower floor it is
+ * on. `art`: a still of its background, for a place she has not been to. State: `been` she has been in it, `seen` she
+ * knows its door, `unknown` it is only drawn as part of the building, dim and grey.
+ */
+export interface MapPlace { id: string; name: string; box: Box; state: 'been' | 'seen' | 'unknown'; here: boolean; street: boolean; go: Travel; picture?: string; floor?: number; art?: string }
 /**
  * `named`: its name shown by it; a door to a place on the map has none, the place says where it goes (`to`). `street`:
  * it is on a road, its name under it.
@@ -91,8 +99,27 @@ export function placeBoxes(layout: MapLayout, scenes: Record<string, MapScene>):
         const door = scenes[from].hotspots.find((d) => d.go?.scene === id);
         if (!door) continue;
         const x = o.box[0] + clamp(across(door) / scenes[from].size[0]) * o.box[2];
-        const back = s.spawns[door.go!.spawn]?.x ?? s.size[0] / 2, box: Box = [x - (back / s.size[0]) * w, o.box[1] - STEM - h, w, h];
+        const back = s.spawns[door.go!.spawn]?.x ?? s.size[0] / 2;
+        // a flat entered from a floor's corridor (the door is from a room, not a street) is ON that floor: it sits at the
+        // same level, beside the corridor. A shop off a street sits just above the street.
+        if (!o.street) {
+          const box: Box = [o.box[0] + o.box[2] + STEM, o.box[1], w, h]; // to the right of the corridor, same level
+          while (Object.values(out).some((p) => overlaps(p.box, box, 3))) box[0] += w + STEM;
+          out[id] = { box, street: false };
+          return false;
+        }
+        const box: Box = [x - (back / s.size[0]) * w, o.box[1] - STEM - h, w, h];
         while (Object.values(out).some((p) => overlaps(p.box, box, 3))) box[1] -= h + STEM;
+        out[id] = { box, street: false };
+        return false;
+      }
+      // or its own door leads to a floor already drawn (the floor has no door back marked): a flat off that floor, placed
+      // beside it on the same level — this is how Athena's flat, reached from floor 9, finds its place
+      for (const d of s.hotspots) {
+        const to = d.go?.scene, o = to ? out[to] : undefined;
+        if (!o || o.street) continue;
+        const box: Box = [o.box[0] - STEM - w, o.box[1], w, h]; // to the left of the corridor, same level
+        while (Object.values(out).some((p) => overlaps(p.box, box, 3))) box[0] -= w + STEM;
         out[id] = { box, street: false };
         return false;
       }
@@ -103,22 +130,69 @@ export function placeBoxes(layout: MapLayout, scenes: Record<string, MapScene>):
 }
 
 /**
+ * Arrange the places as a transit map: each floor of the tower is its own vertical line, the floors parallel and side by
+ * side; the flat on a floor sits directly above that floor's station, and the lift joins the floor stations in a row. The
+ * streets run as one line along the bottom, the shops stops along it, and the lobby drops from the lift down to it. This
+ * replaces the cutaway's geometry with clean columns, so every link is horizontal or vertical. Changes the boxes in place.
+ *
+ * `floorOf` gives a scene's tower floor; `doorsOut` its door targets. Positions are in map units.
+ */
+function metroArrange(
+  boxes: Record<string, { box: Box; street: boolean }>,
+  floorOf: (id: string) => number | undefined,
+  doorsOut: (id: string) => string[],
+): void {
+  const ids = Object.keys(boxes);
+  const [w, h] = ROOM, COL = w + 16, ROW = h + 16;
+  const put = (id: string, cx: number, cyTop: number) => { boxes[id].box = [cx - w / 2, cyTop, w, h]; };
+  const doorPeers = (id: string) => [...doorsOut(id), ...ids.filter((o) => doorsOut(o).includes(id))];
+  // the floors (those with a tower floor number): one column each, highest on the left, all on the same row (the lift
+  // level), so the lift joins them as a horizontal line and each floor is its own vertical line
+  const floors = ids.filter((id) => !boxes[id].street && floorOf(id) !== undefined).sort((a, b) => (floorOf(b) ?? 0) - (floorOf(a) ?? 0));
+  const floorSet = new Set(floors), colX = new Map<string, number>();
+  const yFloorTop = 0;
+  floors.forEach((id, i) => { const cx = i * COL; colX.set(id, cx); put(id, cx, yFloorTop); });
+  // a flat (a room whose door joins a floor) sits directly above that floor: same column, the row above
+  const flatCol = new Map<string, number>();
+  for (const id of ids) {
+    if (boxes[id].street || floorSet.has(id)) continue;
+    const f = doorPeers(id).find((t) => floorSet.has(t));
+    if (f !== undefined && colX.has(f)) { const cx = colX.get(f)!; flatCol.set(id, cx); put(id, cx, yFloorTop - ROW); }
+  }
+  // the streets: one horizontal line along the bottom, left to right in layout order; shops become stops just above it
+  const streets = ids.filter((id) => boxes[id].street);
+  const yStreetTop = yFloorTop + ROW * 2;
+  const streetX = new Map<string, number>();
+  streets.forEach((id, i) => { const cx = i * COL * 2.2; streetX.set(id, cx); boxes[id].box = [cx - COL * 1.1, yStreetTop, COL * 2.2, ROAD]; });
+  let si = 0;
+  for (const id of ids) {
+    if (boxes[id].street || floorSet.has(id) || flatCol.has(id)) continue;
+    const st = doorPeers(id).find((t) => streetX.has(t));
+    if (st !== undefined) put(id, (streetX.get(st) ?? 0) + (si++ - 0.5) * COL * 1.3, yStreetTop - ROW);
+    else put(id, (si++) * COL, yStreetTop - ROW * 2); // anything else: a row of its own, so it is never left stale
+  }
+}
+
+/**
  * The map as she knows it: `been` the scenes she has been in, `seen(scene, id)` whether she has seen a hotspot there,
  * `shown` whether one is there now (the story's conditions), `here` where she is.
  */
 export function mapNow(layout: MapLayout, scenes: Record<string, MapScene>, been: ReadonlySet<string>, seen: (scene: string, id: string) => boolean,
   here: { scene: string; x: number }, raw: boolean, shown: (h: Hotspot) => boolean): MapNow {
   const boxes = placeBoxes(layout, scenes);
+  // arrange the placed scenes as a transit map: floors in parallel columns, flats above their floor, streets along the
+  // bottom (placeBoxes still decides which scenes get a box; this sets where they sit)
+  metroArrange(boxes, (id) => scenes[id]?.floor, (id) => (scenes[id]?.hotspots ?? []).map((h) => h.go?.scene).filter((s): s is string => !!s));
   // a point along a place, as far along it as x is along the scene: on a road its middle, in a room under its name
   const pointIn = (id: string, x: number): [number, number] => {
     const { box, street } = boxes[id];
     return [box[0] + clamp(x / scenes[id].size[0]) * box[2], box[1] + box[3] * (street ? 0.5 : 0.62)];
   };
-  const places: MapPlace[] = [], spots: MapSpot[] = [], links: MapLink[] = [], joined = new Set<string>();
+  const places: MapPlace[] = [], spots: MapSpot[] = [], links: MapLink[] = [];
   const firstSpawn = (id: string) => layout.places[id]?.spawn ?? Object.keys(scenes[id]?.spawns ?? {})[0];
   for (const id of Object.keys(layout.places)) {
     const b = been.has(id) ? boxes[id] : undefined;
-    if (b) places.push({ id, name: pick(scenes[id].name, raw), box: b.box, state: 'been', here: id === here.scene, street: b.street, go: { scene: id, spawn: firstSpawn(id) } });
+    if (b) places.push({ id, name: pick(scenes[id].name, raw), box: b.box, state: 'been', here: id === here.scene, street: b.street, go: { scene: id, spawn: firstSpawn(id) }, floor: scenes[id].floor, art: scenes[id].art });
   }
   for (const p of [...places]) {
     const pb = boxes[p.id].box;
@@ -135,25 +209,36 @@ export function mapNow(layout: MapLayout, scenes: Record<string, MapScene>, been
       if (!to || !tb) continue;
       let target = places.find((q) => q.id === to);
       if (!target) {
-        target = { id: to, name: pick(scenes[to].name, raw), box: tb.box, state: 'seen', here: false, street: tb.street, go: { scene: p.id, at: h.id } };
+        target = { id: to, name: pick(scenes[to].name, raw), box: tb.box, state: 'seen', here: false, street: tb.street, go: { scene: p.id, at: h.id }, floor: scenes[to].floor };
         places.push(target);
       }
-      const pair = [p.id, to].sort().join('|');
-      if (joined.has(pair) && target.state === 'been') continue;
-      joined.add(pair);
-      // from its edge facing the place it leads to, to where she arrives there, at its edge facing back
-      const [, ty, , th] = target.box, arrive = scenes[to].spawns[h.go!.spawn]?.x, x = arrive !== undefined ? pointIn(to, arrive)[0] : at[0];
-      const up = ty + th <= pb[1], down = ty >= pb[1] + pb[3];
-      links.push({ from: [at[0], up ? pb[1] : down ? pb[1] + pb[3] : at[1]], to: [x, up ? ty + th : down ? ty : ty + th / 2], open: target.state === 'seen' });
+      // (the line between p and its door's target is drawn by the structural-links pass below, centre to centre)
     }
   }
-  // a floor over another, both on the map: the lift between them
+  // the rest of the building she has not reached: every other place with a box, drawn dim and grey as part of the whole
+  // tower (a still of its art, no name), so the map is the building, not only the rooms she has been to. Added before the
+  // lift is drawn, so the shaft runs through the floors she has not been to as well.
+  for (const id of Object.keys(layout.places)) {
+    if (places.some((q) => q.id === id) || !boxes[id] || !scenes[id]) continue;
+    const b = boxes[id];
+    places.push({ id, name: pick(scenes[id].name, raw), box: b.box, state: 'unknown', here: false, street: b.street, go: { scene: id, spawn: firstSpawn(id) }, floor: scenes[id].floor, art: scenes[id].art });
+  }
+  // All the building's ways, as the transit map draws them: a line between the stations of two places joined by the lift
+  // (the `over` chain) or by a door — whether or not she has seen it, so the whole network shows. A line is faded until
+  // she has been along it (both ends visited). Centre to centre, so drawMap can route them as metro lines.
+  const placed = new Map(places.map((p) => [p.id, p]));
+  const linked = new Set<string>();
+  const centreOf = (p: MapPlace): [number, number] => [p.box[0] + p.box[2] / 2, p.box[1] + p.box[3] / 2];
+  const join = (a?: MapPlace, b?: MapPlace) => {
+    if (!a || !b || a.id === b.id) return;
+    const key = [a.id, b.id].sort().join('|');
+    if (linked.has(key)) return;
+    linked.add(key);
+    links.push({ from: centreOf(a), to: centreOf(b), open: !(a.state === 'been' && b.state === 'been') });
+  };
   for (const p of places) {
-    const over = layout.places[p.id]?.over, q = over ? places.find((x) => x.id === over) : undefined, name = layout.places[p.id]?.spawn;
-    if (!q || !name) continue;
-    const at = scenes[p.id].spawns[name]?.x;
-    const x = at !== undefined ? pointIn(p.id, at)[0] : p.box[0] + p.box[2] / 2;
-    links.push({ from: [x, q.box[1]], to: [x, p.box[1] + p.box[3]], open: p.state === 'seen' || q.state === 'seen' });
+    join(p, placed.get(layout.places[p.id]?.over ?? '')); // the lift, up the floors
+    for (const h of scenes[p.id]?.hotspots ?? []) join(p, h.go?.scene ? placed.get(h.go.scene) : undefined); // a door
   }
   const you = been.has(here.scene) && boxes[here.scene] ? pointIn(here.scene, here.x) : null;
   const xs = places.flatMap((p) => [p.box[0], p.box[0] + p.box[2]]), ys = places.flatMap((p) => [p.box[1], p.box[1] + p.box[3] + (p.street ? UNDER : 0)]);
@@ -174,100 +259,111 @@ export function drawMap(body: HTMLElement, now: MapNow, go: (t: Travel, name: st
   detail.setAttribute('aria-live', 'polite');
   const [bx, by, bw, bh] = now.bounds;
   const pct = (x: number, y: number) => `left:${((x - bx) / bw) * 100}%;top:${((y - by) / bh) * 100}%`;
+  // Her AR map of the building drawn as a transit map: each place a station, the ways between them coloured lines — the
+  // lift one line up the floors, the street another along the ground, short links for a flat off a corridor. A station
+  // she has been to is filled, one she has not is hollow; where she is now is ringed. The lines and dots are the SVG
+  // (its strokes kept fine at any size); the names and the tap targets sit over it as DOM.
+  const centre = (b: Box): [number, number] => [b[0] + b[2] / 2, b[1] + b[3] / 2];
+  const stations = new Map<string, { p: [number, number]; q: MapPlace; deg: number }>();
+  for (const q of now.places) stations.set(q.id, { p: centre(q.box), q, deg: 0 });
+  // the link endpoints are station centres: match each to its station
+  const at = (pt: [number, number]) => [...stations.values()].find((s) => Math.abs(s.p[0] - pt[0]) < 0.5 && Math.abs(s.p[1] - pt[1]) < 0.5);
   const svg = [`<svg viewBox="${bx} ${by} ${bw} ${bh}" preserveAspectRatio="none" aria-hidden="true">`];
-  for (const l of now.links) svg.push(`<line class="link${l.open ? ' open' : ''}" x1="${l.from[0]}" y1="${l.from[1]}" x2="${l.to[0]}" y2="${l.to[1]}"/>`);
-  for (const q of now.places.filter((x) => x.street)) {
-    const [x, y, w, h] = q.box;
-    svg.push(`<rect class="road ${q.state}${q.here ? ' here' : ''}" x="${x}" y="${y}" width="${w}" height="${h}" rx="${h / 2}"/>`);
+  // the lines: each link drawn in straight segments only (a transit map has no diagonals). A run that is already
+  // horizontal or vertical is one straight line; a link that is neither bends once at a right angle (an L), going along
+  // whichever axis is longer first. A way she has not taken is faded.
+  const EPS = 0.75;
+  for (const l of now.links) {
+    const sa = at(l.from), sb = at(l.to);
+    if (!sa || !sb || sa === sb) continue;
+    sa.deg++; sb.deg++;
+    const [ax, ay] = sa.p, [bx2, by2] = sb.p, dx = Math.abs(bx2 - ax), dy = Math.abs(by2 - ay);
+    const cls = `route ${dy > dx ? 'lift' : 'ground'}${l.open ? ' open' : ''}`;
+    if (dx < EPS || dy < EPS) {
+      svg.push(`<line class="${cls}" x1="${ax}" y1="${ay}" x2="${bx2}" y2="${by2}"/>`); // already straight
+    } else {
+      // bend at a right angle: travel the longer axis first, so the corner sits near the lesser station
+      const corner: [number, number] = dy >= dx ? [ax, by2] : [bx2, ay];
+      svg.push(`<polyline class="${cls}" points="${ax},${ay} ${corner[0]},${corner[1]} ${bx2},${by2}"/>`);
+    }
+  }
+  // the station dots, over the lines: filled where she has been, hollow where she has not, a ring where she is
+  for (const [id, s] of stations) {
+    const inter = s.deg >= 3;
+    svg.push(`<g class="stn ${s.q.state}${s.q.here ? ' here' : ''}${inter ? ' interchange' : ''}" data-id="${id}">` +
+      `<circle class="dot" cx="${s.p[0]}" cy="${s.p[1]}" r="${inter ? 3.6 : 2.8}"/></g>`);
   }
   svg.push('</svg>');
   chart.insertAdjacentHTML('beforeend', svg.join(''));
-  // under each road, its name at its start and the names along it, put in rows when the chart is sized
-  const under = new Map<string, { at: number; centred: boolean; label: HTMLElement }[]>();
-  const along = (scene: string) => under.get(scene) ?? under.set(scene, []).get(scene)!;
+  // which way each station's lines leave it, so its name goes to a clear side (opposite a branch, never over a line)
+  const dirs = new Map<string, { left: boolean; right: boolean; up: boolean; down: boolean }>();
+  for (const id of stations.keys()) dirs.set(id, { left: false, right: false, up: false, down: false });
+  for (const l of now.links) {
+    const sa = at(l.from), sb = at(l.to);
+    if (!sa || !sb) continue;
+    const da = dirs.get(sa.q.id)!, db = dirs.get(sb.q.id)!, dx = sb.p[0] - sa.p[0], dy = sb.p[1] - sa.p[1];
+    if (Math.abs(dx) > 1) { (dx > 0 ? (da.right = true) : (da.left = true)); (dx > 0 ? (db.left = true) : (db.right = true)); }
+    if (Math.abs(dy) > 1) { (dy > 0 ? (da.down = true) : (da.up = true)); (dy > 0 ? (db.up = true) : (db.down = true)); }
+  }
+  // the tap target and name for each station, as DOM over its dot
   const buttons = new Map<string, HTMLButtonElement>();
-  for (const q of now.places) {
-    const cls = `${q.state}${q.here ? ' here' : ''}${q.street ? ' street' : ' room'}`;
-    const b = button(`place ${cls}`, q.state === 'seen' ? `${q.name}: not been there yet, go to its door` : q.here ? `${q.name}: you are here` : `Go to ${q.name}`, chart, () => pick(q));
+  for (const [id, s] of stations) {
+    const q = s.q, cls = `${q.state}${q.here ? ' here' : ''}`;
+    const label = q.state === 'unknown' ? 'A place she has not reached' : q.state === 'seen' ? `${q.name}: not been there yet, go to its door` : q.here ? `${q.name}: you are here` : `Go to ${q.name}`;
+    const b = button(`stop ${cls}`, label, chart, () => pick(q));
     b.dataset.cue = 'choose';
-    b.setAttribute('style', `${pct(q.box[0], q.box[1])};width:${(q.box[2] / bw) * 100}%;height:${(q.box[3] / bh) * 100}%`);
-    buttons.set(q.id, b);
-    if (q.street) {
-      const name = el('span', `place-name ${cls}`, chart, q.state === 'seen' ? `${q.name}?` : q.name);
-      name.setAttribute('style', pct(q.box[0], q.box[1] + q.box[3]));
-      along(q.id).push({ at: q.box[0], centred: false, label: name });
-      continue;
+    b.setAttribute('style', pct(s.p[0], s.p[1]));
+    buttons.set(id, b);
+    // its name on a clear side: a street station below; otherwise opposite whichever side has a branch, so it never sits
+    // over a line (left if a line goes right, right if one goes left, else right)
+    if (q.state !== 'unknown') {
+      const d = dirs.get(id)!;
+      const side = q.street ? 'below' : d.right && !d.left ? 'left' : d.left && !d.right ? 'right' : d.up && !d.down ? 'below' : 'right';
+      const name = el('span', `stn-name ${cls} ${side}`, chart, q.name);
+      name.setAttribute('style', pct(s.p[0], s.p[1]));
     }
-    // a room: its picture, its name on it; one only seen, a question mark
-    if (q.picture) { const img = el('img', 'picture', b) as HTMLImageElement; img.src = q.picture; img.alt = ''; img.draggable = false; }
-    else el('span', 'unknown', b, q.state === 'seen' ? '?' : '');
-    el('span', 'label', b, q.name);
   }
-  for (const s of now.spots) {
-    // in a room, who and what is there is listed when it is picked; its card is its picture
-    if (!s.street) continue;
-    // a way along the road to the next street is the joint between them
-    const joint = s.street && now.places.some((q) => q.id === s.to && q.street), owner = now.places.find((q) => q.id === s.scene);
-    const b = button(`spot ${s.kind}${s.street ? ' on-road' : ''}${joint ? ' joint' : ''}`, s.name, chart, () => owner && pick(owner));
-    b.dataset.cue = 'choose';
-    b.setAttribute('style', pct(s.at[0], s.at[1]));
-    if (!s.named) continue;
-    const label = el('span', 'name', b, s.name);
-    if (s.street) along(s.scene).push({ at: s.at[0], centred: true, label });
-  }
-  if (now.you) {
-    const y = el('div', 'you', chart);
-    y.setAttribute('style', pct(now.you[0], now.you[1]));
-    y.setAttribute('aria-label', 'You are here');
-  }
+  // where she is now: a pulsing ring around her station
+  const hereStn = [...stations.values()].find((s) => s.q.here);
+  if (hereStn) { const ring = el('div', 'here-ring', chart); ring.setAttribute('style', pct(hereStn.p[0], hereStn.p[1])); ring.setAttribute('aria-label', 'You are here'); }
+  // a legend: what a filled and a hollow station mean
+  const legend = el('div', 'legend', map);
+  const key = (cls: string, label: string) => { const row = el('div', 'key', legend); el('span', `swatch ${cls}`, row); el('span', '', row, label); };
+  key('been', 'Visited');
+  key('seen', 'Not yet reached');
 
-  /** A place picked: lit on the map, and shown beside it, with the way there and to who and what she knows there. */
+  /** A place picked: its station lit on the map, and shown beside it, with the way there and what she knows there. */
   function pick(q: MapPlace): void {
     for (const [id, b] of buttons) b.classList.toggle('picked', id === q.id);
+    // light the station picked (its dot is in the SVG, not the button)
+    chart.querySelectorAll('.stn').forEach((c) => c.classList.toggle('lit', (c as SVGElement).dataset.id === q.id));
     detail.replaceChildren();
-    const shot = el('div', `shot${q.picture ? '' : ' none'}`, detail);
-    if (q.picture) { const img = el('img', '', shot) as HTMLImageElement; img.src = q.picture; img.alt = ''; }
-    else el('span', '', shot, q.state === 'seen' ? '?' : '');
-    el('h3', 'name', detail, q.name);
-    el('p', 'state', detail, q.here ? 'You are here' : q.state === 'seen' ? 'Not been there yet. She knows its door.' : q.street ? 'A street' : 'Been there');
+    const unknown = q.state === 'unknown', src = q.picture ?? q.art;
+    const shot = el('div', `shot${src ? '' : ' none'}${unknown ? ' dim' : ''}`, detail);
+    if (src) { const img = el('img', '', shot) as HTMLImageElement; img.src = src; img.alt = ''; el('span', 'tint', shot); }
+    else el('span', '', shot, '?');
+    el('h3', 'name', detail, unknown ? 'Somewhere in the building' : q.name);
+    el('p', 'state', detail, unknown ? 'She has not reached it.' : q.here ? 'You are here' : q.state === 'seen' ? 'Not been there yet. She knows its door.' : q.street ? 'A street' : 'Been there');
     const here = now.spots.filter((s) => s.scene === q.id && s.named);
     if (here.length) {
       const list = el('ul', 'here', detail);
       for (const s of here) { const b = button('spot-go', `Go to ${s.name}`, el('li', s.kind, list), () => go(s.go, s.name)); b.textContent = s.name; b.dataset.cue = 'confirm'; }
     }
-    if (!q.here) { const b = button('go', q.state === 'seen' ? `Go to ${q.name}'s door` : `Go to ${q.name}`, detail, () => go(q.go, q.name)); b.textContent = q.state === 'seen' ? 'Go to its door' : 'Go there'; b.dataset.cue = 'confirm'; }
+    // she can go to a place she knows (been, or a door she has seen); a place she has not reached offers no way yet
+    if (!q.here && !unknown) { const b = button('go', q.state === 'seen' ? `Go to ${q.name}'s door` : `Go to ${q.name}`, detail, () => go(q.go, q.name)); b.textContent = q.state === 'seen' ? 'Go to its door' : 'Go there'; b.dataset.cue = 'confirm'; }
   }
   pick(now.places.find((q) => q.here) ?? now.places[0]);
 
-  // as large as the area allows, at the map's own shape, with room under it for the rows of names under the roads
-  const layout = (k: number): number => {
+  // as large as the area allows, at the map's own shape; the stations and their names scale with it
+  const fit = () => {
+    const W = area.clientWidth, H = area.clientHeight;
+    const k = Math.max(LEAST, Math.min(W / bw, H / bh, MOST));
     chart.style.width = `${bw * k}px`;
     chart.style.height = `${bh * k}px`;
-    chart.style.setProperty('--road', `${ROAD * k}px`);
     chart.style.setProperty('--k', String(k));
-    let most = 0;
-    for (const labels of under.values()) {
-      const rows: number[] = [];
-      for (const n of [...labels].sort((a, b) => a.at - b.at)) {
-        const w = n.label.offsetWidth, left = (n.at - bx) * k - (n.centred ? w / 2 : 0);
-        let row = rows.findIndex((right) => left > right + 8);
-        if (row < 0) row = rows.length;
-        rows[row] = left + w;
-        n.label.style.setProperty('--row', String(row));
-      }
-      most = Math.max(most, rows.length);
-    }
-    return most;
-  };
-  const fit = () => {
-    const W = area.clientWidth, H = area.clientHeight, first = Math.max(LEAST, Math.min(W / bw, H / bh, MOST));
-    // the names' rows reach this far below the lowest road: what the bounds leave under it is not always enough
-    const room = (rows: number, k: number) => Math.max(0, rows * 17 + 10 - UNDER * k);
-    const k = Math.max(LEAST, Math.min(W / bw, (H - room(layout(first), first)) / bh, MOST)), rows = layout(k);
-    chart.style.marginBottom = `${room(rows, k)}px`;
     // too big for the page: it scrolls, its edges fading where there is more, and opens on where she is
     area.classList.toggle('scrolls-x', bw * k + 24 > W);
-    area.classList.toggle('scrolls-y', bh * k + room(rows, k) + 24 > H);
+    area.classList.toggle('scrolls-y', bh * k + 24 > H);
     const you = now.you ?? now.places.find((q) => q.here)?.box.slice(0, 2) as [number, number] | undefined;
     if (you) { area.scrollLeft = (you[0] - bx) * k - W / 2; area.scrollTop = (you[1] - by) * k - H / 2; }
   };

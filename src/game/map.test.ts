@@ -21,6 +21,7 @@ const scenes: Record<string, MapScene> = {
 };
 const layout: MapLayout = { places: { home: { spawn: 'door' }, street: { at: [0, 0] }, shop: {}, alley: { at: [240, 0] } } };
 const all = () => true;
+const near = (a: [number, number], b: [number, number]) => Math.abs(a[0] - b[0]) < 0.5 && Math.abs(a[1] - b[1]) < 0.5;
 
 describe('the map', () => {
   it('lays each street along its row, as long as it is wide, and each room above the door it opens from', () => {
@@ -45,34 +46,37 @@ describe('the map', () => {
     expect(placeBoxes({ places: { ...layout.places, shop: { at: [5, 60], size: [40, 20] } } }, scenes).shop.box).toEqual([5, 60, 40, 20]);
   });
 
-  it('stacks a floor a lift goes to over the floor below it, the two lifts one over the other, joined', () => {
-    const floor = (id: string, liftX: number): MapScene => ({ id, name: id, kind: 'interior', size: [960, 540], spawns: { lift: { x: liftX } }, hotspots: [] });
-    const tower: Record<string, MapScene> = { ...scenes, f1: floor('f1', 300), f2: floor('f2', 600) };
+  it('places each floor a lift goes to in its own column, and joins them by the lift', () => {
+    const floor = (id: string, liftX: number, n: number): MapScene => ({ id, name: id, kind: 'interior', size: [960, 540], floor: n, spawns: { lift: { x: liftX } }, hotspots: [] });
+    const tower: Record<string, MapScene> = { ...scenes, f1: floor('f1', 300, 1), f2: floor('f2', 600, 2) };
     const stacked: MapLayout = { places: { ...layout.places, f1: { spawn: 'lift', over: 'shop' }, f2: { spawn: 'lift', over: 'f1' } } };
-    const boxes = placeBoxes(stacked, { ...tower, shop: { ...scenes.shop, spawns: { ...scenes.shop.spawns, lift: { x: 480 } } } });
-    const [sx, sy, sw] = boxes.shop.box, [x1, y1, w1, h1] = boxes.f1.box, [x2, y2, w2, h2] = boxes.f2.box;
-    // each above the one below, its lift over that one's
-    expect(y1 + h1).toBe(sy - STEM);
-    expect(x1 + (300 / 960) * w1).toBeCloseTo(sx + 0.5 * sw);
-    expect(y2 + h2).toBeLessThanOrEqual(y1 - STEM);
-    expect(x2 + (600 / 960) * w2).toBeCloseTo(x1 + (300 / 960) * w1);
-    // been on both, they are joined by the lift
+    // the floors (f1, f2) sit on the same row, in columns side by side, so the lift joins them as a horizontal line
     const now = mapNow(stacked, { ...tower, shop: { ...scenes.shop, spawns: { ...scenes.shop.spawns, lift: { x: 480 } } } }, new Set(['street', 'shop', 'f1', 'f2']), all, { scene: 'f2', x: 600 }, false, all);
-    expect(now.links.filter((l) => l.from[0] === l.to[0] && l.to[1] < l.from[1]).length).toBeGreaterThanOrEqual(2);
+    const b1 = now.places.find((p) => p.id === 'f1')!.box, b2 = now.places.find((p) => p.id === 'f2')!.box;
+    expect(b1[1]).toBe(b2[1]); // same row
+    expect(b1[0]).not.toBe(b2[0]); // different columns
+    // they are joined (a link between their stations)
+    const cen = (b: typeof b1): [number, number] => [b[0] + b[2] / 2, b[1] + b[3] / 2];
+    const [c1, c2] = [cen(b1), cen(b2)];
+    expect(now.links.some((l) => (near(l.from, c1) && near(l.to, c2)) || (near(l.from, c2) && near(l.to, c1)))).toBe(true);
   });
 
   it('draws the places she has been, and sketches in where the doors she has seen lead', () => {
     const seen = (sc: string, id: string) => sc === 'street' && ['home-door', 'shop-door', 'kiosk', 'bar', 'bench'].includes(id);
     const now = mapNow(layout, scenes, new Set(['street']), seen, { scene: 'street', x: 1200 }, false, all);
-    expect(now.places.map((p) => [p.id, p.state, p.name])).toEqual([['street', 'been', 'Main street'], ['home', 'seen', 'Home'], ['shop', 'seen', 'Radio repair']]);
-    // where she is, along the road
-    expect(now.you).toEqual([120, ROAD / 2]);
+    // the places she knows (been, or a door she has seen) are named; the rest of the building is drawn too, as unknown
+    expect(now.places.map((p) => [p.id, p.state])).toEqual([['street', 'been'], ['home', 'seen'], ['shop', 'seen'], ['alley', 'unknown']]);
+    expect(now.places.slice(0, 3).map((p) => p.name)).toEqual(['Main street', 'Home', 'Radio repair']);
+    // where she is, on the street she stands on
+    const st = now.places.find((p) => p.id === 'street')!.box;
+    expect(now.you![0]).toBeGreaterThanOrEqual(st[0]);
+    expect(now.you![0]).toBeLessThanOrEqual(st[0] + st[2]);
     // doors, people and things marked for it, not everything (the bench); a door to a place on the map is not named
     expect(now.spots.map((s) => [s.id, s.kind, s.named])).toEqual([['home-door', 'door', false], ['shop-door', 'door', false], ['kiosk', 'person', true], ['bar', 'thing', true]]);
     // a place sketched in takes her to its door
     expect(now.places[2].go).toEqual({ scene: 'street', at: 'shop-door' });
-    // a line up from the road at its door to the room's foot, dashed while she has not been in
-    expect(now.links[0]).toEqual({ from: [30, 0], to: [30, -STEM], open: true });
+    // the ways are drawn between the stations (centre to centre), one for each door; all dashed while she has not been
+    expect(now.links.length).toBe(3);
     expect(now.links.every((l) => l.open)).toBe(true);
   });
 
@@ -91,8 +95,7 @@ describe('the map', () => {
     expect(now.links.length).toBe(3);
     expect(now.links.some((l) => l.open)).toBe(false);
     expect(now.places.find((p) => p.here)!.id).toBe('home');
-    // her room's door is at its foot, where the line down to the street leaves it; the alley's way back joins the roads
-    expect(now.spots.find((s) => s.scene === 'home')!.at[1]).toBe(-STEM);
+    // the alley's way back joins the roads (a door to a place on the map carries no name of its own)
     expect(now.spots.find((s) => s.id === 'to-alley')).toMatchObject({ street: true, to: 'alley', named: false });
   });
 });
