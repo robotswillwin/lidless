@@ -20,14 +20,14 @@
     "ms": 150
   },
   "window-open": {
-    "pack": "Kenney Interface Sounds",
-    "file": "maximize_009.ogg",
-    "ms": 208
+    "pack": "made here (shaped noise, synth-hud.py)",
+    "file": "synth-hud.py",
+    "ms": 230
   },
   "window-close": {
-    "pack": "Kenney Interface Sounds",
-    "file": "minimize_009.ogg",
-    "ms": 207
+    "pack": "made here (shaped noise, synth-hud.py)",
+    "file": "synth-hud.py",
+    "ms": 200
   },
   "page": {
     "pack": "Kenney Interface Sounds",
@@ -199,10 +199,10 @@
     "loop": true
   },
   "bed-rain": {
-    "pack": "made here (shaped noise)",
-    "file": "import-world.py",
-    "ms": 7750,
-    "loop": true
+    "pack": "OpenGameArt \"Rain (loopable)\" by Ylmir (CC0)",
+    "file": "3.ogg (14s seamless)",
+    "loop": true,
+    "ms": 12000
   },
   "bed-city": {
     "pack": "made here (shaped noise)",
@@ -217,38 +217,38 @@
     "loop": true
   },
   "step-1": {
-    "pack": "Kenney RPG Audio + wet edge (import-steps.py)",
+    "pack": "Kenney RPG Audio (CC0)",
     "file": "footstep00.ogg",
-    "ms": 183
+    "ms": 188
   },
   "step-2": {
-    "pack": "Kenney RPG Audio + wet edge (import-steps.py)",
+    "pack": "Kenney RPG Audio (CC0)",
     "file": "footstep04.ogg",
-    "ms": 232
+    "ms": 255
   },
   "step-3": {
-    "pack": "Kenney RPG Audio + wet edge (import-steps.py)",
+    "pack": "Kenney RPG Audio (CC0)",
     "file": "footstep06.ogg",
-    "ms": 203
+    "ms": 216
   },
   "step-4": {
-    "pack": "Kenney RPG Audio + wet edge (import-steps.py)",
+    "pack": "Kenney RPG Audio (CC0)",
     "file": "footstep09.ogg",
-    "ms": 209
+    "ms": 215
   },
   "drop-1": {
-    "pack": "made here (shaped noise)",
-    "file": "import-steps.py",
-    "ms": 26
+    "pack": "OpenGameArt \"Rain (loopable)\" by Ylmir (CC0)",
+    "file": "1.ogg (sliced)",
+    "ms": 54
   },
   "drop-2": {
-    "pack": "made here (shaped noise)",
-    "file": "import-steps.py",
-    "ms": 32
+    "pack": "OpenGameArt \"Rain (loopable)\" by Ylmir (CC0)",
+    "file": "1.ogg (sliced)",
+    "ms": 54
   },
   "drop-3": {
-    "pack": "made here (shaped noise)",
-    "file": "import-steps.py",
-    "ms": 40
+    "pack": "OpenGameArt \"Rain (loopable)\" by Ylmir (CC0)",
+    "file": "1.ogg (sliced)",
+    "ms": 54
   }
 }

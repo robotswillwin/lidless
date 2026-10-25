@@ -368,8 +368,9 @@ export class SceneRunner {
     const snd = this.audible;
     snd.liftDing = snd.liftStart = snd.hologramOn = snd.hologramSolved = snd.cradleClack = snd.ringTurn = false;
     snd.liftMove = snd.dryer = snd.hologramHum = snd.cameraMove = snd.machineHum = 0;
-    // a scope on a bench (not a knob she turns): the place has working electronics, a faint hum
-    if ((d.scopes ?? []).some((s) => inViewOf(s.only, view) && !(s.when && !this.shown(s.when)))) snd.machineHum = 1;
+    // a scope on a bench (not a knob she turns): the place has working electronics, a faint hum — kept low, it is only
+    // a sign of the room, well under the scene
+    if ((d.scopes ?? []).some((s) => inViewOf(s.only, view) && !(s.when && !this.shown(s.when)))) snd.machineHum = 0.3;
     // a Newton's cradle: a swing as her count of them goes up (none for the count she arrives with), from alternate ends
     this.cradle.fill(0);
     const cr = (d.cradles ?? [])[0];

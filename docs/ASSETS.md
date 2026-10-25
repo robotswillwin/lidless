@@ -859,9 +859,12 @@ it raining), a room's quiet hum inside — and these three beds (`bed-rain`, `be
 are shaped noise made in the same tool, so they loop with no seam and cost almost nothing. The sustained sounds (the
 beds, the lift's motor, the dryer, a machine's hum) are layers that rise and fall as the game asks (`setLayer`,
 `frameLayers` in sound.ts); `src/game/scene.ts` works out what each scene sounds like now (`SceneRunner.audible`), and
-`src/game/game.ts` plays it each frame. Her footsteps land as her feet do (`World.footfall`, four wet-pavement steps
-made by `tools/sounds/import-steps.py` from Kenney's RPG Audio with a harder edge), and when it rains outside the rain's
-patter (a few drops made from shaped noise) falls over the bed. The music is still to come (decision 34, the director's).
+`src/game/game.ts` plays it each frame. Her footsteps land as her feet do (`World.footfall`, four short boot-falls on
+wet stone — a heel click, a body thump and a hair of wet tail, made from shaped noise by `tools/sounds/import-steps.py`;
+~95 ms each, so one step is well clear of the next even at a run), and when it rains outside the rain's patter (a few
+drops, the same tool) falls over the bed. A layer holds at one level for whole scenes, so `setLayer` reschedules its gain
+ramp only when the level it is heading to actually changes, never once a frame (which stuttered a phone's audio thread).
+The music is still to come (decision 34, the director's).
 
 ## Her things: pictures for the tray
 
