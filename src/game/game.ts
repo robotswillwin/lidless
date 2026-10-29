@@ -181,6 +181,9 @@ export class Game {
       this.talk.show(lines, this.dialogue.choices, said);
     };
     this.talk.onEnd = () => this.endTalk();
+    // the Concierge's lines in a story come from its presence (its bubble under its header); in raw view it has none
+    this.talk.viaCard = (text, ms) => { if (this.raw) return false; this.hud.concierge.say(text, [], ms); return true; };
+    this.talk.cardDone = () => this.hud.concierge.dismiss();
     // what a story's line has the game do before it is said: the conversation waits for it
     this.talk.run = (commands) => direct(commands, this.stage);
     this.hud.onVerb = (v) => this.controls.setVerb(v);

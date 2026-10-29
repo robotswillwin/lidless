@@ -126,7 +126,7 @@ button.view:not(.hud-btn):focus-visible { outline: 2px solid #fff; outline-offse
   --co-glow: 0 0 0 1px rgba(183, 168, 255, .14) inset, 0 0 26px rgba(143, 240, 234, .18), 0 10px 30px rgba(0, 0, 0, .4);
 }
 .co-layer { position: absolute; left: var(--el); top: var(--et); z-index: 2; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; max-height: calc(100% - var(--et) - var(--eb)); pointer-events: none; }
-.co, .co-say { pointer-events: auto; color: var(--co-ink); background: var(--co-veil); border: 1px solid var(--co-edge); box-shadow: var(--co-glow); -webkit-backdrop-filter: blur(10px) saturate(1.25); backdrop-filter: blur(10px) saturate(1.25); }
+.co { pointer-events: auto; color: var(--co-ink); background: var(--co-veil); border: 1px solid var(--co-edge); box-shadow: var(--co-glow); -webkit-backdrop-filter: blur(10px) saturate(1.25); backdrop-filter: blur(10px) saturate(1.25); }
 .co { position: relative; display: flex; flex-direction: column; flex: 0 1 auto; min-height: 0; max-width: min(560px, 62cqw); border-radius: var(--r-window); }
 /* open, its card grows down out of its presence */
 .co[data-open] { width: min(460px, 54cqw); border-radius: var(--r-sheet); animation: co-open var(--t-sheet) var(--ease) both; }
@@ -156,7 +156,7 @@ button.view:not(.hud-btn):focus-visible { outline: 2px solid #fff; outline-offse
 .co[data-state="idle"]:not([data-open]) .co-orb { animation: co-breathe 5.5s ease-in-out infinite; }
 @keyframes co-breathe { 50% { filter: drop-shadow(0 0 8px rgba(143, 240, 234, .95)); } }
 /* its words come as it says them, each a moment after the one before, out of a blur */
-.co .w, .co-say .w { display: inline-block; animation: co-word .36s ease-out both; animation-delay: min(calc(var(--i, 0) * 38ms), 2.2s); }
+.co .w { display: inline-block; animation: co-word .36s ease-out both; animation-delay: min(calc(var(--i, 0) * 38ms), 2.2s); }
 @keyframes co-word { from { opacity: 0; filter: blur(4px); transform: translateY(2px); } }
 @keyframes co-turn { to { transform: rotate(-360deg); } }
 @keyframes co-ripple { from { opacity: .9; transform: scale(1); } to { opacity: 0; transform: scale(1.75); } }
@@ -178,7 +178,7 @@ button.view:not(.hud-btn):focus-visible { outline: 2px solid #fff; outline-offse
 .co-foot:empty { display: none; }
 .co-foot > button { min-height: 36px; padding: 0 18px; border-radius: var(--r-pill); border: 1px solid var(--co-edge); background: rgba(143, 240, 234, .08); color: var(--co-ink); font: 500 var(--fs-small)/1 var(--ui); }
 .co-foot > button:hover { background: rgba(143, 240, 234, .16); }
-:is(.co-foot > button, .co-say .row button).primary { border-color: transparent; background: linear-gradient(120deg, var(--co), var(--co-violet)); color: #06222b; }
+:is(.co-foot > button, .co-fold .row button).primary { border-color: transparent; background: linear-gradient(120deg, var(--co), var(--co-violet)); color: #06222b; }
 .co-foot .quiet { margin: 0; font: italic 500 calc(var(--fs-small) * var(--ts, 1))/1.35 var(--serif); color: var(--co-soft); }
 /* a conversation with it: its lines on the left, in its voice and light; hers on the right, and her answers, hers */
 .co-thread { display: grid; gap: 10px; align-content: start; padding-bottom: 4px; }
@@ -229,11 +229,16 @@ button.view:not(.hud-btn):focus-visible { outline: 2px solid #fff; outline-offse
 .co-sign-eye .pupil { fill: #ff2f3f; filter: drop-shadow(0 0 3px #ff2f3f); }
 .co-sign[data-state="open"] { color: #ffd2d6; border-color: rgba(255, 70, 82, .5); box-shadow: 0 0 0 1px rgba(255, 70, 82, .14) inset, 0 0 22px rgba(255, 47, 63, .22), 0 10px 30px rgba(0, 0, 0, .4); }
 /* its messages, under its presence */
-.co-say { max-width: min(420px, 50cqw); padding: 11px 18px 13px; border-radius: var(--r-card-lg); animation: co-in var(--t-small) ease-out both; }
-.co-say p { margin: 0; font: italic 500 calc(clamp(14px, 1.3cqw, 18px) * var(--ts, 1))/1.38 var(--serif); text-shadow: 0 0 14px rgba(143, 240, 234, .3); }
-.co-say .row { margin-top: 10px; }
-.co-say .row button { border-color: var(--co-edge); color: var(--co-ink); }
-@media (prefers-reduced-motion: reduce) { .co, .co-say, .co-thread .msg, .co-orb, .co-orb *, .co-thread .typing i, .co .w, .co-say .w { animation: none !important; } }
+/* it wants her for something: its box folds out under its header with the line written in it, and folds back after.
+   The fold is a grid row growing from nothing, so the box itself grows and shrinks with the line. */
+.co-fold { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows .36s cubic-bezier(.2, .8, .2, 1), opacity .24s ease-out; }
+.co-fold.in { grid-template-rows: 1fr; opacity: 1; }
+.co-fold.out { transition: grid-template-rows .28s cubic-bezier(.4, 0, .6, 1), opacity .18s ease-in; }
+.co-fold > div { overflow: hidden; min-height: 0; }
+.co-fold p { margin: 0; padding: 2px 22px 13px 57px; font: italic 500 calc(clamp(14px, 1.3cqw, 18px) * var(--ts, 1))/1.38 var(--serif); text-shadow: 0 0 14px rgba(143, 240, 234, .3); }
+.co-fold .row { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 22px 13px 57px; }
+.co-fold .row button { border-color: var(--co-edge); color: var(--co-ink); }
+@media (prefers-reduced-motion: reduce) { .co, .co-fold, .co-thread .msg, .co-orb, .co-orb *, .co-thread .typing i, .co .w { animation: none !important; transition: none !important; } }
 .hud[data-view="raw"] .co-layer { display: none; }
 
 /* at the top right: the view switch (with her sense of being watched under it), the map, her journal, her notebook, the menu */

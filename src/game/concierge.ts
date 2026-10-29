@@ -111,6 +111,9 @@ export class Concierge {
   private thread: HTMLElement | null = null;
   private sayEl: HTMLElement | null = null;
   private sayTimer = 0;
+  /** The card's own words, to come back once a line of the moment said in the card is done. */
+  private cardWords = '';
+  private wordsSwapped = false;
   private said: [string, string] = ['', ''];
   private listening = false;
   private readouts: Readouts = { credits: null, heart: null, nourished: null, level: null };
@@ -241,7 +244,8 @@ export class Concierge {
    * from a home (`call`) she can call it.
    */
   open(o: { words: string; reminders: Reminder[]; unheard: boolean; inbox?: Inbox[]; call?: boolean }): void {
-    this.dismiss();
+    this.dismiss(); // a line folded out gives way to the card, which has its own words
+    this.cardWords = o.words;
     this.unheard = o.unheard;
     this.canCall = !!o.call;
     this.drawCard();
@@ -276,17 +280,34 @@ export class Concierge {
   /** A message from it, under its presence (in its card, if that is open), with what she can answer, for a while. */
   say(text: string, actions: Say[] = [], ms = 7000): void {
     if (this.card && !this.conversing) {
-      const words = this.body?.querySelector('.co-words');
-      if (words) { words.textContent = text; return; }
+      // said in the open card: its words give way to the line, and come back when it is done
+      const words = this.body?.querySelector<HTMLElement>('.co-words');
+      if (words) {
+        window.clearTimeout(this.sayTimer);
+        words.replaceChildren();
+        spoken(words, text);
+        this.wordsSwapped = true;
+        this.sayTimer = window.setTimeout(() => this.dismiss(), ms * this.speed);
+        return;
+      }
     }
-    this.dismiss();
+    window.clearTimeout(this.sayTimer);
     sounds.play('co-message');
-    const s = (this.sayEl = el('div', 'co-say', this.layer));
-    s.setAttribute('role', 'status');
-    s.addEventListener('pointerdown', (e) => e.stopPropagation());
-    spoken(el('p', '', s), text);
+    // its box folds out under its header with the line written in it; a fold already out takes the new line
+    let fold = this.sayEl;
+    if (!fold || fold.classList.contains('out')) {
+      fold = this.sayEl = el('div', 'co-fold', this.box);
+      fold.setAttribute('role', 'status');
+      fold.addEventListener('pointerdown', (e) => e.stopPropagation());
+      el('div', '', fold);
+      void fold.offsetHeight; // laid out folded first, so the fold-out is seen
+      fold.classList.add('in');
+    }
+    const inner = fold.firstElementChild as HTMLElement;
+    inner.replaceChildren();
+    spoken(el('p', '', inner), text);
     if (actions.length) {
-      const row = el('div', 'row', s);
+      const row = el('div', 'row', inner);
       for (const a of actions) button(a.primary ? 'primary' : '', a.label, row, () => { this.dismiss(); a.run?.(); }).textContent = a.label;
     }
     this.box.dataset.state = 'speaking';
@@ -294,10 +315,20 @@ export class Concierge {
     this.sayTimer = window.setTimeout(() => this.dismiss(), ms * this.speed);
   }
 
+  /** The fold goes back in, and is gone once it has. */
   dismiss(): void {
     window.clearTimeout(this.sayTimer);
-    this.sayEl?.remove();
+    if (this.wordsSwapped) {
+      this.wordsSwapped = false;
+      const words = this.card ? this.body?.querySelector<HTMLElement>('.co-words') : null;
+      if (words) { words.replaceChildren(); spoken(words, this.cardWords); }
+    }
+    const fold = this.sayEl;
     this.sayEl = null;
+    if (!fold) return;
+    fold.classList.remove('in');
+    fold.classList.add('out');
+    window.setTimeout(() => fold.remove(), 400);
   }
 
   /**
