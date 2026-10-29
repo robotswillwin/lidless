@@ -256,7 +256,7 @@ Your left eye opens. Over the right, the light comes on.
 # closeup: off
 Morning. Not that you'd know it from the light in here.
 # call: concierge
-Good morning, CO. #luna
+"Good morning, CO." #luna
 -> END
 
 === concierge_home ===

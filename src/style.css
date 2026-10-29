@@ -389,13 +389,17 @@ button.view:not(.hud-btn):focus-visible { outline: 2px solid #fff; outline-offse
 /* conversations, Monkey Island style: each line over the speaker's head in their colour, narration quietly at the top,
    her answers as a list along the bottom between the balls */
 .talk-skip { position: absolute; inset: 0; pointer-events: auto; cursor: pointer; }
-.talk-line { position: absolute; z-index: 2; width: max-content; max-width: min(440px, 46cqw); margin: 0; text-align: center; text-wrap: balance; pointer-events: none;
+/* a line said over a head sits on a dark glass plate, so it reads over any scene (the lit shop as much as the dark
+   street). What Luna only thinks (her unquoted lines) is softer: italic, lighter, its plate without an edge. */
+.talk-line { position: absolute; z-index: 2; width: max-content; max-width: min(440px, 46cqw); margin: 0; padding: 7px 14px 8px; border-radius: 12px; text-align: center; text-wrap: balance; pointer-events: none;
   font: 500 calc(clamp(15px, 1.55cqw, 21px) * var(--ts, 1))/1.3 var(--ui); letter-spacing: .01em; color: #f4f1ea;
-  text-shadow: 0 0 1px #000, 0 1px 1px #000, 1px 0 1px #000, -1px 0 1px #000, 0 -1px 1px #000, 0 2px 6px rgba(0, 0, 0, .9); animation: hud-fade var(--t-quick) ease-out both; }
+  background: rgba(8, 10, 15, .64); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .16), 0 4px 18px rgba(0, 0, 0, .35); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .7); animation: hud-fade var(--t-quick) ease-out both; }
+.talk-line[data-mode="thought"] { font-style: italic; font-weight: 400; color: rgba(244, 241, 234, .88); background: rgba(8, 10, 15, .5); box-shadow: 0 4px 18px rgba(0, 0, 0, .3); }
 .talk-line[data-voice="warm"] { color: var(--amber); }
 .talk-line[data-voice="co"] { color: var(--cyan); font-weight: 400; letter-spacing: .03em; }
 .talk-line[data-voice="other"] { color: #e3c6ff; }
-.talk-line.top { top: calc(var(--m) + 64px); max-width: min(560px, 62cqw); padding: 8px 16px; border-radius: var(--r-card); background: rgba(15, 16, 21, .7);
+.talk-line.top { top: calc(var(--m) + 64px); max-width: min(560px, 62cqw); padding: 8px 16px; border-radius: var(--r-card); background: rgba(15, 16, 21, .7); box-shadow: none;
   font: italic 500 calc(clamp(14px, 1.35cqw, 18px) * var(--ts, 1))/1.4 var(--serif); color: rgba(244, 241, 234, .9); text-shadow: none; }
 .talk-choices { position: absolute; z-index: 2; left: 50%; bottom: var(--m); transform: translateX(-50%); width: min(600px, calc(100% - 2 * max(var(--m), var(--el) + var(--slot) * 1.15 + 16px, var(--er) + var(--slot) * 1.15 + 16px)));
   margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; pointer-events: auto; animation: hud-fade var(--t-quick) ease-out both; }

@@ -1,6 +1,8 @@
 // Conversations as Monkey Island has them: each line over the head of whoever says it, in their colour, one at a time,
 // for as long as it takes to read, and a tap, a click, Space or Enter moves on sooner. What is narrated is a quiet line
 // at the top. Her answers are a list along the bottom to pick from, and the one she picks she says over her head.
+// Her lines written in quotes she says aloud; without quotes they are her thoughts, shown softer and in italics. An
+// answer she picks is always said. Everyone else's lines are speech (the story writes them in quotes).
 
 import type { Command, Line } from './dialogue';
 
@@ -9,6 +11,11 @@ export type SpeakerAt = (speaker: string) => [number, number] | null;
 
 /** Each voice's colour: hers, the fixer's warm one, the Concierge's cyan (and its machines'); anyone else's their own. */
 const VOICE: Record<string, string> = { luna: 'luna', fixer: 'warm', concierge: 'co', station: 'co', guardian: 'co', tap: 'co', lift: 'co', door: 'co', narration: 'narration' };
+
+/** A line written in quotes is said aloud; one of hers without is a thought. */
+const QUOTED = /^["\u201c\u201d\u2018\u2019']/;
+/** Straight quotes around a line become typographic ones. */
+const curly = (text: string): string => text.replace(/^"/, '\u201c').replace(/"$/, '\u201d');
 
 /** How long a line stays: about 16 characters a second to read it, from 1.8 to 8 seconds. */
 export const readingTime = (text: string): number => Math.min(8000, Math.max(1800, 700 + text.length * 60));
@@ -27,6 +34,16 @@ export class Talk {
   onEnd: () => void = () => {};
   /** What a line has the game do before it is said (she walks, changes, a fade): the conversation waits for it. */
   run: (commands: Command[]) => Promise<void> = async () => {};
+  /**
+   * The Concierge's lines come from its presence: its bubble dropping from its header, when its view is on. Given a
+   * line and how long it stays, true when it took it; false (raw view: no Concierge on screen) and the line shows as
+   * any other, at the top.
+   */
+  viaCard: (text: string, ms: number) => boolean = () => false;
+  /** Its bubble put away: the line has moved on. */
+  cardDone: () => void = () => {};
+  /** The line on screen is in the Concierge's bubble, not over a head. */
+  private inCard = false;
   open = false;
   /** How long lines stay, times the normal (the text speed setting). */
   speed = 1;
@@ -55,7 +72,7 @@ export class Talk {
   /** The next lines of the conversation and the answers after them; `said` is the answer she just gave, said first. */
   show(lines: Line[], choices: string[], said?: string): void {
     this.open = true;
-    this.queue = [...(said ? [{ text: said, speaker: 'luna' }] : []), ...lines];
+    this.queue = [...(said ? [{ text: said, speaker: 'luna', spoken: true }] : []), ...lines];
     this.choices = choices;
     this.list.hidden = true;
     this.next();
@@ -66,6 +83,9 @@ export class Talk {
     window.clearTimeout(this.timer);
     if (this.directing) return;
     const l = this.queue.shift();
+    // the Concierge's fold stays out for another line of its own (it takes the new words); anything else puts it away
+    const toCard = !!l && !l.commands?.length && l.speaker === 'concierge';
+    if (this.inCard && !toCard) { this.inCard = false; this.cardDone(); }
     if (l?.commands?.length) {
       // what the line has the game do first, nothing said meanwhile; then its words, if it has any
       this.directing = true;
@@ -75,15 +95,26 @@ export class Talk {
       void this.run(l.commands).catch(() => {}).then(() => {
         this.directing = false;
         if (!this.open) return;
-        if (l.text) this.queue.unshift({ text: l.text, speaker: l.speaker });
+        if (l.text) this.queue.unshift({ text: l.text, speaker: l.speaker, ...(l.spoken ? { spoken: true } : {}) });
         this.next();
       });
       return;
     }
     if (l) {
       this.current = l;
-      this.line.textContent = l.text;
+      const stays = readingTime(l.text) * this.speed;
+      // the Concierge speaks from its presence, when it has one on screen
+      if (l.speaker === 'concierge' && this.viaCard(l.text, stays + 600)) {
+        this.inCard = true;
+        this.line.hidden = true;
+        this.skip.hidden = false;
+        this.timer = window.setTimeout(() => this.next(), stays);
+        return;
+      }
+      const thought = l.speaker === 'luna' && !l.spoken && !QUOTED.test(l.text);
+      this.line.textContent = thought ? l.text : curly(l.text);
       this.line.dataset.voice = VOICE[l.speaker] ?? 'other';
+      this.line.dataset.mode = thought ? 'thought' : 'said';
       this.line.hidden = false;
       this.skip.hidden = false;
       this.place();
@@ -125,6 +156,7 @@ export class Talk {
   /** Puts the conversation away without its end: she left the scene. */
   hide(): void {
     window.clearTimeout(this.timer);
+    if (this.inCard) { this.inCard = false; this.cardDone(); }
     this.open = false;
     this.directing = false;
     this.current = null;

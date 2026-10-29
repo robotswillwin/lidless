@@ -36,6 +36,8 @@ export interface Line {
   speaker: string;
   /** What the game does before the line is said; a line can be only that, with no text. */
   commands?: Command[];
+  /** Said aloud for certain (an answer she picked): her lines are otherwise thoughts unless written in quotes. */
+  spoken?: boolean;
 }
 
 /** A tag as a command, or null if it is not one (a speaker, or anything else). */

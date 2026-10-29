@@ -1,5 +1,6 @@
 // The whole story: the variables the game reads and sets, and one file per scene.
-// Lines are tagged with who speaks them (#luna, #fixer, #concierge, …); untagged lines are narration. A tag `name: value`
+// Lines are tagged with who speaks them (#luna, #fixer, #concierge, …); untagged lines are narration. Speech is written in
+// quotes; a #luna line without quotes is what she thinks, shown softer (her picked answers are always said). A tag `name: value`
 // is something the game does before the line is said: walk, face, wear, go, fade, view, wait (see dialogue.ts).
 // An object can have a knot of its own, a stitch for each verb (look, talk, use, take, ask) and use_<thing> for using a
 // thing she carries on it: a scene's hotspot names it with `story`.
