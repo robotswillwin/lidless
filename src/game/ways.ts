@@ -154,7 +154,7 @@ export class Ways {
 
   /**
    * The ways in and out on screen, for their markers. A way off the end of the street, to the next place, is always
-   * marked, at that edge, while it is in sight. A door that leads somewhere (`go`), or a way she uses to get about (a
+   * marked, in the bottom corner on that side, while it is in sight. A door that leads somewhere (`go`), or a way she uses to get about (a
    * lift: `kind` way), is marked over its top once she knows it: she has looked at it, tried it, or come out of it.
    * So she finds the ways in herself. None while she travels or talks.
    */
@@ -164,11 +164,13 @@ export class Ways {
     const f = g.scene.file, W = g.hud.root.clientWidth, out: Way[] = [];
     for (const h of f.hotspots) {
       if (!(h.go || h.kind === 'way') || !inView(h, g.raw) || !g.world.shown(h)) continue;
-      const [x, y, w, hh] = g.boxOf(h), [rx, , rw] = placeIn(h, g.raw).rect;
+      const [x, y, w] = g.boxOf(h), [rx, , rw] = placeIn(h, g.raw).rect;
       if (x + w < 0 || x > W) continue;
       const edge = h.go && rx <= 2 ? 'left' : h.go && rx + rw >= f.size[0] - 2 ? 'right' : 'in', label = pick(h.name, g.raw);
       if (edge === 'in' && !g.progress.knows(f.id, h.id)) continue;
-      out.push(edge === 'in' ? { id: h.id, label, x: x + w / 2, y: y - 6, edge } : { id: h.id, label, x: edge === 'left' ? Math.max(12, x) : Math.min(W - 12, x + w), y: y + hh / 2, edge });
+      // a door's marker sits over its top; a way off the end of the street has a fixed place, the bottom corner on that
+      // side above the ball there (see the CSS), where she never stands: its x and y are not used
+      out.push(edge === 'in' ? { id: h.id, label, x: x + w / 2, y: y - 6, edge } : { id: h.id, label, x: 0, y: 0, edge });
     }
     return out;
   }

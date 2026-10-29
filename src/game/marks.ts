@@ -8,8 +8,8 @@ import { icon } from './icons';
 import { note, pick, type Hotspot } from './level';
 
 /**
- * A way in or out on screen: a door into a building, or a way off the end of the street. `x`, `y` in the HUD's pixels:
- * over the door's top, or at the edge it leads off.
+ * A way in or out on screen: a door into a building, or a way off the end of the street. `x`, `y` in the HUD's pixels,
+ * over the door's top; a way off the street's end has a fixed place, the bottom corner on its side (CSS), so not used.
  */
 export interface Way { id: string; label: string; x: number; y: number; edge: 'in' | 'left' | 'right' }
 

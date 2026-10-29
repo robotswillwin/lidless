@@ -500,9 +500,8 @@ export class Game {
     if (this.hud.closeupOpen) return null;
     if (speaker === 'luna' && this.scene.file.closeup) return null;
     if (speaker === 'luna') {
-      const c = this.setup.canvas.getBoundingClientRect(), hud = this.hud.root.getBoundingClientRect(), k = c.width / NW;
-      const head = this.scene.file.walk.y - this.dressing.shown.def.h * (this.scene.file.actorScale ?? 1);
-      return [(this.world.heroX - this.cam[0]) * k + c.left - hud.left, (head - this.cam[1]) * k + c.top - hud.top - 6];
+      const her = this.heroOnScreen();
+      return her ? [her.x, her.top - 6] : null;
     }
     if (speaker === 'narration') return null;
     const own = this.scene.file.hotspots.find((h) => (h.id === speaker || h.talk === speaker) && inView(h, this.raw) && this.world.shown(h));
@@ -510,6 +509,14 @@ export class Game {
     if (!who) return null;
     const [x, y, w] = this.boxOf(who);
     return [x + w / 2, y - 6];
+  }
+
+  /** Where she is on screen, for what must keep clear of her: her centre, the top of her head and her width, in HUD pixels. */
+  heroOnScreen(): { x: number; top: number; w: number } | null {
+    if (!this.scene) return null;
+    const c = this.setup.canvas.getBoundingClientRect(), hud = this.hud.root.getBoundingClientRect(), k = c.width / NW;
+    const def = this.dressing.shown.def, s = this.scene.file.actorScale ?? 1;
+    return { x: (this.world.heroX - this.cam[0]) * k + c.left - hud.left, top: (this.scene.file.walk.y - def.h * s - this.cam[1]) * k + c.top - hud.top, w: def.w * s * k };
   }
 
   /**
