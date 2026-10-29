@@ -109,3 +109,27 @@ He plugs an old diagnostic box into your eyepiece and talks to it in numbers. A 
 + [Thank you.]
     "Have a pleasant evening, guest." #guardian
     -> END
+
+=== junction_box ===
+// the street's electrical service box, right of Radio Repair: the city's, and the Concierge keeps her off it. Its door
+// is bent at one corner. Kept for chapter 2, the fixer's tap into the street's lines: a blade opens it, later.
+= use
+"Luna. That cabinet is the city's. Authorised technicians only; please step back from it." #concierge
+{ raw_view:
+    The bent corner won't take a finger. A blade would.  #luna
+- else:
+    Fine. It's a box. #luna
+}
+-> END
+
+=== junction_cable ===
+// through the box's bent corner, in raw view: the city's wires tied with string, and a cable that is not the city's.
+// `junction_cable_seen` is for a later chapter to pick up (the fixer's line in, or someone else's).
+= look
+{ raw_view:
+    ~ junction_cable_seen = true
+    Through the gap: the city's wires, tied off with string. And one thin black cable that isn't the city's, taped to the others, running up. #luna
+- else:
+    Cabling, neatly bound, as it should be.
+}
+-> END

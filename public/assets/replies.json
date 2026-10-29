@@ -1,28 +1,44 @@
 {
   "look": {
-    "any": ["Nothing special about it.", "You look. Nothing you didn't expect."]
+    "any": ["Nothing special about it.", "You look. Nothing you didn't expect."],
+    "fixture": {
+      "concierge": ["Clean, lit and labelled: the city's own furniture.", "It does its job. Nothing to see."],
+      "raw": ["Rust, tape and a lick of paint. Still standing.", "You've walked past it a thousand times. It has never once been new."]
+    },
+    "door": {
+      "concierge": ["Closed, as it should be. Everything behind it is accounted for.", "A door. Not one of yours."],
+      "raw": ["Closed. Whatever is behind it keeps its own hours.", "Paint on paint, and a lock newer than the door."]
+    }
   },
   "talk": {
     "thing": ["It doesn't answer.", "You'd get more out of a wall.", "Nothing. Of course nothing.", "You say hello. It keeps its own counsel."],
     "machine": ["It blinks at you, and goes back to work.", "A polite beep. That's all you get.", "It hums. Make of that what you will."],
     "person": ["Not a word back.", "A glance, and nothing more.", "They don't seem to hear you."],
-    "way": ["You talk to the door. The door says nothing.", "It's a way out, not a friend."]
+    "way": ["You talk to the door. The door says nothing.", "It's a way out, not a friend."],
+    "fixture": ["It has nothing to say to you.", "You'd get a longer answer from the rain."],
+    "door": ["You knock. Nothing.", "No bell, no answer.", "Somebody hears you. Nobody comes."]
   },
   "use": {
     "thing": ["Nothing happens.", "You can't think what to do with it.", "Not much use, that."],
     "machine": ["It doesn't respond to you.", "You poke at it. Nothing.", "It needs someone who knows what they're doing."],
-    "person": ["That's not how people work.", "Use them? No."]
+    "person": ["That's not how people work.", "Use them? No."],
+    "fixture": ["It isn't yours to fiddle with.", "You push, pull and prod. It stays what it is."],
+    "door": ["Locked.", "It doesn't give.", "Not for you. Not today."]
   },
   "take": {
     "thing": ["It stays where it is.", "Not yours to take.", "You leave it be."],
     "machine": ["It's bolted down. Probably for a reason.", "Too heavy, and not yours."],
     "person": ["You can't take people with you.", "No."],
-    "way": ["You can't take a door with you."]
+    "way": ["You can't take a door with you."],
+    "fixture": ["It's bolted to the street.", "The city would notice."],
+    "door": ["It's a door.", "You could take the handle, maybe. Not the door."]
   },
   "ask": {
     "any": ["{name}, Luna. Is there anything else I can help you with?", "Nothing that need concern you, Luna.", "Everything here is as it should be, Luna."],
     "person": ["A guest, like you. Shall I introduce you?", "They are enjoying their evening, Luna. As should you."],
-    "private": ["I can't see in here, Luna. Your privacy is protected.", "In here you are on your own, Luna. As is your right."]
+    "private": ["I can't see in here, Luna. Your privacy is protected.", "In here you are on your own, Luna. As is your right."],
+    "fixture": ["Municipal, Luna. Maintained to standard.", "Street furniture, Luna. Nothing that need concern you."],
+    "door": ["Private premises, Luna. Not open to guests.", "Closed, Luna. There is nothing you need there."]
   },
   "item": {
     "any": ["Nothing happens.", "That doesn't do anything.", "No. Not with that."]

@@ -1,13 +1,15 @@
 // What a thing answers to a verb it has nothing of its own for. Every thing in a scene can be looked at, talked to, used
 // and taken, and asked about in the Concierge's view: where a scene file or the story gives it nothing for that verb,
-// one of the standard replies says so, by the verb and by what the thing is (a person, a machine, a thing, a way out),
+// one of the standard replies says so, by the verb and by what the thing is (a person, a machine, a thing, a way out,
+// the street's own fixtures, a door that stays closed),
 // in the view on screen, and a different one each time she tries the same thing again. They are in
 // public/assets/replies.json, to be written like any other text; `{name}` in one is the thing's name.
 
 import type { Hotspot } from './level';
 
-/** What a thing is, for its standard replies: who answers, what can be done to it. */
-export type Kind = 'person' | 'machine' | 'thing' | 'way';
+/** What a thing is, for its standard replies: who answers, what can be done to it. A fixture is the street's own (a lamp,
+ * a bollard, a vent); a door is one that stays closed, so it answers as a door and gets no marker as a way would. */
+export type Kind = 'person' | 'machine' | 'thing' | 'way' | 'fixture' | 'door';
 /** The verbs with standard replies: hers, the Concierge's (`ask`, its voice), and using a thing she carries (`item`). */
 export type ReplyVerb = 'look' | 'talk' | 'use' | 'take' | 'ask' | 'item';
 

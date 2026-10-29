@@ -872,6 +872,375 @@
     "scene": "bar",
     "spawn": "door"
    }
+  },
+  {
+   "id": "lamp-post",
+   "name": "Street lamp",
+   "rect": [
+    432,
+    270,
+    40,
+    182
+   ],
+   "stand": 452,
+   "kind": "fixture",
+   "tag": {
+    "concierge": "Lighting",
+    "raw": "it watches the door"
+   },
+   "look": {
+    "concierge": "A street lamp, warm and steady. The city lights every step you take.",
+    "raw": "A lamp, and in its head, behind the glass, a lens the size of a coin. It points at the door of Radio Repair."
+   },
+   "use": {
+    "concierge": "You can't reach the light, and it wouldn't thank you.",
+    "raw": "You could reach the lens with something long. Then it would know your face as well as your walk."
+   },
+   "ask": "Municipal lighting, Luna. On from dusk until dawn. You are never in the dark."
+  },
+  {
+   "id": "junction-box",
+   "name": {
+    "concierge": "Utility cabinet",
+    "raw": "Junction box"
+   },
+   "rect": [
+    490,
+    360,
+    32,
+    48
+   ],
+   "stand": 506,
+   "kind": "fixture",
+   "tag": {
+    "concierge": "Municipal",
+    "raw": "someone has been in it"
+   },
+   "look": {
+    "concierge": "A utility cabinet. Sealed, labelled, municipal.",
+    "raw": "A junction box, its door bent back at one corner. Inside, someone has tied the city's wires off with string."
+   },
+   "ask": "Street power, Luna. Nothing in there concerns a guest.",
+   "note": "Kept for chapter 2: the fixer's tap into the street's lines. Up close (street-box) the door, seal, label, lock and the gap each have their say.",
+   "story": "junction_box",
+   "zoom": "street-box"
+  },
+  {
+   "id": "service-door",
+   "name": {
+    "concierge": "Service door",
+    "raw": "Steel door"
+   },
+   "rect": [
+    544,
+    322,
+    54,
+    120
+   ],
+   "stand": 571,
+   "kind": "door",
+   "tag": {
+    "concierge": "Staff only",
+    "raw": "no handle on this side"
+   },
+   "look": {
+    "concierge": "Service access. Staff only, and the staff have keys.",
+    "raw": "A steel door with no handle on this side, and a card reader with no light in it."
+   },
+   "reply": {
+    "concierge": "You knock. Nothing.",
+    "raw": "You knock. The steel takes the sound and keeps it."
+   },
+   "use": {
+    "concierge": "Locked.",
+    "raw": "No handle. The reader wants a card you don't have."
+   },
+   "ask": "Service access for the building, Luna. Not a way for guests.",
+   "note": "Kept for chapter 2: the back way into Radio Repair's building, with the fixer's card."
+  },
+  {
+   "id": "drainpipe",
+   "name": "Drainpipe",
+   "rect": [
+    410,
+    40,
+    16,
+    400
+   ],
+   "kind": "fixture",
+   "look": {
+    "concierge": "A downpipe. The rain has somewhere to go.",
+    "raw": "Rust from top to bottom. When it rains it sings, and the gutter under it is where the street's cigarette ends end up."
+   }
+  },
+  {
+   "id": "upstairs-flat",
+   "name": "Flat above the shop",
+   "rect": [
+    20,
+    62,
+    350,
+    118
+   ],
+   "kind": "thing",
+   "tag": {
+    "concierge": "Residence",
+    "raw": "the bulb is never off"
+   },
+   "look": {
+    "concierge": "A guest's home above the shop: lights on, plants watered, dinner on the way.",
+    "raw": "Dead plants on the balcony and one bare bulb burning. Nobody ever moves up there, and the bulb is never off."
+   },
+   "ask": "A residence, Luna. Private, as every home is.",
+   "note": "Honey trap for now. Could be the fixer's flat in a later chapter."
+  },
+  {
+   "id": "roof-garden",
+   "name": {
+    "concierge": "Roof garden",
+    "raw": "Roof"
+   },
+   "rect": [
+    395,
+    85,
+    100,
+    75
+   ],
+   "kind": "thing",
+   "look": {
+    "concierge": "A pine on the roof, kept by someone with patience.",
+    "raw": "A dead tree in a tub. Nobody has been up on that roof in years."
+   },
+   "ask": "A guest's roof garden, Luna. The city encourages green space."
+  },
+  {
+   "id": "bollard",
+   "name": "Bollard",
+   "rect": [
+    478,
+    410,
+    22,
+    42
+   ],
+   "stand": 500,
+   "kind": "fixture",
+   "tag": {
+    "concierge": "Street furniture",
+    "raw": "it counts you"
+   },
+   "look": {
+    "concierge": "A bollard. It keeps the street for walking.",
+    "raw": "A bollard, and at knee height a lens, like all of them. They count you in and out."
+   },
+   "reply": {
+    "concierge": "It has nothing to say to you.",
+    "raw": "You say good evening to it. It counts that too."
+   },
+   "ask": "Bollards, Luna, to keep vehicles off the walkway. For your safety."
+  },
+  {
+   "id": "hotel-sign",
+   "name": {
+    "concierge": "Hotel",
+    "raw": "Hotel sign"
+   },
+   "rect": [
+    598,
+    208,
+    30,
+    95
+   ],
+   "stand": 585,
+   "face": 1,
+   "kind": "thing",
+   "tag": {
+    "concierge": "Hotel · guests welcome",
+    "raw": "half the neon is dead"
+   },
+   "look": {
+    "concierge": "HOTEL, in red neon, up a stair you can't see from here. Rooms for guests passing through.",
+    "raw": "ホテル. Half the neon is dead and the stair behind it is shut with a grille. Nobody has checked in for years."
+   },
+   "ask": "A hotel, Luna, for guests passing through. Should you ever need a room, I will arrange it.",
+   "note": "Kept for a later chapter: a room that isn't her home. The stair and the grille are behind the sign."
+  },
+  {
+   "id": "bar-sign",
+   "name": "Bar sign",
+   "rect": [
+    979,
+    212,
+    202,
+    50
+   ],
+   "kind": "fixture",
+   "look": {
+    "concierge": "The cocktail glass in neon. A promise, kept nightly.",
+    "raw": "The neon is the real thing: glass tubes, gas. Somebody pays for that, and it isn't the drinkers."
+   }
+  },
+  {
+   "id": "lantern",
+   "name": "Lantern",
+   "rect": [
+    899,
+    268,
+    28,
+    30
+   ],
+   "kind": "fixture",
+   "look": {
+    "concierge": "A lantern by the awning. Welcome in.",
+    "raw": "A lantern with a bulb that flickers like a flame. Someone wanted it to look older than it is."
+   }
+  },
+  {
+   "id": "back-door",
+   "name": {
+    "concierge": "Private door",
+    "raw": "Back door"
+   },
+   "rect": [
+    1386,
+    318,
+    44,
+    116
+   ],
+   "stand": 1408,
+   "face": 1,
+   "kind": "door",
+   "tag": {
+    "concierge": "Deliveries",
+    "raw": "a light under it"
+   },
+   "look": {
+    "concierge": "Private. Deliveries by arrangement.",
+    "raw": "A door with no bell and a line of light under it. Voices, maybe. Or a radio left on."
+   },
+   "reply": {
+    "concierge": "You knock. Nothing.",
+    "raw": "You knock. The light under the door goes out."
+   },
+   "use": {
+    "concierge": "Locked.",
+    "raw": "Locked. The light under it is back on."
+   },
+   "ask": "A private door, Luna. Deliveries only.",
+   "note": "Honey trap: someone is in there and does not want to be. A knot for a later chapter if it pays off."
+  },
+  {
+   "id": "bar-vent",
+   "name": {
+    "concierge": "Extractor",
+    "raw": "Kitchen vent"
+   },
+   "rect": [
+    1402,
+    109,
+    36,
+    32
+   ],
+   "kind": "fixture",
+   "look": {
+    "concierge": "An extractor. The city breathes out.",
+    "raw": "Warm air and the smell of onions frying. Somebody cooks real food back there."
+   },
+   "ask": "Kitchen ventilation, Luna. To code."
+  },
+  {
+   "id": "lamp-post-2",
+   "name": "Street lamp",
+   "rect": [
+    1752,
+    275,
+    50,
+    177
+   ],
+   "stand": 1770,
+   "kind": "fixture",
+   "tag": {
+    "concierge": "Lighting",
+    "raw": "it watches who goes in"
+   },
+   "look": {
+    "concierge": "A street lamp by the privacy room, so nobody trips on the step.",
+    "raw": "A lamp, and in its head the same coin-sized lens as the others. This one points at the privacy room's door."
+   },
+   "ask": "Lighting, Luna. The privacy room itself is unobserved, as the law requires."
+  },
+  {
+   "id": "shop-lamp",
+   "name": "Shop lamp",
+   "rect": [
+    2270,
+    280,
+    46,
+    34
+   ],
+   "kind": "fixture",
+   "look": {
+    "concierge": "A lamp over the corner shop. Open late.",
+    "raw": "A lamp on a bracket, moths in the glass. Open late because the clerk has nowhere else to be."
+   }
+  },
+  {
+   "id": "planter",
+   "name": "Planter",
+   "rect": [
+    1800,
+    350,
+    48,
+    80
+   ],
+   "stand": 1824,
+   "kind": "thing",
+   "look": {
+    "concierge": "A planter. The city greens every street.",
+    "raw": "Plastic leaves, dusted weekly. The only green on the street that isn't a screen."
+   },
+   "take": {
+    "concierge": "It belongs to the street.",
+    "raw": "You could. It would be the saddest thing you own."
+   }
+  },
+  {
+   "id": "townhouse-window",
+   "name": {
+    "concierge": "Window",
+    "raw": "Second-floor window"
+   },
+   "rect": [
+    2288,
+    113,
+    40,
+    104
+   ],
+   "kind": "thing",
+   "tag": {
+    "concierge": "Residence",
+    "raw": "someone steps back"
+   },
+   "look": {
+    "concierge": "A guest at home with the evening to themselves.",
+    "raw": "A figure at the window. When you look up, it steps back out of the light."
+   },
+   "ask": "A residence, Luna. Guests are entitled to their evenings.",
+   "note": "Honey trap: a watcher. Pays off in a later chapter, or never."
+  },
+  {
+   "id": "balcony",
+   "name": "Balcony",
+   "rect": [
+    2138,
+    42,
+    98,
+    56
+   ],
+   "kind": "thing",
+   "look": {
+    "concierge": "A balcony garden. Herbs, probably.",
+    "raw": "Plants someone actually waters. A chair, a blanket on it, a cup. Somebody sits up there and watches the street."
+   }
   }
  ],
  "beacons": [

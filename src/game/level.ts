@@ -31,10 +31,13 @@ export interface Hotspot {
   /** What it says back when she talks to it, with no conversation: a machine's "Bzzzzt". */
   reply?: ViewText;
   /**
-   * What it is, for the standard replies to a verb it has nothing of its own for (replies.ts): a person, a machine or
-   * a thing. By default a way out if it goes somewhere, a person if it has a conversation, else a thing.
+   * What it is, for the standard replies to a verb it has nothing of its own for (replies.ts): a person, a machine, a
+   * thing, a fixture of the street's (a lamp, a bollard, a vent) or a door that stays closed (no marker, unlike a way).
+   * By default a way out if it goes somewhere, a person if it has a conversation, else a thing.
    */
-  kind?: 'person' | 'machine' | 'thing' | 'way';
+  kind?: 'person' | 'machine' | 'thing' | 'way' | 'fixture' | 'door';
+  /** An author's note, for a thing kept for later (a door for a coming chapter): the game does not read it. */
+  note?: string;
   /** A door or the end of the street: using it goes to this scene, arriving at this place there. */
   go?: { scene: string; spawn: string };
   /**

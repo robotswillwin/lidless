@@ -51,7 +51,7 @@ describe('a standard reply', () => {
   it('has one for every verb and every kind in the game\'s own replies', () => {
     const game = JSON.parse(readFileSync(join(__dirname, '../../public/assets/replies.json'), 'utf8')) as Replies;
     for (const verb of ['look', 'talk', 'use', 'take', 'ask', 'item'] as const) {
-      for (const kind of ['thing', 'machine', 'person', 'way'] as const) {
+      for (const kind of ['thing', 'machine', 'person', 'way', 'fixture', 'door'] as const) {
         // a way's Use goes through it, and its Look is its own; every other pair has a reply
         if (verb === 'use' && kind === 'way') continue;
         expect(replyFor(game, verb, kind, false, 0, 'X'), `${verb} ${kind}`).toBeTruthy();
