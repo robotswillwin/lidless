@@ -16,7 +16,7 @@ import { join } from 'node:path';
 import sharp from 'sharp';
 import { contentBox, isOpaque, removeFlatBackground } from './clean.mjs';
 import { readRGBA } from './image.mjs';
-import { edit, generate } from './openai.mjs';
+import { edit, generate } from './backend.mjs';
 import { loadReferences } from './images.mjs';
 import { ROOT } from './recipe.mjs';
 import { rel } from './shared.mjs';

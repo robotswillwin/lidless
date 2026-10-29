@@ -11,7 +11,7 @@ import { blank, crop, readRGBA, resize, writePNG } from './image.mjs';
 import { loadReferences } from './images.mjs';
 import { blinkDir, blinkOne } from './blink.mjs';
 import { turnsOne } from './turns.mjs';
-import { edit } from './openai.mjs';
+import { edit } from './backend.mjs';
 import { conciergePartsPrompt, cut as cutParts, EXTRA_PARTS, idleCycle, otherSidePrompt, PARTS as PARTS_NAMES, partsPromptFor, plant, pointOf, pose as posePartsRig, jogCycle, runCycle, SHEET, standPose, template as partsTemplate, walkAngles, walkCycle } from './parts.mjs';
 import { loadRecipe, ROOT } from './recipe.mjs';
 import { palette, rel } from './shared.mjs';

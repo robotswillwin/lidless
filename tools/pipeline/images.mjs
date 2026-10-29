@@ -8,7 +8,7 @@ import sharp from 'sharp';
 import { buildOne } from './build.mjs';
 import { cleanEdges, contentBox, fitToHeight, hardenAlpha, isOpaque, paletteFit, removeFlatBackground } from './clean.mjs';
 import { readRGBA, writePNG } from './image.mjs';
-import { edit, generate } from './openai.mjs';
+import { backendName, edit, generate } from './backend.mjs';
 import { KINDS, loadRecipe, recipeTemplate, ROOT } from './recipe.mjs';
 import { finishFor, nextName, palette, rel } from './shared.mjs';
 import { CHARACTER_REDRESS_NOTE, CHARACTER_SHEET_NOTE, MACHINE_SHEET_NOTE, conciergePrompt, extendPrompt, generationPrompt, guidePrompt, LAYOUT_REFERENCES_NOTE, layoutNote, LOOKS, REDRESS_REFERENCES_NOTE, redressPrompt, REFERENCE_NOTE, REFERENCE_NOTE_VECTOR, reframePrompt, VARIANT_REFERENCES_NOTE } from './style.mjs';
@@ -25,7 +25,7 @@ export async function saveCandidates(r, prefix, { images, usage, cost }, tag) {
   const name = await nextName(dir, prefix, tag);
   const names = [];
   for (const png of images) { const f = join(dir, name()); await writeFile(f, png); names.push(basename(f, '.png')); console.log(`  ${rel(f)}`); }
-  console.log(cost == null ? 'Cost: not reported by the API.' : `Cost: $${cost.toFixed(4)} (${usage.output_tokens ?? '?'} image tokens out, ${usage.input_tokens ?? '?'} tokens in)`);
+  console.log(cost == null ? 'Cost: not reported by the API.' : usage ? `Cost: $${cost.toFixed(4)} (${usage.output_tokens ?? '?'} image tokens out, ${usage.input_tokens ?? '?'} tokens in)` : 'Cost: nothing, drawn on this Mac.');
   if (names.length) console.log(`Pick one with: npm run asset -- pick ${rel(r.file)} ${names[0]}`);
 }
 
@@ -53,13 +53,15 @@ export async function cmdGenerate([file], opt) {
   const look = typeof opt.look === 'string' ? opt.look : r.look ?? (refs.length ? null : 'pixel');
   if (look && !LOOKS[look]) throw new Error(`look must be one of ${Object.keys(LOOKS).join(', ')}`);
   const refNote = r.referenceNote === 'character' ? CHARACTER_SHEET_NOTE : r.referenceNote === 'machine' ? MACHINE_SHEET_NOTE : look === 'vector' ? REFERENCE_NOTE_VECTOR : REFERENCE_NOTE;
-  const notes = layout ? `${layoutNote(look)} ${refs.length ? `${LAYOUT_REFERENCES_NOTE} ` : ''}` : refs.length ? `${refNote} ` : '';
+  // a local model sees no reference images, so the prompt must not speak of them (the layout it does see)
+  const seesRefs = refs.length > 0 && backendName() === 'openai';
+  const notes = layout ? `${layoutNote(look)} ${seesRefs ? `${LAYOUT_REFERENCES_NOTE} ` : ''}` : seesRefs ? `${refNote} ` : '';
   const prompt = notes + generationPrompt(r, look, as);
   console.log(`${r.name}: ${n} × ${size}, ${quality} quality, ${look ?? 'reference'} look, ${as} view${layout ? `, laid out like ${rel(layout)}` : ''}${refs.length ? `, ${refs.length} reference${refs.length > 1 ? 's' : ''}` : ''}`);
   if (opt.dry) return console.log(`\n${prompt}`);
   // with images it goes through the edit endpoint, which takes them; Sunburst follows them most closely. The layout goes first
   const background = r.spec.transparent ? 'transparent' : 'opaque', images = [...(layout ? [layout] : []), ...refs];
-  const res = images.length ? await edit({ prompt, images: await loadReferences(images), size, quality, n, background }) : await generate({ prompt, size, quality, n, background });
+  const res = images.length ? await edit({ prompt, images: await loadReferences(images), size, quality, n, background, init: !!layout }) : await generate({ prompt, size, quality, n, background });
   await saveCandidates(r, as, res, opt.tag);
 }
 
@@ -361,7 +363,7 @@ export async function cmdTouch([file], opt) {
   }
   // --clean sets how close to the key colour an edge pixel must be to go: lower keeps more of colours near the key
   if (key) cleanEdges(out, [Math.max(0, bx - 2), Math.max(0, by - 2), Math.min(img.w, bx + bw + 2), Math.min(img.h, by + bh + 2)], key, { near: Number(opt.clean ?? 190) });
-  const spent = res.cost == null ? 'Cost: not reported by the API.' : `Cost: $${res.cost.toFixed(4)} (${res.usage.output_tokens ?? '?'} image tokens out, ${res.usage.input_tokens ?? '?'} tokens in)`;
+  const spent = res.cost == null ? 'Cost: not reported by the API.' : res.usage ? `Cost: $${res.cost.toFixed(4)} (${res.usage.output_tokens ?? '?'} image tokens out, ${res.usage.input_tokens ?? '?'} tokens in)` : 'Cost: nothing, drawn on this Mac.';
   if (typeof opt.frame === 'string') {
     // an animation frame: the picked image is frame 0, and this one differs only inside the box
     const [anim, num] = opt.frame.split('/'), adir = join(r.dir, 'anims', anim), name = (k) => join(adir, `${view}-${String(k).padStart(2, '0')}.png`);

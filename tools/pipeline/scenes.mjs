@@ -10,7 +10,7 @@ import { blockoutPNG, camera as roomCamera } from './blockout.mjs';
 import { buildOne } from './build.mjs';
 import { depthOf } from './depth.mjs';
 import { blank, readRGBA, writePNG } from './image.mjs';
-import { edit, generate } from './openai.mjs';
+import { edit, generate } from './backend.mjs';
 import { loadRecipe, ROOT } from './recipe.mjs';
 import { nextName, rel } from './shared.mjs';
 import { distanceFrom, draftLayerMap, LAYER_COLOUR_NAMES, layerMapImage, layerPreview, pushPull, readLayerMap } from './split.mjs';

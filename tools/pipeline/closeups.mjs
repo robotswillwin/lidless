@@ -12,7 +12,7 @@ import { copyFile, mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path';
 import sharp from 'sharp';
 import { loadReferences } from './images.mjs';
-import { edit } from './openai.mjs';
+import { edit } from './backend.mjs';
 import { ROOT } from './recipe.mjs';
 import { rel } from './shared.mjs';
 import { LOOKS } from './style.mjs';

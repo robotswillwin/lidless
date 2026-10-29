@@ -148,7 +148,16 @@ A recipe's "exists" says which views it is in:
   concierge   generated: the Concierge made it up, so raw view shows nothing there.
   raw         real, but the Concierge edits it out: only raw view shows it.
 
-The API key goes in .env.local as OPENAI_API_KEY=... (never committed).`;
+The API key goes in .env.local as OPENAI_API_KEY=... (never committed).
+
+Any command takes --backend openai|drawthings (or ART_BACKEND=drawthings in the environment). Draw Things is the Mac app
+with its API server on (Settings → API Server, HTTP, port 7860; another address: DT_URL=...): free and local, it draws
+with the model and settings chosen in the app unless pinned here: --model <file> --steps 20 --cfg 4 --seed 7
+--sampler "Euler A Trailing" --strength 0.8 (how far image-to-image may stray from a layout or source)
+--lora "file.ckpt:0.8,other.ckpt:0.5" (LoRAs by the file names the app lists, with weights). It takes no
+reference images, so the prompt alone carries the style; a layout guide or a source picture is used (tried with Krea 2
+Turbo and Z-Image-Turbo: Z-Image draws the flatter picture, at --strength 0.95 for a guide). Give it a guide
+without text labels: a diffusion model paints the lettering too.`;
 
 function parse(argv) {
   const pos = [], opt = {};
