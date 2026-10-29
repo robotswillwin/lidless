@@ -26,6 +26,8 @@ export interface SaveData {
   seen?: Record<string, string[]>;
   /** In each scene, the ways in and out she knows: looked at, tried, or come out of. Their markers show. */
   found?: Record<string, string[]>;
+  /** The places on the city map she has ever known of, so one stays on the map once found (see citymap.ts). */
+  mapSeen?: string[];
   /** What she has read in her notebook (see notebook.ts). */
   read?: string[];
   /** How many times she has gone from one scene to another, and how far each scene's rotations have turned (rotate.ts). */
@@ -98,23 +100,6 @@ export function writeThumb(slot: Slot, url: string | null): void {
 export function loadThumb(slot: Slot): string | null {
   try {
     return localStorage.getItem(thumbKey(slot));
-  } catch {
-    return null;
-  }
-}
-
-/** A place's picture, as she last saw it (the map's cards): kept by the place, beside her saves. */
-const placeKey = (scene: string) => `lidless.place.${scene}`;
-export function writePlace(scene: string, url: string | null): void {
-  try {
-    if (url) localStorage.setItem(placeKey(scene), url);
-  } catch {
-    // too little room for a picture: the map shows the place without one
-  }
-}
-export function loadPlace(scene: string): string | null {
-  try {
-    return localStorage.getItem(placeKey(scene));
   } catch {
     return null;
   }

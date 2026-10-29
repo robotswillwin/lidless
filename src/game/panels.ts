@@ -8,7 +8,7 @@ import { Eye, eyeMark } from './eye';
 import type { Hud } from './hud';
 import { howTo, icon } from './icons';
 import { drawJournal, PLACES } from './journal';
-import { drawMap } from './map';
+import { drawCityMap } from './citymap';
 import { drawNotebook, notebookNow, type Notebook } from './notebook';
 import { drawSettings } from './settings';
 import { sounds } from './sound';
@@ -161,9 +161,11 @@ export class Panels {
       read: (keys) => hud.onRead(keys),
       close: () => this.close(),
       picture: (thing) => hud.balls.picture(thing, 72),
-      map: (body) => void hud.mapNow().then((now) => {
+      // the chapter's city map; a chapter without one has no map yet
+      map: (body) => void (hud.cityMapNow?.() ?? Promise.resolve(null)).then((city) => {
         if (this.panel !== p) return;
-        drawMap(body, now, (t) => { this.close(); hud.onTravel(t); });
+        if (city) drawCityMap(body, city, (t) => { this.close(); hud.onTravel(t); });
+        else el('p', 'city-none', body, 'No map of this chapter yet.');
       }),
     });
   }

@@ -1,0 +1,23 @@
+{
+  "name": "skyline",
+  "x": 484,
+  "y": 0,
+  "w": 1080,
+  "h": 540,
+  "maps": [
+    "albedo.concierge",
+    "albedo.raw",
+    "glow.concierge"
+  ],
+  "depth": 3,
+  "parallax": 1,
+  "occluder": 0,
+  "reflectivity": 0,
+  "object": 0,
+  "anchor": [
+    540,
+    540
+  ],
+  "exists": "concierge",
+  "kind": "background"
+}

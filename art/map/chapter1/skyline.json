@@ -1,0 +1,21 @@
+{
+  "name": "skyline",
+  "scene": "map/chapter1",
+  "kind": "background",
+  "exists": "concierge",
+  "look": "vector",
+  "res": 1,
+  "size": "2048x1024",
+  "framing": "A very wide, strictly side-on panoramic view of a cyberpunk city district at night, filling the whole frame edge to edge. A distant layered skyline of neon skyscrapers receding into haze, elevated walkways and bridges crossing mid-height, a clear horizontal street-level band along the lower third, and a darker strip of underground infrastructure beneath it. No single building dominates; the skyline is even and repeating so it could tile. No text, no captions, no labels, no markers, no lines, no UI, no border, no people.",
+  "prompt": "An atmospheric panoramic backdrop of a dense cyberpunk city district at night, as the city AI renders it for a map — a mood piece, not a plan. Deep indigo and electric-blue sky; distant layered skyscrapers in violet haze with cyan, magenta and amber neon accents and lit windows; vertical light beams and holographic glows rising between towers; elevated walkways, monorails and bridges crossing at mid height; a pale crescent moon. A clear horizontal street-level band runs along the lower third — the fronts of buildings warm with amber light, neon shop signs, street lamps, a wet reflective road catching the colour. Beneath the street, a dark band of underground infrastructure: dim service tunnels, pipes and faint teal utility lights. The composition is even and horizontal, no single landmark, the skyline repeating gently so it reads as an endless city. Dark enough overall that bright labels could sit on top. No text, no numbers, no markers, no lines, no people.",
+  "height": 540,
+  "position": [1024, 540],
+  "depth": 3,
+  "material": "concrete",
+  "glow": { "concierge": "auto" },
+  "references": [
+    "art/street/vista-far/concierge.png",
+    "art/reference/look/flat-street-concierge.webp"
+  ],
+  "palette": 0
+}

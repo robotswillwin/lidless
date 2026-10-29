@@ -70,14 +70,14 @@ describe('what the scenes and the notebook name in the story', () => {
     expect(bad).toEqual([]);
   });
 
-  it('has a scene for every place on the map, and the places to arrive it names', () => {
+  it('has a scene for every place on the chapter map, and the places to arrive it names', () => {
     const bad: string[] = [];
-    for (const [id, place] of Object.entries(world.map?.places ?? {})) {
-      const s = scenes.find((x) => x.id === id);
-      if (!s || !world.scenes.includes(id)) bad.push(`map: ${id} is no scene of the world's`);
-      else if (place.spawn && !s.spawns[place.spawn]) bad.push(`map: ${id} arrives at ${place.spawn}, which the scene does not have`);
+    const map = world.cityMap ? (JSON.parse(readFileSync(join(assets, world.cityMap), 'utf8')) as { nodes: { id: string; targetScene: string; targetArrival?: string }[] }) : null;
+    for (const n of map?.nodes ?? []) {
+      const s = scenes.find((x) => x.id === n.targetScene);
+      if (!s || !world.scenes.includes(n.targetScene)) bad.push(`map: ${n.id} goes to ${n.targetScene}, which is no scene of the world's`);
+      else if (n.targetArrival && !s.spawns[n.targetArrival]) bad.push(`map: ${n.id} arrives at ${n.targetArrival}, which ${n.targetScene} does not have`);
     }
-    for (const id of world.scenes) if (!world.map?.places[id]) bad.push(`map: ${id} is not on it`);
     for (const [book, b] of Object.entries(books)) {
       const ids = new Set<string>(book === 'journal' ? ['places'] : []);
       for (const p of b.pages) {

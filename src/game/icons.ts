@@ -37,6 +37,13 @@ const ICONS: Record<string, string> = {
   // a keyboard: what the keys do
   keys: '<rect x="2.5" y="6" width="19" height="12" rx="2.2"/><path d="M6.5 10h.01M10 10h.01M13.5 10h.01M17 10h.01M7.5 14h9"/>',
   back: '<path d="M15 5l-7 7 7 7"/>',
+  // the city map's markers: a home, a shop, a bar, a radio, a door, a lift
+  home: '<path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9h12v-9"/><path d="M10.5 19v-5h3v5"/>',
+  shop: '<path d="M4 9h16l-1 3H5z"/><path d="M5 12v7h14v-7"/><path d="M4 9l1-4h14l1 4"/><path d="M10 19v-4h4v4"/>',
+  bar: '<path d="M5 4h14l-7 8z"/><path d="M12 12v6"/><path d="M8.5 18h7"/>',
+  radio: '<rect x="3" y="8" width="18" height="11" rx="1.5"/><path d="M7 4l10 3.5"/><circle cx="15.5" cy="13.5" r="2.6"/><path d="M6.5 12h3.5M6.5 15h3.5"/>',
+  door: '<rect x="6" y="3" width="12" height="18" rx="1"/><path d="M14.5 12h.01"/>',
+  lift: '<rect x="5" y="3" width="14" height="18" rx="1.2"/><path d="M12 3v18"/><path d="M8.5 9l1.5-2 1.5 2M13.5 15l1.5 2 1.5-2"/>',
 };
 
 /** Its own graphics, on a 64 grid: what exists only in its eye, and how it draws a thing it has no picture of. */

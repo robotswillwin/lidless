@@ -9,7 +9,6 @@ import { aliveProblems } from './alive';
 import { conditionProblem } from './conditions';
 import { textureFromImage, type GL } from '../engine/gl';
 import type { Hotspot, LevelDef, ViewText } from './level';
-import type { MapLayout } from './map';
 import type { Noticed } from './privacy';
 import type { Rotation } from './rotate';
 import type { Outfits } from './outfits';
@@ -197,8 +196,8 @@ export interface WorldFile {
     alive?: { front?: AlivePart[] };
   };
   scenes: string[];
-  /** Where each place is drawn on the map (see map.ts). */
-  map?: MapLayout;
+  /** The chapter's panoramic city map, an asset path under assets (see citymap.ts). */
+  cityMap?: string;
 }
 
 export interface Scene {

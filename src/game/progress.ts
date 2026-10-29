@@ -18,6 +18,8 @@ export class Progress {
   private readonly seen: Map<string, Set<string>>;
   /** In each place, the ways in and out she knows (looked at, tried, come out of): their markers show. */
   private readonly found: Map<string, Set<string>>;
+  /** The city-map places she has ever known of: one stays on the map once found (see citymap.ts). */
+  readonly mapSeen: Set<string>;
   /** What she has read in her notebook (the rest is marked new), and the messages she has read. */
   readonly notesRead: Set<string>;
   readonly messagesRead: Set<string>;
@@ -33,6 +35,7 @@ export class Progress {
     this.been = new Set(save?.visited ?? []);
     this.seen = sets(save?.seen);
     this.found = sets(save?.found);
+    this.mapSeen = new Set(save?.mapSeen ?? []);
     this.notesRead = new Set(save?.read ?? []);
     this.messagesRead = new Set(save?.messagesRead ?? []);
     this.arrived = save?.arrived ?? 0;
@@ -51,6 +54,13 @@ export class Progress {
 
   knows(place: string, id: string): boolean {
     return !!this.found.get(place)?.has(id);
+  }
+
+  /** Mark city-map places as known of, so they stay on the map. Returns whether any were new (to save). */
+  noteMapSeen(ids: readonly string[]): boolean {
+    let grew = false;
+    for (const id of ids) if (!this.mapSeen.has(id)) { this.mapSeen.add(id); grew = true; }
+    return grew;
   }
 
   /** What she has seen in a place of what goes on the map, to add to as more comes into sight. */
@@ -78,9 +88,9 @@ export class Progress {
   }
 
   /** What of it goes into her save. */
-  toSave(): Pick<SaveData, 'visited' | 'seen' | 'found' | 'read' | 'arrived' | 'rotations' | 'visits' | 'messagesRead' | 'opened'> {
+  toSave(): Pick<SaveData, 'visited' | 'seen' | 'found' | 'mapSeen' | 'read' | 'arrived' | 'rotations' | 'visits' | 'messagesRead' | 'opened'> {
     return {
-      visited: [...this.been], seen: lists(this.seen), found: lists(this.found), read: [...this.notesRead],
+      visited: [...this.been], seen: lists(this.seen), found: lists(this.found), mapSeen: [...this.mapSeen], read: [...this.notesRead],
       arrived: this.arrived, rotations: this.rotations, visits: this.visits, messagesRead: [...this.messagesRead], opened: this.opened,
     };
   }

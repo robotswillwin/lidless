@@ -97,48 +97,5 @@
     "floor14",
     "athena-home"
   ],
-  "map": {
-    "places": {
-      "home": {
-        "spawn": "door"
-      },
-      "backstreet": {
-        "at": [
-          0,
-          0
-        ],
-        "spawn": "door"
-      },
-      "street": {
-        "at": [
-          96,
-          0
-        ],
-        "spawn": "from-backstreet"
-      },
-      "radio": {
-        "spawn": "door"
-      },
-      "restroom": {
-        "spawn": "door"
-      },
-      "bar": {
-        "spawn": "door"
-      },
-      "lobby": {
-        "spawn": "street-door"
-      },
-      "floor9": {
-        "spawn": "lift",
-        "over": "lobby"
-      },
-      "floor14": {
-        "spawn": "lift",
-        "over": "floor9"
-      },
-      "athena-home": {
-        "spawn": "door"
-      }
-    }
-  }
+  "cityMap": "maps/chapter1.json"
 }

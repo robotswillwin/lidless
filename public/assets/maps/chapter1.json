@@ -1,0 +1,28 @@
+{
+  "id": "chapter1",
+  "title": "DISTRICT 3 — THE CITY",
+  "background": "map/chapter1/skyline/albedo.concierge.png",
+  "aspectRatio": 2.4,
+  "imageAspect": 2.0,
+  "nodes": [
+    { "id": "backstreet", "kind": "street", "label": "Backstreet", "x": 0.17, "y": 0.74, "span": [0.05, 0.3], "targetScene": "backstreet", "targetArrival": "from-street", "icon": "street", "group": "street" },
+    { "id": "street", "kind": "street", "label": "Main Street", "x": 0.63, "y": 0.74, "span": [0.3, 0.96], "targetScene": "street", "targetArrival": "start", "icon": "street", "group": "street" },
+
+    { "id": "lobby", "kind": "stop", "label": "Lobby", "sublabel": "Entrance 3", "x": 0.17, "y": 0.74, "targetScene": "lobby", "targetArrival": "street-door", "icon": "door", "group": "tower", "labelPosition": "above" },
+    { "id": "radio", "kind": "stop", "label": "Radio Repair", "x": 0.42, "y": 0.74, "targetScene": "radio", "targetArrival": "door", "icon": "radio", "group": "street", "labelPosition": "above" },
+    { "id": "restroom", "kind": "stop", "label": "Public Restroom", "x": 0.66, "y": 0.74, "targetScene": "restroom", "targetArrival": "door", "icon": "door", "group": "street", "labelPosition": "above" },
+    { "id": "bar", "kind": "stop", "label": "Cocktail Bar", "x": 0.9, "y": 0.74, "targetScene": "bar", "targetArrival": "door", "icon": "bar", "group": "street", "labelPosition": "above" },
+
+    { "id": "athena-home", "kind": "room", "label": "Athena's apartment", "sublabel": "Floor 9", "x": 0.17, "y": 0.46, "targetScene": "athena-home", "targetArrival": "door", "icon": "person", "group": "tower", "labelPosition": "right" },
+    { "id": "home", "kind": "room", "label": "Luna's apartment", "sublabel": "Floor 14", "x": 0.17, "y": 0.2, "targetScene": "home", "targetArrival": "door", "icon": "home", "group": "tower", "labelPosition": "right" }
+  ],
+  "connections": [
+    { "from": "backstreet", "to": "street", "style": "road" },
+    { "from": "backstreet", "to": "lobby", "style": "road" },
+    { "from": "street", "to": "radio", "style": "road" },
+    { "from": "street", "to": "restroom", "style": "road" },
+    { "from": "street", "to": "bar", "style": "road" },
+    { "from": "lobby", "to": "athena-home", "style": "lift" },
+    { "from": "athena-home", "to": "home", "style": "lift" }
+  ]
+}

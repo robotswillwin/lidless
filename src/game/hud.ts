@@ -18,7 +18,8 @@ import type { Verb } from './actions';
 import { button, el } from './dom';
 import { icon } from './icons';
 import type { Hotspot } from './level';
-import type { MapNow, Travel } from './map';
+import type { CityMapNow } from './citymap';
+import type { Travel } from './map';
 import { Marks, type Mark, type Way } from './marks';
 import type { Inbox } from './messages';
 import { notebookNow, type Notebook } from './notebook';
@@ -53,8 +54,8 @@ export class Hud {
   saves: () => SaveInfo[] = () => [];
   onSave: (slot: 1 | 2 | 3) => void = () => {};
   onLoad: (slot: 'auto' | 1 | 2 | 3) => void = () => {};
-  /** The map as she knows it now, and going somewhere on it. */
-  mapNow: () => Promise<MapNow> = async () => ({ places: [], spots: [], links: [], you: null, bounds: [0, 0, 100, 60] });
+  /** The chapter's city map, when this chapter has one (else the plain map above is used). */
+  cityMapNow?: () => Promise<CityMapNow | null>;
   onTravel: (t: Travel) => void = () => {};
   /** Her notebook, reached for where it can see her: she keeps it shut. */
   onShut: () => void = () => {};

@@ -547,97 +547,86 @@ button.view:not(.hud-btn):focus-visible { outline: 2px solid #fff; outline-offse
 .hud-btn.fresh::after { content: ""; position: absolute; right: 1px; top: 1px; width: 9px; height: 9px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 2px rgba(15, 16, 21, .9); }
 .hud-btn.notebook.fresh::after { background: #d0603f; }
 
-/* the map, in her journal: the city in profile, as she has walked it. Roads are lines with their names under them; each
-   room is a card over its door with its picture as she last saw it and its name on it; a place she has only seen the
-   door of is dashed, with a question mark; people and things are dots; where she is, lit. Beside it, the place picked:
-   its picture, who and what she knows there, and the way there */
-/* Her AR map is a cutaway of the tower, seen side-on: cyan structure, gold where she has been. */
-.map-view { --bp: 155, 225, 245; --au: 245, 194, 102; position: relative; display: grid; grid-template-columns: minmax(0, 1fr) clamp(180px, 26cqw, 260px); gap: 14px; height: 100%; }
-/* the whole panel is blueprint paper: a fine grid rule every 16px and a heavier one every 80px, so even the open space
-   around the drawing reads as a plan sheet rather than a void */
-.map-view .area { display: grid; place-items: safe center; min-width: 0; min-height: 0; overflow: auto; overscroll-behavior: contain; scrollbar-width: none; border-radius: var(--r-card-lg);
-  background:
-    linear-gradient(rgba(var(--bp), .16) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--bp), .16) 1px, transparent 1px),
-    linear-gradient(rgba(var(--bp), .07) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--bp), .07) 1px, transparent 1px),
-    radial-gradient(130% 100% at 50% 0%, rgba(var(--bp), .07), transparent 72%), rgba(4, 9, 14, .82);
-  background-size: 80px 80px, 80px 80px, 16px 16px, 16px 16px, 100% 100%, 100% 100%;
-  box-shadow: inset 0 0 0 1px rgba(var(--bp), .16); }
-.chart { position: relative; margin: 18px; }
-/* a map bigger than its window: its edges fade where there is more to scroll to */
-.map-view .area.scrolls-x { -webkit-mask-image: linear-gradient(90deg, transparent, #000 32px, #000 calc(100% - 32px), transparent); mask-image: linear-gradient(90deg, transparent, #000 32px, #000 calc(100% - 32px), transparent); }
-.map-view .area.scrolls-y:not(.scrolls-x) { -webkit-mask-image: linear-gradient(transparent, #000 24px, #000 calc(100% - 24px), transparent); mask-image: linear-gradient(transparent, #000 24px, #000 calc(100% - 24px), transparent); }
-.chart svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-.chart svg * { vector-effect: non-scaling-stroke; }
-/* the routes between stations, as a transit map: the lift one colour up the floors, the street another along the
-   ground; a way she has not taken is faded. Thick and round-capped, as a metro line is. */
-.chart .route { fill: none; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
-.chart .route.lift { stroke: rgba(var(--au), .85); }
-.chart .route.ground { stroke: rgba(var(--bp), .75); }
-.chart .route.open { stroke: rgba(var(--bp), .3); stroke-width: 3; stroke-dasharray: 1 6; }
-/* a station: a dot on its line. Filled where she has been, hollow where she has not; an interchange is bigger; where she
-   is now carries a pulsing ring. Drawn with a dark halo so it reads cleanly over the lines. */
-.chart .stn .dot { stroke: rgba(6, 12, 18, .95); stroke-width: 2.2; }
-.chart .stn.been .dot { fill: rgb(var(--au)); }
-.chart .stn.seen .dot { fill: rgba(6, 12, 18, .95); stroke: rgba(var(--bp), .8); }
-.chart .stn.unknown .dot { fill: rgba(6, 12, 18, .9); stroke: rgba(var(--bp), .4); stroke-dasharray: 1.4 1.4; }
-.chart .stn.interchange .dot { fill: rgba(6, 12, 18, .95); stroke: rgb(var(--au)); stroke-width: 2.4; }
-.chart .stn.interchange.been .dot { fill: rgb(var(--au)); stroke: #fff; }
-.chart .stn.lit .dot { filter: drop-shadow(0 0 5px rgba(var(--au), .8)); }
-.chart .stn.here .dot { fill: rgb(var(--au)); stroke: #fff; stroke-width: 2.4; filter: drop-shadow(0 0 6px rgba(var(--au), .9)); }
-/* where she is: a pulsing ring around her station */
-.chart .stn.here::after { content: none; }
-.chart .here-ring { position: absolute; z-index: 4; width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 50%; border: 1.6px solid rgba(var(--au), .85); pointer-events: none; animation: hud-you 1.8s ease-out infinite; }
-@keyframes hud-you { 0% { transform: scale(.5); opacity: .9; } 100% { transform: scale(1.5); opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { .chart .here-ring { animation: none; opacity: .5; } }
-/* the tap target over each station dot */
-.chart button.stop { position: absolute; width: 34px; height: 34px; margin: -17px 0 0 -17px; padding: 0; border: 0; background: none; border-radius: 50%; }
-.chart button.stop:focus-visible { outline: 2px solid rgba(var(--au), .8); outline-offset: 2px; }
-.chart button.stop.picked { z-index: 3; }
-/* a station's name beside its dot */
-.chart .stn-name { position: absolute; white-space: nowrap; pointer-events: none;
-  font: 600 clamp(10px, calc(var(--k, 3) * 3.4px), 13px)/1.1 var(--ui); letter-spacing: .02em; color: rgba(var(--bp), .9);
-  text-shadow: 0 0 3px rgba(6, 12, 18, 1), 0 0 6px rgba(6, 12, 18, 1), 0 0 9px rgba(6, 12, 18, .9); }
-/* a name sits clear of its dot on the chosen side */
-.chart .stn-name.right { transform: translateY(-50%); margin-left: 9px; }
-.chart .stn-name.left { transform: translate(-100%, -50%); margin-left: -9px; }
-.chart .stn-name.below { transform: translateX(-50%); margin-top: 9px; }
-.chart .stn-name.been { color: rgba(var(--au), .98); }
-.chart .stn-name.here { color: rgb(var(--au)); }
-.chart .stn-name.seen { color: rgba(var(--bp), .6); font-weight: 500; font-style: italic; }
-.chart .stn-name.street { font-size: clamp(9px, calc(var(--k, 3) * 3px), 12px); font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: rgba(var(--bp), .6); }
-/* a plan's legend, pinned in the bottom-left corner of the sheet */
-.map-view .legend { position: absolute; bottom: 10px; left: 10px; padding: 8px 11px; display: grid; gap: 5px; z-index: 4;
-  border-radius: var(--r-chip); background: rgba(5, 11, 17, .78); box-shadow: inset 0 0 0 1px rgba(var(--bp), .18); backdrop-filter: blur(3px); pointer-events: none; }
-.map-view .legend .key { display: flex; align-items: center; gap: 8px; font: 500 clamp(10px, .82cqw, 12px)/1 var(--ui); color: rgba(var(--bp), .7); }
-.map-view .legend .swatch { width: 12px; height: 12px; border-radius: 50%; flex: none; }
-.map-view .legend .swatch.been { background: rgb(var(--au)); box-shadow: 0 0 0 1.5px rgba(6, 12, 18, .9); }
-.map-view .legend .swatch.seen { background: rgba(6, 12, 18, .9); box-shadow: inset 0 0 0 1.5px rgba(var(--bp), .7); }
-/* the place picked, beside the map: its scan, its name, who and what she knows there, the way there */
-.place-detail { display: flex; flex-direction: column; gap: 10px; min-height: 0; overflow: auto; overscroll-behavior: contain; }
-.place-detail .shot { position: relative; flex: none; aspect-ratio: 16 / 9; display: grid; place-items: center; overflow: hidden; border-radius: var(--r-chip); background: rgba(var(--bp), .05); box-shadow: inset 0 0 0 1px rgba(var(--bp), .3); }
-.place-detail .shot::before, .place-detail .shot::after { content: ""; position: absolute; width: 12px; height: 12px; border: 1.4px solid rgb(var(--bp)); }
-.place-detail .shot::before { left: 5px; top: 5px; border-right: 0; border-bottom: 0; }
-.place-detail .shot::after { right: 5px; bottom: 5px; border-left: 0; border-top: 0; }
-/* a place she has been: its real art in natural colour. A place not reached: cool grey and dim (the .dim shot). */
-.place-detail .shot img { width: 100%; height: 100%; object-fit: cover; opacity: .95; filter: brightness(.95) contrast(1.05) saturate(1.05); }
-.place-detail .shot.dim img { opacity: .5; filter: grayscale(1) brightness(.5) contrast(1.2); }
-/* the corner ticks ride above; a cyan wash tints the grey scan to a HUD render */
-.place-detail .shot::before, .place-detail .shot::after { z-index: 2; }
-.place-detail .shot.dim > .tint { position: absolute; inset: 0; background: rgba(var(--bp), .5); mix-blend-mode: color; pointer-events: none; z-index: 1; }
-.place-detail .shot.none span { font: 200 34px/1 var(--ui); color: rgba(var(--bp), .5); }
-.place-detail .name { margin: 2px 2px 0; font: 500 calc(var(--fs-heading) * var(--ts, 1))/1.2 var(--ui); }
-.place-detail .state { margin: -4px 2px 0; font: 400 calc(var(--fs-small) * var(--ts, 1))/1.35 var(--ui); color: var(--dim); }
-.place-detail .here { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
-.place-detail .here button { width: 100%; display: flex; align-items: center; gap: 9px; min-height: 36px; padding: 6px 10px; border: 0; border-radius: var(--r-chip); background: rgba(255, 255, 255, .06); text-align: left;
-  font: 400 calc(var(--fs-small) * var(--ts, 1))/1.25 var(--ui); color: var(--text); }
-.place-detail .here button:hover { background: rgba(255, 255, 255, .12); }
-.place-detail .here button::before { content: ""; flex: none; width: 7px; height: 7px; border-radius: 50%; background: #fff; }
-.place-detail .here .door button::before { width: 6px; height: 9px; border-radius: 1.5px 1.5px 0 0; }
-.place-detail .here .thing button::before { width: 6px; height: 6px; border-radius: 1px; transform: rotate(45deg); }
-.place-detail .go { margin-top: auto; min-height: 42px; border: 0; border-radius: var(--r-pill); background: #f5f3ef; color: #121318; font: 500 calc(var(--fs-small) * var(--ts, 1))/1 var(--ui); }
-.place-detail .go:hover { background: #fff; }
-/* a phone held sideways: the place picked narrower, its list short */
-@container (max-width: 760px) { .map-view { grid-template-columns: minmax(0, 1fr) 190px; gap: 10px; } .place-detail .name { font-size: 15px; } }
+/* The chapter's city map: one panoramic picture with the places drawn over it in code (citymap.ts). Cyan for a place
+   known, amber for one visited, a cyan pulse where she is; thin luminous lines between them; dark translucent names. */
+.city-map { --bp: 155, 225, 245; --au: 245, 194, 102; position: relative; height: 100%; border-radius: var(--r-card-lg); overflow: hidden; background: #060b11; box-shadow: inset 0 0 0 1px rgba(var(--bp), .14); }
+.city-map svg.city { width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+.city-map svg.city:active { cursor: grabbing; }
+.city-none { margin: 0; padding: 24px; color: var(--dim); font: 400 calc(var(--fs-small) * var(--ts, 1))/1.4 var(--ui); }
+.city-map svg.city * { vector-effect: non-scaling-stroke; }
+/* the lines between places */
+.city-map .conn { fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.city-map .conn.road { stroke: rgba(var(--bp), .55); }
+.city-map .conn.lift { stroke: rgba(var(--au), .65); }
+.city-map .conn.tunnel { stroke: rgba(var(--bp), .4); stroke-dasharray: 2 6; }
+.city-map .conn.faint { opacity: .4; }
+/* the street itself: the brightest structural line, one labelled segment per street scene, coloured by that scene's
+   state; where two streets meet, a junction ring. The thicker weight says "artery"; the branches above and below are thinner. */
+.city-map .artery { fill: none; stroke: rgba(225, 240, 250, .82); stroke-width: 5; stroke-linecap: round; }
+.city-map .node.street.visited .artery { stroke: rgba(var(--au), .9); }
+.city-map .node.street.current .artery { stroke: #fff; filter: drop-shadow(0 0 6px rgba(var(--bp), .7)); }
+.city-map .node.street.discovered .artery { stroke: rgba(var(--bp), .6); }
+.city-map .node.street.inaccessible .artery { stroke: rgba(var(--bp), .35); stroke-dasharray: 4 8; }
+.city-map .artery-hit { fill: none; stroke: transparent; stroke-width: 36; cursor: pointer; }
+.city-map .junction { fill: rgba(6, 12, 18, .95); stroke: rgba(225, 240, 250, .9); stroke-width: 2.5; }
+/* a street's name, quiet and spaced, under its segment */
+.city-map .street-name { font: 600 11px/1 var(--ui); letter-spacing: .22em; text-transform: uppercase; text-anchor: middle; dominant-baseline: hanging;
+  fill: rgba(225, 240, 250, .75); paint-order: stroke; stroke: rgba(4, 9, 14, .9); stroke-width: 4px; stroke-linejoin: round; cursor: pointer; }
+.city-map .node.street.visited .street-name { fill: rgba(var(--au), .95); }
+.city-map .node.street.current .street-name { fill: #fff; }
+.city-map .node.street.inaccessible .street-name { fill: rgba(var(--bp), .5); }
+/* a pill's second line: a floor, an entrance */
+.city-map .cm-pill .pill-text { display: flex; flex-direction: column; gap: 2px; }
+.city-map .cm-pill .pill-sub { font: 500 9.5px/1 var(--ui); letter-spacing: .12em; text-transform: uppercase; opacity: .7; }
+/* a place's marker: a dot with its glyph, coloured by its state */
+.city-map .node { cursor: pointer; }
+/* the stem from the place's dot out to its pill */
+.city-map .node .stem { stroke: rgba(var(--bp), .5); stroke-width: 1.5; }
+.city-map .node.visited .stem { stroke: rgba(var(--au), .7); }
+.city-map .node.current .stem { stroke: #fff; }
+.city-map .node.inaccessible .stem { stroke: rgba(var(--bp), .35); stroke-dasharray: 2.5 2.5; }
+/* the dot where the place sits */
+.city-map .node .node-dot { fill: rgba(6, 12, 18, .9); stroke: rgba(var(--bp), .7); stroke-width: 2; }
+.city-map .node.visited .node-dot { fill: rgb(var(--au)); stroke: rgb(var(--au)); }
+.city-map .node.current .node-dot { fill: #fff; stroke: #fff; }
+.city-map .node.inaccessible .node-dot { stroke-dasharray: 2 2; }
+.city-map .node.current .ring { fill: none; stroke: #fff; stroke-width: 2; transform-box: fill-box; transform-origin: center; animation: cm-pulse 1.9s ease-out infinite; }
+@keyframes cm-pulse { 0% { transform: scale(.5); opacity: .9; } 100% { transform: scale(1.6); opacity: 0; } }
+/* the pill: a solid dark box with a bright border, its glyph and name — high contrast over the neon city (as the reference).
+   Sizes here are screen pixels: the markers' groups are scaled so one unit inside them is one pixel (see citymap.ts). */
+.city-map .pill-fo { overflow: visible; pointer-events: none; }
+.city-map .cm-pill { display: flex; align-items: center; height: 100%; pointer-events: none; }
+.city-map .cm-pill .pill-box { display: inline-flex; align-items: center; gap: 7px; max-width: 100%; padding: 7px 11px 7px 9px; border: 0; border-radius: 7px;
+  background: rgba(6, 10, 15, .9); box-shadow: inset 0 0 0 1.5px rgba(var(--bp), .6), 0 2px 10px rgba(0, 0, 0, .5); pointer-events: auto; cursor: pointer; font: inherit; }
+.city-map .cm-pill .pill-box:hover { background: rgba(10, 16, 23, .95); }
+.city-map .cm-pill .pill-box:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.city-map .cm-pill .pill-icon { display: inline-flex; width: 16px; height: 16px; flex: none; color: rgba(var(--bp), .95); }
+.city-map .cm-pill .pill-icon svg { width: 16px; height: 16px; }
+.city-map .cm-pill .pill-text { font: 600 11.5px/1 var(--ui); letter-spacing: .06em; text-transform: uppercase; color: rgba(var(--bp), .96); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.city-map .cm-pill .pill-lock { display: inline-flex; width: 13px; height: 13px; flex: none; color: rgba(var(--bp), .8); margin-left: 2px; }
+.city-map .cm-pill.visited .pill-box { box-shadow: inset 0 0 0 1.5px rgb(var(--au)), 0 2px 12px rgba(0, 0, 0, .55); }
+.city-map .cm-pill.visited .pill-icon, .city-map .cm-pill.visited .pill-text { color: rgb(var(--au)); }
+.city-map .cm-pill.current .pill-box { box-shadow: inset 0 0 0 2px #fff, 0 0 16px rgba(var(--bp), .5); background: rgba(8, 14, 20, .94); }
+.city-map .cm-pill.current .pill-icon, .city-map .cm-pill.current .pill-text { color: #fff; }
+.city-map .cm-pill.discovered .pill-box { box-shadow: inset 0 0 0 1.5px rgba(var(--bp), .55); }
+.city-map .cm-pill.inaccessible { opacity: .75; }
+.city-map .cm-pill.inaccessible .pill-box { box-shadow: inset 0 0 0 1.5px rgba(var(--bp), .4); }
+.city-map .cm-pill .pill-icon svg :is(path, rect, circle, line), .city-map .cm-pill .pill-lock svg :is(path, rect, circle, line) { stroke: currentColor; fill: none; }
+/* the title in a corner, and a small legend */
+.city-map .city-title { position: absolute; top: 12px; left: 16px; font: 600 clamp(12px, 1.4cqw, 16px)/1.2 var(--ui); letter-spacing: .18em; color: rgba(var(--bp), .85); text-shadow: 0 1px 6px rgba(0, 0, 0, .8); pointer-events: none; }
+.city-map .city-legend { position: absolute; top: 12px; right: 16px; display: flex; gap: 14px; padding: 7px 11px; border-radius: var(--r-chip); background: rgba(5, 11, 17, .72); box-shadow: inset 0 0 0 1px rgba(var(--bp), .18); backdrop-filter: blur(3px); pointer-events: none; }
+.city-map .city-legend .key { display: flex; align-items: center; gap: 8px; font: 500 clamp(10px, .82cqw, 12px)/1 var(--ui); color: rgba(var(--bp), .7); }
+.city-map .city-legend .dot { width: 11px; height: 11px; border-radius: 50%; flex: none; box-shadow: 0 0 0 1.5px rgba(6, 12, 18, .9); }
+.city-map .city-legend .dot.current { background: #fff; }
+.city-map .city-legend .dot.visited { background: rgb(var(--au)); }
+.city-map .city-legend .dot.discovered { background: rgba(6, 12, 18, .9); box-shadow: inset 0 0 0 1.5px rgba(var(--bp), .7); }
+.city-map .city-legend .dot.inaccessible { background: rgba(6, 12, 18, .9); box-shadow: inset 0 0 0 1.5px rgba(var(--bp), .4); }
+/* a card for a place she knows but cannot reach */
+.city-map .city-inspect { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 5; min-width: 220px; padding: 14px 16px; border-radius: var(--r-card); background: rgba(8, 13, 19, .94); box-shadow: 0 16px 40px rgba(0, 0, 0, .6), inset 0 0 0 1px rgba(var(--bp), .25); }
+.city-map .city-inspect h3 { margin: 0 0 4px; font: 500 calc(var(--fs-heading) * var(--ts, 1))/1.2 var(--ui); color: rgba(var(--bp), .95); }
+.city-map .city-inspect p { margin: 0; font: 400 calc(var(--fs-small) * var(--ts, 1))/1.35 var(--ui); color: var(--dim); }
+.city-map .city-inspect .close { position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; display: grid; place-items: center; border: 0; border-radius: 50%; background: rgba(255, 255, 255, .06); color: var(--text-2); }
+@media (prefers-reduced-motion: reduce) { .city-map .node.current .ring { animation: none; opacity: .5; } }
 
 /* her notebook: paper and pencil, its pages as tabs along its top edge, what she has not read yet dotted in red */
 /* put away, a sheet fades as it goes */

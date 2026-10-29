@@ -23,13 +23,14 @@ import { heroDrawing } from './hero';
 import { Hud, type CloseupDef, type Item, type Notebook } from './hud';
 import { inView, pick, placeIn, type Hotspot } from './level';
 import { Lift } from './lift';
-import { mapNow, onMap, type MapNow, type MapScene } from './map';
+import { resolveCityMap, type ChapterMap, type CityMapNow } from './citymap';
+import { onMap } from './map';
 import type { MessagesFile } from './messages';
 import { outfitAfter } from './outfits';
 import { Turns } from './pose';
 import { Progress } from './progress';
 import type { Replies } from './replies';
-import { listSaves, loadPlace, loadSave, loadThumb, writePlace, writeSave, writeThumb, type SaveData, type Slot } from './save';
+import { listSaves, loadSave, loadThumb, writeSave, writeThumb, type SaveData, type Slot } from './save';
 import { SceneRunner, type ViewState } from './scene';
 import type { Scene, WorldFile } from './scenefile';
 import { Scenes } from './scenes';
@@ -189,7 +190,7 @@ export class Game {
     this.hud.onSave = (slot) => this.saveTo(slot);
     this.hud.onLoad = (slot) => this.loadFrom(slot);
     this.hud.onView = () => this.toggleView();
-    this.hud.mapNow = () => this.mapNow();
+    this.hud.cityMapNow = () => this.cityMapNow();
     this.hud.onTravel = (t) => void this.ways.jump(t);
     this.hud.onWay = (id) => this.ways.take(id);
     this.hud.onBack = () => this.ways.back();
@@ -255,6 +256,8 @@ export class Game {
   /** When the last rain drop sounded, and how long until the next: the patter over the rain bed. */
   private lastDrop = 0;
   private nextDrop = 0.3;
+  /** The chapter's city map, loaded once from its data file. */
+  private cityMap: ChapterMap | null = null;
 
   /** After the tab was hidden: the next frame does not catch up on the time away. */
   resume(): void {
@@ -289,7 +292,7 @@ export class Game {
     this.world.raw = this.raw;
     // what is there depends on the story: a thing only while a condition holds, a thing she took gone for good
     this.world.shown = this.there;
-    if (!next.file.closeup) { this.progress.been.add(id); this.picturePlace(next); }
+    if (!next.file.closeup) this.progress.been.add(id);
     // the scene's own things by the story, the city's conditions by the address when it asks for a variant (?variant=)
     this.runner.shown = (when) => holds(when, (n) => (n === 'conditions' && this.setup.variant ? this.setup.variant : this.dialogue.read(n)));
     this.runner.read = (name) => this.dialogue.read(name);
@@ -306,19 +309,6 @@ export class Game {
     this.look.setScene(next.file, this.variant);
   }
 
-  /**
-   * A picture of a place as she sees it, for its card on the map: taken a moment after she arrives, once the fade
-   * has gone (later, if a slow load keeps it dark); not if she has gone on by then.
-   */
-  private picturePlace(scene: Scene, tries = 6): void {
-    window.clearTimeout(this.pictureTimer);
-    this.pictureTimer = window.setTimeout(() => {
-      if (this.scene !== scene) return;
-      if (this.setup.fade.classList.contains('on') && tries > 0) return this.picturePlace(scene, tries - 1);
-      writePlace(scene.file.id, this.thumbnail(320, 180));
-    }, 1200);
-  }
-  private pictureTimer = 0;
 
   /** Whether a hotspot is there now: only while its condition holds, and a thing she took is gone for good. */
   private readonly there = (h: Hotspot): boolean => this.dialogue.test(h.when) && !(h.item && this.dialogue.took(h.item));
@@ -333,18 +323,27 @@ export class Game {
     return cameraTarget(this.scene.file, this.world.heroX, this.setup.reduceMotion);
   }
 
-  /** The map as she knows it: every place on it whose file there is, what she has been to and seen, where she is. */
-  private async mapNow(): Promise<MapNow> {
-    const layout = this.setup.world.map ?? { places: {} }, ids = Object.keys(layout.places).filter((id) => this.setup.world.scenes.includes(id));
-    const files = await Promise.all(ids.map((id) => this.scenes.file(id).catch(() => null)));
-    const scenes: Record<string, MapScene> = {};
-    // a still of each scene's art (its first, farthest layer), for the places she has not been to: shown dim and grey on
-    // the map so the whole building is drawn, not only the rooms she has reached
-    ids.forEach((id, i) => { const f = files[i]; if (f) scenes[id] = Object.assign(f, { art: f.layers[0]?.asset ? `${this.setup.assets}/${f.layers[0].asset}/albedo.raw.png` : undefined }); });
+  /** The chapter's city map data, loaded once from its file (public/assets/maps/<chapter>.json), or null if none. */
+  private async loadCityMap(): Promise<ChapterMap | null> {
+    if (this.cityMap) return this.cityMap;
+    const path = this.setup.world.cityMap;
+    if (!path) return null;
+    this.cityMap = await fetch(`${this.setup.assets}/${path}`, { cache: 'no-store' })
+      .then((r) => (r.ok ? (r.json() as Promise<ChapterMap>) : null)).catch(() => null);
+    return this.cityMap;
+  }
+
+  /** The city map resolved against what she knows now (see citymap.ts); null if this chapter has no city map. */
+  private async cityMapNow(): Promise<CityMapNow | null> {
+    // before she is anywhere (the title, a loading screen) there is nothing to resolve against: no map rather than a throw
+    if (!this.scene) return null;
+    const data = await this.loadCityMap();
+    if (!data) return null;
     const here = this.ways.here();
-    const now = mapNow(layout, scenes, this.progress.been, (sc, id) => this.progress.hasSeen(sc, id), { scene: here.scene, x: here.x }, this.raw, this.there);
-    // each place she has been, as she last saw it
-    for (const p of now.places) if (p.state === 'been') p.picture = loadPlace(p.id) ?? undefined;
+    const now = resolveCityMap({ ...data, background: `${this.setup.assets}/${data.background}` },
+      (c) => this.dialogue.test(c), this.progress.been, here.scene, this.progress.mapSeen);
+    // a place she now knows of stays known: remember any new ones
+    if (this.progress.noteMapSeen(now.discovered)) this.persist();
     return now;
   }
 
