@@ -2,6 +2,7 @@
   "assets": [
     "crowd",
     "dock-woman",
+    "junction-box",
     "set",
     "sky",
     "sleeper",
@@ -15,6 +16,7 @@
     "vista-street"
   ],
   "backgrounds": [
+    "junction-box",
     "vista-far",
     "vista-mid",
     "vista-street"

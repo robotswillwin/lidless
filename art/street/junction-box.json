@@ -1,0 +1,32 @@
+{
+  "scene": "street",
+  "kind": "background",
+  "interior": false,
+  "exists": "both",
+  "look": "vector",
+  "res": 2,
+  "size": "1936x1088",
+  "height": 540,
+  "position": [
+    480,
+    540
+  ],
+  "depth": 3,
+  "glow": {
+    "raw": "auto",
+    "concierge": "auto",
+    "machine": true
+  },
+  "palette": 0,
+  "name": "junction-box",
+  "material": "metal",
+  "framing": "A close-up of a steel electrical junction box mounted on a concrete wall, seen straight from the front at the eye height of someone crouching before it, the box filling most of the frame with the wall around it and the pavement along the bottom. Lit by a street lamp from the upper left. No text, no captions, no border.",
+  "prompt": "The street's electrical service box up close, right of a radio repair shop in a decaying city at night: a grey steel utility cabinet, waist high, its single door bent back at the bottom left corner just enough to see inside; across the door's left edge a municipal seal sticker, torn and stuck back down; at the top right of the door a small service label with faded print; in the middle of the door's right edge a triangular socket lock, not a keyhole; thick cables rising into the cabinet from a slot in the pavement at the bottom; through the bent corner a glimpse of coloured wires tied off with string and one thin black cable taped to them, running up. Rust streaks down the door, old paint flaking on the wall, a drainpipe's shadow. The same flat-shaded style: two or three flat tones per surface, crisp edges. No people. No legible writing anywhere.",
+  "concierge": "The city AI's version of the same cabinet, every part in the same place and the same size: the cabinet sleek pale grey, its door flat and perfectly shut, a clean municipal emblem glowing softly where the seal is, a neat printed label, a smooth round lock, the cables tidy in a clean conduit, the wall freshly painted. Warm, even evening light. No people. No signs, no symbols beyond the emblem, no writing.",
+  "references": [
+    "art/street/vista-street/raw.png"
+  ],
+  "conciergeReferences": [
+    "art/street/vista-street/concierge.png"
+  ]
+}
