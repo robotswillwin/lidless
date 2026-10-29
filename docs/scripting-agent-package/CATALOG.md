@@ -228,6 +228,49 @@ exterior. Arrivals: `start`, `from-backstreet`, `from-radio`, `from-restroom`, `
 | `corner-shop` | Corner shop |  |  |
 | `guardian` | Civic guardian / Guard unit | `guardian` (talk) | moves |
 | `bar-door` | Bar entrance / Bar door |  | to `bar/door` |
+| `lamp-post` | Street lamp |  |  |
+| `junction-box` | Utility cabinet / Junction box | `junction_box` | close-up `street-box` |
+| `service-door` | Service door / Steel door |  |  |
+| `drainpipe` | Drainpipe |  |  |
+| `upstairs-flat` | Flat above the shop |  |  |
+| `roof-garden` | Roof garden / Roof |  |  |
+| `bollard` | Bollard |  |  |
+| `hotel-sign` | Hotel / Hotel sign |  |  |
+| `bar-sign` | Bar sign |  |  |
+| `lantern` | Lantern |  |  |
+| `back-door` | Private door / Back door |  |  |
+| `bar-vent` | Extractor / Kitchen vent |  |  |
+| `lamp-post-2` | Street lamp |  |  |
+| `shop-lamp` | Shop lamp |  |  |
+| `planter` | Planter |  |  |
+| `townhouse-window` | Window / Second-floor window |  |  |
+| `balcony` | Balcony |  |  |
+
+### street-box: Utility cabinet (raw view: Junction box)
+
+A close-up of `street`, gone into from its spot that zooms to it.
+
+| Spot | Name | Story | Notes |
+| --- | --- | --- | --- |
+| `door` | Cabinet door / Bent door | `junction_box` |  |
+| `seal` | Municipal seal / Seal |  |  |
+| `label` | Label / Service label |  |  |
+| `lock` | Lock / Triangular lock |  |  |
+| `cables` | Cabling / The gap | `junction_cable` | raw view only |
+| `conduit` | Conduit / Cables |  |  |
+
+## Planted for later
+
+Spots with a note from their author, kept for a coming chapter: a chapter that picks one up should say so.
+
+- `street/junction-box` (Utility cabinet / Junction box): Kept for chapter 2: the fixer's tap into the street's lines. Up close (street-box) the door, seal, label, lock and the gap each have their say.
+- `street/service-door` (Service door / Steel door): Kept for chapter 2: the back way into Radio Repair's building, with the fixer's card.
+- `street/upstairs-flat` (Flat above the shop): Honey trap for now. Could be the fixer's flat in a later chapter.
+- `street/hotel-sign` (Hotel / Hotel sign): Kept for a later chapter: a room that isn't her home. The stair and the grille are behind the sign.
+- `street/back-door` (Private door / Back door): Honey trap: someone is in there and does not want to be. A knot for a later chapter if it pays off.
+- `street/townhouse-window` (Window / Second-floor window): Honey trap: a watcher. Pays off in a later chapter, or never.
+- `street-box/label` (Label / Service label): Kept for chapter 2: the digits are the line the fixer taps. Keep them unreadable in the art.
+- `street-box/lock` (Lock / Triangular lock): Kept for chapter 2: the fixer's triangle key opens it.
 
 ## People who speak
 
@@ -252,6 +295,7 @@ Speaker tags in the story so far: `#concierge`, `#door`, `#felix`, `#fixer`, `#g
 | --- | --- | --- |
 | `raw_view` | `false` | set by the game when a conversation starts and at every choice: true while Luna sees raw view |
 | `has_raw` | `false` | read by the game: true once the fixer has switched on raw view in her eyepiece, which unlocks the view switch |
+| `junction_cable_seen` | `false` | she has seen, in raw view, the cable in the street's junction box that is not the city's (for a later chapter) |
 | `favours_owed` | `0` | favours she owes the fixer, for raw view among them: he names each when he needs it |
 | `conditions` | `""` | read by the game: what the city is like now, a variant the scenes have ("rain", "fog", "outage"); "" as they are |
 | `credits` | `312` | Her credits: digital, her allowance, on her account. The Concierge's greeting shows them in its view |
@@ -293,7 +337,7 @@ Lists: `Things` (parcel, matches, cigarettes, map, paper_notebook, athena_note, 
 
 ## Knots
 
-`fixer`, `station`, `guardian`, `opening`, `concierge_home`, `photo`, `luna_drawer`, `notebook`, `luna_cradle`, `hologram_inner`, `hologram_middle`, `hologram_outer`, `rings_turned`, `rings_again`, `concierge`, `bar_prices`, `bar_counter`, `bar_order`, `felix`, `lift`, `athena_door`, `athena_bell`, `athena_asked`, `athena_bench`, `athena_gap`, `athena_radio`, `athena_lamp`, `athena_drawer`, `athena_valves`, `athena_letters`, `athenas_note`, `athena_timetable`, `athena_receipt`, `athena_scope`, `athena_wave_knob`, `athena_speed_knob`, `good`, `meal`.
+`fixer`, `station`, `guardian`, `junction_box`, `junction_cable`, `opening`, `concierge_home`, `photo`, `luna_drawer`, `notebook`, `luna_cradle`, `hologram_inner`, `hologram_middle`, `hologram_outer`, `rings_turned`, `rings_again`, `concierge`, `bar_prices`, `bar_counter`, `bar_order`, `felix`, `lift`, `athena_door`, `athena_bell`, `athena_asked`, `athena_bench`, `athena_gap`, `athena_radio`, `athena_lamp`, `athena_drawer`, `athena_valves`, `athena_letters`, `athenas_note`, `athena_timetable`, `athena_receipt`, `athena_scope`, `athena_wave_knob`, `athena_speed_knob`, `good`, `meal`.
 
 Functions: `good()` is the time of day's greeting word ("morning", "afternoon", "evening"; at night still "evening"), as in `"Good {good()}, guest."`; `meal()` is what a station serves now ("Breakfast", "Lunch", "Dinner").
 

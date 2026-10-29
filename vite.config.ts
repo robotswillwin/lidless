@@ -2,7 +2,8 @@ import { readFileSync } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
-import { defineConfig, type Plugin } from 'vite';
+import type { Plugin } from 'vite';
+import { defineConfig } from 'vitest/config';
 import { Compiler, CompilerOptions } from 'inkjs/full';
 
 /**
@@ -194,6 +195,8 @@ export default defineConfig({
   server: { allowedHosts: TUNNELS },
   preview: { allowedHosts: TUNNELS },
   plugins: [ink(), assetWatch(), lookSave(), sceneSave(), sceneLookSave()],
+  // the catalog and the agent package are regenerated before the tests (scripts/test-setup.ts)
+  test: { globalSetup: ['scripts/test-setup.ts'] },
   build: {
     target: 'es2022',
     assetsInlineLimit: 0,

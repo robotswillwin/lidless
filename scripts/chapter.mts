@@ -622,6 +622,9 @@ function catalogText(game: Game): string {
     }
     out.push('');
   }
+  // spots kept for later chapters, by their authors' notes: the hooks a chapter can pick up
+  const planted = [...game.scenes].flatMap(([id, s]) => s.spots.filter((h) => typeof h.note === 'string').map((h) => `- \`${id}/${String(h.id)}\` (${view(h.name)}): ${String(h.note)}`));
+  if (planted.length) out.push('## Planted for later', '', 'Spots with a note from their author, kept for a coming chapter: a chapter that picks one up should say so.', '', ...planted, '');
   out.push('## People who speak', '', 'Speaker tags in the story so far: ' + [...game.speakers].filter((s) => s !== 'narration').sort().map((s) => `\`#${s}\``).join(', ') + '. A line without a tag is narration.', '');
   out.push('## Things she can carry', '', '| Thing | Name | Note |', '| --- | --- | --- |');
   for (const [id, it] of Object.entries(game.items)) out.push(`| \`${id}\` | ${view((it as Obj).name)} | ${view((it as Obj).note)} |`);

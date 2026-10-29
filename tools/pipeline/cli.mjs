@@ -14,6 +14,7 @@ import { ROOT } from './recipe.mjs';
 import { buildOne } from './build.mjs';
 import { cmdParts, cmdRig } from './characters.mjs';
 import { cmdErase, cmdExtend, cmdGenerate, cmdImport, cmdNew, cmdPaint, cmdPick, cmdRedress, cmdReframe, cmdSheet, cmdTouch, cmdVariant } from './images.mjs';
+import { cmdHotspots } from './hotspots.mjs';
 import { cmdBlockout, cmdGround, cmdSplit, cmdWiden, cmdZoom } from './scenes.mjs';
 
 try { process.loadEnvFile(resolve(ROOT, '.env.local')); } catch { /* no .env.local: fine until an API call needs the key */ }
@@ -105,6 +106,10 @@ const HELP = `Asset pipeline: generate art with an image AI, clean it and turn i
       --before, the pictures are already without it: it is cut from the ones in <dir> (concierge.png, raw.png). --hull:
       it is convex (a box, a jar), everything between its edges is it. The box is in the picture's pixels: keep it
       tight, what changed in it besides the thing is cut with it.
+  npm run asset -- hotspots <scene> [--view raw|concierge|both] [--scale 1] [--all]
+      A review picture of a scene's hotspots over its art, in each view: art/review/<scene>.<view>.png. Layers shown
+      only while the story says so are left out unless --all.
+
   npm run asset -- closeups [--only station] [--n 2] [--quality medium] [--dry]
       Close-ups, a moment shown up close over the dimmed scene, as described in art/closeups/closeups.json: the
       Concierge's view first. --pick station=1 picks it and draws raw view's candidates from it; --pick-raw station=1
@@ -170,6 +175,9 @@ function parse(argv) {
 }
 
 const [cmd, ...rest] = process.argv.slice(2), { pos, opt } = parse(rest);
-const run = { closeups: cmdCloseups, items: cmdItems, windows: cmdWindows, blink: cmdBlink, turns: cmdTurns, lift: cmdLift, new: cmdNew, rig: cmdRig, zoom: cmdZoom, extend: cmdExtend, generate: cmdGenerate, variant: cmdVariant, redress: cmdRedress, reframe: cmdReframe, blockout: cmdBlockout, pick: cmdPick, import: cmdImport, sheet: cmdSheet, touch: cmdTouch, split: cmdSplit, ground: cmdGround, erase: cmdErase, paint: cmdPaint, parts: cmdParts, widen: cmdWiden, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
+// which image model draws, and what a local one is pinned to (see backend.mjs, drawthings.mjs)
+if (typeof opt.backend === 'string') process.env.ART_BACKEND = opt.backend;
+for (const [flag, env] of [['model', 'DT_MODEL'], ['steps', 'DT_STEPS'], ['cfg', 'DT_CFG'], ['seed', 'DT_SEED'], ['sampler', 'DT_SAMPLER'], ['strength', 'DT_STRENGTH'], ['lora', 'DT_LORA']]) if (typeof opt[flag] === 'string') process.env[env] = opt[flag];
+const run = { hotspots: cmdHotspots, closeups: cmdCloseups, items: cmdItems, windows: cmdWindows, blink: cmdBlink, turns: cmdTurns, lift: cmdLift, new: cmdNew, rig: cmdRig, zoom: cmdZoom, extend: cmdExtend, generate: cmdGenerate, variant: cmdVariant, redress: cmdRedress, reframe: cmdReframe, blockout: cmdBlockout, pick: cmdPick, import: cmdImport, sheet: cmdSheet, touch: cmdTouch, split: cmdSplit, ground: cmdGround, erase: cmdErase, paint: cmdPaint, parts: cmdParts, widen: cmdWiden, build: async (files) => { if (!files.length) throw new Error('usage: build <recipe> [more...]'); for (const f of files) await buildOne(f); } }[cmd];
 if (!run) console.log(HELP);
 else run(pos, opt).catch((e) => { console.error(`error: ${e.message}`); process.exit(1); });
